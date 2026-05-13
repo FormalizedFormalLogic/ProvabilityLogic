@@ -154,6 +154,14 @@ namespace Provable
 
 variable {Γ Δ : FormulaFinset} {A B C : Formula}
 
+lemma axm (A) : ⊢ ({A} ⟹ {A}) := ⟨Proof.axm A⟩
+lemma botL : ⊢ ({⊥} ⟹ ∅) := ⟨Proof.botL⟩
+lemma wkL {Γ Γ' Δ} (h : ⊢ (Γ ⟹ Δ)) (h' : Γ ⊆ Γ') : ⊢ (Γ' ⟹ Δ) := ⟨Proof.wkL h.some h'⟩
+lemma wkR {Γ Δ Δ'} (h : ⊢ (Γ ⟹ Δ)) (h' : Δ ⊆ Δ') : ⊢ (Γ ⟹ Δ') := ⟨Proof.wkR h.some h'⟩
+lemma impL {Γ Δ A B} (h₁ : ⊢ (Γ ⟹ insert A Δ)) (h₂ : ⊢ (insert B Γ ⟹ Δ)) : ⊢ ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨Proof.impL h₁.some h₂.some⟩
+lemma impR {Γ Δ A B} (h : ⊢ ((insert A Γ) ⟹ (insert B Δ))) : ⊢ (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨Proof.impR h.some⟩
+lemma boxGL {Γ A} (h : ⊢ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ (Γ.box ⟹ {□A}) := ⟨Proof.boxGL h.some⟩
+
 lemma axiomŁ1 : ⊢ (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨Proof.axiomŁ1⟩
 lemma axiomŁ2 : ⊢ (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨Proof.axiomŁ2⟩
 lemma axiomŁ3 : ⊢ (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := ⟨Proof.axiomŁ3⟩
@@ -313,6 +321,7 @@ theorem soundness (h : ⊢ S) : ∀ {κ}, ∀ M : Model κ, [M.IsGL] → M ⊧ S
   | impR _ ih => exact valid_impR ih
   | boxGL _ ih => exact valid_boxGL ih
 
+theorem finite_soundness (h : ⊢ S) : ∀ {κ}, ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S := by sorry;
 
 def trivial_GL_model : Model (Fin 1) where
   Rel' := λ _ _ => False
@@ -328,4 +337,128 @@ lemma not_provable_empty : ⊬ (∅ ⟹ ∅) := by
 
 end soundness
 
+
+section completeness
+
+theorem completeness {S : Sequent} (h : ∀ {κ}, ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S) : ⊢ S := by sorry;
+
+lemma deduction_theorem : ⊢ (insert A Γ ⟹ {B}) ↔ ⊢ (Γ ⟹ {A 🡒 B}) := by
+  constructor;
+  . intro h;
+    apply completeness.{0};
+    intro κ M _ x _;
+    use A 🡒 B;
+    constructor;
+    . simp;
+    . intro hA;
+      exact (Sequent.forced_succ_singleton.mp $ finite_soundness h M x) (by grind);
+  . intro h;
+    apply completeness.{0};
+    intro κ M _ x;
+    apply Sequent.forced_succ_singleton.mpr;
+    intro H;
+    exact (Sequent.forced_succ_singleton.mp $ finite_soundness h M x) (by grind) (by grind);
+
+end completeness
+
 end Semantics
+
+
+inductive ProofWithCut : Sequent → Type
+| axm (A) : ProofWithCut ({A} ⟹ {A})
+| botL : ProofWithCut ({⊥} ⟹ ∅)
+| wkL  {Γ Γ' Δ}  : ProofWithCut (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofWithCut (Γ' ⟹ Δ)
+| wkR  {Γ Δ Δ'}  : ProofWithCut (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofWithCut (Γ ⟹ Δ')
+| impL {Γ Δ A B} : ProofWithCut (Γ ⟹ (insert A Δ)) → ProofWithCut (insert B Γ ⟹ Δ) → ProofWithCut ((insert (A 🡒 B) Γ) ⟹ Δ)
+| impR {Γ Δ A B} : ProofWithCut ((insert A Γ) ⟹ (insert B Δ)) → ProofWithCut (Γ ⟹ (insert (A 🡒 B) Δ))
+| boxGL {Γ A} : ProofWithCut ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A}) → ProofWithCut (Γ.box ⟹ {□A})
+| cut {Γ₁ Γ₂ Δ₁ Δ₂ A} : ProofWithCut (Γ₁ ⟹ insert A Δ₁) → ProofWithCut (insert A Γ₂ ⟹ Δ₂) → ProofWithCut (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂)
+
+prefix:120 "⊢ᶜ! " => ProofWithCut
+
+abbrev ProvableWithCut (S : Sequent) : Prop := Nonempty (⊢ᶜ! S)
+prefix:120 "⊢ᶜ " => ProvableWithCut
+
+namespace ProvableWithCut
+
+def ofProof : ⊢! S → ⊢ᶜ! S
+| .axm A => .axm A
+| .botL => .botL
+| .wkL h h' => .wkL (ofProof h) h'
+| .wkR h h' => .wkR (ofProof h) h'
+| .impL h₁ h₂ => .impL (ofProof h₁) (ofProof h₂)
+| .impR h => .impR (ofProof h)
+| .boxGL h => .boxGL (ofProof h)
+
+lemma axm (A) : ⊢ᶜ ({A} ⟹ {A}) := ⟨ProofWithCut.axm A⟩
+lemma botL : ⊢ᶜ ({⊥} ⟹ ∅) := ⟨ProofWithCut.botL⟩
+lemma wkL {Γ Γ' Δ} (h : ⊢ᶜ (Γ ⟹ Δ)) (h' : Γ ⊆ Γ') : ⊢ᶜ (Γ' ⟹ Δ) := ⟨ProofWithCut.wkL h.some h'⟩
+lemma wkR {Γ Δ Δ'} (h : ⊢ᶜ (Γ ⟹ Δ)) (h' : Δ ⊆ Δ') : ⊢ᶜ (Γ ⟹ Δ') := ⟨ProofWithCut.wkR h.some h'⟩
+lemma impL {Γ Δ A B} (h₁ : ⊢ᶜ (Γ ⟹ insert A Δ)) (h₂ : ⊢ᶜ (insert B Γ ⟹ Δ)) : ⊢ᶜ ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofWithCut.impL h₁.some h₂.some⟩
+lemma impR {Γ Δ A B} (h : ⊢ᶜ ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᶜ (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofWithCut.impR h.some⟩
+lemma boxGL {Γ A} (h : ⊢ᶜ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᶜ (Γ.box ⟹ {□A}) := ⟨ProofWithCut.boxGL h.some⟩
+lemma cut {Γ₁ Γ₂ Δ₁ Δ₂ A} (h₁ : ⊢ᶜ (Γ₁ ⟹ insert A Δ₁)) (h₂ : ⊢ᶜ (insert A Γ₂ ⟹ Δ₂)) : ⊢ᶜ (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) := ⟨ProofWithCut.cut h₁.some h₂.some⟩
+
+lemma rec
+  {motive : (S : Sequent) → ⊢ᶜ S → Prop}
+  (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableWithCut.axm A))
+  (botL : motive ({⊥} ⟹ ∅) ProvableWithCut.botL)
+  (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᶜ (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
+  (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᶜ (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
+  (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᶜ (Γ ⟹ insert A Δ)) (h₂ : ⊢ᶜ (insert B Γ ⟹ Δ)),
+    motive (Γ ⟹ insert A Δ) h₁ → motive (insert B Γ ⟹ Δ) h₂ → motive ((insert (A 🡒 B) Γ) ⟹ Δ) (impL h₁ h₂)
+  )
+  (impR : ∀ {Γ Δ A B} (h : ⊢ᶜ ((insert A Γ) ⟹ (insert B Δ))),
+    motive ((insert A Γ) ⟹ (insert B Δ)) h → motive (Γ ⟹ (insert (A 🡒 B) Δ)) (impR h)
+  )
+  (boxGL : ∀ {Γ A} (h : ⊢ᶜ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})),
+    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A}) h → motive (Γ.box ⟹ {□A}) (boxGL h)
+  )
+  (cut : ∀ {Γ₁ Γ₂ Δ₁ Δ₂ A}
+    (h₁ : ⊢ᶜ (Γ₁ ⟹ insert A Δ₁)) (h₂ : ⊢ᶜ (insert A Γ₂ ⟹ Δ₂)),
+    (motive (Γ₁ ⟹ insert A Δ₁) h₁) → (motive (insert A Γ₂ ⟹ Δ₂) h₂) →
+    motive (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) (ProvableWithCut.cut h₁ h₂)
+  )
+  : ∀ {S : Sequent} (h : ⊢ᶜ S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h with
+    | axm A => apply axm;
+    | botL => apply botL;
+    | wkL h h' ih => apply wkL ⟨h⟩ h' ih;
+    | wkR h h' ih => apply wkR ⟨h⟩ h' ih;
+    | cut h₁ h₂ ih₁ ih₂ => apply cut ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
+    | impL h₁ h₂ ih₁ ih₂ => apply impL ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
+    | impR h ih => apply impR ⟨h⟩ ih;
+    | boxGL h ih => apply boxGL ⟨h⟩ ih;
+
+end ProvableWithCut
+
+lemma provableWithCut_of_provable : ⊢ S → ⊢ᶜ S := λ ⟨p⟩ => ⟨ProvableWithCut.ofProof p⟩
+
+theorem cut_elimination : ⊢ᶜ S → ⊢ S := by
+  intro h;
+  induction h using ProvableWithCut.rec with
+  | axm A => exact Provable.axm A
+  | botL => exact Provable.botL
+  | wkL h h' ih => exact Provable.wkL ih h'
+  | wkR h h' ih => exact Provable.wkR ih h'
+  | impL h₁ h₂ ih₁ ih₂ => exact Provable.impL ih₁ ih₂
+  | impR h ih => exact Provable.impR ih
+  | boxGL _ ih => exact Provable.boxGL ih
+  | cut _ _ ih₁ ih₂ =>
+    apply completeness.{0};
+    intro κ M _ x;
+    have := finite_soundness ih₁ M x;
+    have := finite_soundness ih₂ M x;
+    grind;
+
+namespace Provable
+
+variable {Γ Δ : FormulaFinset} {A B C : Formula}
+
+lemma mdp : ⊢ (∅ ⟹ {A 🡒 B}) → ⊢ (∅ ⟹ {A}) → ⊢ (∅ ⟹ {B}) := λ p q => by
+  replace p := provableWithCut_of_provable $ deduction_theorem.mpr p;
+  replace q : ⊢ᶜ (∅ ⟹ insert A ∅) := provableWithCut_of_provable q;
+  exact cut_elimination $ ProvableWithCut.cut q p;
+
+end Provable
