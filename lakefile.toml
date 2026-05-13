@@ -1,13 +1,9 @@
 name = "SeqPL"
 version = "0.1.0"
-defaultTargets = ["seqpl"]
+defaultTargets = ["SeqPL"]
 
 [[lean_lib]]
-name = "SeqPL"
-
-[[lean_exe]]
-name = "seqpl"
-root = "Main"
+name = "SeqPL" 
 
 [[require]]
 scope = "leanprover-community"
