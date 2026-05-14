@@ -29,6 +29,7 @@ infixl:84 " ⋏ " => and
 
 end Formula
 
+
 abbrev FormulaFinset := Finset Formula
 
 abbrev FormulaFinset.box (Γ : FormulaFinset) : FormulaFinset := Γ.image (□·)
@@ -155,12 +156,17 @@ namespace Provable
 variable {Γ Δ : FormulaFinset} {A B C : Formula}
 
 lemma axm (A) : ⊢ ({A} ⟹ {A}) := ⟨Proof.axm A⟩
+@[grind =>] lemma union (A) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ (Γ ⟹ Δ) := ⟨Proof.union A hΓ hΔ⟩
+@[grind =>] lemma union' (A) {S : Sequent} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ S := union A hΓ hΔ
 lemma botL : ⊢ ({⊥} ⟹ ∅) := ⟨Proof.botL⟩
-lemma wkL {Γ Γ' Δ} (h : ⊢ (Γ ⟹ Δ)) (h' : Γ ⊆ Γ') : ⊢ (Γ' ⟹ Δ) := ⟨Proof.wkL h.some h'⟩
-lemma wkR {Γ Δ Δ'} (h : ⊢ (Γ ⟹ Δ)) (h' : Δ ⊆ Δ') : ⊢ (Γ ⟹ Δ') := ⟨Proof.wkR h.some h'⟩
-lemma impL {Γ Δ A B} (h₁ : ⊢ (Γ ⟹ insert A Δ)) (h₂ : ⊢ (insert B Γ ⟹ Δ)) : ⊢ ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨Proof.impL h₁.some h₂.some⟩
-lemma impR {Γ Δ A B} (h : ⊢ ((insert A Γ) ⟹ (insert B Δ))) : ⊢ (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨Proof.impR h.some⟩
-lemma boxGL {Γ A} (h : ⊢ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ (Γ.box ⟹ {□A}) := ⟨Proof.boxGL h.some⟩
+@[grind =>] lemma botL_mem (h : ⊥ ∈ Γ := by grind) : ⊢ (Γ ⟹ Δ) := ⟨Proof.botL_mem h⟩
+@[grind =>] lemma botL_mem' (S : Sequent) (h : ⊥ ∈ S.ant := by grind) : ⊢ S := botL_mem h
+lemma wkL {Γ Γ' Δ} (π : ⊢ (Γ ⟹ Δ)) (h : Γ ⊆ Γ') : ⊢ (Γ' ⟹ Δ) := ⟨Proof.wkL π.some h⟩
+lemma wkR {Γ Δ Δ'} (π : ⊢ (Γ ⟹ Δ)) (h : Δ ⊆ Δ') : ⊢ (Γ ⟹ Δ') := ⟨Proof.wkR π.some h⟩
+lemma wk {Γ Γ' Δ Δ'} (π : ⊢ (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ (Γ' ⟹ Δ') := wkR (wkL π hΓ) hΔ
+lemma impL {Γ Δ A B} (π₁ : ⊢ (Γ ⟹ insert A Δ)) (π₂ : ⊢ (insert B Γ ⟹ Δ)) : ⊢ ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨Proof.impL π₁.some π₂.some⟩
+lemma impR {Γ Δ A B} (π : ⊢ ((insert A Γ) ⟹ (insert B Δ))) : ⊢ (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨Proof.impR π.some⟩
+lemma boxGL {Γ A} (π : ⊢ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ (Γ.box ⟹ {□A}) := ⟨Proof.boxGL π.some⟩
 
 lemma axiomŁ1 : ⊢ (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨Proof.axiomŁ1⟩
 lemma axiomŁ2 : ⊢ (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨Proof.axiomŁ2⟩
@@ -175,14 +181,18 @@ end Provable
 abbrev Unprovable (S : Sequent) : Prop := ¬⊢ S
 prefix:120 "⊬ " => Unprovable
 
+@[grind =]
+lemma iff_unprovable_isEmpty_proof {S : Sequent} : (⊬ S) ↔ (IsEmpty (⊢! S)) := by simp [Unprovable, Provable];
 
 section Semantics
 
-structure Model (κ : Type*) where
+structure Model (κ : Type*) [Nonempty κ] where
   Rel' : κ → κ → Prop
   Val : κ → ℕ → Prop
 
 namespace Model
+
+variable [Nonempty κ]
 
 abbrev World (_ : Model κ) := κ
 abbrev Rel {M : Model κ} : M.World → M.World → Prop := M.Rel'
@@ -190,7 +200,7 @@ infixl:60 " ≺ " => Rel
 
 end Model
 
-variable {M : Model κ} {A B : Formula} {Γ Γ' Δ Δ' : FormulaFinset}
+variable [Nonempty κ] {M : Model κ} {A B : Formula} {Γ Γ' Δ Δ' : FormulaFinset}
 
 @[grind]
 def Formula.Forced {M : Model κ} (x : M.World) : Formula → Prop
@@ -275,7 +285,11 @@ lemma has_terminal [IsConverseWellFounded _ M.Rel'] : ∀ (W : Set M.World), Set
 
 class IsGL (M : Model κ) extends IsTrans _ M.Rel', IsConverseWellFounded _ M.Rel'
 
-class IsFiniteGL (M : Model κ) extends Fact (Finite M.World), IsTrans _ M.Rel', Std.Irrefl M.Rel'
+class IsFiniteGL (M : Model κ) extends IsTrans _ M.Rel', Std.Irrefl M.Rel' where
+  finite : Finite M.World
+
+instance [M.IsFiniteGL] : M.IsGL where
+  wf := by apply @Finite.wellFounded_of_trans_of_irrefl M.World (IsFiniteGL.finite);
 
 end Model
 
@@ -309,7 +323,7 @@ lemma valid_boxGL [M.IsGL] (h : M ⊧ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A}))
     . intro z Ryz;
       exact hΓ (□C) (by simpa) z (_root_.trans Rxy Ryz);
 
-theorem soundness (h : ⊢ S) : ∀ {κ}, ∀ M : Model κ, [M.IsGL] → M ⊧ S := by
+theorem soundness (h : ⊢ S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ, [M.IsGL] → M ⊧ S := by
   obtain ⟨p⟩ := h;
   intro _ M M_finiteGL;
   induction p with
@@ -321,15 +335,16 @@ theorem soundness (h : ⊢ S) : ∀ {κ}, ∀ M : Model κ, [M.IsGL] → M ⊧ S
   | impR _ ih => exact valid_impR ih
   | boxGL _ ih => exact valid_boxGL ih
 
-theorem finite_soundness (h : ⊢ S) : ∀ {κ}, ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S := by sorry;
+theorem finite_soundness (h : ⊢ S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S := λ _ _ M [M.IsFiniteGL] => soundness h M
 
 def trivial_GL_model : Model (Fin 1) where
   Rel' := λ _ _ => False
   Val := λ _ _ => False
 
-instance : trivial_GL_model.IsGL where
-  trans x y z hxy hyz := by tauto;
-  wf := @Finite.wellFounded_of_trans_of_irrefl (Fin 1) inferInstance _ ⟨by tauto⟩ ⟨by tauto⟩
+instance : trivial_GL_model.IsFiniteGL where
+  finite := inferInstance;
+  trans  := by tauto;
+  irrefl := by tauto;
 
 lemma not_provable_empty : ⊬ (∅ ⟹ ∅) := by
   by_contra h;
@@ -340,21 +355,275 @@ end soundness
 
 section completeness
 
-theorem completeness {S : Sequent} (h : ∀ {κ}, ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S) : ⊢ S := by sorry;
+namespace Formula
+
+def subfmls : Formula → Finset Formula
+| #a    => {#a}
+| ⊥     => {⊥}
+| A 🡒 B => insert (A 🡒 B) (A.subfmls ∪ B.subfmls)
+| □A    => insert (□A) A.subfmls
+
+@[grind .]
+lemma mem_subfmls_self : A ∈ A.subfmls := by cases A <;> simp [Formula.subfmls];
+
+@[grind]
+def IsBox : Formula → Prop
+| □_ => True
+| _ => False
+
+instance : DecidablePred Formula.IsBox := λ A => by
+  cases A;
+  case box => exact isTrue $ by grind;
+  case atom | bot | imp => exact isFalse $ by grind;
+
+end Formula
+
+
+namespace FormulaFinset
+
+@[grind]
+def subfmls (Γ : FormulaFinset) : Finset Formula := Finset.biUnion Γ Formula.subfmls
+
+@[grind .] lemma subset_self_subfmls : Γ ⊆ Γ.subfmls := by grind;
+
+@[grind]
+noncomputable def prebox (Γ : FormulaFinset) : FormulaFinset := Γ.preimage (□·) $ by grind [Set.InjOn];
+
+@[grind =]
+lemma iff_mem_prebox_mem : A ∈ Γ.prebox ↔ □A ∈ Γ := by simp [FormulaFinset.prebox];
+
+end FormulaFinset
+
+namespace Sequent
+
+@[grind]
+def subfmls (S : Sequent) : Finset Formula := S.ant.subfmls ∪ S.suc.subfmls
+
+structure subset (S T : Sequent) : Prop where
+  ant_subset : S.ant ⊆ T.ant
+  suc_subset : S.suc ⊆ T.suc
+
+instance : HasSubset (Sequent) := ⟨subset⟩
+
+variable {S : Sequent}
+
+@[grind .] lemma subset_self_subfmls : S.ant ∪ S.suc ⊆ S.subfmls := by grind;
+
+structure Saturated (S : Sequent) where
+  impL : ∀ {A B}, A 🡒 B ∈ S.1 → A ∈ S.2 ∨ B ∈ S.1
+  impR : ∀ {A B}, A 🡒 B ∈ S.2 → A ∈ S.1 ∧ B ∈ S.2
+
+structure Expanded (BS : Sequent) (S : Sequent) extends S.Saturated where
+  subset_subfmls : S.1 ∪ S.2 ⊆ BS.subfmls
+  unprovable     : ⊬ S
+
+section Expanded
+
+
+
+end Expanded
+
+-- lemma lindenbaum
+
+end Sequent
+
+structure ExpandedSequent (BS : Sequent) extends Sequent where
+  saturated : toSequent.Saturated
+  subset_subfmls : toSequent.1 ∪ toSequent.2 ⊆ BS.subfmls
+  unprovable     : ⊬ toSequent
+
+attribute [grind .] ExpandedSequent.saturated ExpandedSequent.subset_subfmls ExpandedSequent.unprovable
+
+namespace ExpandedSequent
+
+variable {S : ExpandedSequent BS}
+
+@[grind .] lemma not_mem_both {A : Formula} : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by grind;
+
+@[grind .] lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by grind;
+
+@[grind =>] lemma of_mem_imp_ant (h : A 🡒 B ∈ S.1.1 := by grind) : A ∈ S.1.2 ∨ B ∈ S.1.1 := S.saturated.impL h
+@[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
+
+section
+
+variable {BS : Sequent} [Fact (⊬ BS)]
+
+open Classical in
+noncomputable def lindenbaum_indexed (BS : Sequent) [Fact (⊬ BS)] {S₀} (hS₀ : ⊬ S₀) : List Formula → { S : Sequent // ⊬ S }
+| [] => ⟨S₀, hS₀⟩
+| ((A 🡒 B) :: l) =>
+  let ⟨S, hS⟩ := lindenbaum_indexed BS hS₀ l;
+  if h : (A 🡒 B) ∈ S.1 then
+    if h : ⊬ ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+    else ⟨((insert B S.1) ⟹ S.2), by
+      push Not at h;
+      contrapose! hS;
+      have := Provable.impL h hS;
+      rwa [(show insert (A 🡒 B) S.1 = S.1 by grind)] at this;
+    ⟩
+  else if h : (A 🡒 B) ∈ S.2 then ⟨
+    ((insert A S.1) ⟹ (insert B S.2)),
+    by
+      contrapose! hS;
+      have := Provable.impR hS;
+      rwa [(show insert (A 🡒 B) S.2 = S.2 by grind)] at this;
+  ⟩
+  else ⟨S, hS⟩
+| (_ :: l) => lindenbaum_indexed BS hS₀ l
+
+lemma mem_lindenbaum_indexed {BS : Sequent} [Fact (⊬ BS)] {S₀} {S₀_unprovable : ⊬ S₀} :
+  A ∈ (lindenbaum_indexed BS S₀_unprovable l).1.1 → A ∈ S₀.1 := by
+  induction l with
+  | nil => simp [lindenbaum_indexed];
+  | cons A l ih =>
+    match A with
+    | #a | □A | ⊥ => simpa [lindenbaum_indexed];
+    | (A 🡒 B) =>
+      dsimp [lindenbaum_indexed];
+      generalize eT : lindenbaum_indexed BS S₀_unprovable l = T at ih;
+      split;
+      . split;
+        . sorry;
+        . sorry;
+      . sorry;
+
+noncomputable def lindenbaum (BS : Sequent) [Fact (⊬ BS)]
+  {S₀} (S₀_subfml : (S₀.ant ∪ S₀.suc) ⊆ BS.subfmls) (S₀_unprovable : ⊬ S₀)
+  : ExpandedSequent BS :=
+  let S := lindenbaum_indexed BS S₀_unprovable (BS.subfmls.toList);
+  {
+    toSequent := S.1,
+    unprovable := S.2,
+    saturated := {
+      impL := by
+        intro A B h;
+
+        sorry;
+      impR := by
+        intro A B h;
+        sorry;
+    }
+    subset_subfmls := by
+      intro A hA;
+      apply S₀_subfml;
+      sorry;
+  }
+
+lemma subset_lindenbaum (BS : Sequent) [Fact (⊬ BS)] {S₀} (S₀_subfml : (S₀.ant ∪ S₀.suc) ⊆ BS.subfmls) (hS₀ : ⊬ S₀) : S₀ ⊆ (lindenbaum BS S₀_subfml hS₀).1 := by
+
+  sorry
+
+end
+
+
+instance : Finite (ExpandedSequent BS) := by
+  sorry;
+
+instance [Fact (⊬ BS)] : Nonempty (ExpandedSequent BS) := ⟨lindenbaum BS (S₀ := BS) (by grind) (Fact.elim inferInstance)⟩
+
+end ExpandedSequent
+
+
+@[grind]
+def countermodelOf (BS : Sequent) [Fact (⊬ BS)] : Model (ExpandedSequent BS) where
+  Val S a := #a ∈ S.1.1
+  Rel' S T :=
+    S.1.1.prebox ⊂ T.1.1.prebox ∧
+    S.1.1.prebox ⊆ T.1.1
+
+variable {BS : Sequent} [Fact (⊬ BS)]
+
+instance : (countermodelOf BS).IsFiniteGL where
+  finite := inferInstance
+  trans := by grind;
+  irrefl := by grind;
+
+variable {S : (countermodelOf BS).World} {A : Formula}
+
+lemma truthlemma :
+  (A ∈ S.1.1 → S ⊩ A) ∧ (A ∈ S.1.2 → ¬S ⊩ A)
+  := by
+  induction A generalizing S with
+  | box A ih =>
+    constructor;
+    . intro h T RST;
+      exact ih.1 $ RST.2 (by simpa [FormulaFinset.prebox]);
+    . intro h;
+      have : ⊬ (insert (□A) (S.1.1.prebox ∪ S.1.1.prebox.box) ⟹ {A}) := by
+        have := S.unprovable;
+        contrapose! this;
+        exact Provable.wk (Provable.boxGL this)
+          (show S.1.1.prebox.box ⊆ S.1.1 by grind)
+          (show {□A} ⊆ S.1.2 by grind);
+      let T := ExpandedSequent.lindenbaum BS (by
+        intro B;
+        sorry;
+        /-
+        simp only [Finset.insert_union, Finset.union_assoc, Finset.union_singleton,
+          Finset.union_insert, Finset.mem_insert, Finset.mem_union, Finset.mem_image];
+        rintro (rfl | rfl | hB | ⟨B, hB, rfl⟩);
+        . app@apply S.subset_subfmls (□A);
+          sorry
+        . exact S.subset_subfmls (by grind);
+        . apply S.subset_subfmls
+          simp;
+          sorry;
+        . sorry;
+        -/
+      ) this;
+      have hT := ExpandedSequent.subset_lindenbaum BS (by sorry) this;
+      apply Formula.iff_not_forced_box.mpr;
+      use T;
+      refine ⟨⟨⟨?_, ?_⟩, ?_⟩, ?_⟩
+      . intro B hB;
+        simp only [FormulaFinset.iff_mem_prebox_mem]
+        apply hT.1;
+        sorry;
+        -- grind;
+      . apply Set.not_subset.mpr;
+        use A;
+        constructor;
+        . apply FormulaFinset.iff_mem_prebox_mem.mpr;
+          apply hT.1;
+          simp;
+        . sorry;
+          -- grind [ExpandedSequent.not_mem_both (S := S) (A := A)]
+      . intro B hB;
+        apply hT.1;
+        grind;
+      . exact ih.2 $ hT.2 (by simp);
+  | _ => sorry; -- grind;
+
+lemma truthlemma_ant : A ∈ S.1.1 → S ⊩ A := truthlemma.1
+lemma truthlemma_suc : A ∈ S.1.2 → ¬S ⊩ A := truthlemma.2
+
+theorem completeness {S : Sequent} (h : ∀ {κ : Type 0}, [Nonempty κ] → ∀ M : Model κ, [M.IsFiniteGL] → M ⊧ S) : ⊢ S := by
+  contrapose! h;
+  replace h : Fact (⊬ S) := ⟨iff_unprovable_isEmpty_proof.mpr h⟩;
+  use (ExpandedSequent S), inferInstance, (countermodelOf S);
+  constructor;
+  . infer_instance;
+  . dsimp [Sequent.Forced, Sequent.Valid];
+    push Not;
+    use (ExpandedSequent.lindenbaum S (S₀ := S) (by grind) (Fact.elim inferInstance))
+    constructor;
+    . intro C hC; exact truthlemma_ant $ ExpandedSequent.subset_lindenbaum S _ _ |>.1 hC;
+    . intro D hD; exact truthlemma_suc $ ExpandedSequent.subset_lindenbaum S _ _ |>.2 hD;
 
 lemma deduction_theorem : ⊢ (insert A Γ ⟹ {B}) ↔ ⊢ (Γ ⟹ {A 🡒 B}) := by
   constructor;
   . intro h;
-    apply completeness.{0};
-    intro κ M _ x _;
+    apply completeness;
+    intro κ _ M _ x _;
     use A 🡒 B;
     constructor;
     . simp;
     . intro hA;
       exact (Sequent.forced_succ_singleton.mp $ finite_soundness h M x) (by grind);
   . intro h;
-    apply completeness.{0};
-    intro κ M _ x;
+    apply completeness;
+    intro κ _ M _ x;
     apply Sequent.forced_succ_singleton.mpr;
     intro H;
     exact (Sequent.forced_succ_singleton.mp $ finite_soundness h M x) (by grind) (by grind);
@@ -362,6 +631,8 @@ lemma deduction_theorem : ⊢ (insert A Γ ⟹ {B}) ↔ ⊢ (Γ ⟹ {A 🡒 B}) 
 end completeness
 
 end Semantics
+
+
 
 
 inductive ProofWithCut : Sequent → Type
@@ -435,30 +706,32 @@ end ProvableWithCut
 
 lemma provableWithCut_of_provable : ⊢ S → ⊢ᶜ S := λ ⟨p⟩ => ⟨ProvableWithCut.ofProof p⟩
 
-theorem cut_elimination : ⊢ᶜ S → ⊢ S := by
+/-- Semantical cut-elimination -/
+theorem provable_of_provableWithCut : ⊢ᶜ S → ⊢ S := by
   intro h;
   induction h using ProvableWithCut.rec with
   | axm A => exact Provable.axm A
   | botL => exact Provable.botL
-  | wkL h h' ih => exact Provable.wkL ih h'
-  | wkR h h' ih => exact Provable.wkR ih h'
-  | impL h₁ h₂ ih₁ ih₂ => exact Provable.impL ih₁ ih₂
-  | impR h ih => exact Provable.impR ih
+  | wkL _ h ih => exact Provable.wkL ih h
+  | wkR _ h ih => exact Provable.wkR ih h
+  | impL _ _ ih₁ ih₂ => exact Provable.impL ih₁ ih₂
+  | impR _ ih => exact Provable.impR ih
   | boxGL _ ih => exact Provable.boxGL ih
   | cut _ _ ih₁ ih₂ =>
-    apply completeness.{0};
-    intro κ M _ x;
+    apply completeness;
+    intro κ _ M _ x;
     have := finite_soundness ih₁ M x;
     have := finite_soundness ih₂ M x;
     grind;
+alias cut_elimination := provable_of_provableWithCut
 
 namespace Provable
 
-variable {Γ Δ : FormulaFinset} {A B C : Formula}
-
 lemma mdp : ⊢ (∅ ⟹ {A 🡒 B}) → ⊢ (∅ ⟹ {A}) → ⊢ (∅ ⟹ {B}) := λ p q => by
-  replace p := provableWithCut_of_provable $ deduction_theorem.mpr p;
+  replace p : ⊢ᶜ (insert A ∅ ⟹ {B}) := provableWithCut_of_provable $ deduction_theorem.mpr p;
   replace q : ⊢ᶜ (∅ ⟹ insert A ∅) := provableWithCut_of_provable q;
   exact cut_elimination $ ProvableWithCut.cut q p;
 
 end Provable
+
+abbrev LogicGL := { A | ⊢ (∅ ⟹ {A}) }
