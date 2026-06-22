@@ -1,3 +1,4 @@
--- This module serves as the root of the `SeqPL` library.
--- Import modules here that should be built as part of the library.
-import SeqPL.Basic
+module  -- shake: keep-all --deprecated_module: ignore
+
+public import SeqPL.Basic
+public import SeqPL.Hilbert
