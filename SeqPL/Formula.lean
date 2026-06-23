@@ -31,6 +31,17 @@ infixl:84 " ⋏ " => and
 def top : Formula := ∼⊥
 notation "⊤" => top
 
+
+@[grind]
+def IsBox : Formula → Prop
+| □_ => True
+| _ => False
+
+instance : DecidablePred Formula.IsBox := λ A => by
+  cases A;
+  case box => exact isTrue $ by grind;
+  case atom | bot | imp => exact isFalse $ by grind;
+
 end Formula
 
 

@@ -1,7 +1,7 @@
 module
 
-public import SeqPL.Basic
 public import SeqPL.Formula
+public import SeqPL.Kripke.Gentzen
 
 @[expose]
 public section
@@ -21,7 +21,7 @@ abbrev GentzenWithCutProvable (S : Sequent) : Prop := Nonempty (⊢ᵍᶜ! S)
 prefix:120 "⊢ᵍᶜ " => GentzenWithCutProvable
 
 
-def GentzenWithCutProof.ofGentzenProof : ⊢! S → ⊢ᵍᶜ! S
+def GentzenWithCutProof.ofGentzenProof : ⊢ᵍ! S → ⊢ᵍᶜ! S
 | .axm A => .axm A
 | .botL => .botL
 | .wkL h h' => .wkL (ofGentzenProof h) h'
@@ -32,7 +32,7 @@ def GentzenWithCutProof.ofGentzenProof : ⊢! S → ⊢ᵍᶜ! S
 
 namespace GentzenWithCutProvable
 
-theorem of_without_cut : ⊢ S → ⊢ᵍᶜ S := λ ⟨p⟩ => ⟨GentzenWithCutProof.ofGentzenProof p⟩
+theorem of_without_cut : ⊢ᵍ S → ⊢ᵍᶜ S := λ ⟨p⟩ => ⟨GentzenWithCutProof.ofGentzenProof p⟩
 
 lemma axm (A) : ⊢ᵍᶜ ({A} ⟹ {A}) := ⟨GentzenWithCutProof.axm A⟩
 lemma botL : ⊢ᵍᶜ ({⊥} ⟹ ∅) := ⟨GentzenWithCutProof.botL⟩
@@ -78,32 +78,32 @@ lemma rec
 end GentzenWithCutProvable
 
 
-namespace Provable
+namespace ProvableGentzen
 
 /-- Semantical cut-elimination -/
-theorem of_with_cut : ⊢ᵍᶜ S → ⊢ S := by
+theorem of_with_cut : ⊢ᵍᶜ S → ⊢ᵍ S := by
   intro h;
   induction h using GentzenWithCutProvable.rec with
-  | axm A => exact Provable.axm A
-  | botL => exact Provable.botL
-  | wkL _ h ih => exact Provable.wkL ih h
-  | wkR _ h ih => exact Provable.wkR ih h
-  | impL _ _ ih₁ ih₂ => exact Provable.impL ih₁ ih₂
-  | impR _ ih => exact Provable.impR ih
-  | boxGL _ ih => exact Provable.boxGL ih
+  | axm A => exact ProvableGentzen.axm A
+  | botL => exact ProvableGentzen.botL
+  | wkL _ h ih => exact ProvableGentzen.wkL ih h
+  | wkR _ h ih => exact ProvableGentzen.wkR ih h
+  | impL _ _ ih₁ ih₂ => exact ProvableGentzen.impL ih₁ ih₂
+  | impR _ ih => exact ProvableGentzen.impR ih
+  | boxGL _ ih => exact ProvableGentzen.boxGL ih
   | cut _ _ ih₁ ih₂ =>
-    apply completeness;
+    apply Kripke.completeness;
     rintro κ _ M _ x;
-    have := finite_soundness ih₁ M x;
-    have := finite_soundness ih₂ M x;
+    have := Kripke.finite_soundness ih₁ M x;
+    have := Kripke.finite_soundness ih₂ M x;
     grind;
 alias cut_elimination := of_with_cut
 
-theorem mdp : ⊢ (∅ ⟹ {A 🡒 B}) → ⊢ (∅ ⟹ {A}) → ⊢ (∅ ⟹ {B}) := λ p q => by
+theorem mdp : ⊢ᵍ (∅ ⟹ {A 🡒 B}) → ⊢ᵍ (∅ ⟹ {A}) → ⊢ᵍ (∅ ⟹ {B}) := λ p q => by
   replace p : ⊢ᵍᶜ (insert A ∅ ⟹ {B}) := GentzenWithCutProvable.of_without_cut $ deduction_theorem.mpr p;
   replace q : ⊢ᵍᶜ (∅ ⟹ insert A ∅) := GentzenWithCutProvable.of_without_cut q;
   exact cut_elimination $ GentzenWithCutProvable.cut q p;
 
-end Provable
+end ProvableGentzen
 
 end
