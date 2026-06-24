@@ -30,7 +30,7 @@ infixl:83 " ⋎ " => or
 abbrev and (A B : Formula α) : Formula α := ∼(A 🡒 ∼B)
 infixl:84 " ⋏ " => and
 
-def top : Formula α := ∼⊥
+abbrev top : Formula α := ∼⊥
 notation "⊤" => top
 
 
