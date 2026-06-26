@@ -25,11 +25,22 @@ section
 
 variable {α} {r : Rel α α} {a b : α} {n : ℕ}
 
+instance [Std.Irrefl (flip r)] : Std.Irrefl r := by
+  constructor;
+  have := Std.Irrefl.irrefl (r := flip r);
+  simpa;
+
+lemma ConverseWellFounded.irrefl [IsConverseWellFounded α r] : Std.Irrefl r := by
+  have := WellFounded.irrefl (r := flip r) IsConverseWellFounded.cwf;
+  infer_instance;
+
 lemma ConverseWellFounded.iff_has_max : ConverseWellFounded r ↔ (∀ (s : Set α), Set.Nonempty s → ∃ m ∈ s, ∀ x ∈ s, ¬(r m x)) := by
   simp [ConverseWellFounded, WellFounded.wellFounded_iff_has_min, flip]
 
 lemma ConverseWellFounded.has_max (h : ConverseWellFounded r) : ∀ (s : Set α), Set.Nonempty s → ∃ m ∈ s, ∀ x ∈ s, ¬(r m x) := by
   apply ConverseWellFounded.iff_has_max.mp h;
+
+
 
 theorem Finite.converseWellFounded_of_trans_of_irrefl [Finite α] [IsTrans α r] [Std.Irrefl r] : ConverseWellFounded r := by
   apply @Finite.wellFounded_of_trans_of_irrefl α _ (flip r)
