@@ -6,5 +6,6 @@ defaultTargets = ["SeqPL"]
 name = "SeqPL" 
 
 [[require]]
-scope = "leanprover-community"
-name = "mathlib"
+name = "Foundation"
+git = "https://github.com/gotrevor/Foundation"
+rev = "e6f6001f645be2085df4e4c0cdd7b447ac030475"
