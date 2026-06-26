@@ -1,8 +1,10 @@
 module
 
 public import SeqPL.Formula
+public import SeqPL.Formula.Letterless
 public import SeqPL.Kripke.Rank
 public import SeqPL.Logic.Basic
+public import SeqPL.Logic.SumQuasiNormal
 
 @[expose]
 public section
@@ -48,8 +50,6 @@ lemma cofinite_union_right (ht : t.Cofinite) : (s ∪ t).Cofinite := by
 
 end Set
 
-
-abbrev LetterlessFormula := Formula Empty
 
 namespace LetterlessFormula
 
@@ -288,5 +288,10 @@ lemma GL_proves_letterless_axiomWeakPoint3 : ((□((⊡A) 🡒 B)) ⋎ (□((⊡
   grind;
 
 end
+
+abbrev LogicGLAlpha  (α) (Alpha : Set ℕ) := (LogicGL α) +ᴸ (Alpha.image TBB)
+abbrev LogicGLAlphaω (α) := LogicGLAlpha α Set.univ
+abbrev LogicGLBetaMinus (α) [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Beta.Cofinite := by grind) :=
+  (LogicGL α) +ᴸ ∼⋀(Beta_cofinite.toFinset.image TBB)
 
 end
