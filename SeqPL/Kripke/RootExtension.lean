@@ -1,7 +1,9 @@
 module
 
 public import SeqPL.Kripke.Basic
-
+public import Mathlib.Data.Fintype.Sum
+public import Mathlib.Data.List.Chain
+public import Mathlib.Data.PNat.Basic
 
 @[expose]
 public section

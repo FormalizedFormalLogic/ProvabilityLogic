@@ -1,6 +1,5 @@
 module
 
-public import Mathlib
 public import SeqPL.Formula
 
 @[expose]

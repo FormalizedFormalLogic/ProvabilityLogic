@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Kripke.RootExtension
+public import Mathlib
 
 @[expose]
 public section

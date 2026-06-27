@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Hilbert.Basic
+public import Mathlib.Tactic.TFAE
 
 @[expose]
 public section

@@ -2,6 +2,8 @@ module
 
 public import SeqPL.Formula
 public import SeqPL.Vorspiel.CWF
+public import Mathlib.Data.PNat.Defs
+import Mathlib.Data.PNat.Basic
 
 @[expose]
 public section

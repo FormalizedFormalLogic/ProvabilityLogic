@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Kripke.Basic
 public import SeqPL.Gentzen.Basic
+public import Mathlib.Data.Finset.Preimage
 
 @[expose]
 public section

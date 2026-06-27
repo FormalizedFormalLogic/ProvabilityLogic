@@ -21,6 +21,24 @@ variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α}
 @[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₁;
 @[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₂;
 
+lemma iff_subset : (L +ᴸ X) ⊆ (L +ᴸ Y) ↔ X ⊆ (L +ᴸ Y) := by
+  constructor;
+  . intro h A hA;
+    apply h;
+    apply Logic.sumQuasiNormal.mem₂;
+    exact hA;
+  . intro h A hA;
+    induction hA with
+    | mem₁ hA =>
+      apply Logic.sumQuasiNormal.mem₁;
+      exact hA
+    | mem₂ hA =>
+      apply h hA;
+    | mdp _ _ ihAB ihA =>
+      exact Logic.sumQuasiNormal.mdp ihAB ihA;
+    | subst h ih =>
+      apply Logic.sumQuasiNormal.subst ih;
+
 end Logic.sumQuasiNormal
 
 

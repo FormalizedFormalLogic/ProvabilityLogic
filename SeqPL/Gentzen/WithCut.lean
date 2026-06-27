@@ -1,6 +1,5 @@
 module
 
-public import SeqPL.Formula
 public import SeqPL.Kripke.Gentzen
 
 @[expose]

@@ -4,8 +4,9 @@
 
 module
 
-public import Mathlib
-
+public import Mathlib.Data.Finset.Lattice.Fold
+public import Mathlib.Data.Rel
+public import Mathlib.Data.Fintype.Card
 
 @[expose]
 public section
