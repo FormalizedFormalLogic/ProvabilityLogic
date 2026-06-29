@@ -2,7 +2,7 @@ module
 
 public import SeqPL.Kripke.Rank
 public import SeqPL.Logic.SumQuasiNormal
-public import SeqPL.Arithmetic.Interpret
+public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.Vorspiel.Set.Cofinite
 public import Mathlib.Tactic.TautoSet
 public import Mathlib.Order.Minimal
@@ -245,7 +245,7 @@ lemma spectrum_TFAE : [
       exact finiteLineModel.height_eq;
   tfae_finish;
 
-lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL _ ↔ spectrum A = Set.univ := by
+lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL ↔ spectrum A = Set.univ := by
   rw [Set.eq_univ_iff_forall];
   apply Iff.trans $ LogicGL_TFAE.out 0 4;
   constructor;
@@ -256,20 +256,20 @@ lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL _ ↔ spectrum A = Set.univ :=
   . intro h κ _ M _ x;
     sorry;
 
-lemma iff_GL_proves_imp_GL_subset_spectrum : (A 🡒 B) ∈ LogicGL _ ↔ spectrum A ⊆ spectrum B := by
+lemma iff_GL_proves_imp_GL_subset_spectrum : (A 🡒 B) ∈ LogicGL ↔ spectrum A ⊆ spectrum B := by
   apply Iff.trans iff_GL_proves_spectrum_univ;
   simp only [LetterlessFormula.spectrum_imp, Set.eq_univ_iff_forall, Set.mem_union, Set.mem_compl_iff];
   grind;
 
-lemma iff_GL_proves_iff_GL_subset_spectrum : (A 🡘 B) ∈ LogicGL _ ↔ spectrum A = spectrum B := by
-  suffices (A 🡘 B) ∈ LogicGL _ ↔ (A 🡒 B) ∈ LogicGL _ ∧ (B 🡒 A) ∈ LogicGL _ by
+lemma iff_GL_proves_iff_GL_subset_spectrum : (A 🡘 B) ∈ LogicGL ↔ spectrum A = spectrum B := by
+  suffices (A 🡘 B) ∈ LogicGL ↔ (A 🡒 B) ∈ LogicGL ∧ (B 🡒 A) ∈ LogicGL by
     grind [Set.Subset.antisymm_iff, iff_GL_proves_imp_GL_subset_spectrum];
   constructor;
   . intro h;
     sorry;
   . sorry;
 
-lemma LetterlessFormula.TBB_normalization_of_finite_trace (h : (trace A).Finite) : (A 🡘 ⋀(h.toFinset.image TBB)) ∈ LogicGL _ := by
+lemma LetterlessFormula.TBB_normalization_of_finite_trace (h : (trace A).Finite) : (A 🡘 ⋀(h.toFinset.image TBB)) ∈ LogicGL := by
   apply iff_GL_proves_iff_GL_subset_spectrum.mpr;
   calc
     _ = ⋂ i ∈ trace A, spectrum (TBB i) := by
@@ -279,11 +279,11 @@ lemma LetterlessFormula.TBB_normalization_of_finite_trace (h : (trace A).Finite)
     _ = _ := by
       simp [LetterlessFormula.spectrum_fconj];
 
-lemma LetterlessFormula.TBBMinus_normalization_of_finite_spectrum (h : (spectrum A).Finite) : (A 🡘 TBBMinus _ h) ∈ LogicGL _ := by
+lemma LetterlessFormula.TBBMinus_normalization_of_finite_spectrum (h : (spectrum A).Finite) : (A 🡘 TBBMinus _ h) ∈ LogicGL := by
   have := TBB_normalization_of_finite_trace (A := ∼A) (by grind);
   sorry;
 
-lemma GL_proves_letterless_axiomWeakPoint3 : ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) ∈ LogicGL _ := by
+lemma GL_proves_letterless_axiomWeakPoint3 : ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) ∈ LogicGL := by
   apply iff_GL_proves_spectrum_univ.mpr;
   grind;
 
@@ -421,18 +421,18 @@ variable
   {T₀ T : FirstOrder.ArithmeticTheory} [ℕ ⊧ₘ* T] [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   {A B : LetterlessFormula}
 
-axiom letterless_arithmetical_completeness [𝗜𝚺₁ ⪯ T] : A ∈ LogicGL _ ↔ T ⊢ A.interpret T.standardProvability
+axiom letterless_arithmetical_completeness [𝗜𝚺₁ ⪯ T] : A ∈ LogicGL ↔ T ⊢ A.interpret T.standardProvability
 
 namespace LetterlessFormula
 
 @[grind →]
-lemma iff_regular_of_provable_iff (h : A 🡘 B ∈ LogicGL _) : A.Regular T ↔ B.Regular T := by
+lemma iff_regular_of_provable_iff (h : A 🡘 B ∈ LogicGL) : A.Regular T ↔ B.Regular T := by
   have : T ⊢  interpret _ (A 🡘 B) := letterless_arithmetical_completeness (T := T) |>.mp h;
   have : ℕ ⊧ₘ interpret _ (A 🡘 B) := FirstOrder.ArithmeticTheory.SoundOn.sound (F := λ _ => True) this $ by simp;
   grind;
 
 @[grind →]
-lemma iff_singular_of_provable_iff (h : A 🡘 B ∈ LogicGL _) : A.Singular T ↔ B.Singular T := by
+lemma iff_singular_of_provable_iff (h : A 🡘 B ∈ LogicGL) : A.Singular T ↔ B.Singular T := by
   grind [iff_regular_of_provable_iff h];
 
 @[grind =]
@@ -466,13 +466,13 @@ section
 variable {α} {X Y : LetterlessFormulaSet} {A : LetterlessFormula}
 
 lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Regular T)
-  : ↑A ∈ ((LogicGL α) +ᴸ X) ↔ X.spectrum ⊆ A.spectrum := by
+  : ↑A ∈ ((@LogicGL α) +ᴸ X) ↔ X.spectrum ⊆ A.spectrum := by
   sorry;
 
 lemma iff_subset_sumQuasiNormal_subset_spectrum (hSR : X.Regular T ∨ Y.Singular T)
-  : ((LogicGL α) +ᴸ X) ⊆ ((LogicGL α) +ᴸ Y) ↔ Y.spectrum ⊆ X.spectrum := by calc
-  -- _ ↔ ∀ A ∈ Y, A ∈ ((LogicGL _) +ᴸ Y) → A ∈ ((LogicGL _) +ᴸ X) := by grind;
-  _ ↔ ∀ (A : LetterlessFormula), A ∈ X → ↑A ∈ ((LogicGL α) +ᴸ Y) := by
+  : ((@LogicGL α) +ᴸ X) ⊆ ((@LogicGL α) +ᴸ Y) ↔ Y.spectrum ⊆ X.spectrum := by calc
+  -- _ ↔ ∀ A ∈ Y, A ∈ ((LogicGL) +ᴸ Y) → A ∈ ((LogicGL) +ᴸ X) := by grind;
+  _ ↔ ∀ (A : LetterlessFormula), A ∈ X → ↑A ∈ ((@LogicGL α) +ᴸ Y) := by
     rw [Logic.sumQuasiNormal.iff_subset];
     constructor;
     . intro h A hA;
@@ -491,12 +491,12 @@ lemma iff_subset_sumQuasiNormal_subset_spectrum (hSR : X.Regular T ∨ Y.Singula
     simp;
 
 lemma iff_subset_sumQuasiNormal_subset_trace (hSR : X.Regular T ∨ Y.Singular T)
-  : ((LogicGL α) +ᴸ X) ⊆ ((LogicGL α) +ᴸ Y) ↔ X.trace ⊆ Y.trace := by
+  : ((@LogicGL α) +ᴸ X) ⊆ ((@LogicGL α) +ᴸ Y) ↔ X.trace ⊆ Y.trace := by
   apply Iff.trans $ iff_subset_sumQuasiNormal_subset_spectrum (α := α) hSR;
   simp [LetterlessFormulaSet.trace];
 
 lemma iff_eq_sumQuasiNormal_eq_spectrum (hSR : (X.Singular T ∧ Y.Singular T) ∨ (X.Regular T ∧ Y.Regular T))
-  : ((LogicGL α) +ᴸ X) = ((LogicGL α) +ᴸ Y) ↔ X.spectrum = Y.spectrum := by
+  : ((@LogicGL α) +ᴸ X) = ((@LogicGL α) +ᴸ Y) ↔ X.spectrum = Y.spectrum := by
   grind [
     Set.Subset.antisymm_iff,
     iff_subset_sumQuasiNormal_subset_spectrum (α := α) (T := T) (X := X) (Y := Y) (by tauto),
@@ -504,13 +504,13 @@ lemma iff_eq_sumQuasiNormal_eq_spectrum (hSR : (X.Singular T ∧ Y.Singular T) �
   ];
 
 lemma iff_eq_sumQuasiNormal_eq_trace (hSR : (X.Singular T ∧ Y.Singular T) ∨ (X.Regular T ∧ Y.Regular T))
-  : ((LogicGL α) +ᴸ X) = ((LogicGL α) +ᴸ Y) ↔ X.trace = Y.trace := by
+  : ((@LogicGL α) +ᴸ X) = ((@LogicGL α) +ᴸ Y) ↔ X.trace = Y.trace := by
   apply Iff.trans $ iff_eq_sumQuasiNormal_eq_spectrum (α := α) hSR;
   simp [LetterlessFormulaSet.trace];
 
-abbrev LogicGLAlpha {α} (Alpha : Set ℕ) : Logic α := (LogicGL α) +ᴸ ↑(Alpha.image $ TBB (α := Empty))
+abbrev LogicGLAlpha {α} (Alpha : Set ℕ) : Logic α := (@LogicGL α) +ᴸ ↑(Alpha.image $ TBB (α := Empty))
 abbrev LogicGLAlphaω {α} : Logic α := LogicGLAlpha Set.univ
-abbrev LogicGLBetaMinus {α} [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Beta.Cofinite := by grind) := (LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Beta_cofinite })
+abbrev LogicGLBetaMinus {α} [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Beta.Cofinite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Beta_cofinite })
 
 
 
@@ -555,12 +555,12 @@ end LetterlessFormulaSet
 
 
 lemma eq_letterless_GL_quasiNormal_extension_GLAlpha_of_regular (X_regular : X.Regular T)
-  : ((LogicGL α) +ᴸ ↑X) = LogicGLAlpha X.trace := by
+  : ((@LogicGL α) +ᴸ ↑X) = LogicGLAlpha X.trace := by
   apply iff_eq_sumQuasiNormal_eq_trace (T := T) (by grind) |>.mpr;
   grind;
 
 lemma eq_letterless_GL_quasiNormal_extension_GLBetaMinus_of_singular [DecidableEq α] (X_singular : X.Singular T)
-  : ((LogicGL α) +ᴸ ↑X) = LogicGLBetaMinus X.trace := by
+  : ((@LogicGL α) +ᴸ ↑X) = LogicGLBetaMinus (α := α) X.trace := by
   apply iff_eq_sumQuasiNormal_eq_trace (T := T) (by grind) |>.mpr;
   grind;
 
@@ -569,8 +569,8 @@ lemma eq_letterless_GL_quasiNormal_extension_GLBetaMinus_of_singular [DecidableE
   either `LogicGLAlpha X.trace` (when `X` is regular, so `X.trace` is finite) or `LogicGLBetaMinus X.trace` (when `X` is singular, so `X.trace` is cofinite)
 -/
 theorem eq_letterless_quasiNormal_GL_extension [DecidableEq α] :
-  (∃ _ : X.Regular T, ((LogicGL α) +ᴸ ↑X) = LogicGLAlpha X.trace) ∨
-  (∃ _ : X.Singular T, ((LogicGL α) +ᴸ ↑X) = LogicGLBetaMinus X.trace) := by
+  (∃ _ : X.Regular T, ((@LogicGL α) +ᴸ ↑X) = LogicGLAlpha X.trace) ∨
+  (∃ _ : X.Singular T, ((@LogicGL α) +ᴸ ↑X) = LogicGLBetaMinus X.trace) := by
   by_cases h : X.Regular T;
   . left;
     exact ⟨h, eq_letterless_GL_quasiNormal_extension_GLAlpha_of_regular h⟩;

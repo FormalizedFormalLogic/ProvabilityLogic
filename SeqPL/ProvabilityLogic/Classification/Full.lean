@@ -1,6 +1,6 @@
 module
 
-public import SeqPL.Classification.Letterless
+public import SeqPL.ProvabilityLogic.Classification.Letterless
 
 @[expose]
 public section
@@ -73,7 +73,7 @@ lemma trace_lconj {Γ : FormulaList α} : (⋀Γ).trace = ⋃ A ∈ Γ, A.trace 
 lemma trace_fconj {Γ : FormulaFinset α} : (⋀Γ).trace = ⋃ A ∈ Γ, A.trace := by
   simp [FormulaFinset.conj, trace_lconj]
 
-lemma subset_trace_of_provable_GL (h : A 🡒 B ∈ LogicGL _) : B.trace ⊆ A.trace := by
+lemma subset_trace_of_provable_GL (h : A 🡒 B ∈ LogicGL) : B.trace ⊆ A.trace := by
   intro n;
   simp only [iff_mem_trace];
   rintro ⟨κ, _, M, _, _, rfl, hB⟩;

@@ -1,8 +1,11 @@
 module
 
 public import SeqPL.Kripke.Rank
-public import SeqPL.Arithmetic.Soundness
 public import Foundation.Vorspiel.List.ChainI
+public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
+public import SeqPL.Logic.GL.Basic
+public import SeqPL.Logic.SumQuasiNormal
+public import SeqPL.ProvabilityLogic.Interpret
 
 @[expose] public section
 
@@ -60,8 +63,28 @@ lemma theory_height (hSound : ∀ {σ}, T₀ ⊢ 𝔅 σ → T ⊢ σ) (h : M.ro
 
 end LO.FirstOrder.ProvabilityAbstraction.Provability.SolovaySentences
 
-variable (T : FirstOrder.ArithmeticTheory) [T.Δ₁]
+def LO.FirstOrder.Theory.standardProvability.solovaySentences (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (M : RootedModel κ α) [Fintype M.World] : T.standardProvability.SolovaySentences M := by sorry
 
-def LO.FirstOrder.Theory.standardProvability.solovaySentences (M : RootedModel κ α) [Fintype M.World] : T.standardProvability.SolovaySentences M := by sorry
+
+theorem unprovable_realization_exists
+  (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
+  (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
+  (hA : M.root.1 ⊮ A) (h : M.height < T.height)
+  : ∃ f : StandardRealization α T, T ⊬ f A := by
+  let S := LO.FirstOrder.Theory.standardProvability.solovaySentences (M := M.extendRoot 1) (T := T);
+  use S.realization;
+  contrapose! h;
+  apply Order.le_of_lt_add_one;
+  calc
+    T.height < (M.extendRoot 1).height := S.theory_height (T.standardProvability.syntactical_sound ℕ) (A := A) ?_ h
+    _        = _                       := by
+      have := RootedModel.extendRoot.Ext1.eq_height_original_height_succ (M := M);
+      simp_all only [ne_eq, PNat.val_ofNat, Nat.cast_add, Nat.cast_one];
+  . apply Model.World.forces_dia.mpr;
+    use M.root;
+    constructor;
+    . tauto;
+    . exact RootedModel.extendRoot.same_forces_embed.not.mpr hA;
+
 
 end

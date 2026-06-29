@@ -2,6 +2,7 @@ module
 
 public import Foundation.FirstOrder.Incompleteness.StandardProvability
 public import SeqPL.Formula.Letterless
+public import SeqPL.Logic.GL.Basic
 
 @[expose] public section
 
@@ -56,6 +57,11 @@ lemma iff_provable_interpret : T ⊢ f₁ A ↔ T ⊢ f₂ A := by
 end LetterlessFormula
 
 
+
+@[grind]
+def LO.FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := {A | ∀ f : StandardRealization α T, U ⊢ f A}
+
+abbrev LO.FirstOrder.ArithmeticTheory.provabilityLogic (T : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := T.provabilityLogicRelativeTo T
 
 
 

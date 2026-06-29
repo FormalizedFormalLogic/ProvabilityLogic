@@ -1,7 +1,6 @@
-module  -- shake: keep-all
+module  -- shake: keep-all --deprecated_module: ignore
 
-public import SeqPL.Arithmetic.Interpret
-public import SeqPL.Classification.Letterless
+public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Letterless
 public import SeqPL.Gentzen.Basic
@@ -9,9 +8,22 @@ public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Gentzen
+public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootExtension
--- public import SeqPL.Kripke.Tail
+public import SeqPL.Kripke.Tail
 public import SeqPL.Logic.Basic
+public import SeqPL.Logic.D.Basic
+public import SeqPL.Logic.GL.Basic
+public import SeqPL.Logic.GLPlusBoxBot.Basic
+public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.SumQuasiNormal
+public import SeqPL.ProvabilityLogic.Classification.Full
+public import SeqPL.ProvabilityLogic.Classification.Letterless
+public import SeqPL.ProvabilityLogic.GL.Basic
+public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
+public import SeqPL.ProvabilityLogic.Interpret
+public import SeqPL.ProvabilityLogic.SolovaySentences
+public import SeqPL.Tait.Basic
 public import SeqPL.Vorspiel.CWF
+public import SeqPL.Vorspiel.Set.Cofinite
