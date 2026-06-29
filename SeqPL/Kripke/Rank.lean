@@ -175,6 +175,9 @@ lemma iff_eq_rank_height_is_root : x.rank = M.height ↔ x = M.root.1 := by
 
 lemma root_not_forces_TBB_height : M.root.1 ⊮ (TBB M.height) := by grind;
 
+@[grind =]
+lemma iff_height_lt_root_forces_boxItr_bot : M.height < n ↔ M.root.1 ⊩ (□^[n]⊥) := iff_rank_lt_forces_boxItr_bot
+
 namespace extendRoot
 
 variable {n : ℕ+}

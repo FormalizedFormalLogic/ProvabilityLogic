@@ -86,6 +86,11 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.extendRoot
 instance [M.IsGL] : (M.extendRoot n).IsGL where
 
 @[simp, grind .]
+lemma not_rel_original_tail : ¬(M.extendRoot n |>.Rel (embed x) (Sum.inr i)) := by
+  by_contra this;
+  grind [embed];
+
+@[simp, grind .]
 lemma not_relItr_original_tail  [IsTrans _ M.Rel] : ¬(M.extendRoot n |>.RelItr k (embed x) (Sum.inr i)) := by
   by_contra this;
   match k with
@@ -94,6 +99,28 @@ lemma not_relItr_original_tail  [IsTrans _ M.Rel] : ¬(M.extendRoot n |>.RelItr 
   | k + 1 =>
     replace : embed (n := n) x ≺ Sum.inr i := Model.relItr_unwrap_trans_pos (by omega) this;
     grind [embed];
+
+lemma exists_tail_of_not_original_world {x : (M.extendRoot n).World} (h : ∀ (x₀ : M.World), x ≠ embed x₀) : ∃ i, x = Sum.inr i := by
+  match x with
+  | .inl x₀ => exfalso; apply h x₀; rfl;
+  | .inr i => use i;
+
+lemma exists_original_of_embed_rel {x : M.World} {y : (M.extendRoot n).World}
+  : embed (n := n) x ≺ y → ∃ y₀ : M.World, y = embed y₀ := by
+  contrapose!;
+  intro h;
+  obtain ⟨i, rfl⟩ := exists_tail_of_not_original_world h;
+  exact not_rel_original_tail (x := x) (n := n);
+
+lemma same_forces_embed {x : M.World} : Model.World.Forces (M := M.extendRoot n |>.toModel) (embed x) A ↔ x ⊩ A := by
+  induction A generalizing x with
+  | box A ihA =>
+    constructor;
+    . grind;
+    . intro h y Rxy;
+      obtain ⟨y, rfl⟩ := exists_original_of_embed_rel Rxy;
+      exact ihA |>.mpr $ h y (rel_embed_embed_iff_rel.mp Rxy);
+  | _ => grind [embed]
 
 /-- Chain of `n`-root extension of `M` -/
 protected def tail (M : RootedModel κ α) (n : ℕ+) : List (M.extendRoot n).World := List.finRange n |>.reverse.map (.inr ·)

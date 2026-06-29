@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Hilbert.Basic
+public import SeqPL.Kripke.PointGenerate
 public import Mathlib.Tactic.TFAE
 
 @[expose]
@@ -31,6 +32,20 @@ theorem LogicGL_TFAE [DecidableEq α] {A : Formula α} : [
     intro h κ _;
     apply ProvableHilbert.Kripke.finite_soundness h;
   tfae_have 5 → 2 := ProvableHilbert.Kripke.completeness;
+  tfae_finish;
+
+theorem LogicGL_semantical_TFAE [DecidableEq α] {A : Formula α} : [
+  A ∈ LogicGL α,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A
+].TFAE := by
+  tfae_have 1 ↔ 2 := LogicGL_TFAE.out 0 4;
+  tfae_have 2 → 3 := by
+    intro h κ _ M _;
+    apply h;
+  tfae_have 3 → 2 := by
+    intro h κ _ M _ x;
+    exact Model.toRootedModel.forces_same_at_root.mp $ h (M.toRootedModel x);
   tfae_finish;
 
 end

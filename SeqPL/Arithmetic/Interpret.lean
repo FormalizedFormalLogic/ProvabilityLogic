@@ -29,6 +29,14 @@ def interpret (f : Realization α 𝔅) : Formula α → FirstOrder.Sentence L
 
 instance : CoeFun (Realization α 𝔅) (fun _ ↦ Formula α → FirstOrder.Sentence L) := ⟨interpret⟩
 
+variable {f : Realization α 𝔅} {A : Formula α}
+
+@[simp, grind =]
+lemma interpret_boxItr {n : ℕ} : (□^[n]A).interpret f = 𝔅^[n] (f A) := by
+  induction n with
+  | zero => simp [Formula.boxItr];
+  | succ n ih => simp only [boxItr, Function.iterate_succ_apply', interpret, ih];
+
 end Formula
 
 

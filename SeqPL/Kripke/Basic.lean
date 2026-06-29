@@ -112,7 +112,7 @@ abbrev Val {M : Model κ α} : M.World → α → Prop := M.Val'
 class IsGL (M : Model κ α) extends IsTrans _ M.Rel, IsConverseWellFounded _ M.Rel
 
 class IsFiniteGL (M : Model κ α) extends IsTrans _ M.Rel, Std.Irrefl M.Rel where
-  finite : Finite M.World
+  [finite : Finite M.World]
 instance [M.IsFiniteGL] : Finite M.World := IsFiniteGL.finite
 
 instance [M.IsFiniteGL] : M.IsGL where
