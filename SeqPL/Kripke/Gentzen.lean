@@ -154,6 +154,7 @@ end ProvableGentzen
 
 namespace Formula
 
+@[grind]
 def subfmls : Formula α → FormulaFinset α
 | #a    => {#a}
 | ⊥     => {⊥}
@@ -161,7 +162,20 @@ def subfmls : Formula α → FormulaFinset α
 | □A    => insert (□A) A.subfmls
 
 @[grind .]
-lemma mem_subfmls_self : A ∈ A.subfmls := by cases A <;> simp [Formula.subfmls];
+lemma mem_subfmls_self : A ∈ A.subfmls := by cases A <;> grind
+
+@[grind .]
+lemma mem_subfmls_imp_left {A B : Formula α} : A ∈ (A 🡒 B).subfmls := by grind
+
+@[grind .]
+lemma mem_subfmls_imp_right {A B : Formula α} : B ∈ (A 🡒 B).subfmls := by grind
+
+@[grind →]
+lemma subfmls_trans {A B : Formula α} : A ∈ B.subfmls → A.subfmls ⊆ B.subfmls := by
+  induction B with
+  | imp C D ihC ihD => intro h; grind
+  | box C ihC => intro h; grind
+  | _ => intro h; grind
 
 end Formula
 
@@ -172,6 +186,11 @@ namespace FormulaFinset
 def subfmls (Γ : FormulaFinset α) : Finset (Formula α) := Finset.biUnion Γ Formula.subfmls
 
 @[grind .] lemma subset_self_subfmls : Γ ⊆ Γ.subfmls := by grind;
+
+@[grind →]
+lemma mem_subfmls_subfmls {Γ : FormulaFinset α} {B C : Formula α} (hB : B ∈ Γ.subfmls) (hC : C ∈ B.subfmls) : C ∈ Γ.subfmls := by
+  simp only [FormulaFinset.subfmls, Finset.mem_biUnion] at hB ⊢
+  grind [Formula.subfmls_trans]
 
 @[grind]
 noncomputable def prebox (Γ : FormulaFinset α) : FormulaFinset α := Γ.preimage (□·) $ by grind [Set.InjOn];
@@ -196,6 +215,11 @@ instance : HasSubset (Sequent α) := ⟨subset⟩
 variable {S : Sequent α}
 
 @[grind .] lemma subset_self_subfmls : S.ant ∪ S.suc ⊆ S.subfmls := by grind;
+
+@[grind →]
+lemma mem_subfmls_subfmls {S : Sequent α} {B C : Formula α} (hB : B ∈ S.subfmls) (hC : C ∈ B.subfmls) : C ∈ S.subfmls := by
+  simp only [Sequent.subfmls, Finset.mem_union] at hB ⊢
+  grind [FormulaFinset.mem_subfmls_subfmls]
 
 structure Saturated (S : Sequent α) where
   impL : ∀ {A B}, A 🡒 B ∈ S.1 → A ∈ S.2 ∨ B ∈ S.1
@@ -270,6 +294,27 @@ lemma subset_lindenbaum_indexed (hS₀ : ⊬ᵍ S₀) (l : FormulaList α) :
         · exact ⟨iha.trans (Finset.subset_insert _ _), ihs.trans (Finset.subset_insert _ _)⟩
         · exact ⟨iha, ihs⟩
 
+lemma subfmls_lindenbaum_indexed (hS₀ : ⊬ᵍ S₀)
+    (hS₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) (l : FormulaList α) (hl : ∀ C ∈ l, C ∈ BS.subfmls) :
+    (lindenbaum_indexed BS hS₀ l).1.1 ∪ (lindenbaum_indexed BS hS₀ l).1.2 ⊆ BS.subfmls := by
+  induction l with
+  | nil => exact hS₀sub
+  | cons x l ih =>
+    have ihl := ih (fun C hC => hl C (by simp [hC]))
+    match x with
+    | #a | □C | ⊥ => exact ihl
+    | (A 🡒 B) =>
+      have hAB : (A 🡒 B) ∈ BS.subfmls := hl _ (by simp)
+      have hA : A ∈ BS.subfmls :=
+        Sequent.mem_subfmls_subfmls (B := A 🡒 B) hAB Formula.mem_subfmls_imp_left
+      have hB : B ∈ BS.subfmls :=
+        Sequent.mem_subfmls_subfmls (B := A 🡒 B) hAB Formula.mem_subfmls_imp_right
+      dsimp only [lindenbaum_indexed]
+      generalize lindenbaum_indexed BS hS₀ l = T at ihl
+      split
+      · split <;> (intro F hF; simp only [Finset.mem_union, Finset.mem_insert] at hF; grind)
+      · split <;> (intro F hF; simp only [Finset.mem_union, Finset.mem_insert] at hF; grind)
+
 lemma mem_lindenbaum_indexed [Fact (⊬ᵍ BS)] {S₀_unProvableGentzen : ⊬ᵍ S₀} :
   A ∈ (lindenbaum_indexed BS S₀_unProvableGentzen l).1.1 → A ∈ S₀.1 := by
   induction l with
@@ -302,10 +347,8 @@ noncomputable def lindenbaum (BS : Sequent α) [Fact (⊬ᵍ BS)]
         intro A B h;
         sorry;
     }
-    subset_subfmls := by
-      intro A hA;
-      apply S₀_subfml;
-      sorry;
+    subset_subfmls :=
+      subfmls_lindenbaum_indexed S₀_unProvableGentzen S₀_subfml _ (by simp)
   }
 
 lemma subset_lindenbaum (BS : Sequent α) [Fact (⊬ᵍ BS)] {S₀} (S₀_subfml : (S₀.ant ∪ S₀.suc) ⊆ BS.subfmls) (hS₀ : ⊬ᵍ S₀) : S₀ ⊆ (lindenbaum BS S₀_subfml hS₀).1 :=
