@@ -3,6 +3,8 @@ module
 public import SeqPL.Kripke.Basic
 public import SeqPL.Gentzen.Basic
 public import Mathlib.Data.Finset.Preimage
+public import Mathlib.Data.Finset.Powerset
+public import Mathlib.Data.Finite.Prod
 
 @[expose]
 public section
@@ -356,8 +358,28 @@ lemma subset_lindenbaum (BS : Sequent α) [Fact (⊬ᵍ BS)] {S₀} (S₀_subfml
 
 end
 
+instance {S : Sequent α} : Subsingleton S.Saturated :=
+  ⟨fun a b => by cases a; cases b; rfl⟩
+
+lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant)
+    (hs : S.toSequent.suc = T.toSequent.suc) : S = T := by
+  obtain ⟨⟨sa, ss⟩, sat, sub, un⟩ := S
+  obtain ⟨⟨ta, ts⟩, sat', sub', un'⟩ := T
+  simp only at ha hs
+  subst ha; subst hs
+  congr 1
+
 instance : Finite (ExpandedSequent BS) := by
-  sorry;
+  apply Finite.of_injective
+    (β := {x : Finset (Formula α) // x ∈ BS.subfmls.powerset} ×
+          {x : Finset (Formula α) // x ∈ BS.subfmls.powerset})
+    (fun S : ExpandedSequent BS => (⟨S.toSequent.ant, Finset.mem_powerset.mpr
+                  (Finset.Subset.trans Finset.subset_union_left S.subset_subfmls)⟩,
+               ⟨S.toSequent.suc, Finset.mem_powerset.mpr
+                  (Finset.Subset.trans Finset.subset_union_right S.subset_subfmls)⟩))
+  intro S T h
+  simp only [Prod.mk.injEq, Subtype.mk.injEq] at h
+  exact ext h.1 h.2
 
 instance [Fact (⊬ᵍ BS)] : Nonempty (ExpandedSequent BS) := ⟨lindenbaum BS (S₀ := BS) (by grind) (Fact.elim inferInstance)⟩
 
