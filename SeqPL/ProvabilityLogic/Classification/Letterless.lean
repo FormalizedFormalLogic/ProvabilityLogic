@@ -261,9 +261,12 @@ lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL ↔ spectrum A = Set.univ := b
   . intro h n;
     apply spectrum_TFAE.out 1 0 |>.mp;
     intro κ _ _ M _ x rfl;
-    apply @h κ _ M (by sorry);
+    have : Finite M.World := by infer_instance;
+    apply @h κ _ M {};
   . intro h κ _ M _ x;
-    sorry;
+    have : Fintype M.World := Fintype.ofFinite _;
+    have := spectrum_TFAE.out 0 1 |>.mp $ h x.rank;
+    exact this M x rfl;
 
 lemma iff_GL_proves_imp_GL_subset_spectrum : (A 🡒 B) ∈ LogicGL ↔ spectrum A ⊆ spectrum B := by
   apply Iff.trans iff_GL_proves_spectrum_univ;
@@ -390,13 +393,22 @@ variable {X : LetterlessFormulaSet} {A : LetterlessFormula} {s : Set ℕ}
 @[grind] def spectrum (X : LetterlessFormulaSet) : Set ℕ := ⋂ A ∈ X, LetterlessFormula.spectrum A
 @[grind] def trace (X : LetterlessFormulaSet) : Set ℕ := X.spectrumᶜ
 
-@[grind] def Regular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (X : LetterlessFormulaSet) := ∀ A ∈ X, LetterlessFormula.Regular T A
+@[grind] def Regular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (X : LetterlessFormulaSet) := ∀ A : LetterlessFormula, A ∈ X → LetterlessFormula.Regular T A
 @[grind] def Singular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (X : LetterlessFormulaSet) := ¬(X.Regular T)
-
-variable [ℕ ⊧ₘ* T]
 
 lemma eq_spectrum : X.spectrum = (⋂ A ∈ X, LetterlessFormula.spectrum A) := rfl
 lemma eq_trace : X.trace = (⋃ A ∈ X, LetterlessFormula.trace A) := by simp [LetterlessFormulaSet.trace, LetterlessFormula.trace, spectrum];
+
+@[grind =]
+lemma iff_singular_exists_singular : X.Singular T ↔ ∃ (A : LetterlessFormula), A ∈ X ∧ LetterlessFormula.Singular T A := by grind;
+
+@[grind <=]
+lemma spectrum_subset_of_mem (h : A ∈ X) : X.spectrum ⊆ A.spectrum := by
+  intro i hi;
+  apply Set.mem_iInter.mp hi A;
+  grind;
+
+variable [ℕ ⊧ₘ* T]
 
 @[simp, grind =_]
 lemma eq_trace_singleton : trace {A} = LetterlessFormula.trace A := by
@@ -456,6 +468,9 @@ lemma iff_regular_trace_finite : A.Regular T ↔ (trace A).Finite := by
     apply iff_regular_of_provable_iff (LetterlessFormula.TBB_normalization_of_finite_trace h) |>.mpr;
     grind;
 
+@[grind <=]
+lemma finite_spectrum_of_singular : A.Singular T → (A.spectrum).Finite := by grind;
+
 end LetterlessFormula
 
 
@@ -465,8 +480,12 @@ variable {X : LetterlessFormulaSet} {A : LetterlessFormula}
 
 @[grind <=]
 lemma trace_cofinite_of_singular (h : X.Singular T) : X.trace.Cofinite := by
-  simp [LetterlessFormulaSet.trace, Set.Cofinite];
-  sorry;
+  obtain ⟨A, hA, h⟩ := iff_singular_exists_singular.mp h;
+  suffices X.spectrum ⊆ A.spectrum by
+    simp [LetterlessFormulaSet.trace, Set.Cofinite]
+    apply Set.Finite.subset ?_ this;
+    grind;
+  grind;
 
 end LetterlessFormulaSet
 
