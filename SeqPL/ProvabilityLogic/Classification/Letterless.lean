@@ -3,7 +3,6 @@ module
 public import SeqPL.Kripke.Rank
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Interpret
-public import SeqPL.Vorspiel.Set.Cofinite
 public import Mathlib.Tactic.TautoSet
 public import Mathlib.Order.Minimal
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
@@ -108,13 +107,17 @@ lemma trace_fconj {Γ : FormulaFinset Empty} : trace (⋀Γ) = ⋃ A ∈ Γ, tra
 lemma trace_TBBMinus {s : Set ℕ} (hs : s.Finite) : trace (TBBMinus s) = sᶜ := by simp [trace_neg, trace_fconj];
 
 @[grind .]
-lemma spectrum_finite_or_cofinite : A.spectrum.Finite ∨ A.spectrum.Cofinite := by
+lemma spectrum_finite_or_cofinite : A.spectrum.Finite ∨ A.spectrumᶜ.Finite := by
   induction A with
   | atom a => grind;
   | bot => grind;
   | imp A B ihA ihB =>
     simp only [spectrum_imp, Set.finite_union];
-    rcases ihA with (hA | hA) <;> rcases ihB with (hB | hB) <;> grind;
+    rcases ihA with (hA | hA) <;> rcases ihB with (hB | hB);
+    · right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
+    · right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
+    · left; exact ⟨hA, hB⟩;
+    · right; rw [Set.compl_union, compl_compl]; exact hB.inter_of_right _;
   | box A ih =>
     by_cases h : spectrum A = Set.univ;
     . grind;
@@ -137,8 +140,9 @@ lemma spectrum_finite_or_cofinite : A.spectrum.Finite ∨ A.spectrum.Cofinite :=
       apply Set.finite_le_nat;
 
 @[grind .]
-lemma trace_finite_or_cofinite : (trace A).Finite ∨ (trace A).Cofinite := by
-  grind [trace, spectrum_finite_or_cofinite];
+lemma trace_finite_or_cofinite : (trace A).Finite ∨ (trace A)ᶜ.Finite := by
+  simp only [trace, compl_compl];
+  exact spectrum_finite_or_cofinite.symm;
 
 @[grind →]
 lemma spectrum_finite_of_trace_infinite : (trace A).Infinite → (spectrum A).Finite := by
@@ -292,7 +296,7 @@ lemma LetterlessFormula.TBB_normalization_of_finite_trace (h : (trace A).Finite)
       simp [LetterlessFormula.spectrum_fconj];
 
 lemma LetterlessFormula.TBBMinus_normalization_of_finite_spectrum (h : (spectrum A).Finite) : (A 🡘 TBBMinus _ h) ∈ LogicGL := by
-  have := TBB_normalization_of_finite_trace (A := ∼A) (by grind);
+  have := TBB_normalization_of_finite_trace (A := ∼A) (by simpa [trace, spectrum_neg] using h);
   sorry;
 
 lemma GL_proves_letterless_axiomWeakPoint3 : ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) ∈ LogicGL := by
@@ -479,10 +483,10 @@ namespace LetterlessFormulaSet
 variable {X : LetterlessFormulaSet} {A : LetterlessFormula}
 
 @[grind <=]
-lemma trace_cofinite_of_singular (h : X.Singular T) : X.trace.Cofinite := by
+lemma trace_cofinite_of_singular (h : X.Singular T) : X.traceᶜ.Finite := by
   obtain ⟨A, hA, h⟩ := iff_singular_exists_singular.mp h;
   suffices X.spectrum ⊆ A.spectrum by
-    simp [LetterlessFormulaSet.trace, Set.Cofinite]
+    simp only [LetterlessFormulaSet.trace, compl_compl];
     apply Set.Finite.subset ?_ this;
     grind;
   grind;
@@ -538,7 +542,7 @@ lemma iff_eq_sumQuasiNormal_eq_trace (hSR : (X.Singular T ∧ Y.Singular T) ∨ 
 
 abbrev LogicGLAlpha {α} (Alpha : Set ℕ) : Logic α := (@LogicGL α) +ᴸ ↑(Alpha.image $ TBB (α := Empty))
 abbrev LogicGLAlphaω {α} : Logic α := LogicGLAlpha Set.univ
-abbrev LogicGLBetaMinus {α} [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Beta.Cofinite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Beta_cofinite })
+abbrev LogicGLBetaMinus {α} [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Betaᶜ.Finite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Beta_cofinite })
 
 
 
