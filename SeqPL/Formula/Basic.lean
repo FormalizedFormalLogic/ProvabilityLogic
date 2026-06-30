@@ -13,7 +13,7 @@ inductive Formula (α : Type*)
 | bot  : Formula α
 | imp  : Formula α → Formula α → Formula α
 | box  : Formula α → Formula α
-deriving Repr, DecidableEq
+deriving DecidableEq
 
 namespace Formula
 
@@ -24,21 +24,27 @@ notation:max "⊥" => bot
 infixr:85 " 🡒 " => imp
 prefix:95 "□" => box
 
+@[match_pattern]
 abbrev neg (A : Formula α) : Formula α := A 🡒 ⊥
 prefix:90 "∼" => neg
 
+@[match_pattern]
 abbrev or (A B : Formula α) : Formula α := ∼A 🡒 B
 infixl:83 " ⋎ " => or
 
+@[match_pattern]
 abbrev and (A B : Formula α) : Formula α := ∼(A 🡒 ∼B)
 infixl:84 " ⋏ " => and
 
+@[match_pattern]
 abbrev iff (A B : Formula α) : Formula α := (A 🡒 B) ⋏ (B 🡒 A)
 infix:85 " 🡘 " => iff
 
+@[match_pattern]
 abbrev top : Formula α := ∼⊥
 notation:max "⊤" => top
 
+@[match_pattern]
 abbrev dia (A : Formula α) : Formula α := ∼□(∼A)
 prefix:95 "◇" => dia
 
@@ -78,6 +84,20 @@ instance : DecidablePred (Formula.IsBox (α := α)) := λ A => by
   cases A;
   case box => exact isTrue $ by grind;
   case atom | bot | imp => exact isFalse $ by grind;
+
+protected def toString [ToString α] : Formula α → String
+| #a    => "#" ++ toString a
+| ◇A    => "◇" ++ Formula.toString A
+| □A    => "□" ++ Formula.toString A
+| ⊤     => "⊤"
+| ⊥     => "⊥"
+| ∼A    => "∼" ++ Formula.toString A
+| A 🡒 B => "(" ++ Formula.toString A ++ " 🡒 " ++ Formula.toString B ++ ")"
+-- | A ⋏ B => "(" ++ Formula.toString A ++ " ⋏ " ++ Formula.toString B ++ ")"
+-- | A ⋎ B => "(" ++ Formula.toString A ++ " ⋎ " ++ Formula.toString B ++ ")"
+
+instance [ToString α] : ToString (Formula α) := ⟨Formula.toString⟩
+instance [ToString α] : Repr (Formula α) := ⟨λ A _ => Std.Format.text $ Formula.toString A⟩
 
 end Formula
 
