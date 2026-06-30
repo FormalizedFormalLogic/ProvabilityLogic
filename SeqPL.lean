@@ -4,6 +4,7 @@ public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Letterless
 public import SeqPL.Gentzen.Basic
+public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
