@@ -187,7 +187,10 @@ end Model
 abbrev finiteLineModel (n : ℕ) : RootedModel (Fin (n + 1)) Empty where
   Rel' := (· < ·)
   Val' _ _ := False
-  root := ⟨0, by sorry⟩
+  root := ⟨0, by
+    intro x hx;
+    exact Fin.pos_of_ne_zero hx;
+  ⟩
 
 namespace finiteLineModel
 
@@ -212,14 +215,20 @@ lemma _root_.PNat.exists_eq_succ (n : ℕ+) : ∃ m : ℕ, n = m + 1 := by
 
 lemma rank_eq (i : (finiteLineModel n).World) : i.rank = (n - i) := by
   induction i using Fin.reverseInduction with
-  | last => sorry;
+  | last =>
+    rw [show (n - (Fin.last n : ℕ)) = 0 by simp];
+    apply Model.iff_rank_eq_zero.mpr;
+    intro y;
+    exact not_lt.mpr (Fin.le_last y);
   | cast i ih =>
     suffices (finiteLineModel.of i.castSucc).rank = (finiteLineModel.of i.succ).rank + 1 by grind;
-    apply Model.iff_rank_eq.mpr;
-    constructor;
-    . sorry;
-    . intro z;
-      sorry;
+    haveI : IsConverseWellFounded (finiteLineModel n).World (finiteLineModel n).Rel :=
+      ⟨(inferInstance : (finiteLineModel n).IsGL).cwf⟩;
+    apply cwfHeight_eq_succ_cwfHeight (r := (finiteLineModel n).Rel);
+    . exact Fin.castSucc_lt_succ;
+    . intro c hc;
+      simp only [Model.Rel, Fin.lt_def, Fin.ext_iff, Fin.val_castSucc, Fin.val_succ] at hc ⊢;
+      omega;
 
 lemma height_eq : (finiteLineModel n).height = n := by apply rank_eq;
 
