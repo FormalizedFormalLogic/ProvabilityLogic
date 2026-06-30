@@ -233,6 +233,7 @@ lemma subset_subfmls {Γ : FormulaFinset α} : Γ.subfmls ⊆ Δ → Γ.subfmls 
 @[grind]
 noncomputable def prebox (Γ : FormulaFinset α) : FormulaFinset α := Γ.preimage (□·) $ by grind [Set.InjOn];
 
+omit [DecidableEq α] in
 @[grind =]
 lemma iff_mem_prebox_mem : A ∈ Γ.prebox ↔ □A ∈ Γ := by simp [FormulaFinset.prebox];
 
@@ -375,14 +376,9 @@ lemma saturated_lindenbaum_indexed
   {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
   {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
   :
-    (∀ {A B : Formula α},
-        A 🡒 B ∈ Γ →
-        A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 →
-        A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ∨ B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1) ∧
-    (∀ {A B : Formula α},
-        A 🡒 B ∈ Γ →
-        A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 →
-        A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∧ B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2)
+    let S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ;
+    (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
+    (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.2 → A ∈ S.1.1 ∧ B ∈ S.1.2)
   := by
   rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
   revert hΓ
