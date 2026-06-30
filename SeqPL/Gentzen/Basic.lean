@@ -130,8 +130,8 @@ namespace ProvableGentzen
 variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B C : Formula α}
 
 lemma axm (A : Formula α) : ⊢ᵍ ({A} ⟹ {A}) := ⟨ProofGentzen.axm A⟩
-@[grind =>] lemma union (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ (Γ ⟹ Δ) := ⟨ProofGentzen.union A hΓ hΔ⟩
-@[grind =>] lemma union' (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ S := union A hΓ hΔ
+lemma union (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ (Γ ⟹ Δ) := ⟨ProofGentzen.union A hΓ hΔ⟩
+lemma union' (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ S := union A hΓ hΔ
 lemma botL : ⊢ᵍ ({⊥} ⟹ (∅ : FormulaFinset α)) := ⟨ProofGentzen.botL⟩
 @[grind =>] lemma botL_mem (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ (Γ ⟹ Δ) := ⟨ProofGentzen.botL_mem h⟩
 @[grind =>] lemma botL_mem' (S : Sequent α) (h : ⊥ ∈ S.ant := by grind) : ⊢ᵍ S := botL_mem h
@@ -172,7 +172,6 @@ lemma rec
 
 prefix:120 "⊬ᵍ " => λ S => ¬⊢ᵍ S
 
-@[grind =]
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : Sequent α} : (⊬ᵍ S) ↔ (IsEmpty (⊢ᵍ! S)) := by simp [ProvableGentzen];
 
 end ProvableGentzen

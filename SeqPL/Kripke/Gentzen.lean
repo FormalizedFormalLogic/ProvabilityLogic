@@ -303,7 +303,12 @@ def widen {BS₀ BS₁ : Sequent α} (S : ExpandedSequent BS₀) (hBS : BS₀ �
 
 variable {BS : Sequent α} {S : ExpandedSequent BS} {A : Formula α}
 
-@[grind .] lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by grind;
+@[grind .]
+lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
+  push Not;
+  intro h₁ h₂;
+  apply S.unprovable;
+  exact ProvableGentzen.union' _ h₁ h₂;
 @[grind .] lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by grind;
 @[grind =>] lemma of_mem_imp_ant (h : A 🡒 B ∈ S.1.1 := by grind) : A ∈ S.1.2 ∨ B ∈ S.1.1 := S.saturated.impL h
 @[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
