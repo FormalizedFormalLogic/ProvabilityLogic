@@ -40,7 +40,12 @@ abbrev RootedModel.extendRoot (M : RootedModel κ α) (n : ℕ+) : RootedModel (
     intro x hx;
     match x with
     | .inl x => simp [Model.Rel];
-    | .inr i => simp_all [Model.Rel, Fin.posLast]; sorry;
+    | .inr i =>
+      replace hx : i ≠ Fin.posLast n := by simpa using hx;
+      have h1 := i.2;
+      have h2 : i.val ≠ n.natPred := by simpa [Fin.ext_iff, Fin.posLast] using hx;
+      simp only [Model.Rel, Fin.lt_def, Fin.posLast, PNat.natPred] at *;
+      omega;
   ⟩
 
 namespace RootedModel.extendRoot
@@ -81,7 +86,33 @@ instance [Std.Irrefl M.Rel] : Std.Irrefl (M.extendRoot n).Rel := by
   | .inr i => simp [Model.Rel];
 
 instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.extendRoot n).Rel where
-  cwf := by sorry
+  cwf := by
+    have accInl : ∀ x : M.World, Acc (flip (M.extendRoot n).Rel) (Sum.inl x) := by
+      intro x;
+      apply WellFounded.induction (IsConverseWellFounded.cwf (r := M.Rel)) x;
+      intro x ih;
+      constructor;
+      intro y hy;
+      match y with
+      | .inl y => exact ih y hy;
+      | .inr j => simp [flip, Model.Rel] at hy;
+    have accInr : ∀ i : Fin n, Acc (flip (M.extendRoot n).Rel) (Sum.inr i) := by
+      suffices ∀ k, ∀ i : Fin n, i.val = k → Acc (flip (M.extendRoot n).Rel) (Sum.inr i) by
+        intro i; exact this i.val i rfl;
+      intro k;
+      induction k using Nat.strong_induction_on with
+      | _ k ih =>
+        intro i rfl;
+        constructor;
+        intro y hy;
+        match y with
+        | .inl x => exact accInl x;
+        | .inr j => exact ih j.val (by simpa [flip, Model.Rel] using hy) j rfl;
+    apply WellFounded.intro;
+    intro x;
+    match x with
+    | .inl x => exact accInl x;
+    | .inr i => exact accInr i;
 
 instance [M.IsGL] : (M.extendRoot n).IsGL where
 
@@ -132,8 +163,8 @@ lemma tail_length : (extendRoot.tail M n).length = n := by simp [extendRoot.tail
 lemma tail_isChain : List.IsChain (· ≺ ·) (extendRoot.tail M n) := by
   apply List.isChain_map_of_isChain (R := λ a b => b < a);
   . simp [Model.Rel]
-  . simp [List.isChain_reverse]
-    sorry;
+  . simp only [List.isChain_reverse];
+    simp [List.isChain_iff_pairwise, List.pairwise_lt_finRange];
 
 
 namespace Ext1
