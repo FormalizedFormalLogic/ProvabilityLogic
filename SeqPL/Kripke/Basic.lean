@@ -178,6 +178,24 @@ infix:55 " ⊮ " => NotForces
 def ForcesSet (x : M.World) (Γ : FormulaFinset α) : Prop := ∀ A ∈ Γ, x ⊩ A
 infix:55 " ⊩ " => ForcesSet
 
+@[grind =]
+lemma forces_lconj {Γ : FormulaList α} : x ⊩ ⋀Γ ↔ ∀ A ∈ Γ, x ⊩ A := by
+  match Γ with
+  | [] | [A] | A :: B :: Γ => simp [FormulaList.conj, forces_and, forces_lconj];
+
+@[grind =]
+lemma forces_ldisj {Γ : FormulaList α} : x ⊩ ⋁Γ ↔ ∃ A ∈ Γ, x ⊩ A := by
+  match Γ with
+  | [] | [A] | A :: B :: Γ => simp [FormulaList.disj, forces_or, forces_ldisj];
+
+@[grind =]
+lemma forces_fconj {Γ : FormulaFinset α} : x ⊩ ⋀Γ ↔ ∀ A ∈ Γ, x ⊩ A := by
+  simp [FormulaFinset.conj, forces_lconj];
+
+@[grind =]
+lemma forces_fdisj {Γ : FormulaFinset α} : x ⊩ ⋁Γ ↔ ∃ A ∈ Γ, x ⊩ A := by
+  simp [FormulaFinset.disj, forces_ldisj];
+
 end Model.World
 
 

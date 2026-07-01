@@ -6,6 +6,17 @@ public import SeqPL.Formula.Letterless
 @[expose]
 public section
 
+lemma ProvableHilbert.subst {A : Formula α} {s : Formula.Substitution α} (h : ⊢ʰ A) : ⊢ʰ A⟦s⟧ := by
+  induction h using ProvableHilbert.rec with
+  | prop1 => exact ProvableHilbert.prop1
+  | prop2 => exact ProvableHilbert.prop2
+  | prop3 => exact ProvableHilbert.prop3
+  | modalK => exact ProvableHilbert.modalK
+  | modal4 => exact ProvableHilbert.modal4
+  | modalL => exact ProvableHilbert.modalL
+  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
+  | nec h ih => exact ProvableHilbert.nec ih
+
 @[grind]
 inductive Logic.sumQuasiNormal (L₁ L₂ : Logic α) : Logic α
   | mem₁ {A}    : L₁ A → sumQuasiNormal L₁ L₂ A

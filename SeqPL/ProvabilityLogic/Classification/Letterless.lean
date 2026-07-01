@@ -525,17 +525,6 @@ section
 
 variable {α} {X Y : LetterlessFormulaSet} {A : LetterlessFormula}
 
-lemma ProvableHilbert.subst {A : Formula α} {s : Formula.Substitution α} (h : ⊢ʰ A) : ⊢ʰ A⟦s⟧ := by
-  induction h using ProvableHilbert.rec with
-  | prop1 => exact ProvableHilbert.prop1
-  | prop2 => exact ProvableHilbert.prop2
-  | prop3 => exact ProvableHilbert.prop3
-  | modalK => exact ProvableHilbert.modalK
-  | modal4 => exact ProvableHilbert.modal4
-  | modalL => exact ProvableHilbert.modalL
-  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
-  | nec h ih => exact ProvableHilbert.nec ih
-
 /-- α-原子を ⊥ に潰して Empty 上の論理式へ射影する（letterless の lift の逆向き）． -/
 def _root_.Formula.projectEmpty : Formula α → LetterlessFormula
   | .atom _ => ⊥
