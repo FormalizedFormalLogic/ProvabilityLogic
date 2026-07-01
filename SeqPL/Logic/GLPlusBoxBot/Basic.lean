@@ -24,7 +24,9 @@ lemma LogicGLPlusBoxBot.iff_provable_provable_GL {n : ℕ} : A ∈ LogicGLPlusBo
       sorry;
     | mdp _ _ ihAB ihA =>
       sorry;
-    | subst _ ihA => sorry;
+    | subst _ ihA =>
+
+      sorry;
   . intro h;
     apply Logic.sumQuasiNormal.mdp;
     . exact Logic.sumQuasiNormal.mem₁ h;
