@@ -2,6 +2,7 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
+public import SeqPL.Formula.Countable
 public import SeqPL.Formula.Letterless
 public import SeqPL.Gentzen.Basic
 public import SeqPL.Gentzen.Maehara
@@ -20,14 +21,20 @@ public import SeqPL.Logic.D.Basic
 public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.GLPlusBoxBot.Basic
 public import SeqPL.Logic.S.Basic
+public import SeqPL.Logic.S.Boxdot
+public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.Full
 public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.ProvabilityLogic.GL.Basic
+public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
 public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.Solovay
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Tait.Basic
 public import SeqPL.Vorspiel.CWF
+public import SeqPL.Vorspiel.Finset
+public import SeqPL.Vorspiel.List
+public import SeqPL.Vorspiel.Set.Approximate
 public import SeqPL.Vorspiel.Set.Cofinite

@@ -1,6 +1,11 @@
 module
 
 public import SeqPL.Kripke.Basic
+public import SeqPL.Vorspiel.Finset
+public import SeqPL.Vorspiel.List
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Data.Finite.Sum
+public import Mathlib.Data.Finset.Union
 public import Mathlib.Data.Fintype.Sum
 public import Mathlib.Data.List.Chain
 public import Mathlib.Data.PNat.Basic
@@ -187,6 +192,131 @@ lemma eq_original_of_neq_extendRoot_root [Std.Irrefl M.Rel] {x : (M.extendRoot 1
   assumption;
 
 end Ext1
+
+end RootedModel.extendRoot
+
+
+section
+
+/-! ### 非反射的・推移的モデルの chain 上での公理 T -/
+
+open Classical
+open Model.World
+
+variable {M : Model κ α} {A : Formula α} {l : List M.World}
+
+/-- 非反射的・推移的モデルの chain 上で公理 T `□A 🡒 A` を反証する点は高々 1 つ． -/
+lemma atmost_one_not_forces_axiomT_in_chain [IsTrans _ M.Rel] (l_chain : List.IsChain (· ≺ ·) l) :
+    (∀ x ∈ l, x ⊩ (□A 🡒 A)) ∨ (∃! x, x ∈ l ∧ ¬(x ⊩ (□A 🡒 A))) := by
+  apply or_iff_not_imp_left.mpr;
+  push Not;
+  rintro ⟨x, x_l, hx⟩;
+  refine ⟨x, ⟨x_l, hx⟩, ?_⟩;
+  rintro y ⟨y_l, hy⟩;
+  by_contra neyx;
+  obtain ⟨hx₁, hx₂⟩ := not_forces_imp.mp hx;
+  obtain ⟨hy₁, hy₂⟩ := not_forces_imp.mp hy;
+  rcases l_chain.connected_of_trans y_l x_l neyx with Ryx | Rxy;
+  . exact hx₂ (hy₁ x Ryx);
+  . exact hy₂ (hx₁ y Rxy);
+
+lemma card_not_forces_axiomT_in_chain [IsTrans _ M.Rel]
+    (l_chain : List.IsChain (· ≺ ·) l) :
+    (l.toFinset.filter (λ x => ¬(x ⊩ (□A 🡒 A)))).card ≤ 1 := by
+  apply Finset.card_le_one.mpr;
+  intro a ha b hb;
+  simp only [Finset.mem_filter, List.mem_toFinset] at ha hb;
+  rcases atmost_one_not_forces_axiomT_in_chain (l_chain := l_chain) (A := A) with h | ⟨x, _, hu⟩;
+  . exact absurd (h a ha.1) ha.2;
+  . rw [hu a ha, hu b hb];
+
+/--
+  非反射的・推移的モデルの，`Γ.card` より長い chain 上には，
+  `Γ` の全ての論理式の公理 T インスタンスが成立する点が存在する．
+-/
+lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
+    [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Γ : FormulaFinset α}
+    (l_length : Γ.card < l.length)
+    (l_chain : List.IsChain (· ≺ ·) l) :
+    ∃ x ∈ l, ∀ B ∈ Γ, x ⊩ (□B 🡒 B) := by
+  let t₁ : Finset M.World := l.toFinset.filter (λ x => ∃ B ∈ Γ, ¬(x ⊩ (□B 🡒 B)));
+  let t₂ : Finset M.World := l.toFinset;
+  have ht₁ : t₁.card ≤ Γ.card := calc
+    t₁.card = (Finset.biUnion Γ (λ B => l.toFinset.filter (λ x => ¬(x ⊩ (□B 🡒 B))))).card := by
+      congr 1;
+      ext x;
+      simp only [t₁, Finset.mem_filter, Finset.mem_biUnion, List.mem_toFinset];
+      tauto;
+    _ ≤ ∑ B ∈ Γ, (l.toFinset.filter (λ x => ¬(x ⊩ (□B 🡒 B)))).card := Finset.card_biUnion_le
+    _ ≤ Γ.card * 1 := Finset.sum_le_card (fun B _ => card_not_forces_axiomT_in_chain l_chain)
+    _ = Γ.card := by omega;
+  have ht₂ : t₂.card = l.length := by
+    rw [List.card_toFinset, List.dedup_eq_self.mpr l_chain.nodup_of_irrefl_trans];
+  have hss : t₁ ⊂ t₂ := Finset.ssubset_of_subset_lt_card (Finset.filter_subset _ _) (by omega);
+  obtain ⟨x, hx₂, nhx₁⟩ := Finset.exists_of_ssubset hss;
+  refine ⟨x, List.mem_toFinset.mp hx₂, ?_⟩;
+  intro B hB;
+  by_contra hxB;
+  apply nhx₁;
+  simp only [t₁, Finset.mem_filter];
+  exact ⟨hx₂, B, hB, hxB⟩;
+
+end
+
+
+namespace RootedModel.extendRoot
+
+open Model.World
+
+variable {M : RootedModel κ α} {n : ℕ+}
+
+instance [M.IsFiniteGL] : (M.extendRoot n).IsFiniteGL where
+  finite := inferInstance
+
+/--
+  `Γ.card` より長く根を延長すれば，chain 上に `Γ` の全ての論理式の公理 T インスタンスが
+  成立する点が存在する．
+-/
+lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
+    {Γ : FormulaFinset α} (hn : Γ.card < n) :
+    ∃ i : Fin n, ∀ B ∈ Γ, Forces (M := (M.extendRoot n).toModel) (.inr i) (□B 🡒 B) := by
+  obtain ⟨x, hx, h⟩ := exists_forces_axiomT_set_in_chain
+    (M := (M.extendRoot n).toModel) (l := extendRoot.tail M n)
+    (by simpa using hn) tail_isChain;
+  obtain ⟨i, rfl⟩ : ∃ i : Fin n, x = .inr i := by
+    simpa [extendRoot.tail, eq_comm] using hx;
+  exact ⟨i, h⟩;
+
+/-- boxdot 変換された論理式の forces は chain 上の各点と元の根とで一致する． -/
+lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula α} :
+    Forces (M := (M.extendRoot n).toModel) (.inr i) (Aᵇ) ↔ M.root.1 ⊩ (Aᵇ) := by
+  induction A generalizing i with
+  | atom a => exact Iff.rfl;
+  | bot => exact Iff.rfl;
+  | imp A B ihA ihB =>
+    constructor;
+    . intro h hA; exact ihB.mp (h (ihA.mpr hA));
+    . intro h hA; exact ihB.mpr (h (ihA.mp hA));
+  | box A ihA =>
+    dsimp only [Formula.boxdotTranslate];
+    constructor;
+    . intro h;
+      obtain ⟨h₁, h₂⟩ := forces_and.mp h;
+      apply forces_and.mpr;
+      refine ⟨ihA.mp h₁, ?_⟩;
+      intro x Rrx;
+      apply same_forces_embed.mp;
+      exact h₂ (embed x) (by simp [embed, Model.Rel]);
+    . intro h;
+      obtain ⟨h₁, h₂⟩ := forces_and.mp h;
+      apply forces_and.mpr;
+      refine ⟨ihA.mpr h₁, ?_⟩;
+      rintro (x | j) Rix;
+      . apply same_forces_embed.mpr;
+        by_cases hx : x = M.root.1;
+        . exact hx ▸ h₁;
+        . exact h₂ x (M.root.2 x hx);
+      . exact ihA.mpr h₁;
 
 end RootedModel.extendRoot
 
