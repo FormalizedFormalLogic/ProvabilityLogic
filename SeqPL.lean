@@ -11,6 +11,7 @@ public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Preservation
+public import SeqPL.Kripke.PseudoTail
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootExtension
 public import SeqPL.Kripke.Tail

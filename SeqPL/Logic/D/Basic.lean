@@ -2,7 +2,7 @@ module
 
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Logic.S.Basic
-public import SeqPL.Kripke.Tail
+public import SeqPL.Kripke.PseudoTail
 
 @[expose]
 public section
@@ -24,91 +24,104 @@ lemma LogicS_subset_LogicD : LogicD (α := α) ⊆ LogicS := by
 
 
 universe u
-variable {α : Type u} {A B C : Formula α}
+variable {α : Type u}
 
 /-- GL の有限モデル完全性による意味論的な GL 所属証明． -/
-lemma LogicGL.mem_of_valid [DecidableEq α]
+lemma LogicGL.provable_of_valid [DecidableEq α] {A : Formula α}
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A) : A ∈ LogicGL :=
   ProvableHilbert.Kripke.completeness h
 
 
+open FormulaFinset in
+/-- `A` の部分論理式から作られる `n` 項公理 D のインスタンスたち． -/
+noncomputable def Formula.subfmlsD [DecidableEq α] (A : Formula α) : FormulaFinset α :=
+  (A.subfmls.prebox).powerset.image (λ (Γ : FormulaFinset α) => □(⋁(□Γ)) 🡒 ⋁(□Γ))
+
+
 namespace LogicD
 
-lemma mem_of_mem_GL (h : A ∈ LogicGL) : A ∈ LogicD := Logic.sumQuasiNormal.mem₁ h
+open FormulaFinset
 
-lemma mem_axiomP : (∼□⊥ : Formula α) ∈ LogicD :=
+lemma provable_of_provable_GL {A : Formula α} (h : A ∈ LogicGL) : A ∈ LogicD := Logic.sumQuasiNormal.mem₁ h
+
+lemma provable_axiomP : (∼□⊥ : Formula α) ∈ LogicD :=
   Logic.sumQuasiNormal.mem₂ (Set.mem_insert _ _)
 
-lemma mem_axiomDz : (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) ∈ LogicD :=
+lemma provable_axiomD {A B : Formula α} : (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) ∈ LogicD :=
   Logic.sumQuasiNormal.mem₂ (Set.mem_insert_iff.mpr (Or.inr ⟨A, B, rfl⟩))
 
 section
 
-private inductive D' {β : Type u} : Logic β
-  | mem_GL {X} : X ∈ LogicGL → D' X
-  | axiomP : D' (∼□⊥)
-  | axiomDz (X Y) : D' (□(□X ⋎ □Y) 🡒 (□X ⋎ □Y))
-  | mdp {X Y} : D' (X 🡒 Y) → D' X → D' Y
+/-- `subst` を経由しない `LogicD` の内在的定義（`LogicD.substlessInduction` 用）． -/
+protected inductive substless : Logic α
+  | provable_GL {A} : A ∈ LogicGL → LogicD.substless A
+  | axiomP : LogicD.substless (∼□⊥)
+  | axiomD (A B) : LogicD.substless (□(□A ⋎ □B) 🡒 (□A ⋎ □B))
+  | mdp {A B} : LogicD.substless (A 🡒 B) → LogicD.substless A → LogicD.substless B
 
-private lemma D'.eq_LogicD : D' (β := α) = LogicD := by
+private lemma substless.eq_LogicD : LogicD.substless (α := α) = LogicD := by
   ext A;
   constructor;
   . intro h;
     induction h with
-    | mem_GL h => exact mem_of_mem_GL h;
-    | axiomP => exact mem_axiomP;
-    | axiomDz A B => exact mem_axiomDz;
+    | provable_GL h => exact provable_of_provable_GL h;
+    | axiomP => exact provable_axiomP;
+    | axiomD A B => exact provable_axiomD;
     | mdp _ _ ihAB ihA => exact Logic.sumQuasiNormal.mdp ihAB ihA;
   . intro h;
     induction h with
-    | mem₁ h => exact D'.mem_GL h;
+    | mem₁ h => exact LogicD.substless.provable_GL h;
     | mem₂ h =>
       rcases h with (rfl | ⟨B, C, rfl⟩);
-      . exact D'.axiomP;
-      . exact D'.axiomDz B C;
-    | mdp _ _ ihAB ihA => exact D'.mdp ihAB ihA;
+      . exact LogicD.substless.axiomP;
+      . exact LogicD.substless.axiomD B C;
+    | mdp _ _ ihAB ihA => exact LogicD.substless.mdp ihAB ihA;
     | subst hA ihA =>
       clear hA;
       induction ihA with
-      | mem_GL h => exact D'.mem_GL (ProvableHilbert.subst h);
-      | axiomP => exact D'.axiomP;
-      | axiomDz B C => exact D'.axiomDz _ _;
-      | mdp _ _ ihAB ihA => exact D'.mdp ihAB ihA;
+      | provable_GL h => exact LogicD.substless.provable_GL (ProvableHilbert.subst h);
+      | axiomP => exact LogicD.substless.axiomP;
+      | axiomD B C => exact LogicD.substless.axiomD _ _;
+      | mdp _ _ ihAB ihA => exact LogicD.substless.mdp ihAB ihA;
 
-private lemma D'.toLogicD {A : Formula α} (h : D' A) : A ∈ LogicD := D'.eq_LogicD ▸ h
+private lemma substless.toLogicD {A : Formula α} (h : LogicD.substless A) : A ∈ LogicD :=
+  LogicD.substless.eq_LogicD ▸ h
 
-private lemma D'.ofLogicD {A : Formula α} (h : A ∈ LogicD) : D' A := D'.eq_LogicD.symm ▸ h
+private lemma substless.ofLogicD {A : Formula α} (h : A ∈ LogicD) : LogicD.substless A :=
+  LogicD.substless.eq_LogicD.symm ▸ h
 
-private lemma rec'_aux
+private lemma substlessInduction_aux
   {motive : (A : Formula α) → A ∈ LogicD → Prop}
-  (mem_GL : ∀ {A}, (h : A ∈ LogicGL) → motive A (mem_of_mem_GL h))
-  (axiomP : motive (∼□⊥) mem_axiomP)
-  (axiomDz : ∀ {A B}, motive (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) mem_axiomDz)
+  (provable_GL : ∀ {A}, (h : A ∈ LogicGL) → motive A (provable_of_provable_GL h))
+  (axiomP : motive (∼□⊥) provable_axiomP)
+  (axiomD : ∀ {A B}, motive (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) provable_axiomD)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicD} → {hA : A ∈ LogicD} →
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
-  : ∀ {A}, (h : D' A) → motive A (D'.toLogicD h) := by
+  : ∀ {A}, (h : LogicD.substless A) → motive A (LogicD.substless.toLogicD h) := by
   intro A h;
   induction h with
-  | mem_GL hg => exact mem_GL hg;
+  | provable_GL hg => exact provable_GL hg;
   | axiomP => exact axiomP;
-  | axiomDz X Y => exact axiomDz;
-  | mdp hXY hX ihXY ihX =>
-    exact mdp (hAB := D'.toLogicD hXY) (hA := D'.toLogicD hX) ihXY ihX;
+  | axiomD A B => exact axiomD;
+  | mdp hAB hA ihAB ihA =>
+    exact mdp (hAB := LogicD.substless.toLogicD hAB) (hA := LogicD.substless.toLogicD hA) ihAB ihA;
 
-/-- `LogicD` の帰納原理：`subst` を経由しない形（GL 部分・公理 P・公理 Dz・mdp）で帰納できる． -/
-protected lemma rec'
+/-- `LogicD` の帰納原理：`subst` を経由しない形（GL 部分・公理 P・公理 D・mdp）で帰納できる． -/
+protected lemma substlessInduction
   {motive : (A : Formula α) → A ∈ LogicD → Prop}
-  (mem_GL : ∀ {A}, (h : A ∈ LogicGL) → motive A (mem_of_mem_GL h))
-  (axiomP : motive (∼□⊥) mem_axiomP)
-  (axiomDz : ∀ {A B}, motive (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) mem_axiomDz)
+  (provable_GL : ∀ {A}, (h : A ∈ LogicGL) → motive A (provable_of_provable_GL h))
+  (axiomP : motive (∼□⊥) provable_axiomP)
+  (axiomD : ∀ {A B}, motive (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) provable_axiomD)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicD} → {hA : A ∈ LogicD} →
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
   : ∀ {A}, (h : A ∈ LogicD) → motive A h := by
   intro A h;
-  exact rec'_aux (motive := motive) mem_GL axiomP axiomDz mdp (D'.ofLogicD h);
+  exact LogicD.substlessInduction_aux (motive := motive) provable_GL axiomP axiomD mdp (LogicD.substless.ofLogicD h);
 
 end
 
+
+variable {A B C : Formula α}
 
 section
 
@@ -117,18 +130,18 @@ section
 open Model.World
 
 private lemma GL_taut_trans [DecidableEq α] : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C)) ∈ LogicGL := by
-  apply LogicGL.mem_of_valid;
+  apply LogicGL.provable_of_valid;
   intro κ _ M _ x;
   grind;
 
 private lemma GL_taut_or_mono [DecidableEq α] : ((A 🡒 B) 🡒 ((C ⋎ A) 🡒 (C ⋎ B))) ∈ LogicGL := by
-  apply LogicGL.mem_of_valid;
+  apply LogicGL.provable_of_valid;
   intro κ _ M _ x;
   grind;
 
 private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} :
-    (□(⋁((FormulaFinset.box (insert A Γ)))) 🡒 □(□A ⋎ □(⋁((FormulaFinset.box Γ))))) ∈ LogicGL := by
-  apply LogicGL.mem_of_valid;
+    (□(⋁(□(insert A Γ))) 🡒 □(□A ⋎ □(⋁(□Γ)))) ∈ LogicGL := by
+  apply LogicGL.provable_of_valid;
   intro κ _ M _ x hx y Rxy;
   have hy := hx y Rxy;
   obtain ⟨C, hC, hyC⟩ := forces_fdisj.mp hy;
@@ -144,8 +157,8 @@ private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} :
     exact hyC w (IsTrans.trans _ _ _ Ryz Rzw);
 
 private lemma GL_or_fdisj_insert [DecidableEq α] {Γ : FormulaFinset α} :
-    ((□A ⋎ ⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box (insert A Γ)))) ∈ LogicGL := by
-  apply LogicGL.mem_of_valid;
+    ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicGL := by
+  apply LogicGL.provable_of_valid;
   intro κ _ M _ x hx;
   rcases forces_or.mp hx with (h | h);
   . exact forces_fdisj.mpr ⟨□A, by simp, h⟩;
@@ -155,65 +168,56 @@ private lemma GL_or_fdisj_insert [DecidableEq α] {Γ : FormulaFinset α} :
 end
 
 
-lemma mem_of_mem_GL_imp [DecidableEq α] (hAB : (A 🡒 B) ∈ LogicGL) (hA : A ∈ LogicD) : B ∈ LogicD :=
-  Logic.sumQuasiNormal.mdp (mem_of_mem_GL hAB) hA
+lemma provable_of_provable_GL_imp [DecidableEq α] (hAB : (A 🡒 B) ∈ LogicGL) (hA : A ∈ LogicD) : B ∈ LogicD :=
+  Logic.sumQuasiNormal.mdp (provable_of_provable_GL hAB) hA
 
-lemma mem_imp_trans [DecidableEq α] (h₁ : (A 🡒 B) ∈ LogicD) (h₂ : (B 🡒 C) ∈ LogicD) : (A 🡒 C) ∈ LogicD :=
-  Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (mem_of_mem_GL GL_taut_trans) h₁) h₂
+lemma provable_imp_trans [DecidableEq α] (h₁ : (A 🡒 B) ∈ LogicD) (h₂ : (B 🡒 C) ∈ LogicD) : (A 🡒 C) ∈ LogicD :=
+  Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL GL_taut_trans) h₁) h₂
 
-/-- `n` 項化された公理 Dz：`□(□A₁ ⋎ ⋯ ⋎ □Aₙ) 🡒 (□A₁ ⋎ ⋯ ⋎ □Aₙ)` は `LogicD` で証明可能． -/
-lemma mem_fdisj_axiomDz [DecidableEq α] {Γ : FormulaFinset α} : (□(⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box Γ))) ∈ LogicD := by
+/-- `n` 項化された公理 D：`□(□A₁ ⋎ ⋯ ⋎ □Aₙ) 🡒 (□A₁ ⋎ ⋯ ⋎ □Aₙ)` は `LogicD` で証明可能． -/
+lemma provable_fdisj_axiomD [DecidableEq α] {Γ : FormulaFinset α} : (□(⋁(□Γ)) 🡒 ⋁(□Γ)) ∈ LogicD := by
   induction Γ using Finset.induction_on with
-  | empty => simpa using mem_axiomP;
+  | empty => simpa using provable_axiomP;
   | insert A Γ hAΓ ih =>
-    have t₁ : (□(⋁((FormulaFinset.box (insert A Γ)))) 🡒 □(□A ⋎ □(⋁((FormulaFinset.box Γ))))) ∈ LogicD := mem_of_mem_GL GL_box_fdisj_step;
-    have t₂ : (□(□A ⋎ □(⋁((FormulaFinset.box Γ)))) 🡒 (□A ⋎ □(⋁((FormulaFinset.box Γ))))) ∈ LogicD := mem_axiomDz;
-    have t₃ : ((□A ⋎ □(⋁((FormulaFinset.box Γ)))) 🡒 (□A ⋎ ⋁((FormulaFinset.box Γ)))) ∈ LogicD := mem_of_mem_GL_imp GL_taut_or_mono ih;
-    have t₄ : ((□A ⋎ ⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box (insert A Γ)))) ∈ LogicD := mem_of_mem_GL GL_or_fdisj_insert;
-    exact mem_imp_trans (mem_imp_trans (mem_imp_trans t₁ t₂) t₃) t₄;
+    have t₁ : (□(⋁(□(insert A Γ))) 🡒 □(□A ⋎ □(⋁(□Γ)))) ∈ LogicD := provable_of_provable_GL GL_box_fdisj_step;
+    have t₂ : (□(□A ⋎ □(⋁(□Γ))) 🡒 (□A ⋎ □(⋁(□Γ)))) ∈ LogicD := provable_axiomD;
+    have t₃ : ((□A ⋎ □(⋁(□Γ))) 🡒 (□A ⋎ ⋁(□Γ))) ∈ LogicD := provable_of_provable_GL_imp GL_taut_or_mono ih;
+    have t₄ : ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicD := provable_of_provable_GL GL_or_fdisj_insert;
+    exact provable_imp_trans (provable_imp_trans (provable_imp_trans t₁ t₂) t₃) t₄;
 
-lemma mem_lconj_of_forall_mem {Γ : FormulaList α} (h : ∀ B ∈ Γ, B ∈ LogicD) : (⋀Γ) ∈ LogicD := by
+lemma provable_lconj_of_forall_provable {Γ : FormulaList α} (h : ∀ B ∈ Γ, B ∈ LogicD) : (⋀Γ) ∈ LogicD := by
   match Γ with
-  | [] => exact mem_of_mem_GL ProvableHilbert.top;
+  | [] => exact provable_of_provable_GL ProvableHilbert.top;
   | [B] => exact h B (by simp);
   | B :: C :: Γ =>
     exact Logic.sumQuasiNormal.mdp
-      (Logic.sumQuasiNormal.mdp (mem_of_mem_GL ProvableHilbert.andIntro) (h B (by simp)))
-      (mem_lconj_of_forall_mem (Γ := C :: Γ) (by grind));
+      (Logic.sumQuasiNormal.mdp (provable_of_provable_GL ProvableHilbert.andIntro) (h B (by simp)))
+      (provable_lconj_of_forall_provable (Γ := C :: Γ) (by grind));
 
-lemma mem_fconj_of_forall_mem {Γ : FormulaFinset α} (h : ∀ B ∈ Γ, B ∈ LogicD) : (⋀Γ) ∈ LogicD :=
-  mem_lconj_of_forall_mem (by simpa)
+lemma provable_fconj_of_forall_provable {Γ : FormulaFinset α} (h : ∀ B ∈ Γ, B ∈ LogicD) : (⋀Γ) ∈ LogicD :=
+  provable_lconj_of_forall_provable (by simpa)
 
-end LogicD
-
-
-/-- `A` の部分論理式から作られる `n` 項公理 Dz のインスタンスたち． -/
-noncomputable def Formula.dzSubfmls [DecidableEq α] (A : Formula α) : FormulaFinset α :=
-  (A.subfmls.prebox).powerset.image (λ Γ => □(⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box Γ)))
-
-namespace LogicD
-
-lemma mem_fconj_dzSubfmls [DecidableEq α] : (⋀A.dzSubfmls) ∈ LogicD := by
-  apply mem_fconj_of_forall_mem;
+lemma provable_fconj_subfmlsD [DecidableEq α] : (⋀A.subfmlsD) ∈ LogicD := by
+  apply provable_fconj_of_forall_provable;
   intro B hB;
-  obtain ⟨Γ, _, rfl⟩ : ∃ Γ ⊆ A.subfmls.prebox, (□(⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box Γ))) = B := by
-    simpa [Formula.dzSubfmls] using hB;
-  exact mem_fdisj_axiomDz;
+  obtain ⟨Γ, _, rfl⟩ : ∃ Γ ⊆ A.subfmls.prebox, (□(⋁(□Γ)) 🡒 ⋁(□Γ)) = B := by
+    simpa [Formula.subfmlsD] using hB;
+  exact provable_fdisj_axiomD;
 
 
 open Model Model.World
 
 /-- `LogicD` の定理は任意の有限 GL モデルの pseudo-tail model の根（ω）で妥当． -/
-lemma forces_pseudoTail_root_of_mem [DecidableEq α] (h : A ∈ LogicD) :
+lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
   Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A := by
   intro κ _ M _ r o;
-  induction h using LogicD.rec' with
-  | mem_GL h => exact ProvableHilbert.Kripke.soundness h ((M.toPseudoTail r o).toModel) _;
+  induction h using LogicD.substlessInduction with
+  | provable_GL h => exact ProvableHilbert.Kripke.soundness h ((M.toPseudoTail r o).toModel) _;
   | axiomP =>
     intro hbox;
     exact hbox (.inl (Classical.arbitrary κ)) toPseudoTail.rel_inr_inl;
-  | @axiomDz B C =>
+  | @axiomD B C =>
     intro hbox;
     by_contra hC;
     obtain ⟨h₁, h₂⟩ := not_forces_or.mp hC;
@@ -238,28 +242,28 @@ lemma forces_pseudoTail_root_of_mem [DecidableEq α] (h : A ∈ LogicD) :
 
 open Classical in
 /--
-  pseudo-tail model の根での妥当性から，任意の有限根付き GL モデルの根で `⋀A.dzSubfmls 🡒 A` が成立する．
+  pseudo-tail model の根での妥当性から，任意の有限根付き GL モデルの根で `⋀A.subfmlsD 🡒 A` が成立する．
 -/
-lemma root_forces_dzSubfmls_imp [DecidableEq α]
+lemma root_forces_subfmlsD_imp [DecidableEq α]
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
        Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A) :
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] → M.root.1 ⊩ (⋀A.dzSubfmls 🡒 A) := by
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] → M.root.1 ⊩ (⋀A.subfmlsD 🡒 A) := by
   intro κ _ M _;
   by_contra hC;
   obtain ⟨h₁, h₂⟩ := not_forces_imp.mp hC;
-  replace h₁ : ∀ Γ ⊆ A.subfmls.prebox, M.root.1 ⊩ (□(⋁((FormulaFinset.box Γ))) 🡒 ⋁((FormulaFinset.box Γ))) := by
+  replace h₁ : ∀ Γ ⊆ A.subfmls.prebox, M.root.1 ⊩ (□(⋁(□Γ)) 🡒 ⋁(□Γ)) := by
     intro Γ hΓ;
-    exact forces_fconj.mp h₁ _ (by simp only [Formula.dzSubfmls, Finset.mem_image, Finset.mem_powerset]; exact ⟨Γ, hΓ, rfl⟩);
+    exact forces_fconj.mp h₁ _ (by simp only [Formula.subfmlsD, Finset.mem_image, Finset.mem_powerset]; exact ⟨Γ, hΓ, rfl⟩);
   -- 根で `□B` が反証される部分論理式 `B` を集める
-  let X := (A.subfmls.prebox).filter (λ B => ¬(M.root.1 ⊩ □B));
-  obtain ⟨x, Rrx, hx⟩ : ∃ x, M.root.1 ≺ x ∧ ∀ B ∈ X, ¬(x ⊩ □B) := by
-    have hX₁ : M.root.1 ⊮ ⋁((FormulaFinset.box X)) := by
+  let Δ := (A.subfmls.prebox).filter (λ (B : Formula α) => ¬(M.root.1 ⊩ □B));
+  obtain ⟨x, Rrx, hx⟩ : ∃ x, M.root.1 ≺ x ∧ ∀ B ∈ Δ, ¬(x ⊩ □B) := by
+    have hΔ₁ : M.root.1 ⊮ ⋁(□Δ) := by
       intro hd;
       obtain ⟨C, hC, hrC⟩ := forces_fdisj.mp hd;
-      obtain ⟨B, hB, rfl⟩ : ∃ B ∈ X, □B = C := by simpa using hC;
+      obtain ⟨B, hB, rfl⟩ : ∃ B ∈ Δ, □B = C := by simpa using hC;
       exact (Finset.mem_filter.mp hB).2 hrC;
-    have hX₂ : M.root.1 ⊮ □(⋁((FormulaFinset.box X))) := fun hbox => hX₁ (h₁ X (Finset.filter_subset _ _) hbox);
-    obtain ⟨x, Rrx, hx⟩ := not_forces_box.mp hX₂;
+    have hΔ₂ : M.root.1 ⊮ □(⋁(□Δ)) := fun hbox => hΔ₁ (h₁ Δ (Finset.filter_subset _ _) hbox);
+    obtain ⟨x, Rrx, hx⟩ := not_forces_box.mp hΔ₂;
     refine ⟨x, Rrx, ?_⟩;
     intro B hB hxB;
     exact hx (forces_fdisj.mpr ⟨□B, Finset.mem_image_of_mem _ hB, hxB⟩);
@@ -269,10 +273,10 @@ lemma root_forces_dzSubfmls_imp [DecidableEq α]
     intro B hB;
     apply Model.toRootedModel.forces_same_at_root.mpr;
     intro hxB;
-    by_cases hBX : B ∈ X;
-    . exact absurd hxB (hx B hBX);
+    by_cases hBΔ : B ∈ Δ;
+    . exact absurd hxB (hx B hBΔ);
     . have : M.root.1 ⊩ □B := by
-        have := Finset.mem_filter.not.mp hBX;
+        have := Finset.mem_filter.not.mp hBΔ;
         push Not at this;
         exact this hB;
       exact this x Rrx;
@@ -319,19 +323,24 @@ lemma root_forces_dzSubfmls_imp [DecidableEq α]
           exact hroot x Rrx;
   exact h₂ ((transport A (by grind)).mp hA);
 
-end LogicD
 
-
-open LogicD in
 /-- **Logic D の GL による特徴づけ**（pseudo-tail model による意味論的証明）． -/
-theorem iff_provable_D_provable_GL [DecidableEq α] {A : Formula α} :
-    A ∈ LogicD ↔ (⋀A.dzSubfmls 🡒 A) ∈ LogicGL := by
-  constructor;
-  . intro h;
-    apply LogicGL_semantical_TFAE.out 0 2 |>.mpr;
-    intro κ _ M _;
-    exact root_forces_dzSubfmls_imp (forces_pseudoTail_root_of_mem h) M;
-  . intro h;
-    exact Logic.sumQuasiNormal.mdp (mem_of_mem_GL h) mem_fconj_dzSubfmls;
+theorem provability_TFAE [DecidableEq α] : [
+    A ∈ LogicD,
+    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
+      Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A,
+    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] → M.root.1 ⊩ (⋀A.subfmlsD 🡒 A),
+    (⋀A.subfmlsD 🡒 A) ∈ LogicGL
+  ].TFAE := by
+  tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
+  tfae_have 2 → 3 := root_forces_subfmlsD_imp;
+  tfae_have 3 ↔ 4 := LogicGL_semantical_TFAE.out 2 0;
+  tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
+  tfae_finish;
+
+theorem iff_provable_D_provable_GL [DecidableEq α] :
+    A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+
+end LogicD
 
 end

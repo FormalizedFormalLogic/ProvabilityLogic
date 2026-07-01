@@ -149,6 +149,7 @@ prefix:100 "⋁" => FormulaFinset.disj
 
 
 abbrev box [DecidableEq α] (Γ : FormulaFinset α) : FormulaFinset α := Γ.image (□·)
+scoped prefix:95 "□" => FormulaFinset.box
 
 end FormulaFinset
 
