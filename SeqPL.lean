@@ -24,6 +24,7 @@ public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
 public import SeqPL.ProvabilityLogic.Interpret
+public import SeqPL.ProvabilityLogic.Solovay
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Tait.Basic
 public import SeqPL.Vorspiel.CWF
