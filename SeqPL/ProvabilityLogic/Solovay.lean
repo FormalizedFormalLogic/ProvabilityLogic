@@ -364,6 +364,48 @@ lemma Solovay.box_disjunction [𝗜𝚺₁ ⪯ T] {i : M.World} (ne : M.root.1 �
 
 end model
 
+section
+
+variable {T : ArithmeticTheory} [T.Δ₁] {M : RootedModel κ α} [Fintype M.World] [M.IsGL]
+
+/--
+  The Solovay sentence of the root is true in the standard model `ℕ`
+  (port of `SolovaySentences.solovay_root_sound` in Foundation).
+-/
+lemma solovay_root_sound [𝗜𝚺₁ ⪯ T] [sound : T.SoundOn (Arithmetic.Hierarchy 𝚷 2)] :
+    T.Solovay M ℕ M.root.1 := by
+  have : 𝗜𝚺₁ ⪯ T := inferInstance
+  haveI : 𝗥₀ ⪯ T := Entailment.WeakerThan.trans inferInstance this
+  have NS : ∀ i, M.root.1 ≠ i → ¬T.Solovay M ℕ i := by
+    intro i hi H
+    have Bi : T ⊢ ∼T.solovay M i := (provable_iff_provable (T := T)).mp (Solovay.refute hi H)
+    have : ¬T.Solovay M ℕ i := by
+      set π := θ T M i ⋏ ⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith/[⌜T.solovay M j⌝]
+      have sπ : 𝗜𝚺₁ ⊢ T.solovay M i 🡘 π := solovay_diag T M i
+      have : T ⊢ ∼π := by
+        have : T ⊢ T.solovay M i 🡘 π := Entailment.WeakerThan.wk (inferInstanceAs (𝗜𝚺₁ ⪯ T)) sπ
+        exact Entailment.K!_left (Entailment.ENN!_of_E! this) ⨀ Bi
+      have : ¬ℕ ⊧/![] π := by
+        simpa [models_iff] using!
+          sound.sound
+            (σ := ∼π)
+            this
+            (by simp [π,
+              (show Hierarchy 𝚷 1 T.consistentWith.val by simp).strict_mono 𝚺 (show 1 < 2 by simp),
+              (show Hierarchy 𝚺 1 (θ T M i) by simp).mono (show 1 ≤ 2 by simp)])
+      have : T.Solovay M ℕ i ↔ ℕ ⊧/![] π := by
+        simpa [models_iff] using! consequence_iff.mp (sound! sπ) ℕ inferInstance
+      simpa [this]
+    contradiction
+  have : T.Solovay M ℕ M.root.1 ∨ ∃ j, M.root.1 ≺ j ∧ T.Solovay M ℕ j :=
+    Θ.disjunction (V := ℕ) (T := T) M.root.1 ⟨[M.root.1], by simp⟩
+  rcases this with (H | ⟨i, hri, Hi⟩)
+  · assumption
+  · have : ¬T.Solovay M ℕ i := NS i (by rintro rfl; exact Std.Irrefl.irrefl M.root.1 hri)
+    contradiction
+
+end
+
 end SolovaySentences
 
 end LO.FirstOrder.Arithmetic.Bootstrapping

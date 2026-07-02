@@ -123,6 +123,101 @@ lemma theory_height (hSound : ∀ {σ}, T₀ ⊢ 𝔅 σ → T ⊢ σ) (h : M.ro
     simpa [Provability.dia] using! 𝔅.dia_mono <| WeakerThan.pbl <| S.mainlemma_neg hri hiA;
   cl_prover [b₀, b₁, b₂, b₃];
 
+section
+
+open RootedModel.extendRoot
+
+variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [DecidableEq α]
+
+/--
+  **Reflexive main lemma** (cf. `SolovaySentences.rfl_mainlemma` in Foundation, used in
+  the proofs of Lemma 49 and the arithmetical completeness of `S` in [AB05]):
+  when the root of `M` forces all axiom T instances for boxed subformulas of `A`
+  (i.e. the root is `A`-reflexive), the Solovay sentence of the *new* root of
+  `M.extendRoot 1` decides the realizations of all subformulas of `A` according to
+  their truth at the root of `M`.
+-/
+lemma rfl_mainlemma
+    {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}
+    (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩ ((□B) 🡒 B)) :
+    ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
+      (M.root.1 ⊩ B → 𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (B.interpret S.realization)) ∧
+      (M.root.1 ⊮ B → 𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(B.interpret S.realization)) := by
+  intro B;
+  induction B with
+  | bot =>
+    intro _;
+    constructor;
+    . intro h;
+      exact absurd h (by simp);
+    . intro _;
+      simp only [Formula.interpret];
+      cl_prover;
+  | atom a =>
+    intro _;
+    constructor;
+    . intro h;
+      apply right_Fdisj'!_intro;
+      grind [Model.World.Forces];
+    . intro h;
+      apply CN!_of_CN!_right;
+      apply left_Fdisj'!_intro;
+      intro j hj;
+      apply S.SC1;
+      rintro rfl;
+      apply h;
+      grind [Model.World.Forces];
+  | imp B C ihB ihC =>
+    intro hBC;
+    replace ihB := ihB (by grind);
+    replace ihC := ihC (by grind);
+    simp only [Formula.interpret];
+    constructor;
+    . intro h;
+      rcases Model.World.forces_imp.mp h with (hB | hC);
+      . exact C!_trans (ihB.2 hB) CNC!;
+      . exact C!_trans (ihC.1 hC) implyK!;
+    . intro h;
+      obtain ⟨hB, hC⟩ := Model.World.not_forces_imp.mp h;
+      exact not_imply_prem''! (ihB.1 hB) (ihC.2 hC);
+  | box B ihB =>
+    intro hBox;
+    replace ihB := ihB (by grind);
+    simp only [Formula.interpret];
+    constructor;
+    . intro h;
+      apply C!_of_conseq!;
+      apply T.standardProvability.D1;
+      apply Entailment.WeakerThan.pbl (𝓢 := 𝗜𝚺₁);
+      have all : ∀ i : (M.extendRoot 1).World, 𝗜𝚺₁ ⊢ S.σ i 🡒 (B.interpret S.realization) := by
+        rintro (x | i);
+        . apply S.mainlemma (by simp [RootedModel.extendRoot, Fin.posLast]);
+          apply RootedModel.extendRoot.same_forces_embed.mpr;
+          by_cases hx : x = M.root.1;
+          . subst hx;
+            exact ha B hBox h;
+          . exact h x (M.root.2 x hx);
+        . rw [show (Sum.inr i : (M.extendRoot 1).World) = (M.extendRoot 1).root.1 by
+            congr 1;
+            apply Fin.ext;
+            have := i.2;
+            simp only [Fin.posLast, PNat.natPred, PNat.val_ofNat] at this ⊢;
+            omega];
+          exact ihB.1 (ha B hBox h);
+      have := left_Udisj!_intro _ all;
+      cl_prover [this, S.SC4];
+    . intro h;
+      obtain ⟨y, Rxy, hy⟩ := Model.World.not_forces_box.mp h;
+      have hmn : 𝗜𝚺₁ ⊢ S.σ (Sum.inl y) 🡒 ∼(B.interpret S.realization) :=
+        S.mainlemma_neg (by simp [RootedModel.extendRoot, Fin.posLast])
+          (RootedModel.extendRoot.same_forces_embed.not.mpr hy);
+      have b : 𝗜𝚺₁ ⊢ T.standardProvability.dia (S.σ (Sum.inl y)) 🡒
+          ∼(T.standardProvability (B.interpret S.realization)) :=
+        contra! $ T.standardProvability.mono' $ CN!_of_CN!_right hmn;
+      exact C!_trans (S.SC2 _ _ (by simp [Model.Rel])) b;
+
+end
+
 end LO.FirstOrder.ProvabilityAbstraction.Provability.SolovaySentences
 
 end

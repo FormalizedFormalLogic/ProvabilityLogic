@@ -33,6 +33,7 @@ public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
 public import SeqPL.ProvabilityLogic.Interpret
+public import SeqPL.ProvabilityLogic.S.Basic
 public import SeqPL.ProvabilityLogic.Solovay
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Tait.Basic
