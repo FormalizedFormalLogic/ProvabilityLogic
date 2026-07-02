@@ -19,9 +19,11 @@ public import SeqPL.Kripke.Tail
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic
 public import SeqPL.Logic.GL.Basic
+public import SeqPL.Logic.GL.CIP
 public import SeqPL.Logic.GLPlusBoxBot.Basic
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.Boxdot
+public import SeqPL.Logic.S.CIP
 public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.Full
