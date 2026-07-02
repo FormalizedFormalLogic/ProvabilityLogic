@@ -40,6 +40,51 @@ def mdpL_mem (A B) (h₁ : A 🡒 B ∈ Γ := by grind) (h₂ : A ∈ Γ := by g
   . apply union B;
 
 
+/--
+  Invertibility of `impR`, proved by structural recursion on the proof.
+  Stated without a membership hypothesis `A 🡒 B ∈ Δ`:
+  when `A 🡒 B ∉ Δ` the statement degenerates to weakening.
+-/
+def impRInv (A B : Formula α) {S : Sequent α} : ⊢ᵍ! S → ⊢ᵍ! (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B)))
+  | .axm C =>
+    if h : C = A 🡒 B then by
+      subst h;
+      rw [(show ({A 🡒 B} : FormulaFinset α).erase (A 🡒 B) = ∅ by grind)];
+      exact mdpL_mem A B;
+    else union C
+  | .botL => botL_mem
+  | .wkL π h => by
+    have ih := impRInv A B π;
+    exact wkL ih (by grind);
+  | .wkR π h => by
+    have ih := impRInv A B π;
+    exact wkR ih (by grind);
+  | .impL (Γ := Γ) (Δ := Δ) (A := C) (B := D) π₁ π₂ => by
+    have ih₁ := impRInv A B π₁;
+    have ih₂ := impRInv A B π₂;
+    rw [(show insert A (insert (C 🡒 D) Γ) = insert (C 🡒 D) (insert A Γ) by grind)];
+    exact impL (wkR ih₁ (by grind)) (wkL ih₂ (by grind));
+  | .impR (Γ := Γ) (Δ := Δ) (A := C) (B := D) π => by
+    have ih := impRInv A B π;
+    if h : C 🡒 D = A 🡒 B then
+      exact wkR (wkL ih (by grind)) (by grind)
+    else
+      rw [(show insert B ((insert (C 🡒 D) Δ).erase (A 🡒 B)) = insert (C 🡒 D) (insert B (Δ.erase (A 🡒 B))) by grind)];
+      exact impR (wkR (wkL ih (by grind)) (by grind));
+  | .boxGL π => wkR (wkL (boxGL π))
+
+/-- Syntactic proof transformation for one direction of the deduction theorem (just `impR`). -/
+def deductionTheorem (π : ⊢ᵍ! (insert A Γ ⟹ {B})) : ⊢ᵍ! (Γ ⟹ {A 🡒 B}) := by
+  rw [← insert_empty_eq];
+  apply impR;
+  rwa [insert_empty_eq];
+
+/-- Syntactic proof transformation for the converse direction of the deduction theorem, via `impRInv`. -/
+def deductionTheoremInv (π : ⊢ᵍ! (Γ ⟹ {A 🡒 B})) : ⊢ᵍ! (insert A Γ ⟹ {B}) := by
+  have p := impRInv A B π;
+  rwa [(show ({A 🡒 B} : FormulaFinset α).erase (A 🡒 B) = ∅ by grind), insert_empty_eq] at p;
+
+
 def negL : ⊢ᵍ! (Γ ⟹ (insert A Δ)) → ⊢ᵍ! ((insert (∼A) Γ) ⟹ Δ) := λ p => impL p (wkR $ wkL botL)
 
 def negR : ⊢ᵍ! ((insert A Γ) ⟹ Δ) → ⊢ᵍ! (Γ ⟹ (insert (∼A) Δ)) := λ p => impR $ wkR $ wkL p
@@ -67,44 +112,39 @@ def orR : ⊢ᵍ! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ! (Γ ⟹ insert (
   apply negL;
   simpa;
 
-def axiomŁ1 : ⊢ᵍ! (∅ ⟹ {A 🡒 B 🡒 A}) := impR (Δ := ∅) $ impR $ union A
+def axiomŁ1 : ⊢ᵍ! (∅ ⟹ {A 🡒 B 🡒 A}) := deductionTheorem $ deductionTheorem $ union A
 
 def axiomŁ2 : ⊢ᵍ! (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := by
-  apply impR (Δ := ∅);
-  apply impR;
-  apply impR;
-  simp only [insert_empty_eq];
-  rw [(show {A, A 🡒 B, A 🡒 B 🡒 C} = ({A 🡒 B 🡒 C, A 🡒 B, A}) by grind)];
+  apply deductionTheorem;
+  apply deductionTheorem;
+  apply deductionTheorem;
+  rw [(show insert A (insert (A 🡒 B) (insert (A 🡒 B 🡒 C) ∅)) = ({A 🡒 B 🡒 C, A 🡒 B, A}) by grind)];
   apply impL;
   . exact impL (union A) (union A);
   . exact impL (impL (union A) (union B)) (union C);
 
 def axiomŁ3 : ⊢ᵍ! (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := by
-  apply impR (Δ := ∅);
-  apply impR;
-  simp;
-  rw [(show {B, ∼A 🡒 ∼B} = ({∼A 🡒 ∼B, B}) by grind)];
+  apply deductionTheorem;
+  apply deductionTheorem;
+  rw [(show insert B (insert (∼A 🡒 ∼B) ∅) = ({∼A 🡒 ∼B, B}) by grind)];
   exact impL (negR $ union A) (negL $ union B);
 
 def axiomK : ⊢ᵍ! (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := by
-  apply impR (Δ := ∅);
-  apply impR;
-  simp only [insert_empty_eq];
-  rw [(show ({□A, □(A 🡒 B)}) = (FormulaFinset.box {A, (A 🡒 B)}) by grind)];
+  apply deductionTheorem;
+  apply deductionTheorem;
+  rw [(show insert (□A) (insert (□(A 🡒 B)) ∅) = (FormulaFinset.box {A, (A 🡒 B)}) by grind)];
   apply boxGL;
   apply mdpL_mem A B;
 
 def axiom4 : ⊢ᵍ! (∅ ⟹ {(□A 🡒 □□A)}) := by
-  apply impR (Δ := ∅);
-  simp only [insert_empty_eq];
-  rw [(show ({□A}) = FormulaFinset.box {A} by grind)];
+  apply deductionTheorem;
+  rw [(show (insert (□A) ∅) = FormulaFinset.box {A} by grind)];
   apply boxGL;
   apply union (□A);
 
 def axiomL : ⊢ᵍ! (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := by
-  apply impR (Δ := ∅);
-  simp only [insert_empty_eq];
-  rw [(show ({□(□A 🡒 A)}) = FormulaFinset.box {□A 🡒 A} by grind)];
+  apply deductionTheorem;
+  rw [(show (insert (□(□A 🡒 A)) ∅) = FormulaFinset.box {□A 🡒 A} by grind)];
   apply boxGL;
   apply mdpL_mem (□A) A;
 
@@ -149,6 +189,14 @@ lemma axiomK  : ⊢ᵍ (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := ⟨P
 lemma axiom4  : ⊢ᵍ (∅ ⟹ {(□A 🡒 □□A)}) := ⟨ProofGentzen.axiom4⟩
 lemma axiomL  : ⊢ᵍ (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := ⟨ProofGentzen.axiomL⟩
 lemma ruleNec : ⊢ᵍ (∅ ⟹ {A}) → ⊢ᵍ (∅ ⟹ {□A}) := λ ⟨p⟩ => ⟨ProofGentzen.ruleNec p⟩
+
+/-- Invertibility of `impR` (a purely syntactic proof transformation, see `ProofGentzen.impRInv`). -/
+lemma impR_inv {S : Sequent α} (h : ⊢ᵍ S) : ⊢ᵍ (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B))) := ⟨h.some.impRInv A B⟩
+
+/-- Deduction theorem, via the syntactic proof transformations
+    `ProofGentzen.deductionTheorem` and `ProofGentzen.deductionTheoremInv`. -/
+theorem deduction_theorem : ⊢ᵍ (insert A Γ ⟹ {B}) ↔ ⊢ᵍ (Γ ⟹ {A 🡒 B}) :=
+  ⟨λ ⟨π⟩ => ⟨π.deductionTheorem⟩, λ ⟨π⟩ => ⟨π.deductionTheoremInv⟩⟩
 
 @[induction_eliminator]
 lemma rec

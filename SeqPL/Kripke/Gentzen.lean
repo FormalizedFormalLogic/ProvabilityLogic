@@ -612,21 +612,4 @@ theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → 
 
 end Kripke
 
-theorem deduction_theorem : ⊢ᵍ (insert A Γ ⟹ {B}) ↔ ⊢ᵍ (Γ ⟹ {A 🡒 B}) := by
-  constructor;
-  . intro h;
-    apply Kripke.completeness;
-    intro κ _ M _ x _;
-    use A 🡒 B;
-    constructor;
-    . simp;
-    . intro hA;
-      exact (Model.World.forces_ctx_singleton_sequent.mp $ Kripke.finite_soundness h M x) (by grind);
-  . intro h;
-    apply Kripke.completeness;
-    intro κ _ M _ x;
-    apply Model.World.forces_ctx_singleton_sequent.mpr;
-    intro H;
-    exact (Model.World.forces_ctx_singleton_sequent.mp $ Kripke.finite_soundness h M x) (by grind) (by grind);
-
 end ProvableGentzen
