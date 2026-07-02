@@ -4,6 +4,7 @@ public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Countable
 public import SeqPL.Formula.Letterless
+public import SeqPL.Formula.Map
 public import SeqPL.Gentzen.Basic
 public import SeqPL.Gentzen.Fixedpoint
 public import SeqPL.Gentzen.Maehara
@@ -28,9 +29,13 @@ public import SeqPL.Logic.S.Boxdot
 public import SeqPL.Logic.S.CIP
 public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.SumQuasiNormal
+public import SeqPL.ProvabilityLogic.Classification.A_D
+public import SeqPL.ProvabilityLogic.Classification.D_S
 public import SeqPL.ProvabilityLogic.Classification.Full
 public import SeqPL.ProvabilityLogic.Classification.Letterless
+public import SeqPL.ProvabilityLogic.Classification.Result
 public import SeqPL.ProvabilityLogic.Classification.Trace
+public import SeqPL.ProvabilityLogic.Classification.Transfer
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic

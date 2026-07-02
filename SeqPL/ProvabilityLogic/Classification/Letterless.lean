@@ -575,14 +575,91 @@ lemma iff_lift_mem_LogicGL {B : LetterlessFormula} :
   · exact ProvableHilbert.lift;
 
 /--
+  Finite compactness for quasi-normal extensions of `GL` by lifted letterless formula
+  sets, for an arbitrary formula `B`: a provable formula follows in `GL` from the
+  lifted conjunction of a finite subset of the letterless axioms.
+-/
+lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
+    (hB : B ∈ ((@LogicGL α) +ᴸ ↑X)) :
+    ∃ Y : LetterlessFormulaFinset, (∀ C ∈ Y, C ∈ X) ∧
+      ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL := by
+  induction hB with
+    | mem₁ hB =>
+      exact ⟨∅, by simp, by simpa using ProvableHilbert.af hB⟩;
+    | mem₂ hB =>
+      obtain ⟨C, hC, rfl⟩ := hB;
+      exact ⟨{C}, by simp only [Finset.mem_singleton]; rintro D rfl; exact hC,
+        by rw [show ((⋀({C} : LetterlessFormulaFinset)) : LetterlessFormula) = C by simp];
+           exact ProvableHilbert.impId⟩;
+    | mdp _ _ ih₁ ih₂ =>
+      obtain ⟨Y₁, hY₁, h₁⟩ := ih₁;
+      obtain ⟨Y₂, hY₂, h₂⟩ := ih₂;
+      refine ⟨Y₁ ∪ Y₂, by grind, ?_⟩;
+      have w₁ : (⊢ʰ ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₁))) := by
+        simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
+          (ProvableHilbert.imp_fconj_fconj_of_subset Finset.subset_union_left);
+      have w₂ : (⊢ʰ ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₂))) := by
+        simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
+          (ProvableHilbert.imp_fconj_fconj_of_subset Finset.subset_union_right);
+      exact ProvableHilbert.mdp
+        (ProvableHilbert.mdp ProvableHilbert.prop2 (ProvableHilbert.impTrans w₁ h₁))
+        (ProvableHilbert.impTrans w₂ h₂);
+    | @subst B s _ ih =>
+      obtain ⟨Y, hY, hGL⟩ := ih;
+      refine ⟨Y, hY, ?_⟩;
+      have := ProvableHilbert.subst (s := s) hGL;
+      simpa [LetterlessFormula.subst_lift] using this;
+/--
+  The converse: any formula that follows in `GL` from the lifted conjunction of a
+  finite subset of the letterless axioms belongs to the quasi-normal extension.
+-/
+lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
+    {Y : LetterlessFormulaFinset} (hY : ∀ C ∈ Y, C ∈ X)
+    (hGL : ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL) :
+    B ∈ ((@LogicGL α) +ᴸ ↑X) := by
+  have h₂ : (LetterlessFormula.lift (⋀Y) : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) := by
+    suffices ∀ Γ : LetterlessFormulaList, (∀ C ∈ Γ, C ∈ X) →
+        (LetterlessFormula.lift (⋀Γ) : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) by
+      exact this Y.toList (fun C hC => hY C (Finset.mem_toList.mp hC));
+    intro Γ;
+    induction Γ with
+    | nil =>
+      intro _;
+      exact Logic.sumQuasiNormal.mem₁ (ProvableHilbert.impId (A := (⊥ : Formula α)));
+    | cons C Γ ih =>
+      intro hΓ;
+      rcases Γ with _ | ⟨D, Γ⟩;
+      . exact Logic.sumQuasiNormal.mem₂ ⟨C, hΓ C (by simp), rfl⟩;
+      . have hC : (LetterlessFormula.lift C : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) :=
+          Logic.sumQuasiNormal.mem₂ ⟨C, hΓ C (by simp), rfl⟩;
+        have hrest : (LetterlessFormula.lift (⋀(D :: Γ)) : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) :=
+          ih (fun E hE => hΓ E (by grind));
+        have heq : (LetterlessFormula.lift (⋀(C :: D :: Γ)) : Formula α)
+            = (LetterlessFormula.lift C : Formula α) ⋏ (LetterlessFormula.lift (⋀(D :: Γ))) := by
+          simp [FormulaList.conj, LetterlessFormula.lift, Formula.and];
+        rw [heq];
+        exact Logic.sumQuasiNormal.mdp
+          (Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ProvableHilbert.andIntro) hC) hrest;
+  exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL) h₂;
+
+/--
   Compactness for quasi-normal extensions of `GL` by (lifted) letterless formula sets:
   a lifted letterless formula is provable iff it follows from a finite subset in `GL`
   (cf. `Logic.sumQuasiNormal.iff_provable_finite_provable` in Foundation).
 -/
 lemma iff_GL_sumQuasiNormal_provable_finite_provable {X : LetterlessFormulaSet} {A : LetterlessFormula} :
     ↑A ∈ ((@LogicGL α) +ᴸ ↑X) ↔
-    ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
-  sorry;
+    ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
+  constructor;
+  . intro h;
+    obtain ⟨Y, hY, hGL⟩ := GL_sumQuasiNormal_finite_provable h;
+    exact ⟨Y, hY, iff_lift_mem_LogicGL.mp (by simpa [LetterlessFormula.lift] using hGL)⟩;
+  . rintro ⟨Y, hY, hGL⟩;
+    apply GL_sumQuasiNormal_of_finite_provable hY;
+    have h₁ : (LetterlessFormula.lift ((⋀Y) 🡒 A) : Formula α) ∈ LogicGL :=
+      ProvableHilbert.lift hGL;
+    rwa [show LetterlessFormula.lift ((⋀Y) 🡒 A)
+      = ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 LetterlessFormula.lift A) from rfl] at h₁;
 
 lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Regular T)
   : ↑A ∈ ((@LogicGL α) +ᴸ X) ↔ X.spectrum ⊆ A.spectrum := by calc
@@ -736,7 +813,8 @@ lemma iff_eq_sumQuasiNormal_eq_trace (hSR : (X.Singular T ∧ Y.Singular T) ∨ 
   simp [LetterlessFormulaSet.trace];
 
 abbrev LogicGLAlpha {α} (Alpha : Set ℕ) : Logic α := (@LogicGL α) +ᴸ ↑(Alpha.image $ TBB (α := Empty))
-abbrev LogicGLAlphaOmega {α} : Logic α := LogicGLAlpha Set.univ
+/-- **Artemov's logic `A`** (also written `GLαω = GLα ω`): `GL` extended by all `TBB n`. -/
+abbrev LogicA {α} : Logic α := LogicGLAlpha Set.univ
 abbrev LogicGLBetaMinus {α} [DecidableEq α] (Beta : Set ℕ) (Beta_cofinite : Betaᶜ.Finite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Beta_cofinite })
 
 
@@ -885,7 +963,7 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
   constructor;
   . intro h;
     induction h with
-    | mem₁ hA => intro f; exact Entailment.WeakerThan.pbl (LogicGL.arithmetical_soundness hA)
+    | mem₁ hA => intro f; exact Entailment.WeakerThan.pbl (LogicGL.arithmetical_soundness' hA)
     | @mem₂ B hB =>
       intro f;
       obtain ⟨C, hC, rfl⟩ := hB;
@@ -917,7 +995,7 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
         have hsub : ({LetterlessFormula.lift B} : FormulaFinset α) ⊆ Δ.image LetterlessFormula.lift :=
           Finset.singleton_subset_iff.mpr (Finset.mem_image_of_mem _ hBΔ);
         simpa using ProvableHilbert.imp_fconj_fconj_of_subset (Γ := Δ.image LetterlessFormula.lift) hsub;
-      exact LogicGL.arithmetical_soundness hmem;
+      exact LogicGL.arithmetical_soundness' hmem;
     have hb : C ∈ ((@LogicGL α) +ᴸ X.lift) := by
       apply fconj_mem_sumQuasiNormal;
       intro B hB;
@@ -932,8 +1010,8 @@ theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {Alpha : Set ℕ}
   ext i;
   simp;
 
-theorem LogicGLAlphaOmega.eq_provabilityLogicRelativeTo
-  : LogicGLAlphaOmega (α := α) = T.provabilityLogicRelativeTo (T + (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
+theorem LogicA.eq_provabilityLogicRelativeTo
+  : LogicA (α := α) = T.provabilityLogicRelativeTo (T + (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
   apply LogicGLAlpha.eq_provabilityLogicRelativeTo;
 
 end

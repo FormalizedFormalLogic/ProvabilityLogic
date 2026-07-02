@@ -81,7 +81,7 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
   If the trace of the provability logic of `T` relative to `U` is coinfinite, then it
   equals `GLα` of its trace. Corollary 48 in [AB05].
 -/
-theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α] [T ⪯ U]
+theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
     (hCi : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Infinite) :
     (T.provabilityLogicRelativeTo U : Logic α)
       = LogicGLAlpha (T.provabilityLogicRelativeTo U : Logic α).trace := by
@@ -108,7 +108,7 @@ theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α] [T
   If the provability logic of `T` relative to `U` is not contained in `S`,
   then its trace is cofinite (the first half of the proof of Lemma 49 in [AB05]).
 -/
-lemma cofinite_trace_of_not_subset_LogicS [DecidableEq α] [T ⪯ U]
+lemma cofinite_trace_of_not_subset_LogicS [DecidableEq α]
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
     (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite := by
   by_contra hInf;
@@ -130,13 +130,11 @@ lemma provabilityLogic_mdp
     B ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
   fun f => (h₁ f) ⨀ (h₂ f)
 
-omit [𝗜𝚺₁ ⪯ U] in
-lemma provabilityLogic_of_GL [T ⪯ U] (h : A ∈ LogicGL) :
+lemma provabilityLogic_of_GL (h : A ∈ LogicGL) :
     A ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
   fun _ => WeakerThan.pbl (LogicGL.arithmetical_soundness h)
 
-omit [𝗜𝚺₁ ⪯ U] in
-lemma provabilityLogic_lconj [T ⪯ U] {Γ : FormulaList α}
+lemma provabilityLogic_lconj {Γ : FormulaList α}
     (h : ∀ B ∈ Γ, B ∈ (T.provabilityLogicRelativeTo U : Logic α)) :
     (⋀Γ) ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
   match Γ with
@@ -147,8 +145,7 @@ lemma provabilityLogic_lconj [T ⪯ U] {Γ : FormulaList α}
       (provabilityLogic_mdp (provabilityLogic_of_GL ProvableHilbert.andIntro) (h B (by simp)))
       (provabilityLogic_lconj (Γ := C :: Γ) (by grind));
 
-omit [𝗜𝚺₁ ⪯ U] in
-lemma provabilityLogic_fconj [T ⪯ U] {Γ : FormulaFinset α}
+lemma provabilityLogic_fconj {Γ : FormulaFinset α}
     (h : ∀ B ∈ Γ, B ∈ (T.provabilityLogicRelativeTo U : Logic α)) :
     (⋀Γ) ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
   provabilityLogic_lconj (by simpa)
@@ -159,7 +156,7 @@ private lemma spectrum_TBBMinus' {s : Set ℕ} (hs : s.Finite) :
 
 section
 
-variable [DecidableEq α] [T ⪯ U]
+variable [DecidableEq α]
 
 /--
   If the provability logic `L` of `T` relative to `U` is not contained in `S`, then it
@@ -285,5 +282,36 @@ theorem eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS
 end
 
 end
+
+
+/-- `n ∈ L.trace` whenever `TBB n ∈ L`. -/
+lemma mem_trace_of_provable_TBB {L : Logic α} {n : ℕ} (h : (TBB n : Formula α) ∈ L) :
+    n ∈ L.trace := by
+  apply Set.mem_iUnion₂.mpr;
+  exact ⟨TBB n, h, by rw [Formula.trace_TBB]; simp⟩;
+
+/--
+  If the trace of the provability logic of `T` relative to `U` is `ω` (i.e. all of `ℕ`),
+  then it contains `GLαω`. Corollary 50 (half) in [AB05].
+-/
+theorem subset_LogicA_of_univ_trace :
+    letI L : Logic α := T.provabilityLogicRelativeTo U;
+    L.trace = Set.univ → LogicA ⊆ L := by
+  intro hT A hA;
+  induction hA with
+  | mem₁ hA =>
+    intro f;
+    exact WeakerThan.pbl (LogicGL.arithmetical_soundness hA);
+  | mem₂ hA =>
+    obtain ⟨B, ⟨n, _, rfl⟩, rfl⟩ := hA;
+    rw [LetterlessFormula.eq_lift_TBB];
+    exact provable_TBB_of_mem_trace (hT ▸ Set.mem_univ n);
+  | mdp _ _ ihAB ihA =>
+    intro f;
+    exact (ihAB f) ⨀ (ihA f);
+  | subst _ ihA =>
+    intro f;
+    rw [Formula.interpret_subst];
+    exact ihA _;
 
 end

@@ -52,7 +52,7 @@ variable {T₀ T : FirstOrder.ArithmeticTheory} [T₀ ⪯ T] [Diagonalization T�
 theorem arithmetical_soundness (h : A ∈ LogicS) (f : Realization α 𝔅) : ℕ ⊧ₘ f A := by
   induction h using LogicS.substlessInduction with
   | provable_GL h =>
-    exact models_of_provable inferInstance (LogicGL.arithmetical_soundness h);
+    exact models_of_provable inferInstance (LogicGL.arithmetical_soundness' h);
   | axiomT =>
     simp only [Formula.interpret, Models, LO.Semantics.Imp.models_imply];
     intro h;

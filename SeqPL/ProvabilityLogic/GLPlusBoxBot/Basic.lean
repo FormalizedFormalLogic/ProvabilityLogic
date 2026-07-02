@@ -26,9 +26,9 @@ lemma arithmetical_soundness (hA : A ∈ LogicGLPlusBoxBot 𝔅.height) {f : Rea
   cases h : 𝔅.height
   case _ =>
     simp [LogicGLPlusBoxBot, h] at hA;
-    exact LogicGL.arithmetical_soundness $ hA;
+    exact LogicGL.arithmetical_soundness' $ hA;
   case _ n =>
-    have : U ⊢ f (□^[n]⊥) 🡒 f A := LogicGL.arithmetical_soundness $ LogicGLPlusBoxBot.iff_provable_provable_GL.mp $ h ▸ hA;
+    have : U ⊢ f (□^[n]⊥) 🡒 f A := LogicGL.arithmetical_soundness' $ LogicGLPlusBoxBot.iff_provable_provable_GL.mp $ h ▸ hA;
     apply this ⨀ ?_;
     rw [Formula.interpret_boxItr];
     apply 𝔅.height_le_iff_boxBot.mp;
