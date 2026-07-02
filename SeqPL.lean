@@ -11,6 +11,7 @@ public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Gentzen
+public import SeqPL.Kripke.GraftChain
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Preservation
 public import SeqPL.Kripke.PseudoTail
@@ -29,6 +30,7 @@ public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.Full
 public import SeqPL.ProvabilityLogic.Classification.Letterless
+public import SeqPL.ProvabilityLogic.Classification.Trace
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic

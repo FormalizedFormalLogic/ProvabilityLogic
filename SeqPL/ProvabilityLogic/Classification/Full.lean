@@ -2,7 +2,9 @@ module
 
 public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.Logic.S.Basic
+public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.D.Basic
+public import SeqPL.Kripke.GraftChain
 
 @[expose]
 public section
@@ -147,6 +149,115 @@ lemma subset_trace_of_provable_GL (h : A 🡒 B ∈ LogicGL) : B.trace ⊆ A.tra
 
 end Formula
 
+
+section
+
+variable [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
+
+/--
+  In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
+  forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ` (the semantic core of Lemma 26
+  in [AB05]). Induction on `Γ.card`: take a successor `z` of rank exactly `Γ.card`;
+  if some `□B₀ 🡒 B₀` fails at `z` then `z ⊩ □B₀`, hence `□B₀ 🡒 B₀` holds automatically
+  at every successor of `z`, and the induction hypothesis applies to `Γ.erase B₀`.
+-/
+lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
+    ∀ {n : ℕ} {Γ : FormulaFinset α}, Γ.card = n → ∀ {x : M.World}, n < x.rank →
+    ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩ ((□B) 🡒 B) := by
+  intro n;
+  induction n with
+  | zero =>
+    intro Γ hΓ x hx;
+    obtain ⟨z, Rxz, _⟩ := Model.of_lt_rank hx;
+    exact ⟨z, Rxz, by simp [Finset.card_eq_zero.mp hΓ]⟩;
+  | succ n ih =>
+    intro Γ hΓ x hx;
+    obtain ⟨z, Rxz, hz⟩ := Model.of_lt_rank hx;
+    by_cases hall : ∀ B ∈ Γ, z ⊩ ((□B) 🡒 B);
+    . exact ⟨z, Rxz, hall⟩;
+    . push Not at hall;
+      obtain ⟨B₀, hB₀, hfail⟩ := hall;
+      obtain ⟨hbox, hnB⟩ := Model.World.not_forces_imp.mp hfail;
+      obtain ⟨z', Rzz', hz'⟩ := ih
+        (Γ := Γ.erase B₀) (by rw [Finset.card_erase_of_mem hB₀, hΓ]; rfl)
+        (x := z) (by omega);
+      refine ⟨z', IsTrans.trans _ _ _ Rxz Rzz', ?_⟩;
+      intro B hB;
+      by_cases hBB₀ : B = B₀;
+      . subst hBB₀;
+        intro _;
+        exact hbox z' Rzz';
+      . exact hz' B (Finset.mem_erase.mpr ⟨hBB₀, hB⟩);
+
+/--
+  **Chain lemma** (corresponding to Lemma 26 in [AB05], instantiated to the boxed
+  subformulas of `A`): `GL ⊢ ∼□^[m+1]⊥ 🡒 ◇⋀{□B 🡒 B | □B ∈ Sub(A)}` where `m` is the
+  number of boxed subformulas. An actual proof of what Foundation assumes as the axiom
+  `GL.formalized_validates_axiomT_set_in_irrefl_trans_chain`.
+-/
+lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : Formula α} :
+    ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
+  apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+  intro κ _ M _ hne;
+  haveI : Fintype M.World := Fintype.ofFinite _;
+  replace hne : ¬(Model.World.rank M.root.1 < A.subfmls.prebox.card + 1) :=
+    fun h => (Model.World.forces_neg.mp hne) (Model.iff_rank_lt_forces_boxItr_bot.mp h);
+  obtain ⟨z, Rrz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank
+    (Γ := A.subfmls.prebox) rfl (x := M.root.1) (by omega);
+  apply Model.World.forces_dia.mpr;
+  refine ⟨z, Rrz, Model.World.forces_fconj.mpr ?_⟩;
+  intro C hC;
+  obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
+  exact hz B hB;
+
+end
+
+/--
+  **Finiteness or cofiniteness of traces** (Lemma 12 in [AB05]): the trace of any formula
+  is either finite or cofinite. If the trace is infinite, take a countermodel whose height
+  exceeds the number of boxed subformulas; the chain lemma yields a world `a` forcing all
+  axiom T instances, and `graftChain` then produces countermodels of every height `≥ M.height`.
+-/
+lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
+    A.trace.Finite ∨ A.traceᶜ.Finite := by
+  rw [or_iff_not_imp_left];
+  intro h_inf;
+  replace h_inf : A.trace.Infinite := h_inf;
+  obtain ⟨m, hm₁, hm₂⟩ := h_inf.exists_gt (A.subfmls.prebox.card);
+  obtain ⟨κ, _, M, _, _, hh, hr⟩ := Formula.iff_mem_trace.mp hm₁;
+  have : Finite M.World := by infer_instance;
+  haveI : M.IsFiniteGL := {};
+  have hroot : M.height = Model.World.rank M.root.1 := rfl;
+  have H₁ : M.root.1 ⊩ (∼(□^[A.subfmls.prebox.card + 1]⊥)) := by
+    apply Model.World.forces_neg.mpr;
+    intro hc;
+    have := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
+    omega;
+  have H₂ : M.root.1 ⊩ ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) := by
+    have := LogicGL_semantical_TFAE.out 0 2 |>.mp
+      (LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS (A := A));
+    apply this;
+  obtain ⟨a, Rra, hA⟩ := Model.World.forces_dia.mp (H₂ H₁);
+  have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ ((□B) 🡒 B) := by
+    intro B hB;
+    exact Model.World.forces_fconj.mp hA _
+      (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
+  apply Set.Finite.subset (Set.finite_Iio M.height);
+  intro n hn;
+  simp only [Set.mem_compl_iff] at hn;
+  by_contra hge;
+  apply hn;
+  replace hge : M.height ≤ n := by simpa using hge;
+  have hra : Model.World.rank a < M.height := RootedModel.rank_lt_height Rra;
+  haveI := RootedModel.graftChain.isFiniteGL (M := M) (a := a) (k := n - Model.World.rank a - 1) Rra;
+  apply Formula.iff_mem_trace.mpr;
+  refine ⟨κ ⊕ Fin (n - Model.World.rank a - 1), inferInstance,
+    M.graftChain a (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
+  . rw [RootedModel.graftChain.height_eq Rra];
+    omega;
+  . intro hc;
+    apply hr;
+    exact RootedModel.graftChain.mainlemma Rra ha (Formula.mem_subfmls_self) |>.2 M.root.1 |>.mp hc;
 
 
 namespace FormulaSet
@@ -316,5 +427,98 @@ lemma LogicS.eq_trace : (@LogicS α).trace = Set.univ := by
     use □^[i]⊥
     grind;
   . grind;
+
+
+section
+
+lemma Logic.trace_subset_of_mem {L : Logic α} {A : Formula α} (h : A ∈ L) : A.trace ⊆ L.trace := by
+  intro n hn;
+  simp only [Logic.trace, FormulaSet.trace, Set.mem_iUnion, exists_prop];
+  exact ⟨A, h, hn⟩;
+
+/--
+  Forcing of a lifted letterless formula is determined by the rank
+  (generalization of `Model.iff_forces_rank_mem_spectrum` to models over arbitrary `α`).
+-/
+lemma Model.iff_forces_lift_rank_mem_spectrum
+    {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
+    {x : M.World} {B : LetterlessFormula} :
+    x ⊩ (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
+  induction B generalizing x with
+  | atom a => exact a.elim;
+  | bot => simp [LetterlessFormula.lift];
+  | imp B C ihB ihC =>
+    show ((x ⊩ (LetterlessFormula.lift B : Formula α)) → (x ⊩ (LetterlessFormula.lift C : Formula α))) ↔ _;
+    rw [ihB, ihC, LetterlessFormula.spectrum_imp];
+    grind;
+  | box B ihB =>
+    calc
+      _ ↔ ∀ y, x ≺ y → y ⊩ (LetterlessFormula.lift B : Formula α) := by
+        exact Model.World.forces_box (A := (LetterlessFormula.lift B : Formula α));
+      _ ↔ ∀ y, x ≺ y → Model.World.rank y ∈ LetterlessFormula.spectrum B := by simp [ihB];
+      _ ↔ ∀ i < x.rank, i ∈ LetterlessFormula.spectrum B := by
+        constructor;
+        . intro h i hi;
+          grind [Model.of_lt_rank hi];
+        . grind [Model.rank_lt_of_rel];
+      _ ↔ _ := by grind [LetterlessFormula.spectrum_box];
+
+variable [DecidableEq α] {L : Logic α} {A : Formula α}
+
+/--
+  If `L.trace` is coinfinite then `L ⊆ GLα (L.trace)`.
+  First half of Lemma 45 in [AB05].
+-/
+lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
+    L ⊆ LogicGLAlpha L.trace := by
+  intro A hA;
+  have hsub : A.trace ⊆ L.trace := Logic.trace_subset_of_mem hA;
+  have hfin : A.trace.Finite := by
+    rcases Formula.trace_finite_or_cofinite (A := A) with h | h;
+    . exact h;
+    . exact absurd (h.subset (Set.compl_subset_compl.mpr hsub)) hL;
+  have hGL : ((⋀(hfin.toFinset.image (TBB (α := α)))) 🡒 A) ∈ LogicGL := by
+    apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+    intro κ _ M _ hTBB;
+    haveI : Fintype M.World := Fintype.ofFinite _;
+    have hnot : M.height ∉ A.trace := by
+      intro hmem;
+      exact Model.iff_forces_TBB_neq_rank.mp
+        (Model.World.forces_fconj.mp hTBB (TBB M.height)
+          (Finset.mem_image_of_mem _ (hfin.mem_toFinset.mpr hmem))) rfl;
+    exact Formula.iff_mem_not_trace.mp hnot κ inferInstance M inferInstance inferInstance rfl;
+  apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL);
+  apply fconj_mem_sumQuasiNormal;
+  intro B hB;
+  obtain ⟨n, hn, rfl⟩ := Finset.mem_image.mp hB;
+  apply Logic.sumQuasiNormal.mem₂;
+  exact ⟨TBB n, ⟨n, hsub (hfin.mem_toFinset.mp hn), rfl⟩, LetterlessFormula.eq_lift_TBB⟩;
+
+/--
+  If `L.trace` is cofinite then `L ⊆ GLβ⁻ (L.trace)`.
+  Second half of Lemma 45 in [AB05].
+-/
+lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
+    L ⊆ LogicGLBetaMinus L.trace hL := by
+  intro A hA;
+  have hsub : A.trace ⊆ L.trace := Logic.trace_subset_of_mem hA;
+  have hGL : ((LetterlessFormula.lift (TBBMinus _ hL) : Formula α) 🡒 A) ∈ LogicGL := by
+    apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+    intro κ _ M _ hTM;
+    haveI : Fintype M.World := Fintype.ofFinite _;
+    have hnot : M.height ∉ A.trace := by
+      intro hmem;
+      have hrank : M.height ∈ LetterlessFormula.spectrum (TBBMinus _ hL) :=
+        Model.iff_forces_lift_rank_mem_spectrum.mp hTM;
+      have : LetterlessFormula.spectrum (TBBMinus _ hL) = L.traceᶜ := by
+        have := LetterlessFormula.trace_TBBMinus (s := L.traceᶜ) hL;
+        simpa [LetterlessFormula.trace, compl_compl] using congrArg compl this;
+      rw [this] at hrank;
+      exact hrank (hsub hmem);
+    exact Formula.iff_mem_not_trace.mp hnot κ inferInstance M inferInstance inferInstance rfl;
+  apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL);
+  exact Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hL, rfl, rfl⟩;
+
+end
 
 end

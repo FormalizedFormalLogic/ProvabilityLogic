@@ -574,10 +574,20 @@ lemma iff_lift_mem_LogicGL {B : LetterlessFormula} :
     rwa [Formula.projectEmpty_lift] at this;
   · exact ProvableHilbert.lift;
 
+/--
+  Compactness for quasi-normal extensions of `GL` by (lifted) letterless formula sets:
+  a lifted letterless formula is provable iff it follows from a finite subset in `GL`
+  (cf. `Logic.sumQuasiNormal.iff_provable_finite_provable` in Foundation).
+-/
+lemma iff_GL_sumQuasiNormal_provable_finite_provable {X : LetterlessFormulaSet} {A : LetterlessFormula} :
+    ↑A ∈ ((@LogicGL α) +ᴸ ↑X) ↔
+    ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
+  sorry;
+
 lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Regular T)
   : ↑A ∈ ((@LogicGL α) +ᴸ X) ↔ X.spectrum ⊆ A.spectrum := by calc
   _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ (⋀Y) 🡒 A ∈ LogicGL := by
-    sorry;
+    exact iff_GL_sumQuasiNormal_provable_finite_provable;
   _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ (⋂ B ∈ Y, spectrum B) ⊆ A.spectrum := by
     constructor;
     . rintro ⟨Y, hY, h⟩;

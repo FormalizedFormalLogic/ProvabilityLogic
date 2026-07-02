@@ -41,6 +41,13 @@ attribute [simp, grind =]
 @[simp, grind =] lemma subst_dia : (◇A)⟦s⟧ = ◇(A⟦s⟧) := by grind;
 @[simp, grind =] lemma subst_diaItr {n : ℕ} : (◇^[n]A)⟦s⟧ = ◇^[n](A⟦s⟧) := by induction n generalizing A <;> grind;
 
+@[simp, grind =]
+lemma subst_lconj {Γ : FormulaList α} : (⋀Γ)⟦s⟧ = ⋀(Γ.map (·⟦s⟧)) := by
+  match Γ with
+  | [] => simp;
+  | [A] => simp;
+  | A :: B :: Γ => simp [FormulaList.conj, subst_lconj (Γ := B :: Γ)];
+
 end Formula
 
 
@@ -60,6 +67,11 @@ def lift : LetterlessFormula → Formula α
 instance : Coe LetterlessFormula (Formula α) := ⟨lift⟩
 
 @[simp, grind =] lemma eq_subst_self : A⟦s⟧ = A := by induction A <;> grind;
+
+/-- Substitution acts trivially on lifted letterless formulas. -/
+@[simp, grind =]
+lemma subst_lift {s : Formula.Substitution α} : (lift A : Formula α)⟦s⟧ = lift A := by
+  induction A <;> grind;
 
 end LetterlessFormula
 
