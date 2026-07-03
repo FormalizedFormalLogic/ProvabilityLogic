@@ -2,7 +2,6 @@ module
 
 public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.Logic.S.Basic
-public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.D.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.GraftChain

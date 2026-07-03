@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Logic.GL.CIP
-public import SeqPL.Logic.S.GL
+public import SeqPL.Logic.S.Basic
 
 @[expose]
 public section

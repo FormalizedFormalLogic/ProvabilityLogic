@@ -32,7 +32,6 @@ public import SeqPL.Logic.GLPlusBoxBot.Basic
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.Boxdot
 public import SeqPL.Logic.S.CIP
-public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.A_D
 public import SeqPL.ProvabilityLogic.Classification.D_S

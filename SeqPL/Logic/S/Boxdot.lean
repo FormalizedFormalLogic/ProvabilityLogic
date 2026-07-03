@@ -1,6 +1,6 @@
 module
 
-public import SeqPL.Logic.S.GL
+public import SeqPL.Logic.S.Basic
 public import SeqPL.Kripke.RootExtension
 
 @[expose]
