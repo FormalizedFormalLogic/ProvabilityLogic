@@ -24,6 +24,7 @@ public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Tail
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic
+public import SeqPL.Logic.D.NotCIP
 public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.GL.CIP
 public import SeqPL.Logic.GL.Fixedpoint

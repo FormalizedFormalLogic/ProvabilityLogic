@@ -126,6 +126,19 @@ lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS)
     exact ⟨max k₁ k₂, fun n hn =>
       h₁ n (le_trans (le_max_left _ _) hn) (h₂ n (le_trans (le_max_right _ _) hn))⟩;
 
+/-- `LogicS` is consistent: `⊥` is not a theorem.  A theorem of `S` is eventually forced
+on the chain of the tail model of any finite GL model, but `⊥` is forced nowhere; take the
+one-point GL model with the empty relation. -/
+lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
+  intro h;
+  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => False⟩;
+  haveI : M.IsFiniteGL :=
+    { trans := fun _ _ _ hf _ => hf.elim
+      irrefl := fun _ hf => hf
+      finite := inferInstance };
+  obtain ⟨k, hk⟩ := eventually_forces_tail_nat_of_provable h M PUnit.unit;
+  exact hk k le_rfl;
+
 /--
   tail model の鎖上での最終的成立から，任意の有限根付き GL モデルの根で
   `⋀A.subfmlsS 🡒 A` が成立する．

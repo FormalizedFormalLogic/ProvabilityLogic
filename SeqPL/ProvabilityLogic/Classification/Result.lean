@@ -171,26 +171,6 @@ lemma LogicS.provable_TBB {n : ℕ} : (TBB n : Formula α) ∈ LogicS := by
   simpa [TBB, Formula.boxItr, Function.iterate_succ_apply'] using
     LogicS.provable_axiomT (A := (□^[n]⊥ : Formula α));
 
-/-- `S` is consistent. -/
-lemma LogicS.consistent : (⊥ : Formula α) ∉ LogicS := by
-  intro h;
-  have h₁ : ((⋀(⊥ : Formula α).subfmlsS) 🡒 ⊥) ∈ LogicGL :=
-    LogicS.iff_provable_S_provable_GL.mp h;
-  have h₂ : (⊥ : Formula α) ∈ LogicGL := by
-    apply ProvableHilbert.mdp h₁;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    apply Model.World.forces_fconj.mpr;
-    intro C hC;
-    simp only [Formula.subfmlsS, Finset.mem_image] at hC;
-    obtain ⟨a, ha, rfl⟩ := hC;
-    have := FormulaFinset.iff_mem_prebox_mem.mp ha;
-    simp [Formula.subfmls] at this;
-  have h₃ : (⊥ : LetterlessFormula) ∈ LogicGL :=
-    iff_lift_mem_LogicGL.mp (by simpa using h₂);
-  have := iff_GL_proves_spectrum_univ.mp h₃;
-  simpa [LetterlessFormula.spectrum_bot] using
-    (this ▸ Set.mem_univ 0 : (0 : ℕ) ∈ LetterlessFormula.spectrum ⊥);
 
 end modal
 
