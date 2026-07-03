@@ -207,25 +207,25 @@ lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
   | provable_GL h => exact ProvableHilbert.Kripke.soundness h ((M.toPseudoTail r o).toModel) _;
   | axiomP =>
     intro hbox;
-    exact hbox (.inl (Classical.arbitrary κ)) toPseudoTail.rel_inr_inl;
+    exact hbox (toPseudoTail.embed (Classical.arbitrary κ)) toPseudoTail.rel_chainPoint_embed;
   | @axiomD B C =>
     intro hbox;
     by_contra hC;
     obtain ⟨h₁, h₂⟩ := not_forces_or.mp hC;
     obtain ⟨x, Rrx, hx⟩ := not_forces_box.mp h₁;
     obtain ⟨y, Rry, hy⟩ := not_forces_box.mp h₂;
-    have key : ∀ w : (M.toPseudoTail r o).World, (M.toPseudoTail r o).Rel (.inr ⊤) w →
-        ∃ k : ℕ, ∀ n : ℕ, k < n → (M.toPseudoTail r o).Rel (.inr ((n : ℕ) : ℕ∞)) w := by
+    have key : ∀ w : (M.toPseudoTail r o).World, (M.toPseudoTail r o).Rel (toPseudoTail.chainPoint ⊤) w →
+        ∃ k : ℕ, ∀ n : ℕ, k < n → (M.toPseudoTail r o).Rel (toPseudoTail.chainPoint ((n : ℕ) : ℕ∞)) w := by
       rintro (w | i) hw;
-      . exact ⟨0, fun n _ => toPseudoTail.rel_inr_inl⟩;
-      . have hi : i < (⊤ : ℕ∞) := toPseudoTail.rel_inr_inr.mp hw;
-        refine ⟨i.toNat, fun n hn => toPseudoTail.rel_inr_inr.mpr ?_⟩;
+      . exact ⟨0, fun n _ => toPseudoTail.rel_chainPoint_embed⟩;
+      . have hi : i < (⊤ : ℕ∞) := toPseudoTail.rel_chainPoint_chainPoint.mp hw;
+        refine ⟨i.toNat, fun n hn => toPseudoTail.rel_chainPoint_chainPoint.mpr ?_⟩;
         calc i = ((i.toNat : ℕ) : ℕ∞) := (ENat.coe_toNat hi.ne).symm
           _ < ((n : ℕ) : ℕ∞) := by exact_mod_cast hn;
     obtain ⟨k₁, hk₁⟩ := key x Rrx;
     obtain ⟨k₂, hk₂⟩ := key y Rry;
-    have hz : Forces (M := (M.toPseudoTail r o).toModel) (.inr ((k₁ + k₂ + 1 : ℕ) : ℕ∞)) (□B ⋎ □C) :=
-      hbox _ (toPseudoTail.rel_inr_inr.mpr (ENat.coe_lt_top _));
+    have hz : Forces (M := (M.toPseudoTail r o).toModel) (toPseudoTail.chainPoint ((k₁ + k₂ + 1 : ℕ) : ℕ∞)) (□B ⋎ □C) :=
+      hbox _ (toPseudoTail.rel_chainPoint_chainPoint.mpr (ENat.coe_lt_top _));
     rcases forces_or.mp hz with (hzB | hzC);
     . exact hx (hzB x (hk₁ _ (by omega)));
     . exact hy (hzC y (hk₂ _ (by omega)));
@@ -274,7 +274,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   have hA := h N.toModel N.root.1 (M.Val M.root.1);
   -- `A` の部分論理式について，pseudo-tail model の根（ω）と元の `M` の根で forces が一致する
   have transport : ∀ B, B ∈ A.subfmls →
-      (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (.inr ⊤) B ↔ M.root.1 ⊩ B) := by
+      (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.chainPoint ⊤) B ↔ M.root.1 ⊩ B) := by
     intro B;
     induction B with
     | atom a =>
@@ -294,7 +294,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
       constructor;
       . intro hω;
         have hxB : x ⊩ □B := by
-          have hl : Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (.inl N.root.1) (□B) :=
+          have hl : Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.embed N.root.1) (□B) :=
             Model.toPseudoTail.forces_box_of_root_forces_box hω;
           exact Model.toRootedModel.forces_same_at_root.mp (Model.toPseudoTail.forces_inl.mp hl);
         by_contra hroot;
@@ -306,7 +306,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
           rcases w.2 with (hwx | hxw);
           . rw [hwx]; exact hroot _ Rrx;
           . exact hroot _ (IsTrans.trans _ _ _ Rrx hxw);
-        . have hj : j < (⊤ : ℕ∞) := Model.toPseudoTail.rel_inr_inr.mp Rωw;
+        . have hj : j < (⊤ : ℕ∞) := Model.toPseudoTail.rel_chainPoint_chainPoint.mp Rωw;
           obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp hj.ne;
           apply (Model.toPseudoTail.root_forces_iff_forces_nat (M := N) (o := M.Val M.root.1) (S := A.subfmls)
             (fun B hB => Formula.subfmls_trans hB) hS B (Formula.subfmls_trans hB (by grind)) m).mp;

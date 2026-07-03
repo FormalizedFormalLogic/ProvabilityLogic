@@ -40,10 +40,9 @@ lemma LogicD.not_provable_map_some [DecidableEq α] {A : Formula α}
     apply Iff.trans Model.forces_map;
     apply Model.forces_congr rfl;
     intro x a;
-    match x with
-    | .inl x => exact Iff.rfl
-    | .inr i =>
-      by_cases hi : i = (⊤ : ℕ∞) <;> simp [hi];
+    rcases x with x | i;
+    · exact Iff.rfl;
+    · by_cases hi : i = (⊤ : ℕ∞) <;> simp [hi];
   exact e.mp hfrc;
 
 end kripke
