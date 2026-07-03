@@ -1,59 +1,16 @@
 module
 
 public import SeqPL.Formula.Basic
+public import SeqPL.Formula.Substitution
 
 @[expose]
 public section
 
-namespace Formula
-
-abbrev Substitution (α) := α → Formula α
-
-@[grind]
-def subst (s : Substitution α) : Formula α → Formula α
-  | atom a  => (s a)
-  | ⊥       => ⊥
-  | □φ      => □(φ.subst s)
-  | φ 🡒 ψ   => φ.subst s 🡒 ψ.subst s
-notation:95 φ "⟦" s "⟧" => Formula.subst s φ
-
-variable {s : Substitution α} {A B : Formula α}
-
-lemma subst_atom : (#a)⟦s⟧ = s a := by grind;
-lemma subst_bot : (⊥)⟦s⟧ = ⊥ := by grind;
-lemma subst_top : (⊤)⟦s⟧ = ⊤ := by grind;
-lemma subst_imp : (A 🡒 B)⟦s⟧ = A⟦s⟧ 🡒 B⟦s⟧ := by rfl
-lemma subst_and : (A ⋏ B)⟦s⟧ = A⟦s⟧ ⋏ B⟦s⟧ := by grind;
-lemma subst_or  : (A ⋎ B)⟦s⟧ = A⟦s⟧ ⋎ B⟦s⟧ := by grind;
-lemma subst_neg : (∼A)⟦s⟧ = ∼(A⟦s⟧) := by grind;
-lemma subst_iff : (A 🡘 B)⟦s⟧ = A⟦s⟧ 🡘 B⟦s⟧ := by grind;
-attribute [simp, grind =]
-  subst_atom
-  subst_bot
-  subst_top
-  subst_neg
-  subst_and
-  subst_or
-  subst_imp
-  subst_iff
-@[simp, grind =] lemma subst_box : (□A)⟦s⟧ = □(A⟦s⟧) := by grind;
-@[simp, grind =] lemma subst_boxItr {n : ℕ} : (□^[n]A)⟦s⟧ = □^[n](A⟦s⟧) := by induction n generalizing A <;> grind;
-@[simp, grind =] lemma subst_dia : (◇A)⟦s⟧ = ◇(A⟦s⟧) := by grind;
-@[simp, grind =] lemma subst_diaItr {n : ℕ} : (◇^[n]A)⟦s⟧ = ◇^[n](A⟦s⟧) := by induction n generalizing A <;> grind;
-
-@[simp, grind =]
-lemma subst_lconj {Γ : FormulaList α} : (⋀Γ)⟦s⟧ = ⋀(Γ.map (·⟦s⟧)) := by
-  match Γ with
-  | [] => simp;
-  | [A] => simp;
-  | A :: B :: Γ => simp [FormulaList.conj, subst_lconj (Γ := B :: Γ)];
-
-end Formula
-
-
 variable {α : Type*}
 
 abbrev LetterlessFormula := Formula Empty
+
+abbrev LetterlessFormulaList := FormulaList Empty
 
 namespace LetterlessFormula
 
@@ -73,10 +30,21 @@ instance : Coe LetterlessFormula (Formula α) := ⟨lift⟩
 lemma subst_lift {s : Formula.Substitution α} : (lift A : Formula α)⟦s⟧ = lift A := by
   induction A <;> grind;
 
+variable {B : LetterlessFormula}
+
+@[simp, grind =] lemma eq_lift_bot : lift (α := α) ⊥ = ⊥ := by grind;
+@[simp, grind =] lemma eq_lift_box_bot : lift (α := α) (□⊥) = □⊥ := by grind;
+@[simp, grind =] lemma eq_lift_boxItr_bot {n : ℕ} : lift (α := α) (□^[n]⊥) = □^[n]⊥ := by induction n <;> grind;
+@[simp, grind =] lemma eq_lift_and : lift (α := α) (A ⋏ B) = (lift A) ⋏ (lift B) := by grind;
+
+@[simp, grind =]
+lemma eq_lift_lconj {Γ : LetterlessFormulaList} : lift (α := α) (⋀Γ) = ⋀(Γ.map lift) := by
+  match Γ with
+  | [] | [A] => grind;
+  | A :: B :: Γ => simp [FormulaList.conj, eq_lift_and, eq_lift_lconj];
+
 end LetterlessFormula
 
-
-abbrev LetterlessFormulaList := FormulaList Empty
 
 abbrev LetterlessFormulaFinset := FormulaFinset Empty
 
@@ -95,6 +63,9 @@ namespace LetterlessFormulaSet
 def lift : LetterlessFormulaSet → FormulaSet α := λ Γ => Γ.image (LetterlessFormula.lift)
 instance : Coe LetterlessFormulaSet (FormulaSet α) := ⟨lift⟩
 
+@[simp, grind =]
+lemma eq_lift_singleton {A : LetterlessFormula} {B : Formula α} : lift (α := α) {A} = {B} ↔ A.lift = B := by simp [lift];
+
 end LetterlessFormulaSet
 
 
@@ -110,6 +81,38 @@ def toLetterless : (A : Formula α) → (_ : Letterless A) → LetterlessFormula
   | ⊥, _ => ⊥
   | A 🡒 B, ⟨hA, hB⟩ => toLetterless A hA 🡒 toLetterless B hB
   | □A, hA => □(toLetterless A hA)
+
+@[simp, grind! .]
+lemma letterless_boxItr_bot {n} : (□^[n]⊥ : Formula α).Letterless := by
+  match n with
+  | 0 => simp [Formula.boxItr, Letterless];
+  | n + 1 => apply letterless_boxItr_bot (n := n);
+
+@[grind =]
+lemma toLetterless_boxItr_bot {n} : (□^[n]⊥ : Formula α).toLetterless (by grind) = (□^[n]⊥ : LetterlessFormula) := by
+  match n with
+  | 0 => simp [Formula.boxItr, Formula.toLetterless];
+  | n + 1 => simp [Formula.boxItr, Formula.toLetterless, toLetterless_boxItr_bot (n := n)];
+
+/-- Projection of `Formula α` to `LetterlessFormula` collapsing all atoms to `⊥`
+(the "inverse direction" of `LetterlessFormula.lift`). -/
+def projectEmpty : Formula α → LetterlessFormula
+  | .atom _ => ⊥
+  | ⊥       => ⊥
+  | A 🡒 B   => A.projectEmpty 🡒 B.projectEmpty
+  | □A      => □(A.projectEmpty)
+
+@[simp] lemma projectEmpty_lift {B : LetterlessFormula} :
+    (LetterlessFormula.lift B : Formula α).projectEmpty = B := by
+  induction B with
+  | atom a => exact a.elim
+  | bot => rfl
+  | imp A C ihA ihC =>
+    show (LetterlessFormula.lift A : Formula α).projectEmpty 🡒 (LetterlessFormula.lift C : Formula α).projectEmpty = _;
+    rw [ihA, ihC]
+  | box A ih =>
+    show □((LetterlessFormula.lift A : Formula α).projectEmpty) = _;
+    rw [ih]
 
 end Formula
 

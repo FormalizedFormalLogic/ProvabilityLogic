@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Hilbert.Basic
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PointGenerate
 public import Mathlib.Tactic.TFAE
 

@@ -1,6 +1,7 @@
 module
 
-public import SeqPL.Gentzen.Maehara
+public import SeqPL.Formula.Letterless
+public import SeqPL.Formula.Substitution
 public import SeqPL.Hilbert.Basic
 
 @[expose]

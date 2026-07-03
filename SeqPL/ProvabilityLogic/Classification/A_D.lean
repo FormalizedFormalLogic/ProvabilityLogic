@@ -1,5 +1,6 @@
 module
 
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.ProvabilityLogic.Classification.Trace
 
 @[expose] public section

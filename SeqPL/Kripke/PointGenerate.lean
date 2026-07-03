@@ -1,5 +1,6 @@
 module
 
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.RootExtension
 
 @[expose]

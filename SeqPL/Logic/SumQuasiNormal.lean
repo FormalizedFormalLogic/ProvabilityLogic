@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Logic.Basic
 public import SeqPL.Formula.Letterless
+public import SeqPL.Formula.Substitution
 
 @[expose]
 public section

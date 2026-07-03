@@ -4,7 +4,9 @@ public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.GL
 public import SeqPL.Logic.D.Basic
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.GraftChain
+public import SeqPL.Formula.Substitution
 
 @[expose]
 public section
@@ -109,21 +111,9 @@ lemma trace_fconj {Γ : FormulaFinset α} : (⋀Γ).trace = ⋃ A ∈ Γ, A.trac
 
 
 @[simp, grind! .]
-lemma letterless_boxItr_bot {n} : (□^[n]⊥ : Formula α).Letterless := by
-  match n with
-  | 0 => simp [Formula.boxItr, Letterless];
-  | n + 1 => apply letterless_boxItr_bot (n := n);
-
-@[simp, grind! .]
 lemma letterless_TBB : (@TBB α n).Letterless := by
   simp [Letterless, TBB]
 
-
-@[grind =]
-lemma toLetterless_boxItr_bot {n} : (□^[n]⊥ : Formula α).toLetterless (by grind) = (□^[n]⊥ : LetterlessFormula) := by
-  match n with
-  | 0 => simp [Formula.boxItr, Formula.toLetterless];
-  | n + 1 => simp [Formula.boxItr, Formula.toLetterless, toLetterless_boxItr_bot (n := n)];
 
 @[grind =]
 lemma toLetterless_TBB : (@TBB α n).toLetterless (by grind) = (TBB n) := by
@@ -271,43 +261,6 @@ end FormulaSet
 
 
 abbrev Logic.trace (L : Logic α) : Set ℕ := FormulaSet.trace L
-
-namespace Model
-
-variable [Nonempty κ] {M : Model κ α}
-
-/-- 付値を置換 `s` で合成したモデル（フレームは不変）． -/
-abbrev substModel (M : Model κ α) (s : Formula.Substitution α) : Model κ α where
-  Rel' := M.Rel'
-  Val' x a := Model.World.Forces (M := M) x (s a)
-
-lemma forces_substModel {s : Formula.Substitution α} {A : Formula α} {x : M.World} :
-    x ⊩ A⟦s⟧ ↔ Model.World.Forces (M := M.substModel s) x A := by
-  induction A generalizing x with
-  | atom a => rw [Formula.subst_atom]; rfl
-  | bot => rfl
-  | imp A B ihA ihB => simp only [Formula.subst_imp, Model.World.Forces]; rw [ihA, ihB]
-  | box A ih =>
-    simp only [Formula.subst_box, Model.World.Forces];
-    constructor;
-    · intro h y hy; exact ih.mp (h y hy);
-    · intro h y hy; exact ih.mpr (h y hy);
-
-instance {s : Formula.Substitution α} [Fintype M.World] : Fintype (M.substModel s).World := ‹Fintype M.World›
-instance {s : Formula.Substitution α} [h : M.IsGL] : (M.substModel s).IsGL where __ := h
-
-end Model
-
-namespace RootedModel
-
-variable [Nonempty κ] {M : RootedModel κ α} {s : Formula.Substitution α}
-
-/-- 付値を置換 `s` で合成した根付きモデル（フレーム・根は不変）． -/
-abbrev substModel (M : RootedModel κ α) (s : Formula.Substitution α) : RootedModel κ α where
-  toModel := M.toModel.substModel s
-  root := M.root
-
-end RootedModel
 
 lemma trace_subst_subset {A : Formula α} {s : Formula.Substitution α} : (A⟦s⟧).trace ⊆ A.trace := by
   intro n hn;

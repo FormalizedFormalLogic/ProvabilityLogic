@@ -1,7 +1,10 @@
 module
 
 public import SeqPL.Kripke.Rank
+public import SeqPL.Kripke.RootedModel
+public import SeqPL.Logic.GL.Letterless
 public import SeqPL.Logic.SumQuasiNormal
+public import SeqPL.Formula.Substitution
 public import SeqPL.Vorspiel.Set.Approximate
 public import SeqPL.Formula.Countable
 public import SeqPL.ProvabilityLogic.Interpret
@@ -349,12 +352,6 @@ lemma interpret_lift {α : Type*} {f : Realization α 𝔅} {A : LetterlessFormu
   | atom a => exact a.elim
   | _ => simp_all [Formula.interpret, LetterlessFormula.interpret, LetterlessFormula.lift]
 
-lemma _root_.Formula.interpret_subst {α : Type*} {f : Realization α 𝔅} {s : Formula.Substitution α} {A : Formula α} :
-    Formula.interpret f (A⟦s⟧) = Formula.interpret (⟨fun a => Formula.interpret f (s a)⟩ : Realization α 𝔅) A := by
-  induction A with
-  | atom a => rfl
-  | _ => simp_all [Formula.interpret, Formula.subst_imp, Formula.subst_box]
-
 end
 
 
@@ -525,55 +522,6 @@ section
 
 variable {α} {X Y : LetterlessFormulaSet} {A : LetterlessFormula}
 
-/-- α-原子を ⊥ に潰して Empty 上の論理式へ射影する（letterless の lift の逆向き）． -/
-def _root_.Formula.projectEmpty : Formula α → LetterlessFormula
-  | .atom _ => ⊥
-  | ⊥       => ⊥
-  | A 🡒 B   => A.projectEmpty 🡒 B.projectEmpty
-  | □A      => □(A.projectEmpty)
-
-@[simp] lemma _root_.Formula.projectEmpty_lift {B : LetterlessFormula} :
-    (LetterlessFormula.lift B : Formula α).projectEmpty = B := by
-  induction B with
-  | atom a => exact a.elim
-  | bot => rfl
-  | imp A C ihA ihC =>
-    show (LetterlessFormula.lift A : Formula α).projectEmpty 🡒 (LetterlessFormula.lift C : Formula α).projectEmpty = _;
-    rw [ihA, ihC]
-  | box A ih =>
-    show □((LetterlessFormula.lift A : Formula α).projectEmpty) = _;
-    rw [ih]
-
-lemma ProvableHilbert.project {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.projectEmpty : LetterlessFormula) := by
-  induction h using ProvableHilbert.rec with
-  | prop1 => exact ProvableHilbert.prop1
-  | prop2 => exact ProvableHilbert.prop2
-  | prop3 => exact ProvableHilbert.prop3
-  | modalK => exact ProvableHilbert.modalK
-  | modal4 => exact ProvableHilbert.modal4
-  | modalL => exact ProvableHilbert.modalL
-  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
-  | nec h ih => exact ProvableHilbert.nec ih
-
-lemma ProvableHilbert.lift {B : LetterlessFormula} (h : ⊢ʰ B) : ⊢ʰ (LetterlessFormula.lift B : Formula α) := by
-  induction h using ProvableHilbert.rec with
-  | prop1 => exact ProvableHilbert.prop1
-  | prop2 => exact ProvableHilbert.prop2
-  | prop3 => exact ProvableHilbert.prop3
-  | modalK => exact ProvableHilbert.modalK
-  | modal4 => exact ProvableHilbert.modal4
-  | modalL => exact ProvableHilbert.modalL
-  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
-  | nec h ih => exact ProvableHilbert.nec ih
-
-lemma iff_lift_mem_LogicGL {B : LetterlessFormula} :
-    (LetterlessFormula.lift B : Formula α) ∈ LogicGL ↔ B ∈ (LogicGL : Logic Empty) := by
-  constructor;
-  · intro h;
-    have := ProvableHilbert.project (α := α) h;
-    rwa [Formula.projectEmpty_lift] at this;
-  · exact ProvableHilbert.lift;
-
 /--
   Finite compactness for quasi-normal extensions of `GL` by lifted letterless formula
   sets, for an arbitrary formula `B`: a provable formula follows in `GL` from the
@@ -636,7 +584,7 @@ lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formu
           ih (fun E hE => hΓ E (by grind));
         have heq : (LetterlessFormula.lift (⋀(C :: D :: Γ)) : Formula α)
             = (LetterlessFormula.lift C : Formula α) ⋏ (LetterlessFormula.lift (⋀(D :: Γ))) := by
-          simp [FormulaList.conj, LetterlessFormula.lift, Formula.and];
+          simp [FormulaList.conj, Formula.and];
         rw [heq];
         exact Logic.sumQuasiNormal.mdp
           (Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ProvableHilbert.andIntro) hC) hrest;
@@ -828,26 +776,12 @@ end FormulaSet
 
 namespace LetterlessFormula
 
-@[simp, grind =] lemma eq_lift_bot : lift (α := α) ⊥ = ⊥ := by grind;
-@[simp, grind =] lemma eq_lift_box_bot : lift (α := α) (□⊥) = □⊥ := by grind;
-@[simp, grind =] lemma eq_lift_boxItr_bot {n : ℕ} : lift (α := α) (□^[n]⊥) = □^[n]⊥ := by induction n <;> grind;
-@[simp, grind =] lemma eq_lift_and : lift (α := α) (A ⋏ B) = (lift A) ⋏ (lift B) := by grind;
-
-@[simp, grind =]
-lemma eq_lift_lconj {Γ : LetterlessFormulaList} : lift (α := α) (⋀Γ) = ⋀(Γ.map lift) := by
-  match Γ with
-  | [] | [A] => grind;
-  | A :: B :: Γ => simp [FormulaList.conj, eq_lift_and, eq_lift_lconj];
-
 @[simp, grind =] lemma eq_lift_TBB {n : ℕ} : lift (α := α) (TBB n) = TBB n := by grind;
 
 end LetterlessFormula
 
 
 namespace LetterlessFormulaSet
-
-@[simp, grind =]
-lemma eq_lift_singleton {A : LetterlessFormula} {B : Formula α} : lift (α := α) {A} = {B} ↔ A.lift = B := by simp [lift];
 
 @[simp, grind =]
 lemma eq_lift_TBB_set {X : Set ℕ} : lift (α := α) (TBB '' X) = TBB '' X := by
@@ -888,53 +822,6 @@ end
 section
 
 variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁] [ℕ ⊧ₘ* T]
-
-namespace LO.FirstOrder.Theory
-
-open LO.Entailment
-
-variable
-  {L : Language} [L.DecidableEq]
-  {T U : Theory L} [DecidablePred (· ∈ T)] [DecidablePred (· ∈ U)]
-  {φ : Sentence L}
-
-lemma compact_add_right (h : (T + U) ⊢ φ) : ∃ (s : { s : Finset (Sentence L) // ↑s ⊆ U }), T ⊢ s.1.conj 🡒 φ := by
-  obtain ⟨⟨s, hsTU⟩, hs⟩ := Theory.compact' h;
-  let sT := { ψ ∈ s | ψ ∈ T };
-  let sU := { ψ ∈ s | ψ ∈ U };
-
-  use ⟨sU, λ _ => by simp [sU]⟩;
-
-  have : (∅ : Theory _) ⊢ sT.conj 🡒 sU.conj 🡒 φ := CK!_iff_CC!.mp $ C!_trans CKFconjFconjUnion! $ by
-    have : sT ∪ sU = s:= by
-      ext ψ;
-      constructor;
-      . grind;
-      . intro hψ; rcases hsTU hψ with (hψT | hψU) <;> grind;
-    rwa [this];
-  apply Entailment.mdp! $ Axiomatized.weakening! (λ _ => by simp) this;
-  apply Entailment.FConj!_iff_forall_provable.mpr;
-  intro ψ hψ;
-  apply Axiomatized.provable_axm;
-  simp_all [sT];
-
-lemma compact_add_left (h : (T + U) ⊢ φ) : ∃ (s : { s : Finset (Sentence L) // ↑s ⊆ T }), U ⊢ s.1.conj 🡒 φ := by
-  rw [show (T + U = U + T) by simp [add_def, Set.union_comm]] at h
-  simpa using compact_add_right h;
-
-end LO.FirstOrder.Theory
-
-lemma _root_.finite_preimage_choice (s : Finset α) (X : Set β) (f : β → α) (hs : ∀ a ∈ s, ∃ b ∈ X, f b = a) :
-  ∃ t : Finset β, ↑t ⊆ X ∧ ∀ a ∈ s, ∃ b ∈ t, f b = a := by
-  classical
-  choose g hga hgb using hs;
-  use Finset.univ.image (λ (a : { b // b ∈ s}) => g a.1 (by simp));
-  constructor;
-  . intro b hb;
-    grind;
-  . intro h b;
-    simp only [Finset.univ_eq_attach, Finset.mem_image, Finset.mem_attach, true_and, Subtype.exists, ↓existsAndEq];
-    grind;
 
 lemma lconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaList α}
     (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by

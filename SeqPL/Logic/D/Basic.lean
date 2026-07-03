@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Logic.S.Basic
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PseudoTail
 
 @[expose]

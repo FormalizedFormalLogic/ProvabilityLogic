@@ -8,76 +8,12 @@ public section
 
 variable {α : Type u} [DecidableEq α]
 
-
-namespace Formula
-
-@[grind]
-def atoms : Formula α → Finset α
-| ⊥     => ∅
-| #a    => {a}
-| A 🡒 B => A.atoms ∪ B.atoms
-| □A    => A.atoms
-
-end Formula
-
-
 namespace FormulaFinset
 
 variable {Γ Δ : FormulaFinset α} {A B : Formula α}
 
-@[grind]
-def atoms (Γ : FormulaFinset α) : Finset α := Γ.biUnion Formula.atoms
-
-@[grind →]
-lemma atoms_mono (h : Γ ⊆ Δ) : Γ.atoms ⊆ Δ.atoms :=
-  Finset.biUnion_subset_biUnion_of_subset_left _ h
-
-@[grind →]
-lemma atoms_subset_of_mem (h : A ∈ Γ) : A.atoms ⊆ Γ.atoms :=
-  Finset.subset_biUnion_of_mem _ h
-
-@[simp, grind =]
-lemma atoms_insert (A : Formula α) (Γ : FormulaFinset α) : (insert A Γ).atoms = A.atoms ∪ Γ.atoms := by
-  simp [FormulaFinset.atoms, Finset.biUnion_insert]
-
-@[simp, grind =]
-lemma atoms_empty : (∅ : FormulaFinset α).atoms = ∅ := by simp [FormulaFinset.atoms]
-
-@[simp, grind =]
-lemma atoms_singleton (A : Formula α) : ({A} : FormulaFinset α).atoms = A.atoms := by
-  simp [FormulaFinset.atoms]
-
-@[simp, grind =]
-lemma atoms_union (Γ Δ : FormulaFinset α) : (Γ ∪ Δ).atoms = Γ.atoms ∪ Δ.atoms := by
-  ext x
-  simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_union]
-  constructor
-  · rintro ⟨a, ha | ha, hx⟩
-    · exact Or.inl ⟨a, ha, hx⟩
-    · exact Or.inr ⟨a, ha, hx⟩
-  · rintro (⟨a, ha, hx⟩ | ⟨a, ha, hx⟩)
-    · exact ⟨a, Or.inl ha, hx⟩
-    · exact ⟨a, Or.inr ha, hx⟩
-
 @[simp, grind =]
 lemma box_insert (A : Formula α) (Γ : FormulaFinset α) : (insert A Γ).box = insert (□A) Γ.box := Finset.image_insert _ _ _
-
-@[simp, grind =]
-lemma box_atoms (Γ : FormulaFinset α) : Γ.box.atoms = Γ.atoms := by
-  ext x
-  simp only [atoms, FormulaFinset.box, Finset.mem_biUnion, Finset.mem_image]
-  constructor
-  · rintro ⟨_, ⟨B, hB, rfl⟩, hx⟩; exact ⟨B, hB, by simpa [Formula.atoms] using hx⟩
-  · rintro ⟨B, hB, hx⟩; exact ⟨□B, ⟨B, hB, rfl⟩, by simpa [Formula.atoms] using hx⟩
-
-lemma box_filter (hS : Γ ⊆ Δ.box) : FormulaFinset.box (Δ.filter (fun B => □B ∈ Γ)) = Γ := by
-  ext x
-  simp only [FormulaFinset.box, Finset.mem_image, Finset.mem_filter]
-  constructor
-  · rintro ⟨B, ⟨_, hBS⟩, rfl⟩; exact hBS
-  · intro hx
-    obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp (hS hx)
-    exact ⟨B, ⟨hB, hx⟩, rfl⟩
 
 end FormulaFinset
 
@@ -291,24 +227,6 @@ def boxGLSplitR {Γ : FormulaFinset α} {A : Formula α} (P : PartitionOf (Γ.bo
   Δ_disj := by simp
 
 end PartitionOf
-
-namespace ProvableGentzen
-variable {Γ Δ : FormulaFinset α} {A B : Formula α}
-
-lemma orR (h : ⊢ᵍ (Γ ⟹ insert A (insert B Δ))) : ⊢ᵍ (Γ ⟹ insert (A ⋎ B) Δ) :=
-  ⟨ProofGentzen.orR h.some⟩
-lemma orL (h₁ : ⊢ᵍ (insert A Γ ⟹ Δ)) (h₂ : ⊢ᵍ (insert B Γ ⟹ Δ)) : ⊢ᵍ (insert (A ⋎ B) Γ ⟹ Δ) :=
-  ⟨ProofGentzen.orL h₁.some h₂.some⟩
-lemma andR (h₁ : ⊢ᵍ (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ (Γ ⟹ insert B Δ)) : ⊢ᵍ (Γ ⟹ insert (A ⋏ B) Δ) :=
-  ⟨ProofGentzen.andR h₁.some h₂.some⟩
-lemma andL (h : ⊢ᵍ (insert A (insert B Γ) ⟹ Δ)) : ⊢ᵍ (insert (A ⋏ B) Γ ⟹ Δ) :=
-  ⟨ProofGentzen.andL h.some⟩
-lemma negL (h : ⊢ᵍ (Γ ⟹ insert A Δ)) : ⊢ᵍ (insert (∼A) Γ ⟹ Δ) :=
-  ⟨ProofGentzen.negL h.some⟩
-lemma negR (h : ⊢ᵍ (insert A Γ ⟹ Δ)) : ⊢ᵍ (Γ ⟹ insert (∼A) Δ) :=
-  ⟨ProofGentzen.negR h.some⟩
-
-end ProvableGentzen
 
 
 private lemma insert_sdiff_subset {a : Formula α} {Γ G H : FormulaFinset α}

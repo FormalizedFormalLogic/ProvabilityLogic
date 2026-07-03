@@ -263,6 +263,48 @@ lemma imp_fconj_fconj_of_subset {Γ Γ' : FormulaFinset α} (h : Γ' ⊆ Γ) : �
   intro A;
   simpa using @h A;
 
+/-- Combinatory reassociation of a conjunction: `(A ⋏ B) 🡒 (C 🡒 D)` derives `(A ⋏ C) 🡒 (B 🡒 D)`. -/
+@[simp, grind .]
+lemma imp_reassoc {A B C D : Formula α} : ⊢ʰ ((A ⋏ B) 🡒 (C 🡒 D)) 🡒 ((A ⋏ C) 🡒 (B 🡒 D)) := by
+  apply DeducibleHilbert.iff_singleton_deducible_provable.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  have hAC : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ A ⋏ C := DeducibleHilbert.ofContext (by grind)
+  have hA : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ A :=
+    DeducibleHilbert.mdp (DeducibleHilbert.ofProvable ProvableHilbert.andL) hAC
+  have hC : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ C :=
+    DeducibleHilbert.mdp (DeducibleHilbert.ofProvable ProvableHilbert.andR) hAC
+  have hB : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ B := DeducibleHilbert.ofContext (by grind)
+  have hAB : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ A ⋏ B :=
+    DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable ProvableHilbert.andIntro) hA) hB
+  have himp : ({B, A ⋏ C, (A ⋏ B) 🡒 (C 🡒 D)} : FormulaSet α) ⊢ʰ (A ⋏ B) 🡒 (C 🡒 D) :=
+    DeducibleHilbert.ofContext (by grind)
+  exact DeducibleHilbert.mdp (DeducibleHilbert.mdp himp hAB) hC
+
+/-- Elimination of a conjunction: `(A ⋏ B) 🡒 C` derives `A 🡒 (B 🡒 C)`. -/
+@[simp, grind .]
+lemma imp_uncurry_and {A B C : Formula α} : ⊢ʰ ((A ⋏ B) 🡒 C) 🡒 (A 🡒 (B 🡒 C)) := by
+  apply DeducibleHilbert.iff_singleton_deducible_provable.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  have hA : ({B, A, (A ⋏ B) 🡒 C} : FormulaSet α) ⊢ʰ A := DeducibleHilbert.ofContext (by grind)
+  have hB : ({B, A, (A ⋏ B) 🡒 C} : FormulaSet α) ⊢ʰ B := DeducibleHilbert.ofContext (by grind)
+  have hAB : ({B, A, (A ⋏ B) 🡒 C} : FormulaSet α) ⊢ʰ A ⋏ B :=
+    DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable ProvableHilbert.andIntro) hA) hB
+  have himp : ({B, A, (A ⋏ B) 🡒 C} : FormulaSet α) ⊢ʰ (A ⋏ B) 🡒 C := DeducibleHilbert.ofContext (by grind)
+  exact DeducibleHilbert.mdp himp hAB
+
+/-- Swapping antecedents: `A 🡒 (B 🡒 C)` derives `B 🡒 (A 🡒 C)`. -/
+@[simp, grind .]
+lemma imp_swap {A B C : Formula α} : ⊢ʰ (A 🡒 (B 🡒 C)) 🡒 (B 🡒 (A 🡒 C)) := by
+  apply DeducibleHilbert.iff_singleton_deducible_provable.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  apply DeducibleHilbert.deduction_theorem.mp
+  have hA : ({A, B, A 🡒 (B 🡒 C)} : FormulaSet α) ⊢ʰ A := DeducibleHilbert.ofContext (by grind)
+  have hB : ({A, B, A 🡒 (B 🡒 C)} : FormulaSet α) ⊢ʰ B := DeducibleHilbert.ofContext (by grind)
+  have himp : ({A, B, A 🡒 (B 🡒 C)} : FormulaSet α) ⊢ʰ A 🡒 (B 🡒 C) := DeducibleHilbert.ofContext (by grind)
+  exact DeducibleHilbert.mdp (DeducibleHilbert.mdp himp hA) hB
+
 
 lemma imp_ldisj_of_mem {Γ : FormulaList α} {A : Formula α} (h : A ∈ Γ) : ⊢ʰ A 🡒 ⋁Γ := by
   match Γ with
@@ -334,6 +376,13 @@ theorem completeness [DecidableEq α] (h : ∀ {κ : Type u}, [Nonempty κ] → 
   apply h;
 
 end Kripke
+
+/-- `⋀Γ ⋏ ⋀Δ` derives `⋀(Γ ∪ Δ)`. -/
+@[grind <=]
+lemma imp_fconj_union [DecidableEq α] (Γ Δ : FormulaFinset α) : ⊢ʰ ((⋀Γ) ⋏ (⋀Δ)) 🡒 ⋀(Γ ∪ Δ) := by
+  apply Kripke.completeness
+  intro κ _ M _ x
+  grind
 
 
 end ProvableHilbert

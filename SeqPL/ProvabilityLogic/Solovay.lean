@@ -1,5 +1,6 @@
 module
 
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import Foundation.FirstOrder.Bootstrapping.FixedPoint
 public import Foundation.FirstOrder.Incompleteness.WitnessComparison

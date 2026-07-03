@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Formula.Basic
+public import SeqPL.Formula.Substitution
 public import SeqPL.Vorspiel.CWF
 public import Mathlib.Data.PNat.Defs
 public import Mathlib.Data.PNat.Basic
@@ -205,6 +206,71 @@ namespace Model
 @[grind]
 def Validate (M : Model κ α) (A : Formula α) : Prop := ∀ x : M.World, x ⊩ A
 infix:50 " ⊧ " => Model.Validate
+
+end Model
+
+
+namespace Model
+
+/-- Model obtained by composing the valuation with a substitution `s` (the frame is unchanged). -/
+abbrev substModel (M : Model κ α) (s : Formula.Substitution α) : Model κ α where
+  Rel' := M.Rel'
+  Val' x a := Model.World.Forces (M := M) x (s a)
+
+lemma forces_substModel {s : Formula.Substitution α} {A : Formula α} {x : M.World} :
+    x ⊩ A⟦s⟧ ↔ Model.World.Forces (M := M.substModel s) x A := by
+  induction A generalizing x with
+  | atom a => rw [Formula.subst_atom]; rfl
+  | bot => rfl
+  | imp A B ihA ihB => simp only [Formula.subst_imp, Model.World.Forces]; rw [ihA, ihB]
+  | box A ih =>
+    simp only [Formula.subst_box, Model.World.Forces];
+    constructor;
+    · intro h y hy; exact ih.mp (h y hy);
+    · intro h y hy; exact ih.mpr (h y hy);
+
+instance {s : Formula.Substitution α} [Fintype M.World] : Fintype (M.substModel s).World := ‹Fintype M.World›
+instance {s : Formula.Substitution α} [h : M.IsGL] : (M.substModel s).IsGL where __ := h
+
+end Model
+
+
+namespace Model
+
+variable {β : Type*}
+
+/-- Forcing only depends on the model through its frame and valuation. -/
+lemma forces_congr {M₁ M₂ : Model κ α} (hR : M₁.Rel' = M₂.Rel')
+    (hV : ∀ x a, M₁.Val' x a ↔ M₂.Val' x a) {A : Formula α} {x : κ} :
+    Model.World.Forces (M := M₁) x A ↔ Model.World.Forces (M := M₂) x A := by
+  induction A generalizing x with
+  | atom a => exact hV x a
+  | bot => exact Iff.rfl
+  | imp A B ihA ihB => simp only [Model.World.Forces]; rw [ihA, ihB]
+  | box A ih =>
+    simp only [Model.World.Forces];
+    constructor;
+    · intro h y hy;
+      have hy' : M₁.Rel' x y := by rw [hR]; exact hy;
+      exact ih.mp (h y hy');
+    · intro h y hy;
+      have hy' : M₂.Rel' x y := by rw [← hR]; exact hy;
+      exact ih.mpr (h y hy');
+
+/-- Pulling back the valuation along an atom renaming (frame unchanged). -/
+abbrev mapModel (M : Model κ β) (f : α → β) : Model κ α where
+  Rel' := M.Rel'
+  Val' x a := M.Val' x (f a)
+
+/-- Extending the atom type of a model by a fresh atom which is false everywhere. -/
+abbrev optionExtend (M : Model κ α) : Model κ (Option α) where
+  Rel' := M.Rel'
+  Val' x a := match a with | some a => M.Val' x a | none => False
+
+instance {M : Model κ α} [h : M.IsFiniteGL] : (M.optionExtend).IsFiniteGL where
+  trans := h.trans
+  irrefl := h.irrefl
+  finite := h.finite
 
 end Model
 

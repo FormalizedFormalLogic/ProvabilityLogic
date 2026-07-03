@@ -1,6 +1,7 @@
 module
 
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Interpret

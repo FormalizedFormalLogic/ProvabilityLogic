@@ -3,6 +3,8 @@ module
 public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Formula.Letterless
+public import SeqPL.Formula.Substitution
+public import SeqPL.Kripke.Overwrite
 
 /-!
 # Fixed point theorem for GL via Gentzen-style sequent calculus
@@ -33,58 +35,7 @@ variable {α : Type u} [DecidableEq α]
 
 namespace Formula
 
-/-- The substitution replacing the single atom `p` by `B`. -/
-def Substitution.single (p : α) (B : Formula α) : Substitution α := fun a => if a = p then B else #a
-
-notation:95 A "⟦" p " ↦ " B "⟧" => Formula.subst (Formula.Substitution.single p B) A
-
 variable {p q : α} {A B C : Formula α}
-
-@[simp, grind =] lemma Substitution.single_self : Substitution.single p B p = B := by
-  simp [Substitution.single]
-
-@[simp, grind =] lemma Substitution.single_of_ne (h : a ≠ p) : Substitution.single p B a = #a := by
-  simp [Substitution.single, h]
-
-@[simp, grind =] lemma subst_single_atom_self : (#p)⟦p ↦ B⟧ = B := by simp
-
-@[simp, grind =] lemma subst_single_atom_of_ne (h : a ≠ p) : (#a)⟦p ↦ B⟧ = #a := by simp [h]
-
-lemma subst_single_eq_self_of_not_mem_atoms (h : p ∉ A.atoms) : A⟦p ↦ B⟧ = A := by
-  induction A <;> grind [atoms]
-
-lemma atoms_subst_single_subset : (A⟦p ↦ B⟧).atoms ⊆ (A.atoms \ {p}) ∪ B.atoms := by
-  induction A with
-  | atom a =>
-    by_cases h : a = p
-    . subst h; simp
-    . rw [subst_single_atom_of_ne h]
-      simp only [atoms, Finset.singleton_subset_iff, Finset.mem_union, Finset.mem_sdiff,
-        Finset.mem_singleton]
-      grind
-  | bot => simp [atoms]
-  | imp C D ihC ihD =>
-    simp only [subst_imp, atoms, Finset.union_subset_iff]
-    constructor
-    . exact ihC.trans (by intro w; simp; grind)
-    . exact ihD.trans (by intro w; simp; grind)
-  | box C ih => simpa [atoms] using ih
-
-/-- Substituting a fresh atom `q` for `p` and then `p` for `q` recovers the formula. -/
-lemma subst_single_cancel (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ #p⟧ = A := by
-  induction A with
-  | atom a =>
-    by_cases h : a = p
-    . subst h; simp
-    . have : a ≠ q := fun e => hq (by simp [atoms, e])
-      rw [subst_single_atom_of_ne h, subst_single_atom_of_ne this]
-  | bot => simp
-  | imp C D ihC ihD =>
-    simp only [atoms, Finset.mem_union, not_or] at hq
-    simp [ihC hq.1, ihD hq.2]
-  | box C ih =>
-    simp only [atoms] at hq
-    simp [ih hq]
 
 /-- `p` occurs only in the scope of `□` in `A` (SV82: "`p` is modalized in `A`"). -/
 @[grind]
@@ -204,73 +155,9 @@ lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
 
 end
 
-/-- The model obtained from `M` by overwriting the valuation of the atom `p`
-at the single world `t` with `v`. The frame is unchanged. -/
-def overwrite (M : Model κ α) (t : κ) (p : α) (v : Prop) : Model κ α where
-  Rel' := M.Rel'
-  Val' := fun w a => (w = t ∧ a = p ∧ v) ∨ (¬(w = t ∧ a = p) ∧ M.Val' w a)
-
 namespace overwrite
 
 variable {t : κ} {v : Prop}
-
-omit [DecidableEq α] in
-instance [IsTrans _ M.Rel] : IsTrans _ (M.overwrite t p v).Rel := by
-  constructor; intro a b c; exact IsTrans.trans (r := M.Rel) a b c
-
-omit [DecidableEq α] in
-instance [Std.Irrefl M.Rel] : Std.Irrefl (M.overwrite t p v).Rel := by
-  constructor; intro a; exact Std.Irrefl.irrefl (r := M.Rel) a
-
-omit [DecidableEq α] in
-instance [M.IsFiniteGL] : (M.overwrite t p v).IsFiniteGL where
-  finite := IsFiniteGL.finite (M := M)
-
-omit [DecidableEq α] in
-@[simp] lemma val_self : (M.overwrite t p v).Val t p ↔ v := by
-  simp [overwrite, Model.Val]
-
-omit [DecidableEq α] in
-lemma val_of_ne_world {w : κ} (h : w ≠ t) {a : α} :
-    (M.overwrite t p v).Val w a ↔ M.Val w a := by
-  simp [overwrite, Model.Val, h]
-
-omit [DecidableEq α] in
-lemma val_of_ne_atom {w : κ} {a : α} (h : a ≠ p) :
-    (M.overwrite t p v).Val w a ↔ M.Val w a := by
-  simp [overwrite, Model.Val, h]
-
-omit [DecidableEq α] in
-/-- Forcing is unchanged at worlds that neither are `t` nor see `t`. -/
-lemma forces_iff_of_not_rel [IsTrans _ M.Rel] (B : Formula α) :
-    ∀ w : κ, w ≠ t → ¬M.Rel w t →
-      (Model.World.Forces (M := M.overwrite t p v) w B ↔ Model.World.Forces (M := M) w B) := by
-  induction B with
-  | atom a =>
-    intro w hne _
-    exact val_of_ne_world hne
-  | bot =>
-    intro w _ _
-    simp [Model.World.Forces]
-  | imp A B ihA ihB =>
-    intro w hne hr
-    have := ihA w hne hr
-    have := ihB w hne hr
-    simp only [Model.World.Forces]
-    grind
-  | box A ih =>
-    intro w hne hr
-    simp only [Model.World.Forces]
-    have hy : ∀ y : κ, M.Rel w y → y ≠ t ∧ ¬M.Rel y t := by
-      intro y Rwy
-      constructor
-      . rintro rfl; exact hr Rwy
-      . intro h'; exact hr (IsTrans.trans _ _ _ Rwy h')
-    constructor
-    . intro hf y Rwy
-      exact (ih y (hy y Rwy).1 (hy y Rwy).2).mp (hf y Rwy)
-    . intro hf y Rwy
-      exact (ih y (hy y Rwy).1 (hy y Rwy).2).mpr (hf y Rwy)
 
 omit [DecidableEq α] in
 /-- Forcing of formulas in which `p` is modalized is unchanged at `t` itself.

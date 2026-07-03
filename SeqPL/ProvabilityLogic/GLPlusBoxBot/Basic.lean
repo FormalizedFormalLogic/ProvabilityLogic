@@ -1,5 +1,6 @@
 module
 
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.Logic.GLPlusBoxBot.Basic
 

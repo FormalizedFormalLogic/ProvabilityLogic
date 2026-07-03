@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Kripke.Rank
+public import SeqPL.Kripke.RootedModel
 public import Foundation.Vorspiel.List.ChainI
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
 public import SeqPL.Logic.GL.Basic

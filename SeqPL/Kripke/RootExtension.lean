@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Kripke.Basic
+public import SeqPL.Kripke.RootedModel
 public import SeqPL.Vorspiel.Finset
 public import SeqPL.Vorspiel.List
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
@@ -22,12 +23,6 @@ end Fin
 
 
 variable [Nonempty κ]
-
-
-abbrev Model.Root (M : Model κ α) := { r : M.World // ∀ x, x ≠ r → r ≺ x }
-
-structure RootedModel (κ) [Nonempty κ] (α) extends Model κ α where
-  root : toModel.Root
 
 
 abbrev RootedModel.extendRoot (M : RootedModel κ α) (n : ℕ+) : RootedModel (M.World ⊕ Fin n) α where
