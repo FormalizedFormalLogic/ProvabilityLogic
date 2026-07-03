@@ -48,26 +48,16 @@ def modalize : Formula α → Formula α
   | □A    => □A
 
 /-- `A` is modalized: every atom of `A` occurs within the scope of a `□`. -/
-@[grind]
-def Modalized : Formula α → Prop
-  | #_    => False
-  | ⊥     => True
-  | A 🡒 B => A.Modalized ∧ B.Modalized
-  | □_    => True
+abbrev Modalized (A : Formula α) : Prop := ∀ a, A.ModalizedIn a
 
 /-- The modalization of any formula is `Modalized`. -/
 @[simp, grind .]
 lemma modalized_modalize : A.modalize.Modalized := by
-  induction A <;> grind;
+  intro a; induction A <;> grind;
 
 /-- Modalization only removes atoms. -/
 @[simp, grind .]
 lemma atoms_modalize_subset [DecidableEq α] : A.modalize.atoms ⊆ A.atoms := by
-  induction A <;> grind;
-
-/-- A `Modalized` formula has every atom modalized, so any single atom is modalized in it. -/
-lemma modalizedIn_of_modalized (h : A.Modalized) (a : α) :
-    A.ModalizedIn a := by
   induction A <;> grind;
 
 end Formula
@@ -372,14 +362,16 @@ lemma forces_root_modalized_o_indep {A : Formula α} (hA : A.Modalized) :
     rintro y hy rfl;
     exact absurd (toPseudoTail.rel_inr_inr.mp hy) not_top_lt;
   induction A with
-  | atom a => exact absurd hA (by simp [Formula.Modalized])
+  | atom a => exact (hA a rfl).elim
   | bot => exact Iff.rfl
   | imp A B ihA ihB =>
+    have hA1 : A.Modalized := fun a => (hA a).1;
+    have hA2 : B.Modalized := fun a => (hA a).2;
     constructor;
     . intro h hA';
-      exact (ihB hA.2).mp (h ((ihA hA.1).mpr hA'));
+      exact (ihB hA2).mp (h ((ihA hA1).mpr hA'));
     . intro h hA';
-      exact (ihB hA.2).mpr (h ((ihA hA.1).mp hA'));
+      exact (ihB hA2).mpr (h ((ihA hA1).mp hA'));
   | box A _ =>
     constructor;
     . intro h y hy;
@@ -427,7 +419,7 @@ lemma not_exists_modalized_equiv_atom [Nontrivial α] :
   -- A fresh atom `d ≠ a` for the fixed point theorem.
   obtain ⟨d, hqp⟩ := exists_ne a;
   -- `a` is modalized in `∼C = C 🡒 ⊥` since `C` is fully modalized.
-  have hA : (∼C).ModalizedIn a := ⟨Formula.modalizedIn_of_modalized hMod a, trivial⟩;
+  have hA : (∼C).ModalizedIn a := ⟨hMod a, trivial⟩;
   -- `d` is fresh for `∼C`.
   have hq : d ∉ (∼C).atoms := by
     intro hmem;
