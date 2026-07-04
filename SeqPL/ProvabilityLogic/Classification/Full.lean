@@ -353,8 +353,8 @@ lemma LogicGLAlpha.eq_trace {Alpha : Set ℕ} : (@LogicGLAlpha α Alpha).trace =
     exact ⟨TBB n, ⟨TBB n, ⟨n, hn, rfl⟩, LetterlessFormula.eq_lift_TBB⟩, by rw [Formula.trace_TBB]; simp⟩;
 
 lemma subset_LogicGLAlpha_LogicS : LogicGLAlpha Alpha ⊆ @LogicS α := by
-  intro φ hφ;
-  induction hφ with
+  intro C hC;
+  induction hC with
   | mem₁ hA => exact Logic.sumQuasiNormal.mem₁ hA;
   | mem₂ hA =>
     obtain ⟨A, ⟨i, _, rfl⟩, rfl⟩ := hA;

@@ -254,7 +254,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   have hA := h N.toModel N.root.1 (M.Val M.root.1);
   -- `A` の部分論理式について，pseudo-tail model の根（ω）と元の `M` の根で forces が一致する
   have transport : ∀ B, B ∈ A.subfmls →
-    (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.chainPoint ⊤) B ↔ M.root.1 ⊩ B) := by
+      (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.chainPoint ⊤) B ↔ M.root.1 ⊩ B) := by
     intro B;
     induction B with
     | box B ihB =>

@@ -608,9 +608,9 @@ lemma iff_GL_sumQuasiNormal_provable_finite_provable {X : LetterlessFormulaSet} 
 
 lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Regular T)
   : ↑A ∈ ((@LogicGL α) +ᴸ X) ↔ X.spectrum ⊆ A.spectrum := by calc
-  _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ (⋀Y) 🡒 A ∈ LogicGL := by
+  _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ (⋀Y) 🡒 A ∈ LogicGL := by
     exact iff_GL_sumQuasiNormal_provable_finite_provable;
-  _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ ψ ∈ Y, ψ ∈ X) ∧ (⋂ B ∈ Y, spectrum B) ⊆ A.spectrum := by
+  _ ↔ ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ (⋂ B ∈ Y, spectrum B) ⊆ A.spectrum := by
     constructor;
     . rintro ⟨Y, hY, h⟩;
       use Y;

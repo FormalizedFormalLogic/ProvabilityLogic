@@ -14,16 +14,202 @@ variable {α : Type u}
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 /--
+  The `p ↔ q` substitution used in the proof of Lemma 1, [Bek90] §5, p.266: for a
+  finite set of atoms `S`, replace every `q ∈ S` by `#p 🡘 #q`, leaving other atoms
+  (in particular `p` itself) untouched.
+-/
+noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula.Substitution α :=
+  fun q => if q ∈ S then (#p 🡘 #q) else #q
+
+@[simp]
+lemma Formula.atoms_pIffOn (p a : α) (S : Finset α) :
+    (Formula.Substitution.pIffOn p S a).atoms ⊆ insert p {a} := by
+  unfold Formula.Substitution.pIffOn;
+  split;
+  . intro x hx;
+    simp only [Formula.atoms, Finset.mem_union] at hx;
+    simp only [Finset.mem_insert, Finset.mem_singleton];
+    grind;
+  . simp [Formula.atoms];
+
+/--
+  The conjunction `Δ` of Lemma 1, [Bek90] §5, p.266: over all `2^n` subsets `S` of
+  `A`'s atoms, the substitution instance of `A` obtained by replacing every atom in
+  `S` with `p ↔ (that atom)`.
+-/
+noncomputable def Formula.deltaPIff [DecidableEq α] (A : Formula α) (p : α) : Formula α :=
+  ⋀(A.atoms.powerset.image (fun S => A⟦Formula.Substitution.pIffOn p S⟧))
+
+/--
+  **Lemma 1.1 in [Bek90] §5, p.266**: transfer of forcing along a bisimulation-under-`P`
+  `Bi` (our surrogate for the paper's "`q̄`-isomorphism", see `Model.BisimulationUnder`)
+  combined with the `p ↔ q` substitution. If `Bi` "reflects the root" (a `Bi`-related
+  pair has its `N`-component equal to `N`'s root iff its `M`-component equals `M`'s
+  root -- automatic for an actual isomorphism of rooted trees) and `N`'s root forces
+  `□p` but not `p` itself (`p` a fresh atom, not in `P`), then for any `Bi`-related pair
+  `(x, x')` and any formula `θ` depending on `P`, forcing of `θ` at `x` agrees with
+  forcing, at `x'`, of `θ` with every atom in `γ` replaced by `p ↔ (that atom)` --
+  where `γ` records exactly the atoms on which the two roots' valuations disagree.
+
+  The mechanism: away from the roots, `N`'s root forces `□p`, so `x' ⊩ p` holds
+  outright (`x' ≠ N.root.1`), making the substituted atom `p ↔ q` forcing-equivalent
+  to plain `q`, so the bisimulation's atomic clause suffices directly. At the roots
+  themselves `x' ⊩ p` is not `True` in general (`N`'s root additionally satisfies `¬p`
+  by hypothesis), so the compensating substitution is exactly needed there, and `γ` is
+  defined precisely to make it work out.
+-/
+theorem BisimulationUnder.forces_iff_subst_pIffOn {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
+    {M : RootedModel κ₁ α} {N : RootedModel κ₂ α} {P : Finset α} {p : α}
+    (Bi : Model.BisimulationUnder P M.toModel N.toModel)
+    (hroot_reflect : ∀ {x : M.World} {x' : N.World}, Bi x x' → (x' = N.root.1 ↔ x = M.root.1))
+    (hp_box : N.root.1 ⊩ (□(#p))) (hp_root : N.root.1 ⊮ (#p)) {γ : Finset α}
+    (hγ_root : ∀ q ∈ P, (q ∈ γ ↔ ¬ (M.Val M.root.1 q ↔ N.Val N.root.1 q))) :
+    ∀ {x : M.World} {x' : N.World}, Bi x x' →
+      ∀ {θ : Formula α}, θ.atoms ⊆ P → (x ⊩ θ ↔ x' ⊩ θ⟦Formula.Substitution.pIffOn p γ⟧) := by
+  intro x x' hxx' θ;
+  induction θ generalizing x x' with
+  | atom q =>
+    intro hq;
+    replace hq : q ∈ P := hq (Finset.mem_singleton_self q);
+    show (M.Val x q ↔ x' ⊩ (Formula.Substitution.pIffOn p γ q));
+    simp only [Formula.Substitution.pIffOn];
+    split;
+    case isTrue hqγ =>
+      rw [forces_iff];
+      by_cases hxroot : x' = N.root.1;
+      . obtain rfl : x = M.root.1 := (hroot_reflect hxx').mp hxroot;
+        subst hxroot;
+        have hγq := (hγ_root q hq).mp hqγ;
+        show (M.Val M.root.1 q ↔ (N.Val N.root.1 p ↔ N.Val N.root.1 q));
+        have hnp : ¬ N.Val N.root.1 p := hp_root;
+        tauto;
+      . have hx'p : N.Val x' p := hp_box x' (N.root.2 x' hxroot);
+        show (M.Val x q ↔ (N.Val x' p ↔ N.Val x' q));
+        have := Bi.atomic hq hxx';
+        tauto;
+    case isFalse hqγ =>
+      exact Bi.atomic hq hxx';
+  | bot => intro _; exact Iff.rfl;
+  | imp A B ihA ihB =>
+    intro hAB;
+    simp only [Formula.atoms, Finset.union_subset_iff] at hAB;
+    replace ihA := ihA hxx' hAB.1;
+    replace ihB := ihB hxx' hAB.2;
+    rw [Formula.subst_imp];
+    constructor;
+    . intro h hA; exact ihB.mp (h (ihA.mpr hA));
+    . intro h hA; exact ihB.mpr (h (ihA.mp hA));
+  | box A ihA =>
+    intro hA;
+    replace hA : A.atoms ⊆ P := by simpa [Formula.atoms] using hA;
+    simp only [Formula.subst_box, forces_box];
+    constructor;
+    . intro h y' Rx'y';
+      obtain ⟨y, hyy', Rxy⟩ := Bi.back hxx' Rx'y';
+      exact (ihA hyy' hA).mp (h y Rxy);
+    . intro h y Rxy;
+      obtain ⟨y', hyy', Rx'y'⟩ := Bi.forth hxx' Rxy;
+      exact (ihA hyy' hA).mpr (h y' Rx'y');
+
+section
+
+open scoped FormulaFinset
+
+private lemma provable_lconj_LogicA_add [DecidableEq α] {A₀ : Formula α} {Γ : FormulaList α}
+    (h : ∀ B ∈ Γ, B ∈ (LogicA +ᴸ A₀)) : (⋀Γ) ∈ (LogicA +ᴸ A₀) := by
+  match Γ with
+  | [] => exact Logic.sumQuasiNormal.mem₁ (Logic.sumQuasiNormal.mem₁ ProvableHilbert.top);
+  | [B] => exact h B (by simp);
+  | B :: C :: Γ =>
+    exact Logic.sumQuasiNormal.mdp
+      (Logic.sumQuasiNormal.mdp
+        (Logic.sumQuasiNormal.mem₁ (Logic.sumQuasiNormal.mem₁ ProvableHilbert.andIntro))
+        (h B (by simp)))
+      (provable_lconj_LogicA_add (Γ := C :: Γ) (by grind));
+
+private lemma provable_fconj_LogicA_add [DecidableEq α] {A₀ : Formula α} {Γ : FormulaFinset α}
+    (h : ∀ B ∈ Γ, B ∈ (LogicA +ᴸ A₀)) : (⋀Γ) ∈ (LogicA +ᴸ A₀) :=
+  provable_lconj_LogicA_add (by simpa using h)
+
+/-- Every substitution instance of `A` -- in particular every conjunct of `A.deltaPIff p`
+-- lies in the quasi-normal extension `LogicA +ᴸ A`, since `A` itself does (`mem₂`) and
+quasi-normal extensions are closed under substitution. -/
+lemma provable_deltaPIff [DecidableEq α] {A : Formula α} {p : α} :
+    A.deltaPIff p ∈ (LogicA +ᴸ A) := by
+  apply provable_fconj_LogicA_add;
+  intro B hB;
+  obtain ⟨S, -, rfl⟩ := Finset.mem_image.mp hB;
+  exact Logic.sumQuasiNormal.subst (Logic.sumQuasiNormal.mem₂ rfl);
+
+end
+
+/--
+  **The semantic core of Lemma 1, [Bek90] §5, p.266** (combining Lemmas 3, 4, 7, 8, 9
+  of §4): if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not provable in
+  `S`, such that `GLαω ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
+
+  **Not proved in this session.** Two of the five sub-dependencies originally listed
+  here are now available as standalone, sorry-free lemmas (`Lemma 1.1` -- see
+  `BisimulationUnder.forces_iff_subst_pIffOn` above -- and, modulo one remaining
+  bookkeeping sorry, most of `Lemma 8` -- see `RootedModel.exists_simplificationUnder_omega`
+  in `SeqPL/Kripke/Simplification.lean`). What remains genuinely open:
+  - **Lemma 3 of §4** (cited there from [14]): existence of a `D`-model countermodel to
+    `A`. SeqPL's actual `LogicD` semantics (`Model.toPseudoTail`, see
+    `SeqPL/Kripke/PseudoTail.lean` and `LogicD.provability_TFAE` in
+    `SeqPL/Logic/D/Basic.lean`) does **not** literally match [Bek90]'s "D-model" Kripke
+    class (a chain glued *at* the root, forced to see the *entire* base model
+    unconditionally) -- discovered in a previous session by comparing `toPseudoTail`'s
+    relation clauses against `RootedModel.graftChainOmega`'s. They are provably
+    equivalent for theorem-hood purposes (both characterize `LogicD` sensibly) but are
+    not isomorphic as frames, so results about one do not transfer to the other for
+    free. Bridging this (either by building [Bek90]'s literal "D-model"/"tail model"
+    Kripke classes from scratch, or by proving a direct forcing-preserving
+    correspondence between `toPseudoTail`-shaped and `graftChainOmega`-shaped models)
+    is itself a substantial, multi-day undertaking that was not attempted.
+  - **Lemma 8 of §4**: `exists_simplificationUnder_omega` is still `sorry`, but *only*
+    for a single, precisely-identified bookkeeping gap (an order-isomorphism between
+    `removeCone`-of-an-embedded-point and `graftChainOmega`-of-a-smaller-base-model,
+    see that lemma's docstring); the structural obstructions (`graftChainOmega.isTree`
+    failing without the "covers the root" hypothesis, chain/embed points never being
+    redundant) are fully resolved.
+  - **Lemma 7 of §4** (existence of defining formulas): stated as
+    `RootedModel.exists_isDefiningFormula` in `SeqPL/Kripke/DefiningFormula.lean`, left
+    `sorry` **by explicit user instruction** (not proved inline in [Bek90] itself
+    either, and cited there from Artemov 1986 / Boolos 1980's simple-model theory,
+    which does not have a directly transcribable construction).
+  - **Lemma 9 of §4** (the "almost defining" formula `Φ₀`, p.264-266): not formalized;
+    would build on Lemma 7 plus the depth-bound (`□^[N+1]⊥`-style) machinery of
+    `SeqPL/Kripke/Rank.lean`. Blocked on Lemma 7.
+
+  Even with Lemma 3's bridge and Lemma 8's last gap closed, this theorem would still be
+  blocked on Lemma 7/9 (excluded from this session's scope by the user). See
+  `.direct/exists-lemma56.md` for the detailed session notes on scope.
+-/
+theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
+    {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
+    ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧
+      (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
+  sorry
+
+/--
   **Lemma 56 in [AB05]** (Lemma 1 in §5 of [Bek90]): if `D ⊬ A` then there is `B` over
   the atoms of `A` such that `S ⊬ B` and `GLαω{A} ⊢ B ⋎ (□p 🡒 p)` for an atom `p`
-  not occurring in `A`. Proved via the Kripke-model analysis of `D` (`q`-simplification
-  and almost defining formulas, [Bek90] §4).
+  not occurring in `A`. The semantic content (Kripke-model analysis of `D` via
+  `q`-simplification and almost defining formulas, [Bek90] §4) is isolated in
+  `exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD` above; this
+  lemma is the elementary propositional assembly on top of it: `A.deltaPIff p` is a
+  finite conjunction of substitution instances of `A`, hence provable in `LogicA +ᴸ A`
+  by the substitution rule, so modus ponens with the semantic core's implication gives
+  the result directly.
 -/
-lemma exists_lemma56 [DecidableEq α] {A : Formula α} {p : α} (hp : p ∉ A.atoms)
-    (hA : A ∉ LogicD) :
+theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α]
+    {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
     ∃ B : Formula α, B ∉ LogicS ∧ B.atoms ⊆ A.atoms ∧
       (B ⋎ ((□(#p)) 🡒 (#p))) ∈ (LogicA +ᴸ A) := by
-  sorry
+  obtain ⟨B, hBatoms, hBS, hImp⟩ :=
+    exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hp hA;
+  exact ⟨B, hBS, hBatoms,
+    Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hImp) provable_deltaPIff⟩;
 
 /--
   **Theorem 1 in §5 of [Bek90]** (cf. Lemma 57 in [AB05]): if the provability logic of
@@ -52,9 +238,10 @@ theorem provable_reflection_of_mem_not_LogicD :
     intro g;
     rw [Formula.interpret_map];
     exact hAL _;
-  -- The Lemma 56 disjunction is a theorem of the provability logic at `Option α`.
-  obtain ⟨B, hBS, hBatoms, hBGL⟩ := exists_lemma56 (p := (none : Option α))
-    (by simp [Formula.atoms_map]) hAD';
+  -- The Lemma 1 (§5) disjunction is a theorem of the provability logic at `Option α`.
+  obtain ⟨B, hBS, hBatoms, hBGL⟩ :=
+    exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD (p := (none : Option α))
+      (by simp [Formula.atoms_map]) hAD';
   have hsub : (LogicA +ᴸ (A.map some))
       ⊆ (T.provabilityLogicRelativeTo U : Logic (Option α)) := by
     intro B hB;

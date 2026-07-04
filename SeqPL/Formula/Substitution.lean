@@ -57,6 +57,20 @@ lemma subst_lconj {Γ : FormulaList α} : (⋀Γ)⟦s⟧ = ⋀(Γ.map (·⟦s⟧
   | [A] => simp;
   | A :: B :: Γ => simp [FormulaList.conj, subst_lconj (Γ := B :: Γ)];
 
+variable [DecidableEq α]
+
+/-- The atoms of a (generally) substituted formula lie among the atoms introduced by
+substituting each of the original atoms. -/
+lemma atoms_subst_subset : (A⟦s⟧).atoms ⊆ A.atoms.biUnion (fun a => (s a).atoms) := by
+  induction A with
+  | atom a => simp [atoms];
+  | bot => simp [atoms];
+  | imp B C ihB ihC =>
+    simp only [subst_imp, atoms, Finset.union_subset_iff];
+    exact ⟨ihB.trans (Finset.biUnion_subset_biUnion_of_subset_left _ (by grind)),
+      ihC.trans (Finset.biUnion_subset_biUnion_of_subset_left _ (by grind))⟩;
+  | box B ih => simpa [atoms] using ih;
+
 end Formula
 
 

@@ -11,6 +11,7 @@ public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
+public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
 public import SeqPL.Kripke.Map
@@ -21,6 +22,7 @@ public import SeqPL.Kripke.PseudoTail
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootExtension
 public import SeqPL.Kripke.RootedModel
+public import SeqPL.Kripke.Simplification
 public import SeqPL.Kripke.Tail
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic

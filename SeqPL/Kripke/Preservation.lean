@@ -162,6 +162,77 @@ lemma validate_of_surjective_pseudoEpimorphism {A : Formula α}
 end PseudoEpimorphism
 
 
+section BisimulationUnder
+
+variable [DecidableEq α]
+
+/--
+  A bisimulation-under-`P`: a bisimulation that is only required to match the
+  valuation on atoms in `P`. Used to formalize the notion of "cones `𝒳_a`, `𝒳_y` are
+  `p̄`-isomorphic" from [Bek90] §4 (item 3, "Removal of a redundant cone"): rather than
+  requiring a literal frame isomorphism, we ask for bisimilarity-under-`P`, the modally
+  correct and more flexible notion that suffices for (and is used directly in) the
+  forcing-preservation argument of Lemma 6/8.
+-/
+structure BisimulationUnder (P : Finset α) (M₁ : Model κ₁ α) (M₂ : Model κ₂ α) where
+  toRel : M₁.World → M₂.World → Prop
+  atomic {x₁ : M₁.World} {x₂ : M₂.World} {a : α} : a ∈ P → toRel x₁ x₂ → (M₁.Val x₁ a ↔ M₂.Val x₂ a)
+  forth {x₁ y₁ : M₁.World} {x₂ : M₂.World} : toRel x₁ x₂ → x₁ ≺ y₁ → ∃ y₂ : M₂.World, toRel y₁ y₂ ∧ x₂ ≺ y₂
+  back {x₁ : M₁.World} {x₂ y₂ : M₂.World} : toRel x₁ x₂ → x₂ ≺ y₂ → ∃ y₁ : M₁.World, toRel y₁ y₂ ∧ x₁ ≺ y₁
+
+@[inherit_doc]
+scoped notation:50 M₁ " ⇄[" P "] " M₂ => BisimulationUnder P M₁ M₂
+
+variable {M₁ : Model κ₁ α} {M₂ : Model κ₂ α} {P : Finset α}
+
+instance : CoeFun (M₁ ⇄[P] M₂) (λ _ => M₁.World → M₂.World → Prop) := ⟨BisimulationUnder.toRel⟩
+
+def BisimulationUnder.symm (bi : M₁ ⇄[P] M₂) : M₂ ⇄[P] M₁ where
+  toRel x y := bi.toRel y x
+  atomic h hr := (bi.atomic h hr).symm
+  forth := by
+    intro x₂ y₂ x₁ hxy h;
+    obtain ⟨y₁, hy₁, hxy⟩ := bi.back hxy h;
+    exact ⟨y₁, hy₁, hxy⟩;
+  back := by
+    intro x₂ x₁ y₁ hxy h;
+    obtain ⟨y₂, hy₂, hxy⟩ := bi.forth hxy h;
+    exact ⟨y₂, hy₂, hxy⟩;
+
+variable {x₁ : M₁.World} {x₂ : M₂.World}
+
+/--
+  A bisimulation-under-`P` forces agreement on every formula whose atoms lie in `P`
+  (the ω-analogue of `World.modal_equivalent_of_bisimilar`).
+-/
+lemma World.forces_iff_of_pbisimilar (Bi : M₁ ⇄[P] M₂) (bisx : Bi x₁ x₂) :
+    ∀ {A : Formula α}, A.atoms ⊆ P → (x₁ ⊩ A ↔ x₂ ⊩ A) := by
+  intro A;
+  induction A generalizing x₁ x₂ with
+  | atom a => intro hp; exact Bi.atomic (hp (Finset.mem_singleton_self a)) bisx;
+  | bot => intro _; simp [World.Forces];
+  | imp A B ihA ihB =>
+    intro hp;
+    simp only [Formula.atoms, Finset.union_subset_iff] at hp;
+    constructor;
+    . intro hAB hA;
+      exact (ihB bisx hp.2).mp $ hAB $ (ihA bisx hp.1).mpr hA;
+    . intro hAB hA;
+      exact (ihB bisx hp.2).mpr $ hAB $ (ihA bisx hp.1).mp hA;
+  | box A ih =>
+    intro hp;
+    replace hp : A.atoms ⊆ P := by simpa [Formula.atoms] using hp;
+    constructor;
+    . intro h y₂ Rx₂y₂;
+      obtain ⟨y₁, bisy, Rx₁y₁⟩ := Bi.back bisx Rx₂y₂;
+      exact (ih bisy hp).mp $ h _ Rx₁y₁;
+    . intro h y₁ Rx₁y₁;
+      obtain ⟨y₂, bisy, Rx₂y₂⟩ := Bi.forth bisx Rx₁y₁;
+      exact (ih bisy hp).mpr $ h _ Rx₂y₂;
+
+end BisimulationUnder
+
+
 section Generation
 
 structure GeneratedSub (M₁ : Model κ₁ α) (M₂ : Model κ₂ α) extends M₁ →ₚ M₂ where
