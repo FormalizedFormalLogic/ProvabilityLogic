@@ -43,32 +43,32 @@ variable {tail : M.World} {o : α → Prop}
 
 /-- The embedding of a world of the original model `M` into the pseudo-tail model
 `M.toPseudoTail tail o`. -/
-abbrev embed (x : M.World) : (M.toPseudoTail tail o).World := .inl x
+protected abbrev embed (x : M.World) : (M.toPseudoTail tail o).World := .inl x
 
 /-- The world in the chain attached above `tail`, indexed by `i : ℕ∞` (`⊤` is the
 pseudo-tail model's own root, ω). -/
-abbrev chainPoint (i : ℕ∞) : (M.toPseudoTail tail o).World := .inr i
+protected abbrev chainPoint (i : ℕ∞) : (M.toPseudoTail tail o).World := .inr i
 
-@[simp] lemma root_eq : (M.toPseudoTail tail o).root.1 = chainPoint ⊤ := rfl
+@[simp] lemma root_eq : (M.toPseudoTail tail o).root.1 = toPseudoTail.chainPoint ⊤ := rfl
 
 @[simp]
 lemma rel_embed_embed {x y : M.World} :
-    (M.toPseudoTail tail o).Rel (embed x) (embed y) ↔ x ≺ y := by
+    (M.toPseudoTail tail o).Rel (toPseudoTail.embed x) (toPseudoTail.embed y) ↔ x ≺ y := by
   simp [Model.Rel];
 
 @[simp]
 lemma not_rel_embed_chainPoint {x : M.World} {i : ℕ∞} :
-    ¬(M.toPseudoTail tail o).Rel (embed x) (chainPoint i) := by
+    ¬(M.toPseudoTail tail o).Rel (toPseudoTail.embed x) (toPseudoTail.chainPoint i) := by
   simp [Model.Rel];
 
 @[simp]
 lemma rel_chainPoint_embed {i : ℕ∞} {x : M.World} :
-    (M.toPseudoTail tail o).Rel (chainPoint i) (embed x) := by
+    (M.toPseudoTail tail o).Rel (toPseudoTail.chainPoint i) (toPseudoTail.embed x) := by
   simp [Model.Rel];
 
 @[simp]
 lemma rel_chainPoint_chainPoint {i j : ℕ∞} :
-    (M.toPseudoTail tail o).Rel (chainPoint i) (chainPoint j) ↔ j < i := by
+    (M.toPseudoTail tail o).Rel (toPseudoTail.chainPoint i) (toPseudoTail.chainPoint j) ↔ j < i := by
   simp [Model.Rel];
 
 instance [IsTrans _ M.Rel] : IsTrans _ (M.toPseudoTail tail o).Rel := ⟨by
@@ -95,7 +95,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toPseudoTa
   intro s hs;
   by_cases hs₁ : {x | Sum.inl x ∈ s}.Nonempty;
   . obtain ⟨m, hm₁, hm₂⟩ := ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
-    refine ⟨embed m, hm₁, ?_⟩;
+    refine ⟨toPseudoTail.embed m, hm₁, ?_⟩;
     rintro (y | j) hy;
     . exact hm₂ y hy;
     . exact not_rel_embed_chainPoint;
@@ -105,7 +105,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toPseudoTa
       | .inl x => exact absurd ⟨x, hx⟩ hs₁;
       | .inr i => exact ⟨i, hx⟩;
     obtain ⟨m, hm₁, hm₂⟩ := (wellFounded_lt (α := ℕ∞)).has_min _ hs₂;
-    refine ⟨chainPoint m, hm₁, ?_⟩;
+    refine ⟨toPseudoTail.chainPoint m, hm₁, ?_⟩;
     rintro (y | j) hy;
     . exact absurd ⟨y, hy⟩ hs₁;
     . exact fun h => hm₂ j hy (rel_chainPoint_chainPoint.mp h);
@@ -118,7 +118,7 @@ open Model.World (Forces)
 /-- 元のモデルから pseudo-tail model への埋め込みは p-morphism である． -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) (o : α → Prop) :
     M →ₚ (M.toPseudoTail tail o).toModel where
-  toFun := embed
+  toFun := toPseudoTail.embed
   forth := rel_embed_embed.mpr
   back := by
     rintro w (v | i) h;
@@ -127,12 +127,12 @@ def pMorphismOriginal (M : Model κ α) (tail : M.World) (o : α → Prop) :
   atomic := Iff.rfl
 
 lemma modal_equivalent_original {x : M.World} :
-    Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toPseudoTail tail o).toModel) x (embed x) :=
+    Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toPseudoTail tail o).toModel) x (toPseudoTail.embed x) :=
   (pMorphismOriginal M tail o).modal_equivalence x
 
 /-- 元のモデルの世界（`embed x`）では pseudo-tail model と元のモデルの forces が一致する． -/
 lemma forces_inl {x : M.World} :
-    Forces (M := (M.toPseudoTail tail o).toModel) (embed x) A ↔ x ⊩ A :=
+    Forces (M := (M.toPseudoTail tail o).toModel) (toPseudoTail.embed x) A ↔ x ⊩ A :=
   modal_equivalent_original.symm
 
 /-- pseudo-tail model の根（ω）で `□A` が成立するならば全ての点で `□A` が成立する． -/
@@ -155,7 +155,7 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
   (Sclosed : ∀ B ∈ S, B.subfmls ⊆ S)
   (hS : ∀ B ∈ S.prebox, M.root.1 ⊩ (□B 🡒 B)) :
   ∀ B ∈ S, ∀ n : ℕ, M.root.1 ⊩ B ↔
-    Forces (M := (M.toModel.toPseudoTail M.root.1 o).toModel) (chainPoint (n : ℕ∞)) B := by
+    Forces (M := (M.toModel.toPseudoTail M.root.1 o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) B := by
   intro B;
   induction B with
   | atom a =>
@@ -183,7 +183,7 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
         obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp (ne_top_of_lt hj);
         exact (ihB hBS m).mp $ hS B (by grind) h;
     . intro h x Rrx;
-      exact forces_inl.mp $ h (embed x) rel_chainPoint_embed;
+      exact forces_inl.mp $ h (toPseudoTail.embed x) rel_chainPoint_embed;
 
 end toPseudoTail
 

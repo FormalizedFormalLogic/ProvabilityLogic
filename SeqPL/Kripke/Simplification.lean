@@ -72,37 +72,35 @@ lemma not_isSuccessorOf_root_of_ne {a : M.World} (ha : a ≠ M.root.1) :
   . exact ha h.symm;
   . exact Std.Irrefl.irrefl M.root.1 (IsTrans.trans _ _ _ (M.root.2 a ha) h);
 
-/-- The carrier of `removeCone`, indexed (redundantly, for the sake of instance search)
-by the proof `ha` that `a` is not the root. -/
-abbrev removeCone.World (M : RootedModel κ α) (a : M.World) (_ha : a ≠ M.root.1) : Type _ :=
-  {x : M.World // ¬ x.IsSuccessorOf a}
+/-- The carrier of `removeCone`. -/
+abbrev removeCone.World (M : RootedModel κ α) (a : M.NonRoot) : Type _ :=
+  {x : M.World // ¬ x.IsSuccessorOf a.1}
 
 omit [DecidableEq α] in
-instance removeCone.instNonempty (a : M.World) (ha : a ≠ M.root.1) :
-    Nonempty (removeCone.World M a ha) :=
-  ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne ha⟩⟩
+instance removeCone.instNonempty (a : M.NonRoot) : Nonempty (removeCone.World M a) :=
+  ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne a.2⟩⟩
 
 /-- Removal of the cone above `a` (Bek90 §4, item 3): the sub-model on the points that
 are not successors of `a`. -/
-def removeCone (M : RootedModel κ α) [M.IsGL] (a : M.World) (ha : a ≠ M.root.1) :
-    RootedModel (removeCone.World M a ha) α where
+def removeCone (M : RootedModel κ α) [M.IsGL] (a : M.NonRoot) :
+    RootedModel (removeCone.World M a) α where
   Rel' x y := M.Rel x.1 y.1
   Val' x q := M.Val x.1 q
-  root := ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne ha⟩, by
+  root := ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne a.2⟩, by
     rintro ⟨x, hx⟩ hne;
     show M.Rel M.root.1 x;
     exact M.root.2 x (by rintro rfl; exact hne rfl)⟩
 
 namespace removeCone
 
-instance instTrans (a : M.World) (ha : a ≠ M.root.1) : IsTrans _ (M.removeCone a ha).Rel :=
+instance (a : M.NonRoot) : IsTrans _ (M.removeCone a).Rel :=
   ⟨fun x y z => IsTrans.trans x.1 y.1 z.1⟩
-instance instIrrefl (a : M.World) (ha : a ≠ M.root.1) : Std.Irrefl (M.removeCone a ha).Rel :=
+instance (a : M.NonRoot) : Std.Irrefl (M.removeCone a).Rel :=
   ⟨fun x => Std.Irrefl.irrefl x.1⟩
 
 omit [DecidableEq α] in
-lemma isTree {a : M.World} {ha : a ≠ M.root.1} (hTree : M.IsTree) :
-    (M.removeCone a ha).IsTree := by
+lemma isTree {a : M.NonRoot} (hTree : M.IsTree) :
+    (M.removeCone a).IsTree := by
   rintro x y z hxz hyz;
   rcases hTree x.1 y.1 z.1 hxz hyz with h | h | h;
   . exact Or.inl (Subtype.ext h);
@@ -115,16 +113,15 @@ set_option linter.overlappingInstances false
 
 variable [M.IsFiniteGL]
 
-instance instFinite (a : M.World) (ha : a ≠ M.root.1) : Finite (M.removeCone a ha).World :=
+instance (a : M.NonRoot) : Finite (M.removeCone a).World :=
   Subtype.finite
 
-instance instIsFiniteGL (a : M.World) (ha : a ≠ M.root.1) : (M.removeCone a ha).IsFiniteGL where
+instance (a : M.NonRoot) : (M.removeCone a).IsFiniteGL where
 
 omit [DecidableEq α] [M.IsFiniteGL] in
-lemma card_lt (a : M.World) (ha : a ≠ M.root.1) [Fintype M.World]
-    [Fintype (M.removeCone a ha).World] :
-    Fintype.card (M.removeCone a ha).World < Fintype.card M.World :=
-  Fintype.card_subtype_lt (p := fun x : M.World => ¬ x.IsSuccessorOf a) (x := a)
+lemma card_lt (a : M.NonRoot) [Fintype M.World] [Fintype (M.removeCone a).World] :
+    Fintype.card (M.removeCone a).World < Fintype.card M.World :=
+  Fintype.card_subtype_lt (p := fun x : M.World => ¬ x.IsSuccessorOf a.1) (x := a.1)
     (not_not_intro (Or.inl rfl))
 
 end Finite
@@ -133,12 +130,12 @@ end Finite
   **Forcing preservation under removal of a redundant cone** (core of the proof of
   Lemma 6 in [Bek90] §4): if `M` is a tree and `a` is `P`-redundant, then for every
   point `x` outside `a`'s cone and every formula `C` depending on `P`, forcing of `C`
-  at `x` in `M.removeCone a ha` agrees with forcing of `C` at `x` in `M`.
+  at `x` in `M.removeCone a` agrees with forcing of `C` at `x` in `M`.
 -/
-theorem forces_iff {a : M.World} {ha : a ≠ M.root.1} (hTree : M.IsTree) (hred : Redundant M P a) :
+theorem forces_iff {a : M.NonRoot} (hTree : M.IsTree) (hred : Redundant M P a.1) :
   ∀ {C : Formula α}, C.atoms ⊆ P →
-  ∀ x : (M.removeCone a ha).World,
-  Model.World.Forces (M := (M.removeCone a ha).toModel) x C ↔ x.1 ⊩ C := by
+  ∀ x : (M.removeCone a).World,
+  Model.World.Forces (M := (M.removeCone a).toModel) x C ↔ x.1 ⊩ C := by
   intro C;
   induction C with
   | atom => tauto;
@@ -149,27 +146,27 @@ theorem forces_iff {a : M.World} {ha : a ≠ M.root.1} (hTree : M.IsTree) (hred 
     replace hC : B.atoms ⊆ P := by simpa [Formula.atoms] using hC;
     constructor;
     . intro h z hxz;
-      by_cases hzS : z.IsSuccessorOf a;
+      by_cases hzS : z.IsSuccessorOf a.1;
       . -- `z` was removed: transport the box-witness through the redundancy of `a`.
-        have hxa : x ≺ a := by
+        have hxa : x ≺ a.1 := by
           rcases hzS with rfl | haz;
           . exact hxz;
-          . rcases hTree x a z hxz haz with (rfl | hxa | hax);
+          . rcases hTree x a.1 z hxz haz with (rfl | hxa | hax);
             . exact absurd (Or.inl rfl) hx;
             . exact hxa;
             . exact absurd (Or.inr hax) hx;
         obtain ⟨y, Bi, hxy, hyna, hnay, hyne, hBiya⟩ := hred.exists_alt x hxa;
-        have hynS : ¬ y.IsSuccessorOf a := by rintro (rfl | h); exacts [hyne rfl, hnay h];
+        have hynS : ¬ y.IsSuccessorOf a.1 := by rintro (rfl | h); exacts [hyne rfl, hnay h];
         have hyB : y ⊩ B := (ihB hC ⟨y, hynS⟩).mp (h ⟨y, hynS⟩ hxy);
-        have haB : a ⊩ B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
+        have haB : a.1 ⊩ B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
         rcases hzS with rfl | haz;
         . exact haB;
         . obtain ⟨z', hBiz'z, hyz'⟩ := Bi.back hBiya haz;
           have hxz' : x ≺ z' := IsTrans.trans _ _ _ hxy hyz';
-          have hz'nS : ¬ z'.IsSuccessorOf a := by
+          have hz'nS : ¬ z'.IsSuccessorOf a.1 := by
             rintro (rfl | haz');
             . exact hyna hyz';
-            . rcases hTree y a z' hyz' haz' with (hya | hya | hya);
+            . rcases hTree y a.1 z' hyz' haz' with (hya | hya | hya);
               . exact hyne hya;
               . exact hyna hya;
               . exact hnay hya;
@@ -205,13 +202,13 @@ theorem exists_simplificationUnder :
     intro κ _ M _ _ hTree hcard;
     by_cases hex : ∃ a, Redundant M P a;
     . obtain ⟨a, hred⟩ := hex;
-      have ha : a ≠ M.root.1 := hred.ne_root;
-      haveI hfin : Fintype (M.removeCone a ha).World := Fintype.ofFinite _;
+      let a' : M.NonRoot := ⟨a, hred.ne_root⟩;
+      haveI hfin : Fintype (M.removeCone a').World := Fintype.ofFinite _;
       obtain ⟨κ', hNe', M', hFin', hGL', hTree', hSimple', hEq'⟩ :=
-        ih (Fintype.card (M.removeCone a ha).World) (by rw [← hcard]; exact removeCone.card_lt a ha)
-          (M.removeCone a ha) (removeCone.isTree hTree) rfl;
+        ih (Fintype.card (M.removeCone a').World) (by rw [← hcard]; exact removeCone.card_lt a')
+          (M.removeCone a') (removeCone.isTree hTree) rfl;
       exact ⟨κ', hNe', M', hFin', hGL', hTree', hSimple', fun C hC =>
-        (removeCone.forces_iff hTree hred hC (M.removeCone a ha).root.1).symm.trans (hEq' C hC)⟩;
+        (removeCone.forces_iff hTree hred hC (M.removeCone a').root.1).symm.trans (hEq' C hC)⟩;
     . exact ⟨κ, ‹Nonempty κ›, M, ‹Fintype M.World›, ‹M.IsFiniteGL›, hTree,
         fun a hA => hex ⟨a, hA⟩, fun C _ => Iff.rfl⟩;
 
