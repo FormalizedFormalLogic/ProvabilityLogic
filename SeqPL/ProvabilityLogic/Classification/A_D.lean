@@ -17,13 +17,22 @@ universe u
 variable {α : Type u}
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
-/-- A `Fintype` instance derived classically from `Finite`, local to this file: needed to
-even state `M.height`/`Model.World.rank` for an arbitrary `Finite` carrier, whose actual
-enumeration never matters. High priority so that it is always preferred over the
+section
+
+/-- A `Fintype` instance derived classically from `Finite`, local to this section: needed
+to even state `M.height`/`Model.World.rank` for an arbitrary `Finite` carrier, whose
+actual enumeration never matters. High priority so that it is always preferred over the
 structural (e.g. `Sum`-compositional) instances Mathlib provides for compound types,
-keeping `Fintype` resolution consistent with the instance baked into
-`StrongReflexiveCountermodel`'s fields (which are elaborated generically over an abstract
-carrier, so they always go through this same classical derivation). -/
+keeping `Fintype` resolution consistent with the classical instance baked into
+`StrongReflexiveCountermodel`'s fields in `ModifiedSolovaySentences.lean` (which is
+elaborated generically over an abstract carrier via the same `Fintype.ofFinite`
+derivation) — mixing this classical derivation with the structural one for the same
+compound type (e.g. `κ ⊕ Fin n`) would give two non-defeq `Fintype` instances and break
+downstream `Model.World.rank` equalities. This whole development is already classical
+(`open Classical` at the top of `ModifiedSolovaySentences.lean`) and noncomputable, so
+deriving `Fintype` via choice here loses nothing; the section is scoped tightly around
+the few declarations that actually touch `StrongReflexiveCountermodel`, so it cannot
+affect unrelated `Fintype` resolution elsewhere in this file. -/
 noncomputable local instance (priority := high) {κ : Type*} [Finite κ] : Fintype κ :=
   Fintype.ofFinite κ
 
@@ -135,6 +144,8 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     simp [Formula.interpret];
   rw [e];
   cl_prover [h];
+
+end
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and contains some
