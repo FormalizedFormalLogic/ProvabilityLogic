@@ -15,9 +15,9 @@ abbrev Substitution (α) := α → Formula α
 def subst (s : Substitution α) : Formula α → Formula α
   | atom a  => (s a)
   | ⊥       => ⊥
-  | □φ      => □(φ.subst s)
-  | φ 🡒 ψ   => φ.subst s 🡒 ψ.subst s
-notation:95 φ "⟦" s "⟧" => Formula.subst s φ
+  | □A      => □(A.subst s)
+  | A 🡒 B   => A.subst s 🡒 B.subst s
+notation:95 A "⟦" s "⟧" => Formula.subst s A
 
 variable {s : Substitution α} {A B : Formula α}
 
