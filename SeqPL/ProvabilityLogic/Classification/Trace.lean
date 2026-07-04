@@ -175,7 +175,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   replace hA₂ : ((⋀A.subfmlsS) 🡒 A) ∉ LogicGL :=
     fun hc => hA₂ (LogicS.iff_provable_S_provable_GL.mpr hc);
   -- Extract a finite rooted countermodel `M₁` whose root is `A`-reflexive but refutes `A`.
-  have := LogicGL_semantical_TFAE (A := (⋀A.subfmlsS) 🡒 A) |>.out 2 0 |>.not.mpr hA₂;
+  have := (LogicGL.iff_forces_root (A := (⋀A.subfmlsS) 🡒 A)).not.mp hA₂;
   push Not at this;
   obtain ⟨κ₁, hne, M₁, hfgl, hroot⟩ := this;
   haveI := hne; haveI := hfgl;

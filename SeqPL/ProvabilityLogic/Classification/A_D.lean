@@ -63,7 +63,7 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (h : A ∉ LogicA) :
     ∃ (κ : Type u) (_ : Nonempty κ) (M : RootedModel κ α) (_ : M.IsFiniteGL),
       M.root.1 ⊮ A ∧ ∃ r : M.World, M.root.1 ≺ r ∧ r ⊩ ⋀A.subfmlsS := by
-  have := LogicGL_semantical_TFAE (A := (◇(⋀A.subfmlsS)) 🡒 A) |>.out 2 0 |>.not.mpr
+  have := (LogicGL.iff_forces_root (A := (◇(⋀A.subfmlsS)) 🡒 A)).not.mp
     (not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA h);
   push Not at this;
   obtain ⟨κ, hne, M, hfgl, hroot⟩ := this;

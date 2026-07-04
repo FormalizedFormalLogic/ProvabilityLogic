@@ -30,7 +30,7 @@ variable {α : Type u}
 /-- GL の有限モデル完全性による意味論的な GL 所属証明． -/
 lemma LogicGL.provable_of_valid [DecidableEq α] {A : Formula α}
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A) : A ∈ LogicGL :=
-  ProvableHilbert.Kripke.completeness h
+  LogicGL.iff_forces.mpr h
 
 
 open scoped FormulaFinset in
@@ -98,7 +98,7 @@ protected lemma substlessInduction
   (axiomP : motive (∼□⊥) provable_axiomP)
   (axiomD : ∀ {A B}, motive (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) provable_axiomD)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicD} → {hA : A ∈ LogicD} →
-    motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
+  motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
   : ∀ {A}, (h : A ∈ LogicD) → motive A h := by
   intro A h;
   induction LogicD.substless.ofLogicD h with
@@ -106,8 +106,7 @@ protected lemma substlessInduction
   | axiomP => exact axiomP;
   | axiomD A B => exact axiomD;
   | mdp hAB hA ihAB ihA =>
-    exact mdp (hAB := LogicD.substless.toLogicD hAB) (hA := LogicD.substless.toLogicD hA)
-      (ihAB _) (ihA _);
+    exact mdp (hAB := LogicD.substless.toLogicD hAB) (hA := LogicD.substless.toLogicD hA) (ihAB _) (ihA _);
 
 end
 
@@ -122,16 +121,13 @@ open Model.World
 
 private lemma GL_taut_trans [DecidableEq α] : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C)) ∈ LogicGL := by
   apply LogicGL.provable_of_valid;
-  intro κ _ M _ x;
   grind;
 
 private lemma GL_taut_or_mono [DecidableEq α] : ((A 🡒 B) 🡒 ((C ⋎ A) 🡒 (C ⋎ B))) ∈ LogicGL := by
   apply LogicGL.provable_of_valid;
-  intro κ _ M _ x;
   grind;
 
-private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} :
-    (□(⋁(□(insert A Γ))) 🡒 □(□A ⋎ □(⋁(□Γ)))) ∈ LogicGL := by
+private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} : (□(⋁(□(insert A Γ))) 🡒 □(□A ⋎ □(⋁(□Γ)))) ∈ LogicGL := by
   apply LogicGL.provable_of_valid;
   intro κ _ M _ x hx y Rxy;
   have hy := hx y Rxy;
@@ -147,8 +143,7 @@ private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} :
     intro w Rzw;
     exact hyC w (IsTrans.trans _ _ _ Ryz Rzw);
 
-private lemma GL_or_fdisj_insert [DecidableEq α] {Γ : FormulaFinset α} :
-    ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicGL := by
+private lemma GL_or_fdisj_insert [DecidableEq α] {Γ : FormulaFinset α} : ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicGL := by
   apply LogicGL.provable_of_valid;
   intro κ _ M _ x hx;
   rcases forces_or.mp hx with (h | h);
@@ -201,7 +196,7 @@ open Model Model.World
 /-- `LogicD` の定理は任意の有限 GL モデルの pseudo-tail model の根（ω）で妥当． -/
 lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
-  Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A := by
+  (M.toPseudoTail r o).root.1 ⊩ A := by
   intro κ _ M _ r o;
   induction h using LogicD.substlessInduction with
   | provable_GL h => exact ProvableHilbert.Kripke.soundness h ((M.toPseudoTail r o).toModel) _;
@@ -236,8 +231,7 @@ open Classical in
   pseudo-tail model の根での妥当性から，任意の有限根付き GL モデルの根で `⋀A.subfmlsD 🡒 A` が成立する．
 -/
 lemma root_forces_subfmlsD_imp [DecidableEq α]
-  (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
-       Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A) :
+  (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o, (M.toPseudoTail r o).root.1 ⊩ A) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] → M.root.1 ⊩ (⋀A.subfmlsD 🡒 A) := by
   intro κ _ M _;
   by_contra hC;
@@ -248,47 +242,21 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   -- 根で `□B` が反証される部分論理式 `B` を集める
   let Δ := (A.subfmls.prebox).filter (λ (B : Formula α) => ¬(M.root.1 ⊩ □B));
   obtain ⟨x, Rrx, hx⟩ : ∃ x, M.root.1 ≺ x ∧ ∀ B ∈ Δ, ¬(x ⊩ □B) := by
-    have hΔ₁ : M.root.1 ⊮ ⋁(□Δ) := by
-      intro hd;
-      obtain ⟨C, hC, hrC⟩ := forces_fdisj.mp hd;
-      obtain ⟨B, hB, rfl⟩ : ∃ B ∈ Δ, □B = C := by simpa using hC;
-      exact (Finset.mem_filter.mp hB).2 hrC;
-    have hΔ₂ : M.root.1 ⊮ □(⋁(□Δ)) := fun hbox => hΔ₁ (h₁ Δ (Finset.filter_subset _ _) hbox);
-    obtain ⟨x, Rrx, hx⟩ := not_forces_box.mp hΔ₂;
-    refine ⟨x, Rrx, ?_⟩;
-    intro B hB hxB;
-    exact hx (forces_fdisj.mpr ⟨□B, Finset.mem_image_of_mem _ hB, hxB⟩);
+    have hΔ₁ : M.root.1 ⊮ ⋁(□Δ) := by grind;
+    have hΔ₂ : M.root.1 ⊮ □(⋁(□Δ)) := by grind;
+    grind;
   -- `x` で点生成した部分モデル
-  let N : RootedModel (M.toModel↾x) α := M.toModel.toRootedModel x;
+  let N := M.toModel.toRootedModel x;
   have hS : ∀ B ∈ A.subfmls.prebox, N.root.1 ⊩ (□B 🡒 B) := by
     intro B hB;
     apply Model.toRootedModel.forces_same_at_root.mpr;
-    intro hxB;
-    by_cases hBΔ : B ∈ Δ;
-    . exact absurd hxB (hx B hBΔ);
-    . have : M.root.1 ⊩ □B := by
-        have := Finset.mem_filter.not.mp hBΔ;
-        push Not at this;
-        exact this hB;
-      exact this x Rrx;
+    grind;
   have hA := h N.toModel N.root.1 (M.Val M.root.1);
   -- `A` の部分論理式について，pseudo-tail model の根（ω）と元の `M` の根で forces が一致する
   have transport : ∀ B, B ∈ A.subfmls →
-      (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.chainPoint ⊤) B ↔ M.root.1 ⊩ B) := by
+    (Forces (M := (N.toModel.toPseudoTail N.root.1 (M.Val M.root.1)).toModel) (toPseudoTail.chainPoint ⊤) B ↔ M.root.1 ⊩ B) := by
     intro B;
     induction B with
-    | atom a =>
-      intro _;
-      show (if ((⊤ : ℕ∞) = (⊤ : ℕ∞)) then M.Val M.root.1 a else N.toModel.Val N.root.1 a) ↔ M.Val M.root.1 a;
-      rw [if_pos rfl];
-    | bot => intro _; exact Iff.rfl;
-    | imp B C ihB ihC =>
-      intro hBC;
-      replace ihB := ihB (Formula.subfmls_trans hBC (by grind));
-      replace ihC := ihC (Formula.subfmls_trans hBC (by grind));
-      constructor;
-      . intro hi hB; exact ihC.mp (hi (ihB.mpr hB));
-      . intro hi hB; exact ihC.mpr (hi (ihB.mp hB));
     | box B ihB =>
       intro hB;
       constructor;
@@ -312,20 +280,20 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
             (fun B hB => Formula.subfmls_trans hB) hS B (Formula.subfmls_trans hB (by grind)) m).mp;
           apply Model.toRootedModel.forces_same_at_root.mpr;
           exact hroot x Rrx;
+    | _ => grind;
   exact h₂ ((transport A (by grind)).mp hA);
 
 
 /-- **Logic D の GL による特徴づけ**（pseudo-tail model による意味論的証明）． -/
 theorem provability_TFAE [DecidableEq α] : [
     A ∈ LogicD,
-    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (r : M.World) (o : α → Prop),
-      Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 A,
+    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o, (M.toPseudoTail r o).root.1 ⊩ A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] → M.root.1 ⊩ (⋀A.subfmlsD 🡒 A),
     (⋀A.subfmlsD 🡒 A) ∈ LogicGL
   ].TFAE := by
   tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsD_imp;
-  tfae_have 3 ↔ 4 := LogicGL_semantical_TFAE.out 2 0;
+  tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
   tfae_finish;
 

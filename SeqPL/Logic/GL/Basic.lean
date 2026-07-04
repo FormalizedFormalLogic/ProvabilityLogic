@@ -13,12 +13,15 @@ variable {α : Type u}
 
 abbrev LogicGL {α} : Logic α := { A | ⊢ʰ A }
 
-theorem LogicGL_TFAE [DecidableEq α] {A : Formula α} : [
+namespace LogicGL
+
+theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   A ∈ LogicGL,
   ⊢ʰ A,
   ⊢ᵍ (∅ ⟹ {A}),
   ⊢ᵍᶜ (∅ ⟹ {A}),
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A
 ].TFAE
   := by
   tfae_have 1 ↔ 2 := by grind;
@@ -32,20 +35,35 @@ theorem LogicGL_TFAE [DecidableEq α] {A : Formula α} : [
     intro h κ _;
     apply ProvableHilbert.Kripke.finite_soundness h;
   tfae_have 5 → 2 := ProvableHilbert.Kripke.completeness;
-  tfae_finish;
-
-theorem LogicGL_semantical_TFAE [DecidableEq α] {A : Formula α} : [
-  A ∈ LogicGL,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A
-].TFAE := by
-  tfae_have 1 ↔ 2 := LogicGL_TFAE.out 0 4;
-  tfae_have 2 → 3 := by
+  tfae_have 5 → 6 := by
     intro h κ _ M _;
     apply h;
-  tfae_have 3 → 2 := by
+  tfae_have 6 → 5 := by
     intro h κ _ M _ x;
     exact Model.toRootedModel.forces_same_at_root.mp $ h (M.toRootedModel x);
   tfae_finish;
+
+theorem iff_provableHilbert [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ʰ A :=
+  provability_TFAE.out 0 1
+
+theorem iff_provableGentzen [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ᵍ (∅ ⟹ {A}) :=
+  provability_TFAE.out 0 2
+
+theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ᵍᶜ (∅ ⟹ {A}) :=
+  provability_TFAE.out 0 3
+
+theorem iff_forces [DecidableEq α] {A : Formula α} :
+    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A :=
+  provability_TFAE.out 0 4
+
+theorem iff_forces_root [DecidableEq α] {A : Formula α} :
+    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A :=
+  provability_TFAE.out 0 5
+
+theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :
+    ⊢ᵍ (∅ ⟹ {A}) → ⊢ʰ A :=
+  fun h => provability_TFAE.out 2 1 |>.mp h
+
+end LogicGL
 
 end

@@ -33,7 +33,7 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L]
   provability of an arithmetic theory, in `𝗜𝚺₁`).
 -/
 lemma arithmetical_soundness (hA : A ∈ LogicGL) : T ⊢ f A := by
-  replace hA := LogicGL_TFAE.out 0 1 |>.mp hA;
+  replace hA := LogicGL.iff_provableHilbert.mp hA;
   induction hA with
   | nec _ ihA => exact 𝔅.D1 (Entailment.WeakerThan.pbl ihA);
   | mdp _ _ ihAB ihA => exact ihAB ⨀ ihA;
@@ -60,7 +60,7 @@ theorem arithmetical_completeness_of_infinity_height (height : T.height = (⊤ :
   (∀ f : StandardRealization α T, T ⊢ f A) → A ∈ LogicGL := by
   contrapose!;
   intro hA;
-  replace h := LogicGL_semantical_TFAE.out 0 2 |>.not.mp hA;
+  replace h := LogicGL.iff_forces_root.not.mp hA;
   push Not at h;
   obtain ⟨κ, _, M, _, hA⟩ := h;
   have : Fintype M.World := Fintype.ofFinite _;
@@ -70,7 +70,7 @@ theorem arithmetical_completeness_of_finite_le {n : ℕ} (height : n ≤ T.heigh
   : (∀ f : StandardRealization α T, T ⊢ f A) →  □^[n] ⊥ 🡒 A ∈ LogicGL := by
   contrapose!;
   intro hA;
-  replace h := LogicGL_semantical_TFAE.out 0 2 |>.not.mp hA;
+  replace h := LogicGL.iff_forces_root.not.mp hA;
   push Not at h;
   obtain ⟨κ, _, M, _, hA⟩ := h;
   replace hA := Model.World.not_forces_imp.mp hA;

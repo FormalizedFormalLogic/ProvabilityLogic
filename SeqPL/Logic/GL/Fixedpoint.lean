@@ -460,7 +460,7 @@ theorem fixpointTheorem {A : Formula α} {p q : α}
     ∃ D : Formula α, D.atoms ⊆ A.atoms \ {p} ∧ ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL :=
   ⟨ProvableGentzen.fixpointFormula hpq hA hq,
     ProvableGentzen.fixpointFormula_atoms hpq hA hq,
-    LogicGL_TFAE.out 2 0 |>.mp (ProvableGentzen.fixpoint_existence hpq hA hq)⟩
+    LogicGL.iff_provableGentzen.mpr (ProvableGentzen.fixpoint_existence hpq hA hq)⟩
 
 end LogicGL
 

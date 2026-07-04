@@ -266,7 +266,7 @@ lemma spectrum_TFAE : [
 
 lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL ↔ spectrum A = Set.univ := by
   rw [Set.eq_univ_iff_forall];
-  apply Iff.trans $ LogicGL_TFAE.out 0 4;
+  apply Iff.trans $ LogicGL.iff_forces;
   constructor;
   . intro h n;
     apply spectrum_TFAE.out 1 0 |>.mp;
@@ -288,19 +288,16 @@ lemma iff_GL_proves_iff_GL_subset_spectrum : (A 🡘 B) ∈ LogicGL ↔ spectrum
     grind [Set.Subset.antisymm_iff, iff_GL_proves_imp_GL_subset_spectrum];
   constructor;
   . intro h;
-    replace h := LogicGL_semantical_TFAE.out 0 2 |>.mp h;
     refine ⟨?_, ?_⟩ <;>
-      apply LogicGL_semantical_TFAE.out 2 0 |>.mp <;>
+      apply LogicGL.iff_forces_root.mpr <;>
       intro κ _ M _ <;>
-      have := @h κ _ M _ <;>
+      have := LogicGL.iff_forces_root.mp h M <;>
       grind;
   . rintro ⟨h₁, h₂⟩;
-    replace h₁ := LogicGL_semantical_TFAE.out 0 2 |>.mp h₁;
-    replace h₂ := LogicGL_semantical_TFAE.out 0 2 |>.mp h₂;
-    apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+    apply LogicGL.iff_forces_root.mpr;
     intro κ _ M _;
-    have := @h₁ κ _ M _;
-    have := @h₂ κ _ M _;
+    have := LogicGL.iff_forces_root.mp h₁ M;
+    have := LogicGL.iff_forces_root.mp h₂ M;
     grind;
 
 lemma LetterlessFormula.TBB_normalization_of_finite_trace (h : (trace A).Finite) : (A 🡘 ⋀(h.toFinset.image TBB)) ∈ LogicGL := by

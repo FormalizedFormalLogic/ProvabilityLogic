@@ -15,9 +15,9 @@ variable {A B : Formula α}
 lemma provable_imp_iff_provableGentzen_seqent : A 🡒 B ∈ LogicGL ↔ ⊢ᵍ ({A} ⟹ {B}) := by
   constructor;
   · intro h;
-    exact ProvableGentzen.deduction_theorem.mpr $ LogicGL_TFAE.out 1 2 |>.mp h
+    exact ProvableGentzen.deduction_theorem.mpr $ ProvableGentzen.of_provableHilbert h
   · intro h;
-    apply LogicGL_TFAE.out 2 1 |>.mp;
+    apply LogicGL.provableHilbert_of_provableGentzen;
     apply ProvableGentzen.deduction_theorem.mp;
     simpa using h;
 

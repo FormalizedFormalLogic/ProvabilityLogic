@@ -174,7 +174,7 @@ theorem provability_TFAE [DecidableEq α] : [
   ].TFAE := by
   tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsS_imp;
-  tfae_have 3 ↔ 4 := LogicGL_semantical_TFAE.out 2 0;
+  tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
   tfae_finish;
 

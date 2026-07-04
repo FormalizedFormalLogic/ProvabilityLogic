@@ -24,15 +24,14 @@ theorem iff_provable_boxdot_GL_provable_boxdot_S [DecidableEq α] :
   . exact provable_of_provable_GL;
   . intro h;
     replace h := iff_provable_S_provable_GL.mp h;
-    apply LogicGL_semantical_TFAE.out 0 2 |>.mpr;
+    apply LogicGL.iff_forces_root.mpr;
     intro κ _ M _;
     let Γ := (Aᵇ).subfmls.prebox;
     let n : ℕ+ := ⟨Γ.card + 1, by omega⟩;
     obtain ⟨i, hi⟩ := RootedModel.extendRoot.exists_tail_forces_forall_axiomT
       (M := M) (n := n) (Γ := Γ) (by simp [n]);
     apply RootedModel.extendRoot.tail_forces_boxdotTranslate_iff (n := n) (i := i) |>.mp;
-    have hvalid := LogicGL_semantical_TFAE.out 0 1 |>.mp h;
-    apply hvalid ((M.extendRoot n).toModel) (.inr i);
+    apply LogicGL.iff_forces.mp h ((M.extendRoot n).toModel) (.inr i);
     apply forces_fconj.mpr;
     rintro B hB;
     obtain ⟨C, hC, rfl⟩ : ∃ C ∈ Γ, (□C 🡒 C) = B := by

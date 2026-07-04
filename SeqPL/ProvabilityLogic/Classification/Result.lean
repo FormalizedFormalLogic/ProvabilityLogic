@@ -323,7 +323,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
     have hbr : ((⋀(hCf.toFinset.image (TBB : ℕ → Formula α)))
         🡒 (LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α))
         ∈ LogicGL := by
-      apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+      apply LogicGL.iff_forces_root.mpr;
       intro κ _ M _;
       haveI : Fintype M.World := Fintype.ofFinite _;
       apply Model.World.forces_imp.mpr;

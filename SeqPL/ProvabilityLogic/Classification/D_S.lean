@@ -105,7 +105,7 @@ theorem provable_reflection_of_mem_not_LogicD :
     have hbr : ((⋀(pf.toFinset.image (TBB : ℕ → Formula (Option α))))
         🡒 (LetterlessFormula.lift (⋀(pf.toFinset.image TBB)) : Formula (Option α)))
         ∈ LogicGL := by
-      apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+      apply LogicGL.iff_forces_root.mpr;
       intro κ _ M _;
       haveI : Fintype M.World := Fintype.ofFinite _;
       apply Model.World.forces_imp.mpr;

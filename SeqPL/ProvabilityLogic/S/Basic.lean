@@ -86,7 +86,7 @@ theorem arithmetical_completeness [DecidableEq α]
     (H : ∀ f : StandardRealization α T, ℕ ⊧ₘ f A) : A ∈ LogicS := by
   haveI : ℕ ⊧ₘ* 𝗜𝚺₁ := models_of_subtheory (U := 𝗜𝚺₁) (T := T) (M := ℕ) inferInstance;
   contrapose! H;
-  replace H := LogicGL_semantical_TFAE.out 0 2 |>.not.mp $ iff_provable_S_provable_GL.not.mp H;
+  replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_S_provable_GL.not.mp H;
   push Not at H;
   obtain ⟨κ, _, M, _, hA⟩ := H;
   haveI : Fintype M.World := Fintype.ofFinite _;

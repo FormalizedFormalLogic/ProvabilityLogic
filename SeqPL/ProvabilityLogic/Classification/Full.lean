@@ -133,8 +133,7 @@ lemma subset_trace_of_provable_GL (h : A 🡒 B ∈ LogicGL) : B.trace ⊆ A.tra
   revert hB;
   contrapose!;
   show M.root.1 ⊩ A 🡒 B;
-  have := (LogicGL_semantical_TFAE.out 0 2 |>.mp h);
-  apply this;
+  apply LogicGL.iff_forces_root.mp h;
 
 end Formula
 
@@ -186,7 +185,7 @@ lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
 -/
 lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : Formula α} :
     ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
-  apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+  apply LogicGL.iff_forces_root.mpr;
   intro κ _ M _ hne;
   haveI : Fintype M.World := Fintype.ofFinite _;
   replace hne : ¬(Model.World.rank M.root.1 < A.subfmls.prebox.card + 1) :=
@@ -223,9 +222,8 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     have := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
     omega;
   have H₂ : M.root.1 ⊩ ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) := by
-    have := LogicGL_semantical_TFAE.out 0 2 |>.mp
+    apply LogicGL.iff_forces_root.mp
       (LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS (A := A));
-    apply this;
   obtain ⟨a, Rra, hA⟩ := Model.World.forces_dia.mp (H₂ H₁);
   have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ ((□B) 🡒 B) := by
     intro B hB;
@@ -280,8 +278,7 @@ lemma eq_LogicGL_quasiExtension_trace {X : FormulaSet α} (X_subst : ∀ A ∈ X
       exfalso;
       obtain ⟨κ, _, M, _, _, rfl, hr⟩ := Formula.iff_mem_trace.mp hn;
       haveI : M.IsFiniteGL := ⟨⟩;
-      have hval := (LogicGL_semantical_TFAE (A := C)).out 0 2 |>.mp hA;
-      exact hr (hval M);
+      exact hr (LogicGL.iff_forces_root.mp hA M);
     | mem₂ hA => intro hn; exact ⟨_, hA, hn⟩
     | @mdp A B hAB hA ihAB ihA =>
       intro hn;
@@ -430,7 +427,7 @@ lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
     . exact h;
     . exact absurd (h.subset (Set.compl_subset_compl.mpr hsub)) hL;
   have hGL : ((⋀(hfin.toFinset.image (TBB (α := α)))) 🡒 A) ∈ LogicGL := by
-    apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+    apply LogicGL.iff_forces_root.mpr;
     intro κ _ M _ hTBB;
     haveI : Fintype M.World := Fintype.ofFinite _;
     have hnot : M.height ∉ A.trace := by
@@ -455,7 +452,7 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
   intro A hA;
   have hsub : A.trace ⊆ L.trace := Logic.trace_subset_of_mem hA;
   have hGL : ((LetterlessFormula.lift (TBBMinus _ hL) : Formula α) 🡒 A) ∈ LogicGL := by
-    apply LogicGL_semantical_TFAE.out 2 0 |>.mp;
+    apply LogicGL.iff_forces_root.mpr;
     intro κ _ M _ hTM;
     haveI : Fintype M.World := Fintype.ofFinite _;
     have hnot : M.height ∉ A.trace := by
