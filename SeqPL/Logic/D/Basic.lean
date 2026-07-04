@@ -317,7 +317,7 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
         (fun a => match a with | some a => o a | none => False)).root.1 ⊩ (A.map some)
       ↔ (M.toPseudoTail r o).root.1 ⊩ A := by
     apply Iff.trans Model.forces_map;
-    apply Model.forces_congr rfl;
+    apply Model.forces_congr (by funext x y; rcases x with x | i <;> rcases y with y | j <;> rfl);
     intro x a;
     rcases x with x | i;
     · exact Iff.rfl;

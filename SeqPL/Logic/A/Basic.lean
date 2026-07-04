@@ -290,7 +290,7 @@ theorem provability_TFAE : [
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ a : M.World, M.root.1 ≺ a →
-    Forces (M := (M.graftChainOmega a).toModel) (M.graftChainOmega a).root.1 A
+    (M.graftChainOmega a).root.1 ⊩ A
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
@@ -322,7 +322,7 @@ theorem iff_provable_forces_graftChainOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ a : M.World, M.root.1 ≺ a →
-    Forces (M := (M.graftChainOmega a).toModel) (M.graftChainOmega a).root.1 A) :=
+    (M.graftChainOmega a).root.1 ⊩ A) :=
   LogicA.provability_TFAE.out 0 2
 
 end LogicA

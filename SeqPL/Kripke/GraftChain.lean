@@ -19,6 +19,9 @@ lemma not_rel_root [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {x : M.World} : ¬x ≺ 
   . subst hx; exact Std.Irrefl.irrefl _ h;
   . exact Std.Irrefl.irrefl x $ IsTrans.trans _ _ _ h (M.root.2 x hx);
 
+/-- Worlds of the grafted model: the original worlds plus a chain of length `k`. -/
+abbrev graftChain.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin k
+
 /--
   The rooted model obtained by grafting a chain of length `k` between the root and `a`
   (`root ≺ chain ≺ a` and its cone). A variant of the model `Kₙ` in the proof of
@@ -26,7 +29,7 @@ lemma not_rel_root [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {x : M.World} : ¬x ≺ 
   below the root keeps the rank of every world other than the root unchanged, so that
   the height is exactly `max M.height (a.rank + k + 1)`.
 -/
-abbrev graftChain (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (κ ⊕ Fin k) α where
+abbrev graftChain (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graftChain.World M k) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
@@ -291,6 +294,9 @@ end Mainlemma
 end graftChain
 
 
+/-- Worlds of the ω-grafted model: the original worlds plus an infinite descending chain. -/
+abbrev graftChainOmega.World (M : RootedModel κ α) : Type _ := M.World ⊕ ℕ
+
 /--
   The rooted model obtained by grafting an infinite descending chain between the root
   and `a` (`root ≺ ⋯ ≺ chain (n + 1) ≺ chain n ≺ ⋯ ≺ chain 0 ≺ a` and its cone):
@@ -298,7 +304,7 @@ end graftChain
   Unlike `Model.toPseudoTail`, the root keeps its other cones (the *lateral cones* of
   the resulting ω-model), which is essential to refute the axioms of `LogicD`.
 -/
-abbrev graftChainOmega (M : RootedModel κ α) (a : M.World) : RootedModel (κ ⊕ ℕ) α where
+abbrev graftChainOmega (M : RootedModel κ α) (a : M.World) : RootedModel (graftChainOmega.World M) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
@@ -380,7 +386,7 @@ open Model.World in
 /-- The root of `M.graftChainOmega a` has infinite depth: it refutes `□^[n]⊥` for
 every `n`, hence forces every `TBB n` (and `∼(□^[n]⊥)`). -/
 lemma root_not_forces_boxItr_bot {n : ℕ} :
-    ¬(Forces (M := (M.graftChainOmega a).toModel) (M.graftChainOmega a).root.1 (□^[n]⊥)) := by
+    ¬((M.graftChainOmega a).root.1 ⊩ (□^[n]⊥)) := by
   intro h;
   match n with
   | 0 => exact h;

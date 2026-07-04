@@ -217,7 +217,8 @@ lemma interpolant_root_forces_iff
     have hC' : Forces (M := ((flipModel M c).toPseudoTail M.root.1 o).toModel) (toPseudoTail.chainPoint ⊤) C :=
       (forces_congr_atoms
         (M₁ := (M.toModel.toPseudoTail M.root.1 o).toModel)
-        (M₂ := ((flipModel M c).toPseudoTail M.root.1 o).toModel) rfl
+        (M₂ := ((flipModel M c).toPseudoTail M.root.1 o).toModel)
+        (by funext x y; rcases x with x | i <;> rcases y with y | j <;> rfl)
         (fun x e ha => by rw [hCp e ha]; exact val_toPseudoTail_flipModel hac x)).mp hC;
     have hBf := hB hC';
     -- The root forces `□(a 🡒 □c)` in the flipped pseudo-tail.
@@ -293,7 +294,8 @@ lemma interpolant_root_forces_iff
     apply hC;
     exact (forces_congr_atoms
       (M₁ := (M.toModel.toPseudoTail M.root.1 o).toModel)
-      (M₂ := ((flipModel M b).toPseudoTail M.root.1 o).toModel) rfl
+      (M₂ := ((flipModel M b).toPseudoTail M.root.1 o).toModel)
+      (by funext x y; rcases x with x | i <;> rcases y with y | j <;> rfl)
       (fun x e ha => by rw [hCp e ha]; exact val_toPseudoTail_flipModel hab x)).mpr (hA hnA);
 
 end
@@ -386,8 +388,8 @@ D-models is independent of the lower valuation `o`, then there is a modalized fo
 lemma exists_modalized_equiv_of_indep
     (hindep : ∀ {κ : Type u} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL]
         (r : M.World) (o o' : α → Prop),
-      Forces (M := (M.toPseudoTail r o).toModel) (M.toPseudoTail r o).root.1 C ↔
-        Forces (M := (M.toPseudoTail r o').toModel) (M.toPseudoTail r o').root.1 C) :
+      (M.toPseudoTail r o).root.1 ⊩ C ↔
+        (M.toPseudoTail r o').root.1 ⊩ C) :
     ∃ C', C'.Modalized ∧ (C 🡘 C') ∈ LogicD ∧ C'.atoms ⊆ C.atoms := by
   use C.modalize, Formula.modalized_modalize, ?_, Formula.atoms_modalize_subset;
   -- By the semantic characterization of `D`, it suffices to force `C 🡘 C.modalize` at the
@@ -505,7 +507,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
       Model.forces_congr
         (M₁ := (M.toModel.toTail M.root.1).toModel)
         (M₂ := (M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel)
-        rfl
+        (by funext x y; rcases x with x | i <;> rcases y with y | j <;> rfl)
         (fun x e => by
           rcases x with x | i;
           · exact Iff.rfl;

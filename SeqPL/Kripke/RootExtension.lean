@@ -25,7 +25,10 @@ end Fin
 variable [Nonempty κ]
 
 
-abbrev RootedModel.extendRoot (M : RootedModel κ α) (n : ℕ+) : RootedModel (M.World ⊕ Fin n) α where
+/-- Worlds of the root extension: the original worlds plus `n` fresh points below the new root. -/
+abbrev RootedModel.extendRoot.World (M : RootedModel κ α) (n : ℕ+) : Type _ := M.World ⊕ Fin n
+
+abbrev RootedModel.extendRoot (M : RootedModel κ α) (n : ℕ+) : RootedModel (RootedModel.extendRoot.World M n) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
@@ -173,7 +176,15 @@ namespace Ext1
 lemma eq_original_or_eq_root (x : (M.extendRoot 1).World) : (∃ x₀ : M.World, x = x₀) ∨ x = (M.extendRoot 1).root := by
   match x with
   | .inl x => simp [embed];
-  | .inr i => simp [Fin.posLast]; omega;
+  | .inr i =>
+    right;
+    have h : (i : ℕ) < 1 := PNat.one_coe ▸ i.2;
+    have : i = Fin.posLast 1 := by
+      apply Fin.ext;
+      simp only [Fin.posLast, PNat.natPred, PNat.one_coe];
+      omega;
+    subst this;
+    rfl;
 
 lemma eq_original_of_rel_extendRoot_root [Std.Irrefl M.Rel] {x : (M.extendRoot 1).World} (h : (M.extendRoot 1).root.1 ≺ x)
   : ∃ x₀ : M.World, x = x₀ := by

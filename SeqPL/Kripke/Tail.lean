@@ -13,7 +13,10 @@ variable [Nonempty κ] {M : Model κ α} {n : ℕ+} {A B : Formula α} {Γ Γ' �
 
 namespace Model
 
-abbrev toTail (M : Model κ α) (tail : M.World) : RootedModel (κ ⊕ ℕ∞) α where
+/-- Worlds of the tail model: the original worlds plus a chain indexed by `ℕ∞`. -/
+abbrev toTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
+
+abbrev toTail (M : Model κ α) (tail : M.World) : RootedModel (toTail.World M) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y

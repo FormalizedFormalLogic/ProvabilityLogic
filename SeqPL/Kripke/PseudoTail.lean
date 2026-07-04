@@ -13,11 +13,15 @@ variable [Nonempty κ] {M : Model κ α} {A B : Formula α}
 
 namespace Model
 
+/-- Worlds of the pseudo-tail model: the original worlds plus a chain indexed by `ℕ∞`. -/
+abbrev toPseudoTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
+
 /--
   pseudo-tail model（ω 拡大モデル）：ω（`chainPoint ⊤`）を根とし，その下に無限降下鎖 `chainPoint n`（`n : ℕ`）を
   挟んで元のモデル `M` の全体を接続する．鎖上（`chainPoint n`）の付値は `M.Val tail`，ω 上の付値は `o` で与える．
 -/
-abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) : RootedModel (κ ⊕ ℕ∞) α where
+abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) :
+    RootedModel (toPseudoTail.World M) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
@@ -137,8 +141,8 @@ lemma forces_inl {x : M.World} :
 
 /-- pseudo-tail model の根（ω）で `□A` が成立するならば全ての点で `□A` が成立する． -/
 lemma forces_box_of_root_forces_box {x : (M.toPseudoTail tail o).World}
-  (h : Forces (M := (M.toPseudoTail tail o).toModel) (M.toPseudoTail tail o).root.1 (□A)) :
-  Forces (M := (M.toPseudoTail tail o).toModel) x (□A) := by
+  (h : (M.toPseudoTail tail o).root.1 ⊩ (□A)) :
+  x ⊩ (□A) := by
   intro y Rxy;
   apply h;
   match x, y with
