@@ -3,9 +3,8 @@ version = "0.1.0"
 defaultTargets = ["SeqPL"]
 
 [[lean_lib]]
-name = "SeqPL" 
+name = "SeqPL"
 
 [[require]]
 name = "Foundation"
-git = "https://github.com/gotrevor/Foundation"
-rev = "e6f6001f645be2085df4e4c0cdd7b447ac030475"
+git = "https://github.com/FormalizedFormalLogic/Foundation"

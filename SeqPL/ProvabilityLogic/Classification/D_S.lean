@@ -67,13 +67,13 @@ theorem provable_reflection_of_mem_not_LogicD :
       ∈ (T.provabilityLogicRelativeTo U : Logic (Option α)) := hsub hBGL;
   -- The completion of `GL{B}`: the provability logic relative to `U₁ := T + {g(B)}`.
   set U₁ : FirstOrder.ArithmeticTheory :=
-    𝗜𝚺₁ + (Set.range (fun g : StandardRealization (Option α) T => Formula.interpret g B))
+    𝗜𝚺₁ ∪ (Set.range (fun g : StandardRealization (Option α) T => Formula.interpret g B))
     with hU₁;
   haveI : 𝗜𝚺₁ ⪯ U₁ := inferInstance;
   have hBI : B ∈ (T.provabilityLogicRelativeTo U₁ : Logic (Option α)) := by
     intro g;
     apply Entailment.by_axm;
-    simp only [hU₁, FirstOrder.Theory.add_def];
+    simp only [hU₁, Set.mem_union];
     exact Or.inr ⟨g, rfl⟩;
   have hnotS : ¬((T.provabilityLogicRelativeTo U₁ : Logic (Option α)) ⊆ LogicS) :=
     fun hc => hBS (hc hBI);

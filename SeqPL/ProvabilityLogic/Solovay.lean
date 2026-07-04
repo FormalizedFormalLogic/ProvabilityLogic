@@ -32,7 +32,7 @@ variable {T : ArithmeticTheory} [T.Δ₁]
 
 section model
 
-variable (T) {V : Type*} [ORingStructure V] [V ⊧ₘ* 𝗜𝚺₁]
+variable (T) {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
 def NegativeSuccessor (φ ψ : V) : Prop := T.ProvabilityComparisonLE (neg ℒₒᵣ φ) (neg ℒₒᵣ ψ)
 
@@ -65,9 +65,9 @@ abbrev WChain (i j : M.World) := {l : List M.World // l.ChainI (fun x y ↦ y �
 
 instance (i j : M.World) : Finite (WChain M i j) :=
   List.ChainI.finite_of_irreflexive_of_transitive
-    (by intro x; exact Std.Irrefl.irrefl (r := M.Rel) x)
-    (by intro x y z hxy hyz
-        exact IsTrans.trans (r := M.Rel) z y x hyz hxy)
+    (show Std.Irrefl (fun x y : M.World => y ≺ x) from ⟨fun x => Std.Irrefl.irrefl (r := M.Rel) x⟩)
+    (show IsTrans M.World (fun x y => y ≺ x) from
+      ⟨fun x y z hxy hyz => IsTrans.trans (r := M.Rel) z y x hyz hxy⟩)
     j i
 
 def twoPointAux (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : M.World) : Semisentence ℒₒᵣ N :=
@@ -145,7 +145,7 @@ section model
 
 variable (T) (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
 
-variable {V : Type*} [ORingStructure V] [V ⊧ₘ* 𝗜𝚺₁]
+variable {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
 @[simp] lemma val_twoPoint (i j : M.World) :
     V ⊧/![] (twoPoint T M i j) ↔ ∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝ := by
@@ -217,7 +217,7 @@ section
 
 @[simp] lemma val_solovay {i : M.World} : V ⊧/![] (T.solovay M i) ↔ T.Solovay M V i := by
   simpa [models_iff] using!
-    consequence_iff.mp (sound! (solovay_diag T M i)) V inferInstance
+    consequence_iff.mp (Theory.Proof.sound (solovay_diag T M i)) V inferInstance
 
 end
 
@@ -250,8 +250,8 @@ private lemma Solovay.exclusive.comparable {i₁ i₂ : M.World} {ε₁ ε₂ : 
     rcases cε₁.tail_exists with ⟨ε₁', rfl⟩
     exact List.infix_iff_prefix_suffix.mpr ⟨j :: i₁ :: ε₁', by simp, hj⟩
   have hij₁ : i₁ ≺ j := cε₂.rel_of_infix j i₁ hji₁ε₂
-  have : ¬T.Provable (⌜∼T.solovay M j⌝ : V) := by simpa [Theory.ConsistentWith.quote_iff] using! Hi₁ j hij₁
-  have : T.Provable (⌜∼T.solovay M j⌝ : V) := by
+  have : ¬Provable T (⌜∼T.solovay M j⌝ : V) := by simpa [Theory.ConsistentWith.quote_iff] using! Hi₁ j hij₁
+  have : Provable T (⌜∼T.solovay M j⌝ : V) := by
     have : ΘChain T M V [j, i₁] := by
       rcases hji₁ε₂ with ⟨η₁, η₂, rfl⟩
       have Θε₂ : ΘChain T M V (η₁ ++ j :: i₁ :: η₂) := by simpa using! Θε₂
@@ -300,10 +300,10 @@ lemma Solovay.exclusive {i₁ i₂ : M.World} (ne : i₁ ≠ i₂) : T.Solovay M
   contradiction
 
 /-- Condition 2.-/
-lemma Solovay.consistent {i j : M.World} (hij : i ≺ j) : T.Solovay M V i → ¬T.Provable (⌜∼T.solovay M j⌝ : V) := fun h ↦
+lemma Solovay.consistent {i j : M.World} (hij : i ≺ j) : T.Solovay M V i → ¬Provable T (⌜∼T.solovay M j⌝ : V) := fun h ↦
   (Theory.ConsistentWith.quote_iff T).mp (h.2 j hij)
 
-lemma Solovay.refute (ne : M.root.1 ≠ i) : T.Solovay M V i → T.Provable (⌜∼T.solovay M i⌝ : V) := by
+lemma Solovay.refute (ne : M.root.1 ≠ i) : T.Solovay M V i → Provable T (⌜∼T.solovay M i⌝ : V) := by
   intro h
   rcases show Θ T M V i from h.1 with ⟨ε, hε, cε⟩
   rcases List.ChainI.prec_exists_of_ne hε (Ne.symm ne) with ⟨ε', i', hii', rfl, hε'⟩
@@ -320,8 +320,8 @@ lemma Θ.disjunction (i : M.World) : Θ T M V i → T.Solovay M V i ∨ ∃ j, i
   · left; exact hS
   · right
     have : ∃ j, i ≺ j ∧ ∀ k, i ≺ k → T.ProvabilityComparisonLE (V := V) ⌜∼T.solovay M j⌝ ⌜∼T.solovay M k⌝ := by
-      have : ∃ j, i ≺ j ∧ T.Provable (⌜∼T.solovay M j⌝ : V) := by
-        have : Θ T M V i → ∃ x, i ≺ x ∧ T.Provable (⌜∼T.solovay M x⌝ : V) := by
+      have : ∃ j, i ≺ j ∧ Provable T (⌜∼T.solovay M j⌝ : V) := by
+        have : Θ T M V i → ∃ x, i ≺ x ∧ Provable T (⌜∼T.solovay M x⌝ : V) := by
           simpa [Theory.ConsistentWith.quote_iff, Theory.Solovay] using! hS
         exact this hΘ
       rcases this with ⟨j', hij', hj'⟩
@@ -348,12 +348,12 @@ lemma disjunctive : ∃ i : M.World, T.Solovay M V i := by
 
 /-- Condition 3.-/
 lemma Solovay.box_disjunction [𝗜𝚺₁ ⪯ T] {i : M.World} (ne : M.root.1 ≠ i) :
-    T.Solovay M V i → T.Provable (⌜⩖ j ∈ {j : M.World | i ≺ j}, T.solovay M j⌝ : V) := by
+    T.Solovay M V i → Provable T (⌜⩖ j ∈ {j : M.World | i ≺ j}, T.solovay M j⌝ : V) := by
   intro hS
   have TP : T.internalize V ⊢ ⌜(θ T M i) 🡒 ((T.solovay M i) ⋎ (⩖ j ∈ {j : M.World | i ≺ j}, T.solovay M j))⌝ :=
     internal_provable_of_outer_provable <| by
       have : 𝗜𝚺₁ ⊢ (θ T M i) 🡒 ((T.solovay M i) ⋎ (⩖ j ∈ {j : M.World | i ≺ j}, T.solovay M j)) :=
-        provable_of_models _ _ fun (V : Type) _ _ ↦ by
+        complete _ _ fun (V : Type) _ _ ↦ by
           simpa [models_iff] using! Θ.disjunction i
       exact Entailment.WeakerThan.pbl this
   have Tθ : T.internalize V ⊢ ⌜θ T M i⌝ :=
@@ -395,7 +395,7 @@ lemma solovay_root_sound [𝗜𝚺₁ ⪯ T] [sound : T.SoundOn (Arithmetic.Hier
               (show Hierarchy 𝚷 1 T.consistentWith.val by simp).strict_mono 𝚺 (show 1 < 2 by simp),
               (show Hierarchy 𝚺 1 (θ T M i) by simp).mono (show 1 ≤ 2 by simp)])
       have : T.Solovay M ℕ i ↔ ℕ ⊧/![] π := by
-        simpa [models_iff] using! consequence_iff.mp (sound! sπ) ℕ inferInstance
+        simpa [models_iff] using! consequence_iff.mp (Theory.Proof.sound sπ) ℕ inferInstance
       simpa [this]
     contradiction
   have : T.Solovay M ℕ M.root.1 ∨ ∃ j, M.root.1 ≺ j ∧ T.Solovay M ℕ j :=
@@ -427,16 +427,16 @@ noncomputable def LO.FirstOrder.Theory.standardProvability.solovaySentences
     T.standardProvability.SolovaySentences M where
   σ := T.solovay M
   SC1 i j ne :=
-    provable_of_models _ _ fun (V : Type) _ _ ↦ by
+    complete _ _ fun (V : Type) _ _ ↦ by
       simpa [models_iff] using! Solovay.exclusive ne
   SC2 i j h :=
-    provable_of_models _ _ fun (V : Type) _ _ ↦ by
+    complete _ _ fun (V : Type) _ _ ↦ by
       simpa [models_iff, standardProvability_def] using! Solovay.consistent h
   SC3 i h :=
-    provable_of_models _ _ fun (V : Type) _ _ ↦ by
+    complete _ _ fun (V : Type) _ _ ↦ by
       simpa [models_iff, standardProvability_def] using! Solovay.box_disjunction h
   SC4 :=
-    provable_of_models _ _ fun (V : Type) _ _ ↦ by
+    complete _ _ fun (V : Type) _ _ ↦ by
       simpa [models_iff] using! disjunctive
 
 

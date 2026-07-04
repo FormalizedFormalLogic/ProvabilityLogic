@@ -10,9 +10,9 @@ Port of `Foundation.ProvabilityLogic.S.Soundness` and
 `Foundation.ProvabilityLogic.S.Completeness` (Theorem 3 in [AB05]) to SeqPL.
 
 Main results:
-- `LogicS.arithmetical_soundness`: if `A ∈ LogicS` then `ℕ ⊧ₘ f A` for every realization `f`.
+- `LogicS.arithmetical_soundness`: if `A ∈ LogicS` then `ℕ↓[ℒₒᵣ] ⊧ f A` for every realization `f`.
 - `LogicS.arithmetical_completeness_iff`:
-  `A ∈ LogicS ↔ ∀ f : StandardRealization α T, ℕ ⊧ₘ f A` for any sound theory `T`.
+  `A ∈ LogicS ↔ ∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A` for any sound theory `T`.
 - `LogicS.eq_provabilityLogicRelativeTo_TA`: `LogicS` is the provability logic of `T`
   relative to the true arithmetic `𝗧𝗔`.
 
@@ -42,23 +42,23 @@ namespace LogicS
 section soundness
 
 variable {T₀ T : FirstOrder.ArithmeticTheory} [T₀ ⪯ T] [Diagonalization T₀]
-         {𝔅 : Provability T₀ T} [𝔅.HBL] [ℕ ⊧ₘ* T] [𝔅.SoundOn ℕ]
+         {𝔅 : Provability T₀ T} [𝔅.HBL] [ℕ↓[ℒₒᵣ] ⊧* T] [𝔅.SoundOn ℕ]
 
 /--
   **Arithmetical soundness of S** (Theorem 3 in [AB05], soundness half):
   every theorem of `S` is true in the standard model `ℕ` under every realization
   of a provability predicate for a sound theory.
 -/
-theorem arithmetical_soundness (h : A ∈ LogicS) (f : Realization α 𝔅) : ℕ ⊧ₘ f A := by
+theorem arithmetical_soundness (h : A ∈ LogicS) (f : Realization α 𝔅) : ℕ↓[ℒₒᵣ] ⊧ f A := by
   induction h using LogicS.substlessInduction with
   | provable_GL h =>
     exact models_of_provable inferInstance (LogicGL.arithmetical_soundness' h);
   | axiomT =>
-    simp only [Formula.interpret, Models, LO.Semantics.Imp.models_imply];
+    simp only [Formula.interpret, models_iff, LO.Semantics.Imp.models_imply];
     intro h;
     exact models_of_provable inferInstance (𝔅.sound_on h);
   | mdp ihAB ihA =>
-    simp only [Formula.interpret, Models, LO.Semantics.Imp.models_imply] at ihAB;
+    simp only [Formula.interpret, models_iff, LO.Semantics.Imp.models_imply] at ihAB;
     exact ihAB ihA;
 
 end soundness
@@ -69,7 +69,7 @@ section completeness
 open LO.FirstOrder.ProvabilityAbstraction.Provability
 open LO.FirstOrder.Arithmetic.Bootstrapping
 
-variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ ⊧ₘ* T]
+variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ↓[ℒₒᵣ] ⊧* T]
 
 /--
   **Arithmetical completeness of S** (Theorem 3 in [AB05], completeness half):
@@ -83,8 +83,8 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ �
   (`SolovaySentences.rfl_mainlemma`).
 -/
 theorem arithmetical_completeness [DecidableEq α]
-    (H : ∀ f : StandardRealization α T, ℕ ⊧ₘ f A) : A ∈ LogicS := by
-  haveI : ℕ ⊧ₘ* 𝗜𝚺₁ := models_of_subtheory (U := 𝗜𝚺₁) (T := T) (M := ℕ) inferInstance;
+    (H : ∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A) : A ∈ LogicS := by
+  haveI : ℕ↓[ℒₒᵣ] ⊧* 𝗜𝚺₁ := models_of_subtheory (T := 𝗜𝚺₁) (U := T) (M := ℕ) inferInstance;
   contrapose! H;
   replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_S_provable_GL.not.mp H;
   push Not at H;
@@ -98,22 +98,22 @@ theorem arithmetical_completeness [DecidableEq α]
     exact ⟨B, FormulaFinset.iff_mem_prebox_mem.mpr hB, rfl⟩;
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences T (M.extendRoot 1);
   refine ⟨S.realization, ?_⟩;
-  have h₁ : ℕ ⊧ₘ (S.σ (M.extendRoot 1).root.1 🡒 ∼(A.interpret S.realization)) :=
+  have h₁ : ℕ↓[ℒₒᵣ] ⊧ (S.σ (M.extendRoot 1).root.1 🡒 ∼(A.interpret S.realization)) :=
     models_of_provable inferInstance
       (SolovaySentences.rfl_mainlemma ha Formula.mem_subfmls_self |>.2 hA₂);
-  have h₂ : ℕ ⊧ₘ S.σ (M.extendRoot 1).root.1 := by
+  have h₂ : ℕ↓[ℒₒᵣ] ⊧ S.σ (M.extendRoot 1).root.1 := by
     simpa [S, models_iff, LO.FirstOrder.Theory.standardProvability.solovaySentences] using!
       SolovaySentences.solovay_root_sound (T := T) (M := M.extendRoot 1);
-  simp only [Models, LO.Semantics.Not.models_not, LO.Semantics.Imp.models_imply] at h₁;
+  simp only [models_iff, LO.Semantics.Not.models_not, LO.Semantics.Imp.models_imply] at h₁;
   exact h₁ h₂;
 
 /--
   **Arithmetical characterization of S** (Theorem 3 in [AB05]): for any sound theory `T`
-  (i.e. `ℕ ⊧ₘ* T`) extending `𝗜𝚺₁`, `S ⊢ A` iff `f A` is true in `ℕ` for every
+  (i.e. `ℕ↓[ℒₒᵣ] ⊧* T`) extending `𝗜𝚺₁`, `S ⊢ A` iff `f A` is true in `ℕ` for every
   standard realization `f` for `T`.
 -/
 theorem arithmetical_completeness_iff [DecidableEq α] :
-    A ∈ LogicS ↔ (∀ f : StandardRealization α T, ℕ ⊧ₘ f A) :=
+    A ∈ LogicS ↔ (∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A) :=
   ⟨fun h f => arithmetical_soundness h f, arithmetical_completeness⟩
 
 /-- `LogicS` is the provability logic of `T` relative to the true arithmetic `𝗧𝗔`. -/

@@ -355,7 +355,7 @@ end
 variable {T₀ T U : FirstOrder.ArithmeticTheory} [T.Δ₁] {A B : LetterlessFormula}
 
 @[grind]
-def Regular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (A : LetterlessFormula) := ℕ ⊧ₘ A.interpret T.standardProvability
+def Regular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (A : LetterlessFormula) := ℕ↓[ℒₒᵣ] ⊧ A.interpret T.standardProvability
 
 @[simp, grind .]lemma regular_bot : ¬(Regular T ⊥) := by grind;
 @[simp, grind .]lemma regular_top : Regular T ⊤ := by grind;
@@ -384,7 +384,7 @@ def Singular (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (A : LetterlessFormula)
 @[grind =] lemma singular_or  : Singular T (A ⋎ B) ↔ (Singular T A ∧ Singular T B) := by grind;
 @[grind =] lemma singular_neg : Singular T (∼A) ↔ ¬(Singular T A) := by grind;
 
-variable [ℕ ⊧ₘ* T]
+variable [ℕ↓[ℒₒᵣ] ⊧* T]
 variable {n : ℕ}
 
 @[grind .]
@@ -434,7 +434,7 @@ lemma spectrum_subset_of_mem (h : A ∈ X) : X.spectrum ⊆ A.spectrum := by
   apply Set.mem_iInter.mp hi A;
   grind;
 
-variable [ℕ ⊧ₘ* T]
+variable [ℕ↓[ℒₒᵣ] ⊧* T]
 
 @[simp, grind =_]
 lemma eq_trace_singleton : trace {A} = LetterlessFormula.trace A := by
@@ -465,7 +465,7 @@ section
 open LetterlessFormula (interpret)
 
 variable
-  {T₀ T : FirstOrder.ArithmeticTheory} [ℕ ⊧ₘ* T] [T.Δ₁] [𝗜𝚺₁ ⪯ T]
+  {T₀ T : FirstOrder.ArithmeticTheory} [ℕ↓[ℒₒᵣ] ⊧* T] [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   {A B : LetterlessFormula}
 
 axiom letterless_arithmetical_completeness [𝗜𝚺₁ ⪯ T] : A ∈ LogicGL ↔ T ⊢ A.interpret T.standardProvability
@@ -475,7 +475,7 @@ namespace LetterlessFormula
 @[grind →]
 lemma iff_regular_of_provable_iff (h : A 🡘 B ∈ LogicGL) : A.Regular T ↔ B.Regular T := by
   have : T ⊢  interpret _ (A 🡘 B) := letterless_arithmetical_completeness (T := T) |>.mp h;
-  have : ℕ ⊧ₘ interpret _ (A 🡘 B) := FirstOrder.ArithmeticTheory.SoundOn.sound (F := λ _ => True) this $ by simp;
+  have : ℕ↓[ℒₒᵣ] ⊧ interpret _ (A 🡘 B) := FirstOrder.ArithmeticTheory.SoundOn.sound (F := λ _ => True) this $ by simp;
   grind;
 
 @[grind →]
@@ -818,7 +818,7 @@ end
 
 section
 
-variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁] [ℕ ⊧ₘ* T]
+variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁] [ℕ↓[ℒₒᵣ] ⊧* T]
 
 lemma lconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaList α}
     (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by
@@ -838,10 +838,10 @@ lemma fconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaFinset �
   intro B hB
   exact h B (Finset.mem_toList.mp hB)
 
-omit [ℕ ⊧ₘ* T] in
+omit [ℕ↓[ℒₒᵣ] ⊧* T] in
 open Classical in
 theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
-  ((@LogicGL α) +ᴸ ↑X) = T.provabilityLogicRelativeTo (T + (X.image (LetterlessFormula.standardInterpret T))) := by
+  ((@LogicGL α) +ᴸ ↑X) = T.provabilityLogicRelativeTo (T ∪ (X.image (LetterlessFormula.standardInterpret T))) := by
   ext A;
   simp [FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo];
   constructor;
@@ -853,7 +853,7 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
       obtain ⟨C, hC, rfl⟩ := hB;
       rw [LetterlessFormula.interpret_lift];
       apply Entailment.by_axm;
-      simp only [FirstOrder.Theory.add_def];
+      simp only [Set.mem_union];
       exact Or.inr ⟨C, hC, rfl⟩;
     | @mdp B C _ _ ihBC ihB => intro f; exact (ihBC f) ⨀ (ihB f)
     | @subst B s _ ihB => intro f; rw [Formula.interpret_subst]; exact ihB _
@@ -888,14 +888,14 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ha) hb;
 
 theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {Alpha : Set ℕ}
-  : LogicGLAlpha (α := α) Alpha = T.provabilityLogicRelativeTo (T + (Alpha.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
+  : LogicGLAlpha (α := α) Alpha = T.provabilityLogicRelativeTo (T ∪ (Alpha.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
   suffices (LetterlessFormula.standardInterpret T '' TBB '' Alpha) = (Alpha.image (λ i => LetterlessFormula.standardInterpret T (TBB i))) by
     exact this ▸ (letterless_provabilityLogic (X := Alpha.image TBB));
   ext i;
   simp;
 
 theorem LogicA.eq_provabilityLogicRelativeTo
-  : LogicA (α := α) = T.provabilityLogicRelativeTo (T + (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
+  : LogicA (α := α) = T.provabilityLogicRelativeTo (T ∪ (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
   apply LogicGLAlpha.eq_provabilityLogicRelativeTo;
 
 end

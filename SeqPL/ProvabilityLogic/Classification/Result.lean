@@ -182,7 +182,7 @@ open LetterlessFormula
 /-- `U` extended by the standard `T`-interpretations of `TBB n` for `n ∈ N`. -/
 noncomputable abbrev _root_.LO.FirstOrder.ArithmeticTheory.addTBB
     (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] (N : Set ℕ) : FirstOrder.ArithmeticTheory :=
-  U + (N.image (fun n => LetterlessFormula.standardInterpret T (TBB n)))
+  U ∪ (N.image (fun n => LetterlessFormula.standardInterpret T (TBB n)))
 
 variable {N : Set ℕ}
 
@@ -207,7 +207,7 @@ lemma provable_TBB_addTBB_of_mem {n : ℕ} (hn : n ∈ N) :
   intro f;
   rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
   apply Entailment.by_axm;
-  simp only [FirstOrder.Theory.add_def];
+  simp only [Set.mem_union];
   exact Or.inr ⟨n, hn, rfl⟩;
 
 omit [DecidableEq α] in
@@ -471,7 +471,7 @@ section trueArith
   Corollary 41(i) in [AB05], the `⇐` direction (Solovay's second theorem): the truth
   provability logic of a sound theory is `S`.
 -/
-theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ ⊧ₘ* T] :
+theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒᵣ] ⊧* T] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
     L = LogicS := by
   have hSL : (LogicS : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := fun A hA f =>
@@ -498,22 +498,22 @@ theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ ⊧ₘ* T] 
 -/
 theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicS ↔ ℕ ⊧ₘ* T := by
+    L = LogicS ↔ ℕ↓[ℒₒᵣ] ⊧* T := by
   constructor;
   . intro h;
-    apply modelsTheory_iff.mpr;
+    apply LO.Semantics.modelsSet_iff.mpr;
     intro φ hφ;
     obtain ⟨p⟩ := ‹Nonempty α›;
     -- the reflection principle for `T` is true, and axioms of `T` are provable
     have hax : ((□(#p)) 🡒 (#p)) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       rw [h];
       exact LogicS.provable_axiomT;
-    have hrfl : ℕ ⊧ₘ ((T.standardProvability φ) 🡒 φ) :=
+    have hrfl : ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability φ) 🡒 φ) :=
       Arithmetic.TA.provable_iff.mp
         (hax ⟨fun _ => φ⟩);
-    have hprov : ℕ ⊧ₘ (T.standardProvability φ) :=
-      models_of_provable inferInstance (T.standardProvability.D1 (Entailment.by_axm _ hφ));
-    have himp : ℕ ⊧ₘ (T.standardProvability φ) → ℕ ⊧ₘ φ := by simpa using hrfl;
+    have hprov : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability φ) :=
+      models_of_provable inferInstance (T.standardProvability.D1 (Entailment.by_axm hφ));
+    have himp : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability φ) → ℕ↓[ℒₒᵣ] ⊧ φ := by simpa using hrfl;
     exact himp hprov;
   . intro h;
     exact eq_provabilityLogic_TA_LogicS_of_sound;
@@ -528,7 +528,7 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
 -/
 theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ ⊧ₘ* T)) := by
+    L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T)) := by
   sorry
 
 /--
@@ -563,7 +563,7 @@ theorem classification_provabilityLogic_TA [DecidableEq α] [Nonempty α] :
     ∃ n : ℕ, L = LogicGLBetaMinus {n}ᶜ (by simp) := by
   by_cases hheight : T.height = (⊤ : ℕ∞);
   . by_cases hSig : T.SoundOnHierarchy 𝚺 1;
-    . by_cases hsound : ℕ ⊧ₘ* T;
+    . by_cases hsound : ℕ↓[ℒₒᵣ] ⊧* T;
       . exact Or.inl eq_provabilityLogic_TA_LogicS_of_sound;
       . exact Or.inr (Or.inl (eq_provabilityLogic_TA_LogicD_iff.mpr ⟨hSig, hsound⟩));
     . exact Or.inr (Or.inr (Or.inl
