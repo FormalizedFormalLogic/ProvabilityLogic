@@ -9,9 +9,15 @@ public section
 
 lemma ProvableHilbert.subst {A : Formula α} {s : Formula.Substitution α} (h : ⊢ʰ A) : ⊢ʰ A⟦s⟧ := by
   induction h using ProvableHilbert.rec with
-  | prop1 => exact ProvableHilbert.prop1
-  | prop2 => exact ProvableHilbert.prop2
-  | prop3 => exact ProvableHilbert.prop3
+  | implyK => exact ProvableHilbert.implyK
+  | implyS => exact ProvableHilbert.implyS
+  | dne => exact ProvableHilbert.dne
+  | andElimL => exact ProvableHilbert.andElimL
+  | andElimR => exact ProvableHilbert.andElimR
+  | andIntro => exact ProvableHilbert.andIntro
+  | orIntroL => exact ProvableHilbert.orIntroL
+  | orIntroR => exact ProvableHilbert.orIntroR
+  | orElim => exact ProvableHilbert.orElim
   | modalK => exact ProvableHilbert.modalK
   | modal4 => exact ProvableHilbert.modal4
   | modalL => exact ProvableHilbert.modalL

@@ -135,9 +135,9 @@ def orR : ⊢ᵍ! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ! (Γ ⟹ insert (
   apply negL;
   simpa;
 
-def axiomŁ1 : ⊢ᵍ! (∅ ⟹ {A 🡒 B 🡒 A}) := deductionTheorem $ deductionTheorem $ union A
+def implyK : ⊢ᵍ! (∅ ⟹ {A 🡒 B 🡒 A}) := deductionTheorem $ deductionTheorem $ union A
 
-def axiomŁ2 : ⊢ᵍ! (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := by
+def implyS : ⊢ᵍ! (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
   apply deductionTheorem;
@@ -146,39 +146,88 @@ def axiomŁ2 : ⊢ᵍ! (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 
   . exact impL (union A) (union A);
   . exact impL (impL (union A) (union B)) (union C);
 
-def axiomŁ3 : ⊢ᵍ! (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := by
+def elimContra : ⊢ᵍ! (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
   rw [(show insert B (insert (∼A 🡒 ∼B) ∅) = ({∼A 🡒 ∼B, B}) by grind)];
   exact impL (negR $ union A) (negL $ union B);
 
-def axiomK : ⊢ᵍ! (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := by
+def modalK : ⊢ᵍ! (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := by
   apply deductionTheorem;
   apply deductionTheorem;
   rw [(show insert (□A) (insert (□(A 🡒 B)) ∅) = (FormulaFinset.box {A, (A 🡒 B)}) by grind)];
   apply boxGL;
   apply mdpL_mem A B;
 
-def axiom4 : ⊢ᵍ! (∅ ⟹ {(□A 🡒 □□A)}) := by
+def modal4 : ⊢ᵍ! (∅ ⟹ {(□A 🡒 □□A)}) := by
   apply deductionTheorem;
   rw [(show (insert (□A) ∅) = FormulaFinset.box {A} by grind)];
   apply boxGL;
   apply union (□A);
 
-def axiomL : ⊢ᵍ! (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := by
+def modalL : ⊢ᵍ! (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := by
   apply deductionTheorem;
   rw [(show (insert (□(□A 🡒 A)) ∅) = FormulaFinset.box {□A 🡒 A} by grind)];
   apply boxGL;
   apply mdpL_mem (□A) A;
 
-def ruleNec : ⊢ᵍ! (∅ ⟹ {A}) → ⊢ᵍ! (∅ ⟹ {□A}) := λ p => boxGL (Γ := ∅) $ wkL p
+def nec : ⊢ᵍ! (∅ ⟹ {A}) → ⊢ᵍ! (∅ ⟹ {□A}) := λ p => boxGL (Γ := ∅) $ wkL p
+
+/-- Double negation elimination (`Minimal + DNE` primitive). -/
+def dne : ⊢ᵍ! (∅ ⟹ {∼∼A 🡒 A}) := by
+  apply deductionTheorem;
+  exact negL (negR (axm A));
+
+/-- Left conjunction elimination. -/
+def andElimL : ⊢ᵍ! (∅ ⟹ {(A ⋏ B) 🡒 A}) := by
+  apply deductionTheorem;
+  apply andL;
+  apply union A;
+
+/-- Right conjunction elimination. -/
+def andElimR : ⊢ᵍ! (∅ ⟹ {(A ⋏ B) 🡒 B}) := by
+  apply deductionTheorem;
+  apply andL;
+  apply union B;
+
+/-- Conjunction introduction. -/
+def andIntro : ⊢ᵍ! (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := by
+  apply deductionTheorem;
+  apply deductionTheorem;
+  rw [← insert_empty_eq];
+  apply andR;
+  . apply union A;
+  . apply union B;
+
+/-- Left disjunction introduction. -/
+def orIntroL : ⊢ᵍ! (∅ ⟹ {A 🡒 (A ⋎ B)}) := by
+  apply deductionTheorem;
+  rw [← insert_empty_eq];
+  apply orR;
+  apply union A;
+
+/-- Right disjunction introduction. -/
+def orIntroR : ⊢ᵍ! (∅ ⟹ {B 🡒 (A ⋎ B)}) := by
+  apply deductionTheorem;
+  rw [← insert_empty_eq];
+  apply orR;
+  apply union B;
+
+/-- Disjunction elimination. -/
+def orElim : ⊢ᵍ! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := by
+  apply deductionTheorem;
+  apply deductionTheorem;
+  apply deductionTheorem;
+  apply orL;
+  . apply mdpL_mem A C;
+  . apply mdpL_mem B C;
 
 /-
-#eval axiomŁ1 (A := #0) (B := #1)
-#eval axiomŁ2 (A := #0) (B := #1) (C := #2)
-#eval axiomŁ3 (A := #0) (B := #1)
-#eval axiom4 (A := #0)
-#eval axiomL (A := #0)
+#eval implyK (A := #0) (B := #1)
+#eval implyS (A := #0) (B := #1) (C := #2)
+#eval elimContra (A := #0) (B := #1)
+#eval modal4 (A := #0)
+#eval modalL (A := #0)
 -/
 
 end ProofGentzen
@@ -218,13 +267,20 @@ lemma negL (h : ⊢ᵍ (Γ ⟹ insert A Δ)) : ⊢ᵍ (insert (∼A) Γ ⟹ Δ) 
 lemma negR (h : ⊢ᵍ (insert A Γ ⟹ Δ)) : ⊢ᵍ (Γ ⟹ insert (∼A) Δ) :=
   ⟨ProofGentzen.negR h.some⟩
 
-lemma axiomŁ1 : ⊢ᵍ (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨ProofGentzen.axiomŁ1⟩
-lemma axiomŁ2 : ⊢ᵍ (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨ProofGentzen.axiomŁ2⟩
-lemma axiomŁ3 : ⊢ᵍ (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := ⟨ProofGentzen.axiomŁ3⟩
-lemma axiomK  : ⊢ᵍ (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := ⟨ProofGentzen.axiomK⟩
-lemma axiom4  : ⊢ᵍ (∅ ⟹ {(□A 🡒 □□A)}) := ⟨ProofGentzen.axiom4⟩
-lemma axiomL  : ⊢ᵍ (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := ⟨ProofGentzen.axiomL⟩
-lemma ruleNec : ⊢ᵍ (∅ ⟹ {A}) → ⊢ᵍ (∅ ⟹ {□A}) := λ ⟨p⟩ => ⟨ProofGentzen.ruleNec p⟩
+lemma implyK : ⊢ᵍ (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨ProofGentzen.implyK⟩
+lemma implyS : ⊢ᵍ (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨ProofGentzen.implyS⟩
+lemma elimContra : ⊢ᵍ (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := ⟨ProofGentzen.elimContra⟩
+lemma modalK  : ⊢ᵍ (∅ ⟹ {(□(A 🡒 B) 🡒 (□A 🡒 □B))}) := ⟨ProofGentzen.modalK⟩
+lemma modal4  : ⊢ᵍ (∅ ⟹ {(□A 🡒 □□A)}) := ⟨ProofGentzen.modal4⟩
+lemma modalL  : ⊢ᵍ (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := ⟨ProofGentzen.modalL⟩
+lemma nec : ⊢ᵍ (∅ ⟹ {A}) → ⊢ᵍ (∅ ⟹ {□A}) := λ ⟨p⟩ => ⟨ProofGentzen.nec p⟩
+lemma dne : ⊢ᵍ (∅ ⟹ {∼∼A 🡒 A}) := ⟨ProofGentzen.dne⟩
+lemma andElimL : ⊢ᵍ (∅ ⟹ {(A ⋏ B) 🡒 A}) := ⟨ProofGentzen.andElimL⟩
+lemma andElimR : ⊢ᵍ (∅ ⟹ {(A ⋏ B) 🡒 B}) := ⟨ProofGentzen.andElimR⟩
+lemma andIntro : ⊢ᵍ (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := ⟨ProofGentzen.andIntro⟩
+lemma orIntroL : ⊢ᵍ (∅ ⟹ {A 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroL⟩
+lemma orIntroR : ⊢ᵍ (∅ ⟹ {B 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroR⟩
+lemma orElim : ⊢ᵍ (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := ⟨ProofGentzen.orElim⟩
 
 /-- Invertibility of `impR` (a purely syntactic proof transformation, see `ProofGentzen.impRInv`). -/
 lemma impR_inv {S : Sequent α} (h : ⊢ᵍ S) : ⊢ᵍ (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B))) := ⟨h.some.impRInv A B⟩
