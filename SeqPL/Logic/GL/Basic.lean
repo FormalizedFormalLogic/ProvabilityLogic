@@ -4,6 +4,7 @@ public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PointGenerate
+public import SeqPL.Kripke.Unravelling
 public import Mathlib.Tactic.TFAE
 
 @[expose]
@@ -21,7 +22,8 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ᵍ (∅ ⟹ {A}),
   ⊢ᵍᶜ (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩ A
 ].TFAE
   := by
   tfae_have 1 ↔ 2 := by grind;
@@ -41,6 +43,12 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   tfae_have 6 → 5 := by
     intro h κ _ M _ x;
     exact Model.toRootedModel.forces_same_at_root.mp $ h (M.toRootedModel x);
+  tfae_have 6 → 7 := by
+    intro h κ _ M _;
+    exact h M;
+  tfae_have 7 → 6 := by
+    intro h κ _ M _;
+    exact (RootedModel.unravelling.modal_equivalence_root (M := M)).mp $ h M.unravelling;
   tfae_finish;
 
 theorem iff_provableHilbert [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ʰ A :=
@@ -59,6 +67,14 @@ theorem iff_forces [DecidableEq α] {A : Formula α} :
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
     A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A :=
   provability_TFAE.out 0 5
+
+/-- GL-provability is characterized by validity over the (smaller) class of finite
+GL *tree* models (`IsFiniteGLTree`): it suffices to check finite GL-models that
+are trees. -/
+theorem iff_forces_root_tree [DecidableEq α] {A : Formula α} :
+    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] →
+      M.root.1 ⊩ A :=
+  provability_TFAE.out 0 6
 
 theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :
     ⊢ᵍ (∅ ⟹ {A}) → ⊢ʰ A :=

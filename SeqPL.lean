@@ -23,6 +23,7 @@ public import SeqPL.Kripke.RootExtension
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Simplification
 public import SeqPL.Kripke.Tail
+public import SeqPL.Kripke.Unravelling
 public import SeqPL.Logic.A.Basic
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic

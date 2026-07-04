@@ -38,8 +38,17 @@ namespace RootedModel
   whenever `x ≺ z` and `y ≺ z`, `x` and `y` are comparable. This is the standing
   assumption on "GL-models" in the classification literature ([Bek90], [12]).
 -/
-def IsTree (M : RootedModel κ α) : Prop :=
-  ∀ x y z : M.World, x ≺ z → y ≺ z → x = y ∨ x ≺ y ∨ y ≺ x
+class IsTree (M : RootedModel κ α) : Prop where
+  tree : ∀ x y z : M.World, x ≺ z → y ≺ z → x = y ∨ x ≺ y ∨ y ≺ x
+
+/--
+  A *finite GL tree* model: a finite GL-model whose frame is a tree. This is the
+  model class of the classical "GL-models" in the classification literature
+  ([Bek90], [12]): finite irreflexive transitive trees.
+-/
+class IsFiniteGLTree (M : RootedModel κ α) : Prop extends Model.IsFiniteGL M.toModel, IsTree M
+
+instance {M : RootedModel κ α} [M.IsFiniteGL] [M.IsTree] : M.IsFiniteGLTree where
 
 variable {M : RootedModel κ α} {P : Finset α}
 
@@ -101,8 +110,8 @@ instance (a : M.NonRoot) : Std.Irrefl (M.removeCone a).Rel :=
 omit [DecidableEq α] in
 lemma isTree {a : M.NonRoot} (hTree : M.IsTree) :
     (M.removeCone a).IsTree := by
-  rintro x y z hxz hyz;
-  rcases hTree x.1 y.1 z.1 hxz hyz with h | h | h;
+  refine ⟨fun x y z hxz hyz => ?_⟩;
+  rcases hTree.tree x.1 y.1 z.1 hxz hyz with h | h | h;
   . exact Or.inl (Subtype.ext h);
   . exact Or.inr (Or.inl h);
   . exact Or.inr (Or.inr h);
@@ -151,7 +160,7 @@ theorem forces_iff {a : M.NonRoot} (hTree : M.IsTree) (hred : Redundant M P a.1)
         have hxa : x ≺ a.1 := by
           rcases hzS with rfl | haz;
           . exact hxz;
-          . rcases hTree x a.1 z hxz haz with (rfl | hxa | hax);
+          . rcases hTree.tree x a.1 z hxz haz with (rfl | hxa | hax);
             . exact absurd (Or.inl rfl) hx;
             . exact hxa;
             . exact absurd (Or.inr hax) hx;
@@ -166,7 +175,7 @@ theorem forces_iff {a : M.NonRoot} (hTree : M.IsTree) (hred : Redundant M P a.1)
           have hz'nS : ¬ z'.IsSuccessorOf a.1 := by
             rintro (rfl | haz');
             . exact hyna hyz';
-            . rcases hTree y a.1 z' hyz' haz' with (hya | hya | hya);
+            . rcases hTree.tree y a.1 z' hyz' haz' with (hya | hya | hya);
               . exact hyne hya;
               . exact hyna hya;
               . exact hnay hya;
@@ -231,13 +240,13 @@ private lemma graftChainOmega.isTree_aux {M : RootedModel κ α} [M.IsFiniteGL] 
     x₀ = M.root.1 ∨ x₀ = a ∨ M.Rel a x₀ := by
   rcases hz with hz | haz;
   . rw [hz] at hx;
-    rcases hTree x₀ M.root.1 a hx Rra with h | h | h;
+    rcases hTree.tree x₀ M.root.1 a hx Rra with h | h | h;
     . exact Or.inl h;
     . exact absurd h not_rel_root;
     . exact absurd hx (hcov x₀ h);
-  . rcases hTree x₀ a z₀ hx haz with h | h | h;
+  . rcases hTree.tree x₀ a z₀ hx haz with h | h | h;
     . exact Or.inr (Or.inl h);
-    . rcases hTree x₀ M.root.1 a h Rra with h' | h' | h';
+    . rcases hTree.tree x₀ M.root.1 a h Rra with h' | h' | h';
       . exact Or.inl h';
       . exact absurd h' not_rel_root;
       . exact absurd h (hcov x₀ h');
@@ -255,8 +264,9 @@ omit [DecidableEq α] in
 lemma graftChainOmega.isTree {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
     (hTree : M.IsTree) (Rra : M.root.1 ≺ a) (hcov : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a) :
     (M.graftChainOmega a).IsTree := by
+  refine ⟨?_⟩;
   rintro (x₀ | i) (y₀ | j) (z₀ | k) hxz hyz;
-  . rcases hTree x₀ y₀ z₀ hxz hyz with h | h | h;
+  . rcases hTree.tree x₀ y₀ z₀ hxz hyz with h | h | h;
     . exact Or.inl (by rw [h]);
     . exact Or.inr (Or.inl h);
     . exact Or.inr (Or.inr h);
