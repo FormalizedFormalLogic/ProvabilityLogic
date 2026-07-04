@@ -19,14 +19,14 @@ lemma LogicGLPlusBoxBot.iff_provable_provable_GL {n : ℕ} : A ∈ LogicGLPlusBo
   . intro h;
     induction h with
     | mem₁ hA =>
-      sorry;
+      exact ProvableHilbert.af hA;
     | mem₂ hB =>
-      sorry;
+      subst hB;
+      exact ProvableHilbert.impId;
     | mdp _ _ ihAB ihA =>
-      sorry;
+      exact ProvableHilbert.mdp (ProvableHilbert.mdp ProvableHilbert.prop2 ihAB) ihA;
     | subst _ ihA =>
-
-      sorry;
+      simpa using ProvableHilbert.subst ihA;
   . intro h;
     apply Logic.sumQuasiNormal.mdp;
     . exact Logic.sumQuasiNormal.mem₁ h;
