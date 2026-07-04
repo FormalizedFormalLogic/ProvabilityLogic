@@ -196,6 +196,35 @@ lemma height_eq (Rra : M.root.1 ≺ a)
         refine ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1) ?_ (relItr_inl ht)⟩;
         simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
 
+/-- `inl` preserves the rank of non-root worlds. -/
+lemma rank_inl [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL]
+    {x : M.World} (hx : x ≠ M.root.1) :
+    Model.World.rank (M := (M.graftChain a k).toModel) (.inl x) = Model.World.rank x := by
+  apply le_antisymm;
+  . apply Nat.lt_succ_iff.mp;
+    apply Model.iff_rank_lt.mpr;
+    intro w hw;
+    obtain ⟨y, rfl, hxy, -⟩ := relItr_from_inl hx hw;
+    exact Model.iff_rank_lt.mp (Nat.lt_succ_self _) y hxy;
+  . apply Model.iff_le_rank.mpr;
+    obtain ⟨t, ht⟩ := Model.exists_rank_terminal x;
+    exact ⟨.inl t, relItr_inl ht⟩;
+
+/-- The rank of the grafted world `inr i` is exactly `i + 1 + a.rank`. -/
+lemma rank_inr [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL]
+    (Rra : M.root.1 ≺ a) {i : Fin k} :
+    Model.World.rank (M := (M.graftChain a k).toModel) (.inr i)
+      = (i : ℕ) + 1 + Model.World.rank a := by
+  apply le_antisymm;
+  . apply Nat.lt_succ_iff.mp;
+    apply Model.iff_rank_lt.mpr;
+    intro w hw;
+    have := relItr_from_inr_le Rra hw;
+    omega;
+  . apply Model.iff_le_rank.mpr;
+    obtain ⟨t, ht⟩ := Model.exists_rank_terminal a;
+    exact ⟨.inl t, Model.relItr_comp inr_relItr_inl_a (relItr_inl ht)⟩;
+
 end Rank
 
 section Mainlemma
