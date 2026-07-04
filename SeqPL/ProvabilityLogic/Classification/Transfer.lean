@@ -1,8 +1,7 @@
 module
 
 public import SeqPL.ProvabilityLogic.Classification.Trace
-public import SeqPL.Formula.Map
-public import SeqPL.Kripke.Map
+public import SeqPL.Kripke.Basic
 
 @[expose] public section
 

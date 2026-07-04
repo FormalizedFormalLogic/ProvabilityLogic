@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Substitution
+public import SeqPL.Formula.Map
 public import SeqPL.Vorspiel.CWF
 public import Mathlib.Data.PNat.Defs
 public import Mathlib.Data.PNat.Basic
@@ -262,6 +263,11 @@ lemma forces_congr {M₁ M₂ : Model κ α} (hR : M₁.Rel' = M₂.Rel')
 abbrev mapModel (M : Model κ β) (f : α → β) : Model κ α where
   Rel' := M.Rel'
   Val' x a := M.Val' x (f a)
+
+/-- Forcing a renamed formula is forcing in the pulled-back model. -/
+lemma forces_map {M : Model κ β} {f : α → β} {A : Formula α} {x : M.World} :
+    x ⊩ A.map f ↔ Model.World.Forces (M := M.mapModel f) x A := by
+  induction A generalizing x <;> grind [Model.World.Forces]
 
 /-- Extending the atom type of a model by a fresh atom which is false everywhere. -/
 abbrev optionExtend (M : Model κ α) : Model κ (Option α) where

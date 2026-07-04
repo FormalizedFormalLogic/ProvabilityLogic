@@ -1,8 +1,6 @@
 module
 
-public import SeqPL.Formula.Letterless
 public import SeqPL.Formula.Substitution
-public import SeqPL.Hilbert.Basic
 
 @[expose]
 public section
@@ -61,21 +59,3 @@ lemma subst_eq_self_of_forall_atoms [DecidableEq α] {s : Substitution α}
     rw [Formula.subst_box, ih (fun a ha => h a (by simpa [Formula.atoms] using ha))];
 
 end Formula
-
-/-- Hilbert provability is preserved under renaming of atoms. -/
-lemma ProvableHilbert.map (f : α → β) {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.map f) := by
-  induction h using ProvableHilbert.rec with
-  | implyK => exact ProvableHilbert.implyK
-  | implyS => exact ProvableHilbert.implyS
-  | dne => exact ProvableHilbert.dne
-  | andElimL => exact ProvableHilbert.andElimL
-  | andElimR => exact ProvableHilbert.andElimR
-  | andIntro => exact ProvableHilbert.andIntro
-  | orIntroL => exact ProvableHilbert.orIntroL
-  | orIntroR => exact ProvableHilbert.orIntroR
-  | orElim => exact ProvableHilbert.orElim
-  | modalK => exact ProvableHilbert.modalK
-  | modal4 => exact ProvableHilbert.modal4
-  | modalL => exact ProvableHilbert.modalL
-  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
-  | nec h ih => exact ProvableHilbert.nec ih

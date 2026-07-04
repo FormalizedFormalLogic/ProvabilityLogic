@@ -14,7 +14,6 @@ public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
-public import SeqPL.Kripke.Map
 public import SeqPL.Kripke.Overwrite
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Preservation
