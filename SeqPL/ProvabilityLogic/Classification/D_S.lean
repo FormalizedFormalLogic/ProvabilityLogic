@@ -1,6 +1,7 @@
 module
 
-public import SeqPL.ProvabilityLogic.Classification.Transfer
+public import SeqPL.Logic.D.Basic
+public import SeqPL.ProvabilityLogic.Classification.Trace
 
 @[expose] public section
 
