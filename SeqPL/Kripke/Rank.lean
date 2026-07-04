@@ -181,6 +181,8 @@ lemma iff_height_lt_root_forces_boxItr_bot : M.height < n ↔ M.root.1 ⊩ (□^
 
 namespace extendRoot
 
+open RootedModel.extendRoot (embed)
+
 variable {n : ℕ+}
 
 @[simp, grind .]

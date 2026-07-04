@@ -29,13 +29,9 @@ lemma LogicD.not_provable_map_some [DecidableEq α] {A : Formula α}
   have hall := LogicD.provability_TFAE (A := A.map some) |>.out 0 1 |>.mp hc;
   have hfrc := hall (κ := κ) (M.optionExtend) r
     (fun a => match a with | some a => o a | none => False);
-  have e : Model.World.Forces
-      (M := ((M.optionExtend).toPseudoTail r
-        (fun a => match a with | some a => o a | none => False)).toModel)
-      (((M.optionExtend).toPseudoTail r
-        (fun a => match a with | some a => o a | none => False)).root.1) (A.map some)
-      ↔ Model.World.Forces (M := (M.toPseudoTail r o).toModel)
-        ((M.toPseudoTail r o).root.1) A := by
+  have e : ((M.optionExtend).toPseudoTail r
+        (fun a => match a with | some a => o a | none => False)).root.1 ⊩ (A.map some)
+      ↔ (M.toPseudoTail r o).root.1 ⊩ A := by
     apply Iff.trans Model.forces_map;
     apply Model.forces_congr rfl;
     intro x a;

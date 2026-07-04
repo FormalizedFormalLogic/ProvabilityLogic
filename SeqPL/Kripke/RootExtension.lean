@@ -52,7 +52,8 @@ namespace RootedModel.extendRoot
 
 variable {M : RootedModel κ α} {n : ℕ+} {x y : M.World}
 
-def embed (x : M.World) : (M.extendRoot n).World := .inl x
+protected def embed (x : M.World) : (M.extendRoot n).World := .inl x
+open RootedModel.extendRoot (embed)
 instance : Coe M.World (M.extendRoot n).World := ⟨embed⟩
 
 @[grind =]
@@ -262,6 +263,7 @@ end
 namespace RootedModel.extendRoot
 
 open Model.World
+open RootedModel.extendRoot (embed)
 
 variable {M : RootedModel κ α} {n : ℕ+}
 

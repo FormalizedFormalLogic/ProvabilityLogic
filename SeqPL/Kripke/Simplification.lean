@@ -144,7 +144,7 @@ end Finite
 theorem forces_iff {a : M.NonRoot} (hTree : M.IsTree) (hred : Redundant M P a.1) :
   ∀ {C : Formula α}, C.atoms ⊆ P →
   ∀ x : (M.removeCone a).World,
-  Model.World.Forces (M := (M.removeCone a).toModel) x C ↔ x.1 ⊩ C := by
+  x ⊩ C ↔ x.1 ⊩ C := by
   intro C;
   induction C with
   | atom => tauto;

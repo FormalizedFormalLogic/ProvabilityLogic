@@ -43,6 +43,7 @@ open LO.Entailment
 open LO.FirstOrder.ProvabilityAbstraction
 open Model Model.World
 open RootedModel.extendRoot
+open RootedModel.extendRoot (embed)
 
 universe u
 

@@ -29,7 +29,9 @@ variable {κ₁ : Type u₁} [Nonempty κ₁] {M : Model κ₁ α}
 variable {α : Type v} {A B : Formula α}
 
 
-def embed : M.World → (M.uLift.{u₁, u₂}).World := fun x => ⟨x⟩
+protected def embed : M.World → (M.uLift.{u₁, u₂}).World := fun x => ⟨x⟩
+
+open Model.uLift (embed)
 instance : Coe M.World (M.uLift.{u₁, u₂}).World := ⟨embed⟩
 
 @[grind =]
