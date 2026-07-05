@@ -14,6 +14,7 @@ public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.Linearity
 public import SeqPL.Kripke.Overwrite
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Preservation
@@ -33,9 +34,12 @@ public import SeqPL.Logic.GL.CIP
 public import SeqPL.Logic.GL.Fixedpoint
 public import SeqPL.Logic.GL.Letterless
 public import SeqPL.Logic.GLPlusBoxBot.Basic
+public import SeqPL.Logic.GLPoint3.Basic
+public import SeqPL.Logic.GLPoint3.Letterless
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.Boxdot
 public import SeqPL.Logic.S.CIP
+public import SeqPL.Logic.SumNormal
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.A_D
 public import SeqPL.ProvabilityLogic.Classification.D_S
