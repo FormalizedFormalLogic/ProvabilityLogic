@@ -333,6 +333,41 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
     · by_cases hi : i = (⊤ : ℕ∞) <;> simp [hi];
   exact e.mp hfrc;
 
+/--
+  The reflection axiom `T` (`□a 🡒 a` for an atom `a`) is not a theorem of `D`.
+  Counterexample: the pseudo-tail model of the one-point GL model with empty relation
+  and everywhere-true valuation, with the root (ω) valuation making `a` false.  Every
+  world accessible from the root forces `a`, so the root forces `□a`, yet the root itself
+  refutes `a`.  This is the SeqPL analogue of `LO.Modal.D.unprovable_T`. -/
+lemma not_provable_axiomT [DecidableEq α] {a : α} : (□(#a) 🡒 #a : Formula α) ∉ LogicD := by
+  apply LogicD.provability_TFAE.out 0 1 |>.not.mpr;
+  push Not;
+  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => True⟩;
+  haveI : M.IsFiniteGL :=
+    { trans := fun _ _ _ hf _ => hf.elim
+      irrefl := fun _ hf => hf
+      finite := inferInstance };
+  use PUnit.{u + 1}, inferInstance, M;
+  constructor;
+  . exact {
+      trans := fun _ _ _ hf _ => hf.elim
+      irrefl := fun _ hf => hf
+      finite := inferInstance
+    };
+  . use PUnit.unit, fun _ => False;
+    grind;
+
 end LogicD
+
+/-- `D` is a proper sublogic of `S`: it is contained in `S` (`LogicS_subset_LogicD`)
+but does not prove the reflection axiom `T`, which `S` does. -/
+lemma LogicD_ssubset_LogicS [Inhabited α] [DecidableEq α] : (LogicD : Logic α) ⊂ LogicS := by
+  constructor;
+  . exact LogicS_subset_LogicD;
+  . apply Set.not_subset_iff_exists_mem_notMem.mpr;
+    use (□#default 🡒 #default);
+    constructor;
+    . exact LogicS.provable_axiomT;
+    . exact LogicD.not_provable_axiomT;
 
 end
