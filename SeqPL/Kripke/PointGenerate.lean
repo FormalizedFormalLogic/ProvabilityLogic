@@ -25,6 +25,9 @@ lemma isSuccessorOf_of_isSuccessorOf [IsTrans _ M.Rel] (h : x.IsSuccessorOf r) (
   . right; assumption;
   . right; trans x <;> assumption;
 
+@[grind]
+def IsProperPredecessorOf (x r : M.World) : Prop := x ≠ r ∧ x ≺ r
+
 end World
 
 
