@@ -31,6 +31,13 @@ lemma sumQuasiNormal_subset : (L₁ +ᴸ L₂) ⊆ (L₁ ⊕ᴸ L₂) := by
   | mdp _ _ ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA;
   | subst _ ih => exact Logic.sumNormal.subst ih;
 
+/-- Implication transitivity inside a normal sum, given the transitivity tautology in the
+left summand. -/
+lemma imp_trans {C : Formula α}
+    (htaut : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 A 🡒 C) ∈ L₁)
+    (hAB : (A 🡒 B) ∈ L₁ ⊕ᴸ L₂) (hBC : (B 🡒 C) ∈ L₁ ⊕ᴸ L₂) : (A 🡒 C) ∈ L₁ ⊕ᴸ L₂ :=
+  Logic.sumNormal.mdp (Logic.sumNormal.mdp (Logic.sumNormal.mem₁ htaut) hAB) hBC
+
 end Logic.sumNormal
 
 end

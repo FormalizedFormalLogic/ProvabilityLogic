@@ -11,6 +11,7 @@ public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
+public import SeqPL.Kripke.Convergence
 public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
@@ -33,10 +34,13 @@ public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.GL.CIP
 public import SeqPL.Logic.GL.Fixedpoint
 public import SeqPL.Logic.GL.Letterless
+public import SeqPL.Logic.GL.Theorems
 public import SeqPL.Logic.GLPlusBoxBot.Basic
+public import SeqPL.Logic.GLPoint2.Basic
 public import SeqPL.Logic.GLPoint3.Basic
 public import SeqPL.Logic.GLPoint3.Completeness
 public import SeqPL.Logic.GLPoint3.Letterless
+public import SeqPL.Logic.GLPoint3OplusBoxBot.Basic
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.Boxdot
 public import SeqPL.Logic.S.CIP
