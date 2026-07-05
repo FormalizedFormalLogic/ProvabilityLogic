@@ -1,10 +1,11 @@
-/.lake
+# Lake
+.lake
+
+# Env
+.envrc
 
 # VSCode
 .vscode/settings.json
 
 # Notes
-.notes/
-
-# Direction
-.direct
+.notes
