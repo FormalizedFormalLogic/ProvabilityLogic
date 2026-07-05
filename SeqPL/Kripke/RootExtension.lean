@@ -330,40 +330,4 @@ lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula
 
 end RootedModel.extendRoot
 
-/-
-namespace Model
-
-variable {κ₁ κ₂} [Nonempty κ₁] [Nonempty κ₂] {M₁ : Model κ₁ α} {M₂ : Model κ₂ α}
-
-structure Isomorphism (M₁ : Model κ₁ α) (M₂ : Model κ₂ α) : Type* where
-  f : M₁.World → M₂.World
-  preserve_rel : ∀ {x y}, x ≺ y ↔ (f x) ≺ (f y)
-infixl:60 " ≃ " => Isomorphism
-
-noncomputable def Isomorphism.symm (ι : M₁ ≃ M₂) : Isomorphism M₂ M₁ where
-  f := Function.invFun ι.f
-  preserve_rel {x y} := by
-    sorry;
-
-end Model
-
-
-namespace RootedModel.extendRoot
-
-section
-
-def compositionIsomprphism {M : RootedModel κ α} {n m : ℕ+} : ((M.extendRoot n).extendRoot m).toModel ≃ (M.extendRoot (n + m)).toModel where
-  f x :=
-    match x with
-    | .inl $ .inl x => .inl x
-    | .inl $ .inr ⟨i, hi⟩ => .inr ⟨i, by simp_all; omega⟩
-    | .inr ⟨i, hi⟩ => .inr ⟨n + i, by simp_all⟩
-  preserve_rel {x y} := by grind;
-
-end
-
-end RootedModel.extendRoot
--/
-
-
 end
