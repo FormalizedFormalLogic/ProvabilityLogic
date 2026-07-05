@@ -13,13 +13,10 @@ namespace LogicS
 
 open Model.World
 
-/--
-  **boxdot 変換された論理式について GL と S は一致する**（tail model による意味論的証明）：
-  `GL ⊢ Aᵇ` ↔ `S ⊢ Aᵇ`．
-  Foundation の `iff_provable_boxdot_GL_provable_boxdot_S` の算術的完全性を経由しない証明．
--/
+/-- **`GL` and `S` agree on boxdot-translated formulas**: `GL ⊢ Aᵇ` ↔ `S ⊢ Aᵇ`. -/
 theorem iff_provable_boxdot_GL_provable_boxdot_S [DecidableEq α] :
     (Aᵇ) ∈ LogicGL ↔ (Aᵇ) ∈ LogicS := by
+  -- Semantic proof via the tail model, avoiding arithmetical completeness.
   constructor;
   . exact provable_of_provable_GL;
   . intro h;

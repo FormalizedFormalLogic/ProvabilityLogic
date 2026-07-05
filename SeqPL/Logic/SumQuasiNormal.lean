@@ -39,6 +39,7 @@ variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α}
 @[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₁;
 @[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₂;
 
+/-- `L +ᴸ X ⊆ L +ᴸ Y` iff `X ⊆ L +ᴸ Y`. -/
 lemma iff_subset : (L +ᴸ X) ⊆ (L +ᴸ Y) ↔ X ⊆ (L +ᴸ Y) := by
   constructor;
   . intro h A hA;
@@ -60,6 +61,7 @@ lemma iff_subset : (L +ᴸ X) ⊆ (L +ᴸ Y) ↔ X ⊆ (L +ᴸ Y) := by
 end Logic.sumQuasiNormal
 
 
+/-- Quasi-normal extension of `L` by a single axiom `A`. -/
 abbrev Logic.addQuasiNormal (L : Logic α) (A : Formula α) := L +ᴸ {A}
 infixl:50 " +ᴸ " => Logic.addQuasiNormal
 

@@ -99,7 +99,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toTail tai
   intro s hs;
   by_cases hs₁ : {x | Sum.inl x ∈ s}.Nonempty;
   . obtain ⟨m, hm₁, hm₂⟩ := ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
-    refine ⟨toTail.embed m, hm₁, ?_⟩;
+    use toTail.embed m, hm₁;
     rintro (y | j) hy;
     . exact hm₂ y hy;
     . exact not_rel_embed_chainPoint;
@@ -109,7 +109,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toTail tai
       | .inl x => exact absurd ⟨x, hx⟩ hs₁;
       | .inr i => exact ⟨i, hx⟩;
     obtain ⟨m, hm₁, hm₂⟩ := (wellFounded_lt (α := ℕ∞)).has_min _ hs₂;
-    refine ⟨toTail.chainPoint m, hm₁, ?_⟩;
+    use toTail.chainPoint m, hm₁;
     rintro (y | j) hy;
     . exact absurd ⟨y, hy⟩ hs₁;
     . exact fun h => hm₂ j hy (rel_chainPoint_chainPoint.mp h);
@@ -119,7 +119,7 @@ instance [M.IsGL] : (M.toTail tail).IsGL where
 
 open Model.World (Forces)
 
-/-- 元のモデルから tail model への埋め込みは p-morphism である． -/
+/-- The embedding of the original model into the tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) : M →ₚ (M.toTail tail).toModel where
   toFun := toTail.embed
   forth := rel_embed_embed.mpr
@@ -133,11 +133,13 @@ lemma modal_equivalent_original {x : M.World} :
     Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toTail tail).toModel) x (toTail.embed x) :=
   (pMorphismOriginal M tail).modal_equivalence x
 
-/-- 元のモデルの世界（`embed x`）では tail model と元のモデルの forces が一致する． -/
+/-- At an original-model world (`embed x`), forcing in the tail model agrees with
+forcing in the original model. -/
 lemma forces_inl {x : M.World} : Forces (M := (M.toTail tail).toModel) (toTail.embed x) A ↔ x ⊩ A :=
   modal_equivalent_original.symm
 
-/-- 鎖上では `□A` の forcing は下方閉：`chainPoint n` で成立するなら，それ以下の `chainPoint m` でも成立する． -/
+/-- Forcing of `□A` is downward closed on the chain: if it holds at `chainPoint n`,
+it also holds at any `chainPoint m` below it. -/
 lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
   (h : Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) (□A)) :
   Forces (M := (M.toTail tail).toModel) (toTail.chainPoint m) (□A) := by
@@ -147,7 +149,7 @@ lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
     apply rel_chainPoint_chainPoint.mpr;
     exact lt_of_lt_of_le (rel_chainPoint_chainPoint.mp Rmy) (by exact_mod_cast hmn);
 
-/-- 鎖上（`chainPoint n`）での forcing は `n` について最終的に安定する． -/
+/-- Forcing at chain points (`chainPoint n`) eventually stabilizes as `n` grows. -/
 lemma forces_nat_eventually_stable (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
     (Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A ↔
@@ -171,7 +173,8 @@ lemma forces_nat_eventually_stable (A : Formula α) :
       obtain ⟨m, hm⟩ := hf;
       exact ⟨m, fun n hn => iff_of_false (fun h => hm (forces_nat_box_antitone hn h)) hm⟩;
 
-/-- 鎖上（`chainPoint n`）での forcing は，`n` について最終的に tail model 自身の根（`chainPoint ⊤`）での forcing の値に安定する． -/
+/-- Forcing at chain points (`chainPoint n`) eventually stabilizes, as `n` grows, to the
+forcing value at the tail model's own root (`chainPoint ⊤`). -/
 lemma forces_nat_eventually_root (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
     (Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A ↔
@@ -204,8 +207,9 @@ lemma forces_nat_eventually_root (A : Formula α) :
       exact ⟨m, fun n hn => iff_of_false (fun h => hm (forces_nat_box_antitone hn h)) hm'⟩;
 
 /--
-  **Tail Lemma**（`Visser1984` Lemma 2.2）：tail model 自身の根（`chainPoint ⊤`）で `A` が forces されることは，
-  鎖上（`chainPoint n`）で `A` が最終的に（十分大きな `n` で）forces されることと同値である．
+  **Tail Lemma** (`Visser1984` Lemma 2.2): `A` is forced at the tail model's own root
+  (`chainPoint ⊤`) iff `A` is eventually forced along the chain (`chainPoint n` for all
+  sufficiently large `n`).
 -/
 lemma tailLemma (A : Formula α) :
   Forces (M := (M.toTail tail).toModel) (toTail.chainPoint ⊤) A ↔
@@ -217,8 +221,9 @@ lemma tailLemma (A : Formula α) :
     exact (hk (max k k') (le_max_left _ _)).mp (hk' (max k k') (le_max_right _ _));
 
 /--
-  部分論理式について閉じた集合 `Γ` の各 `□B ∈ Γ` に対して根で `□B 🡒 B` が成立しているならば，
-  `Γ` の各論理式の forces は根と鎖上の各点（`chainPoint n`）で一致する．
+  If `Γ` is closed under subformulas and the root forces `□B 🡒 B` for every `□B ∈ Γ`,
+  then forcing of every formula in `Γ` at the root agrees with forcing at every chain
+  point (`chainPoint n`).
 -/
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {Γ : FormulaFinset α}

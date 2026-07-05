@@ -41,10 +41,10 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
   . exact provable_of_provable_GL;
 
 /-- **Theorem 2 of Sambin & Valentini**: on letterless formulas (lifted into an arbitrary `α`),
-`GLPoint3` (`GLLin`) proves exactly what `GL` proves. This is a corollary of the underlying
-set equality `eq_LogicGL_on_letterless`, transferred along `LetterlessFormula.lift`. -/
+`GLPoint3` (`GLLin`) proves exactly what `GL` proves. -/
 theorem iff_provable_GLPoint3_provable_GL_of_letterless {A : LetterlessFormula} :
-    (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔ (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by
+    (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔
+    (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by
   constructor;
   . intro h;
     apply iff_lift_mem_LogicGL.mpr;

@@ -45,8 +45,6 @@ open Model Model.World
 open RootedModel.extendRoot
 open RootedModel.extendRoot (embed)
 
-universe u
-
 variable {α : Type u}
 
 namespace LO.FirstOrder.ProvabilityAbstraction.Provability
@@ -274,7 +272,8 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
           ∃ j' : X.N.World, i ≺ j' ∧ j' ⊮ B ∧ j' ≠ X.rN := by
         by_cases hjr : j = X.rN;
         . subst hjr;
-          refine ⟨embed X.r₁, ?_, ?_, ?_⟩;
+          use embed X.r₁;
+          refine ⟨?_, ?_, ?_⟩;
           . -- `i ≺ r ≺ r₁`.
             exact IsTrans.trans _ _ _ Rij (rel_embed_embed_iff_rel.mpr X.r_rel_r₁);
           . intro hc;

@@ -32,7 +32,6 @@ open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
 open LO.FirstOrder.Arithmetic
 open Model Model.World
 
-universe u
 variable {κ : Type u} [Nonempty κ]
          {α : Type u}
          {A B : Formula α}
@@ -74,16 +73,15 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ↓
 /--
   **Arithmetical completeness of S** (Theorem 3 in [AB05], completeness half):
   if `A` is true in `ℕ` under every standard realization for `T`, then `A ∈ LogicS`.
-
-  Proof sketch: if `A ∉ LogicS` then by `iff_provable_S_provable_GL` the formula
-  `⋀A.subfmlsS 🡒 A` is not provable in `GL`, so there is a finite rooted GL
-  countermodel whose root forces all axiom T instances for boxed subformulas of `A`
-  but refutes `A`. The Solovay sentence of the new root of the `1`-extended model is
-  true in `ℕ` (`solovay_root_sound`) and implies the negation of the realization of `A`
-  (`SolovaySentences.rfl_mainlemma`).
 -/
 theorem arithmetical_completeness [DecidableEq α]
     (H : ∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A) : A ∈ LogicS := by
+  -- If `A ∉ LogicS` then by `iff_provable_S_provable_GL` the formula `⋀A.subfmlsS 🡒 A`
+  -- is not provable in `GL`, so there is a finite rooted GL countermodel whose root
+  -- forces all axiom T instances for boxed subformulas of `A` but refutes `A`. The
+  -- Solovay sentence of the new root of the `1`-extended model is true in `ℕ`
+  -- (`solovay_root_sound`) and implies the negation of the realization of `A`
+  -- (`SolovaySentences.rfl_mainlemma`).
   haveI : ℕ↓[ℒₒᵣ] ⊧* 𝗜𝚺₁ := models_of_subtheory (T := 𝗜𝚺₁) (U := T) (M := ℕ) inferInstance;
   contrapose! H;
   replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_S_provable_GL.not.mp H;
@@ -97,7 +95,7 @@ theorem arithmetical_completeness [DecidableEq α]
     simp only [Formula.subfmlsS, Finset.mem_image];
     exact ⟨B, FormulaFinset.iff_mem_prebox_mem.mpr hB, rfl⟩;
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences T (M.extendRoot 1);
-  refine ⟨S.realization, ?_⟩;
+  use S.realization;
   have h₁ : ℕ↓[ℒₒᵣ] ⊧ (S.σ (M.extendRoot 1).root.1 🡒 ∼(A.interpret S.realization)) :=
     models_of_provable inferInstance
       (SolovaySentences.rfl_mainlemma ha Formula.mem_subfmls_self |>.2 hA₂);

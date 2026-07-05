@@ -21,7 +21,8 @@ lemma provable_imp_iff_provableGentzen_seqent : A 🡒 B ∈ LogicGL ↔ ⊢ᵍ 
     apply ProvableGentzen.deduction_theorem.mp;
     simpa using h;
 
-noncomputable def interpolant (h : A 🡒 B ∈ LogicGL) : Formula α := ProvableGentzen.interpolant (PartitionOf.ss A B) (provable_imp_iff_provableGentzen_seqent.mp h)
+noncomputable def interpolant (h : A 🡒 B ∈ LogicGL) : Formula α :=
+  ProvableGentzen.interpolant (PartitionOf.ss A B) (provable_imp_iff_provableGentzen_seqent.mp h)
 
 variable {h : A 🡒 B ∈ LogicGL}
 

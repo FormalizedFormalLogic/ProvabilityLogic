@@ -6,9 +6,7 @@ public import SeqPL.Logic.S.Basic
 @[expose]
 public section
 
-universe u
 variable {α : Type u}
-
 
 namespace LogicS
 
@@ -51,9 +49,7 @@ lemma provable_reassoc_of_provable_imp (h : (A 🡒 B) ∈ LogicS) :
   **The interpolant of Logic S's Craig interpolation theorem**: if `A 🡒 B ∈ LogicS`, there is a
   formula `C` whose atoms are contained in `A.atoms ∩ B.atoms`, such that `A 🡒 C ∈ LogicS` and
   `C 🡒 B ∈ LogicS`.
-  Formalizes `Beklemishev1987` Theorem 2, derived from GL's Craig interpolation property
-  (`LogicGL.interpolant`, `SeqPL/Gentzen/Maehara.lean`) and `iff_provable_S_provable_GL`
-  (`Assertion 1`).
+  Formalizes `Beklemishev1987` Theorem 2.
 -/
 noncomputable def interpolant (h : (A 🡒 B) ∈ LogicS) : Formula α :=
   LogicGL.interpolant (provable_reassoc_of_provable_imp h)
@@ -84,7 +80,8 @@ lemma interpolant_atoms (h : (A 🡒 B) ∈ LogicS) : (interpolant h).atoms ⊆ 
   **Craig interpolation property** (`Beklemishev1987`, Theorem 2): `Logic S` has the Craig
   interpolation property.
 -/
-theorem CIP (h : (A 🡒 B) ∈ LogicS) : ∃ C : Formula α, (A 🡒 C) ∈ LogicS ∧ (C 🡒 B) ∈ LogicS ∧ C.atoms ⊆ A.atoms ∩ B.atoms :=
+theorem CIP (h : (A 🡒 B) ∈ LogicS) :
+    ∃ C : Formula α, (A 🡒 C) ∈ LogicS ∧ (C 🡒 B) ∈ LogicS ∧ C.atoms ⊆ A.atoms ∩ B.atoms :=
   ⟨interpolant h, interpolant_provable_ant h, interpolant_provable_suc h, interpolant_atoms h⟩
 
 end LogicS

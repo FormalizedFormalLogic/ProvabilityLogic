@@ -539,7 +539,7 @@ lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula 
     | mdp _ _ ih₁ ih₂ =>
       obtain ⟨Y₁, hY₁, h₁⟩ := ih₁;
       obtain ⟨Y₂, hY₂, h₂⟩ := ih₂;
-      refine ⟨Y₁ ∪ Y₂, by grind, ?_⟩;
+      use Y₁ ∪ Y₂, by grind;
       have w₁ : (⊢ʰ ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₁))) := by
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset Finset.subset_union_left);
@@ -551,7 +551,7 @@ lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula 
         (ProvableHilbert.impTrans w₂ h₂);
     | @subst B s _ ih =>
       obtain ⟨Y, hY, hGL⟩ := ih;
-      refine ⟨Y, hY, ?_⟩;
+      use Y, hY;
       have := ProvableHilbert.subst (s := s) hGL;
       simpa [LetterlessFormula.subst_lift] using this;
 /--
@@ -677,7 +677,7 @@ lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Reg
               intro m hm;
               exact Set.mem_iInter₂.mp (sf_anti j i hle hm) C hj;
             exact hC₂ (hsub hn₁);
-          refine ⟨j, hij, ?_⟩;
+          use j, hij;
           rw [Set.Finite.toFinset_ssubset_toFinset];
           apply Set.ssubset_of_subset_ne (sf_anti i j hij.le);
           intro heq;
@@ -707,7 +707,7 @@ lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Reg
           exact ⟨j, hj, (H j hj).choose_spec.2⟩;
         haveI : Fintype { i // i ∈ trace A } := htr.fintype;
         use Finset.univ.image (λ i : { i // i ∈ trace A } => cf i.1 i.2);
-        refine ⟨?_, ?_⟩;
+        constructor;
         . simp only [Finset.mem_image, Finset.mem_univ, true_and, Subtype.exists, forall_exists_index];
           rintro B i hi rfl;
           exact (H i hi).choose_spec.1;
@@ -887,6 +887,7 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
       exact Logic.sumQuasiNormal.mem₂ (Set.mem_image_of_mem _ (hΔ_sub hCΔ));
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ha) hb;
 
+omit [ℕ↓[ℒₒᵣ] ⊧* T] in
 theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {Alpha : Set ℕ}
   : LogicGLAlpha (α := α) Alpha = T.provabilityLogicRelativeTo (T ∪ (Alpha.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
   suffices (LetterlessFormula.standardInterpret T '' TBB '' Alpha) = (Alpha.image (λ i => LetterlessFormula.standardInterpret T (TBB i))) by
@@ -894,6 +895,7 @@ theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {Alpha : Set ℕ}
   ext i;
   simp;
 
+omit [ℕ↓[ℒₒᵣ] ⊧* T] in
 theorem LogicA.eq_provabilityLogicRelativeTo
   : LogicA (α := α) = T.provabilityLogicRelativeTo (T ∪ (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
   apply LogicGLAlpha.eq_provabilityLogicRelativeTo;

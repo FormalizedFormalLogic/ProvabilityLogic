@@ -39,14 +39,16 @@ noncomputable local instance (priority := high) {κ : Type*} [Finite κ] : Finty
 /--
   **Corollary to Lemma 5 in §4 of [Bek90]**: any finite rooted `GL` countermodel of `A`
   whose root sees an `A`-reflexive node `r` yields a countermodel of `A` in the sense of
-  `StrongReflexiveCountermodel`. Both extra conditions are achieved by grafting a chain
-  of copies of `r` of length `M.height + 2` between the root and `r`
-  (`RootedModel.graftChain`), which is forcing-preserving because `r` is `A`-reflexive.
+  `StrongReflexiveCountermodel`.
 -/
 noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
     {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL]
     (hnA : M.root.1 ⊮ A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩ ⋀A.subfmlsS) :
     StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
+  -- Both extra conditions (the reflexive node's unique predecessor being the root, and
+  -- rank maximality) are achieved by grafting a chain of copies of `r` of length
+  -- `M.height + 2` between the root and `r` (`RootedModel.graftChain`), which is
+  -- forcing-preserving because `r` is `A`-reflexive.
   have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩ ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
@@ -62,8 +64,8 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     rfl;
   . -- the bottom of the grafted chain is still `A`-reflexive.
     apply Model.World.forces_fconj.mpr;
-    intro φ hφ;
-    obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hφ;
+    intro C hC;
+    obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
     replace hB : (□B) ∈ A.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hB;
     have hB' : B ∈ A.subfmls := by grind;
     have e₁ := (RootedModel.graftChain.mainlemma hr ha hB).1 (⟨M.height + 1, by omega⟩ : Fin k);
@@ -102,39 +104,40 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
 
 /--
   The arithmetical fixed-point construction of the modified Solovay sentences: the
-  primitive recursive function `h` of Theorem 2 in §6 of [Bek90], whose limit climbs
-  by refutation proofs but never enters `r`, and jumps from the old root `b` to `r`
-  as soon as a witness of the `𝚺₁` sentence `σ` is found. To be realized via the
-  witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.Solovay`;
-  the `𝚺₁`-ness of `σ` is needed for the provable `𝚺₁`-completeness arguments behind
-  the conditions `SC3r`, `SC5` and `SC6`.
+  primitive recursive function `h` of Theorem 2 in §6 of [Bek90], associated to a
+  `StrongReflexiveCountermodel` of `A` and a `𝚺₁` sentence `σ`.
 -/
 theorem exists_modifiedSolovaySentences [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
     {A : Formula α} (X : StrongReflexiveCountermodel κ A)
     {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
     Nonempty (T.standardProvability.ModifiedSolovaySentences X σ) := by
+  -- `h`'s limit climbs by refutation proofs but never enters `r`, and jumps from the
+  -- old root `b` to `r` as soon as a witness of `σ` is found. To be realized via the
+  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.Solovay`;
+  -- the `𝚺₁`-ness of `σ` is needed for the provable `𝚺₁`-completeness arguments behind
+  -- the conditions `SC3r`, `SC5` and `SC6`.
   sorry
 
 /--
   **Theorem 2 in §6 of [Bek90]** (the arithmetical core of Lemma 51 in [AB05]): if
   `A ∉ GLαω`, then for every `𝚺₁` sentence `σ` there are `n : ℕ` and a realization `f`
   such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` together with
-  `f A` implies the `𝚺₁`-reflection instance `Pr_T(σ) 🡒 σ`. Obtained by the Solovay
-  construction on the countermodel given by `StrongReflexiveCountermodel.ofReflexive`,
-  modified so that the limit jumps from the root to the `A`-reflexive node `r` as soon
-  as a witness of `σ` is found.
+  `f A` implies the `𝚺₁`-reflection instance `Pr_T(σ) 🡒 σ`.
 -/
 theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicA)
     {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
     ∃ (n : ℕ) (f : StandardRealization α T),
       𝗜𝚺₁ ⊢ (f (((∼(□^[n]⊥)) ⋏ A : Formula α))) 🡒 ((T.standardProvability σ) 🡒 σ) := by
+  -- Obtained by the Solovay construction on the countermodel given by
+  -- `StrongReflexiveCountermodel.ofReflexive`, modified so that the limit jumps from
+  -- the root to the `A`-reflexive node `r` as soon as a witness of `σ` is found.
   obtain ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩ := LogicA.exists_reflexive_countermodel_of_not_mem_LogicA hA;
   haveI := hne;
   haveI := hfgl;
   let X := StrongReflexiveCountermodel.ofReflexive M hnA r hr hrS;
   obtain ⟨S⟩ := exists_modifiedSolovaySentences (T := T) X hσ;
-  refine ⟨Model.World.rank X.r, S.realization, ?_⟩;
+  use Model.World.rank X.r, S.realization;
   have h := S.reflection;
   unfold LO.FirstOrder.ProvabilityAbstraction.Provability.conItr at h;
   have e : (Formula.interpret S.realization

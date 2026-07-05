@@ -12,7 +12,8 @@ namespace List.IsChain
 
 variable {α : Type*} {R : α → α → Prop} {l : List α} {x y : α}
 
-/-- 推移的関係の chain 上の相異なる 2 元はいずれかの向きに関係する． -/
+/-- Any two distinct elements of a chain under a transitive relation are related
+in one direction or the other. -/
 lemma connected_of_trans [IsTrans α R] (h : List.IsChain R l)
     (hx : x ∈ l) (hy : y ∈ l) (nexy : x ≠ y) : R x y ∨ R y x := by
   have hp : l.Pairwise (fun a b => R a b ∨ R b a) :=
@@ -20,7 +21,7 @@ lemma connected_of_trans [IsTrans α R] (h : List.IsChain R l)
   haveI : Std.Symm (fun a b => R a b ∨ R b a) := ⟨fun _ _ h => h.symm⟩;
   exact hp.forall hx hy nexy;
 
-/-- 非反射的・推移的関係の chain は重複を持たない． -/
+/-- A chain under an irreflexive transitive relation has no duplicates. -/
 lemma nodup_of_irrefl_trans [IsTrans α R] [Std.Irrefl R] (h : List.IsChain R l) : l.Nodup := by
   apply (List.isChain_iff_pairwise.mp h).imp;
   intro a b hab e;

@@ -98,7 +98,7 @@ lemma validate_gentzen_boxGL [DecidableEq α] [M.IsGL] (h : M ⊧ ((insert (□A
   intro hΓ y Rxy;
   apply forces_ctx_singleton_sequent.mp $ h y;
   simp only [Finset.mem_insert, Finset.mem_union, Finset.mem_image, forall_eq_or_imp];
-  refine ⟨?_, ?_⟩;
+  constructor;
   . by_contra hC;
     obtain ⟨z, Ryz, hz⟩ := Model.World.not_forces_box.mp hC;
     let ⟨t, ⟨Ryt, hntA⟩, ht₂⟩ := M.terminalOf ({z | y ≺ z ∧ z ⊮ A}) ⟨z, ⟨Ryz, hz⟩⟩;
@@ -408,49 +408,49 @@ variable {BS : Sequent α} [Fact (⊬ᵍ BS)]
 
 @[grind]
 def countermodelOf (BS : Sequent α) [Fact (⊬ᵍ BS)] : Model (ExpandedSequent BS) α where
-  Val' S a := #a ∈ S.1.1
-  Rel' S T :=
-    S.1.1.prebox ⊂ T.1.1.prebox ∧
-    S.1.1.prebox ⊆ T.1.1
+  Val' x a := #a ∈ x.1.1
+  Rel' x y :=
+    x.1.1.prebox ⊂ y.1.1.prebox ∧
+    x.1.1.prebox ⊆ y.1.1
 
 instance : (countermodelOf BS).IsFiniteGL where
   finite := inferInstance
   trans := by grind;
   irrefl := by grind;
 
-variable {S : (countermodelOf BS).World} {A : Formula α}
+variable {x : (countermodelOf BS).World} {A : Formula α}
 
 lemma truthlemma :
-  (A ∈ S.1.1 → S ⊩ A) ∧ (A ∈ S.1.2 → ¬S ⊩ A)
+  (A ∈ x.1.1 → x ⊩ A) ∧ (A ∈ x.1.2 → ¬x ⊩ A)
   := by
-  induction A generalizing S with
+  induction A generalizing x with
   | box A ih =>
     constructor;
-    . intro h T RST;
-      exact ih.1 $ RST.2 (by simpa [FormulaFinset.prebox]);
+    . intro h y Rxy;
+      exact ih.1 $ Rxy.2 (by simpa [FormulaFinset.prebox]);
     . intro h;
       apply Model.World.not_forces_box.mpr;
-      let T : ExpandedSequent BS := ExpandedSequent.lindenbaum (insert (□A) (S.1.1.prebox ∪ S.1.1.prebox.box) ⟹ {A})
+      let y : ExpandedSequent BS := ExpandedSequent.lindenbaum (insert (□A) (x.1.1.prebox ∪ x.1.1.prebox.box) ⟹ {A})
         (by
-          have := S.unprovable;
+          have := x.unprovable;
           contrapose! this;
           exact ProvableGentzen.wk (ProvableGentzen.boxGL this)
-            (show S.1.1.prebox.box ⊆ S.1.1 by grind)
-            (show {□A} ⊆ S.1.2 by grind);
+            (show x.1.1.prebox.box ⊆ x.1.1 by grind)
+            (show {□A} ⊆ x.1.2 by grind);
         )
         (by
           intro B;
           simp [FormulaFinset.prebox];
           rintro (rfl | rfl | h | ⟨B, hB, rfl⟩);
           case inl | inr.inr.inr =>
-            grind [S.subset_subfmls];
+            grind [x.subset_subfmls];
           case inr.inl | inr.inr.inl =>
             apply Sequent.mem_subfmls_subfmls (B := □B);
-            . apply S.subset_subfmls;
+            . apply x.subset_subfmls;
               grind;
             . grind;
         );
-      use T;
+      use y;
       constructor;
       . constructor;
         . apply Set.ssubset_iff_exists.mpr;
@@ -465,7 +465,7 @@ lemma truthlemma :
               apply ExpandedSequent.subset_lindenbaum.1;
               simp;
             . by_contra!;
-              apply S.unprovable;
+              apply x.unprovable;
               apply ProvableGentzen.union' A;
         . intro B hB;
           apply ExpandedSequent.subset_lindenbaum.1;
@@ -484,15 +484,15 @@ lemma truthlemma :
   | imp A B ihA ihB =>
     constructor
     · intro h hsA
-      rcases S.saturated.impL h with hA | hB
+      rcases x.saturated.impL h with hA | hB
       · exact absurd hsA (ihA.2 hA)
       · exact ihB.1 hB
     · intro h hf
-      obtain ⟨hA, hB⟩ := S.saturated.impR h
+      obtain ⟨hA, hB⟩ := x.saturated.impR h
       exact (ihB.2 hB) (hf (ihA.1 hA))
 
-lemma truthlemma_ant : A ∈ S.1.1 → S ⊩ A := truthlemma.1
-lemma truthlemma_suc : A ∈ S.1.2 → ¬S ⊩ A := truthlemma.2
+lemma truthlemma_ant : A ∈ x.1.1 → x ⊩ A := truthlemma.1
+lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩ A := truthlemma.2
 
 theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S) : ⊢ᵍ S := by
   contrapose! h;

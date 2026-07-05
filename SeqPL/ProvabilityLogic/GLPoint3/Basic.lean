@@ -107,54 +107,39 @@ lemma LetterlessFormula.IsConsistencyForm.exists_consistencyAssertion {A : Lette
   ∃ σ, 𝔅.IsConsistencyAssertion σ ∧ T₀ ⊢ σ 🡘 (A.interpret 𝔅) := by
   induction hA with
   | con =>
-    use ∼(𝔅 ⊥);
-    constructor;
-    . exact .con;
-    . dsimp [LetterlessFormula.interpret];
-      cl_prover;
+    use ∼(𝔅 ⊥), .con;
+    dsimp [LetterlessFormula.interpret];
+    cl_prover;
   | incon =>
-    use 𝔅 ⊥;
-    constructor;
-    . exact .incon;
-    . dsimp [LetterlessFormula.interpret];
-      cl_prover;
+    use 𝔅 ⊥, .incon;
+    dsimp [LetterlessFormula.interpret];
+    cl_prover;
   | box _ ih =>
     obtain ⟨σ, hσ, e⟩ := ih;
-    use 𝔅 σ;
-    constructor;
-    . exact .prov hσ;
-    . exact 𝔅.ext' e;
+    exact ⟨𝔅 σ, .prov hσ, 𝔅.ext' e⟩;
   | neg _ ih =>
     obtain ⟨σ, hσ, e⟩ := ih;
-    use ∼σ;
-    constructor;
-    . exact .neg hσ;
-    . dsimp [LetterlessFormula.interpret];
-      cl_prover [e];
+    use ∼σ, .neg hσ;
+    dsimp [LetterlessFormula.interpret];
+    cl_prover [e];
   | and _ _ ih₁ ih₂ =>
     obtain ⟨σ₁, hσ₁, e₁⟩ := ih₁;
     obtain ⟨σ₂, hσ₂, e₂⟩ := ih₂;
-    use σ₁ ⋏ σ₂;
-    constructor;
-    . exact .and hσ₁ hσ₂;
-    . dsimp [LetterlessFormula.interpret];
-      exact LO.Entailment.E!_trans (LO.Entailment.EKK!_of_E!_of_E! e₁ e₂) (by cl_prover);
+    use σ₁ ⋏ σ₂, .and hσ₁ hσ₂;
+    dsimp [LetterlessFormula.interpret];
+    exact LO.Entailment.E!_trans (LO.Entailment.EKK!_of_E!_of_E! e₁ e₂) (by cl_prover);
   | or _ _ ih₁ ih₂ =>
     obtain ⟨σ₁, hσ₁, e₁⟩ := ih₁;
     obtain ⟨σ₂, hσ₂, e₂⟩ := ih₂;
-    use σ₁ ⋎ σ₂;
-    constructor;
-    . exact .or hσ₁ hσ₂;
-    . dsimp [LetterlessFormula.interpret];
-      cl_prover [e₁, e₂];
+    use σ₁ ⋎ σ₂, .or hσ₁ hσ₂;
+    dsimp [LetterlessFormula.interpret];
+    cl_prover [e₁, e₂];
   | imp _ _ ih₁ ih₂ =>
     obtain ⟨σ₁, hσ₁, e₁⟩ := ih₁;
     obtain ⟨σ₂, hσ₂, e₂⟩ := ih₂;
-    use σ₁ 🡒 σ₂;
-    constructor;
-    . exact .imp hσ₁ hσ₂;
-    . dsimp [LetterlessFormula.interpret];
-      cl_prover [e₁, e₂];
+    use σ₁ 🡒 σ₂, .imp hσ₁ hσ₂;
+    dsimp [LetterlessFormula.interpret];
+    cl_prover [e₁, e₂];
 
 /--
   Every consistency assertion is (up to `T₀`-provable equivalence) the interpretation
@@ -165,11 +150,11 @@ lemma Provability.IsConsistencyAssertion.exists_consistencyForm {σ : FirstOrder
   ∃ A : LetterlessFormula, A.IsConsistencyForm ∧ T₀ ⊢ σ 🡘 (A.interpret 𝔅) := by
   induction hσ with
   | con =>
-    refine ⟨∼(□⊥), .con, ?_⟩;
+    use ∼(□⊥), .con;
     dsimp [LetterlessFormula.interpret];
     cl_prover;
   | incon =>
-    refine ⟨□⊥, .incon, ?_⟩;
+    use □⊥, .incon;
     dsimp [LetterlessFormula.interpret];
     cl_prover;
   | prov _ ih =>
@@ -177,25 +162,25 @@ lemma Provability.IsConsistencyAssertion.exists_consistencyForm {σ : FirstOrder
     exact ⟨□A, .box hA, 𝔅.ext' e⟩;
   | neg _ ih =>
     obtain ⟨A, hA, e⟩ := ih;
-    refine ⟨∼A, .neg hA, ?_⟩;
+    use ∼A, .neg hA;
     dsimp [LetterlessFormula.interpret];
     cl_prover [e];
   | and _ _ ih₁ ih₂ =>
     obtain ⟨A, hA, e₁⟩ := ih₁;
     obtain ⟨B, hB, e₂⟩ := ih₂;
-    refine ⟨A ⋏ B, .and hA hB, ?_⟩;
+    use A ⋏ B, .and hA hB;
     dsimp [LetterlessFormula.interpret];
     exact LO.Entailment.E!_trans (LO.Entailment.EKK!_of_E!_of_E! e₁ e₂) (by cl_prover);
   | or _ _ ih₁ ih₂ =>
     obtain ⟨A, hA, e₁⟩ := ih₁;
     obtain ⟨B, hB, e₂⟩ := ih₂;
-    refine ⟨A ⋎ B, .or hA hB, ?_⟩;
+    use A ⋎ B, .or hA hB;
     dsimp [LetterlessFormula.interpret];
     cl_prover [e₁, e₂];
   | imp _ _ ih₁ ih₂ =>
     obtain ⟨A, hA, e₁⟩ := ih₁;
     obtain ⟨B, hB, e₂⟩ := ih₂;
-    refine ⟨A 🡒 B, .imp hA hB, ?_⟩;
+    use A 🡒 B, .imp hA hB;
     dsimp [LetterlessFormula.interpret];
     cl_prover [e₁, e₂];
 
@@ -369,19 +354,17 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] {A : Fo
   direction of Theorem 1 of Valentini & Solitro 1983): if `A` is not a theorem of
   `GLPoint3`, then some consistency realization of `A` is unprovable in `T` (provided
   `T.height = ⊤`, e.g. `T = 𝗣𝗔`).
-
-  Proof sketch (following §5 of the paper, without Solovay sentences): take a finite
-  rooted linear countermodel of `A` (Kripke completeness of `GLPoint3`,
-  `LogicGLPoint3.iff_forces_root`), replace each atom `a` by the letterless formula
-  `ψ*(a) = rankDisj H(a)` whose spectrum is the set of ranks at which `a` is forced;
-  since ranks determine worlds in a linear model, the substituted letterless formula
-  `B₀` is not forced at the root, hence `n := M.height ∉ spectrum B₀` and
-  `GL ⊢ B₀ 🡒 TBB n`. If the corresponding consistency realization of `A` were
-  provable, then `T ⊢ 𝔅^[n+1]⊥ 🡒 𝔅^[n]⊥`, so `T ⊢ 𝔅^[n]⊥` by Löb's theorem,
-  contradicting `T.height = ⊤`.
 -/
 theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   (∀ f : StandardConsistencyRealization α T, T ⊢ f A) → A ∈ LogicGLPoint3 := by
+  -- Following §5 of the paper, without Solovay sentences: take a finite rooted linear
+  -- countermodel of `A` (Kripke completeness of `GLPoint3`, `LogicGLPoint3.iff_forces_root`),
+  -- replace each atom `a` by the letterless formula `ψ*(a) = rankDisj H(a)` whose spectrum
+  -- is the set of ranks at which `a` is forced; since ranks determine worlds in a linear
+  -- model, the substituted letterless formula `B₀` is not forced at the root, hence
+  -- `n := M.height ∉ spectrum B₀` and `GL ⊢ B₀ 🡒 TBB n`. If the corresponding consistency
+  -- realization of `A` were provable, then `T ⊢ 𝔅^[n+1]⊥ 🡒 𝔅^[n]⊥`, so `T ⊢ 𝔅^[n]⊥` by
+  -- Löb's theorem, contradicting `T.height = ⊤`.
   contrapose!;
   intro hA;
   replace hA := LogicGLPoint3.iff_forces_root.not.mp hA;
@@ -434,7 +417,7 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   choose σ hσ₁ hσ₂ using
     fun a => (isConsistencyForm_rankDisj (l := (H a).toList)).exists_consistencyAssertion
       (𝔅 := T.standardProvability);
-  refine ⟨⟨⟨σ⟩, hσ₁⟩, ?_⟩;
+  use ⟨⟨σ⟩, hσ₁⟩;
   intro hprov;
   -- `f* A` is provably equivalent to `interpret 𝔅 B₀`
   have hequiv :

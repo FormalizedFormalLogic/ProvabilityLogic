@@ -77,7 +77,7 @@ lemma diaItr_comp {n m : ℕ} : (◇^[n + m]A) = ◇^[n](◇^[m]A) := by
 abbrev boxdot (A : Formula α) : Formula α := A ⋏ □A
 prefix:95 "⊡" => boxdot
 
-/-- boxdot 変換：`□` を `⊡` に置き換える． -/
+/-- The boxdot translation: replaces `□` with `⊡`. -/
 @[grind]
 def boxdotTranslate : Formula α → Formula α
   | #a => #a

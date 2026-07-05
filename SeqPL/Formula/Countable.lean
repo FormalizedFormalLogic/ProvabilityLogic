@@ -11,7 +11,7 @@ namespace Formula
 
 variable {α : Type*} [Encodable α]
 
-/-- `Formula α` を `ℕ` へ単射符号化する． -/
+/-- Injectively encodes `Formula α` into `ℕ`. -/
 def toNat : Formula α → ℕ
   | atom a => Nat.pair 0 (Encodable.encode a)
   | ⊥      => Nat.pair 1 0

@@ -48,16 +48,9 @@ noncomputable def Formula.deltaPIff [DecidableEq α] (A : Formula α) (p : α) :
   pair has its `N`-component equal to `N`'s root iff its `M`-component equals `M`'s
   root -- automatic for an actual isomorphism of rooted trees) and `N`'s root forces
   `□p` but not `p` itself (`p` a fresh atom, not in `P`), then for any `Bi`-related pair
-  `(x, x')` and any formula `θ` depending on `P`, forcing of `θ` at `x` agrees with
-  forcing, at `x'`, of `θ` with every atom in `γ` replaced by `p ↔ (that atom)` --
+  `(x, x')` and any formula `C` depending on `P`, forcing of `C` at `x` agrees with
+  forcing, at `x'`, of `C` with every atom in `γ` replaced by `p ↔ (that atom)` --
   where `γ` records exactly the atoms on which the two roots' valuations disagree.
-
-  The mechanism: away from the roots, `N`'s root forces `□p`, so `x' ⊩ p` holds
-  outright (`x' ≠ N.root.1`), making the substituted atom `p ↔ q` forcing-equivalent
-  to plain `q`, so the bisimulation's atomic clause suffices directly. At the roots
-  themselves `x' ⊩ p` is not `True` in general (`N`'s root additionally satisfies `¬p`
-  by hypothesis), so the compensating substitution is exactly needed there, and `γ` is
-  defined precisely to make it work out.
 -/
 theorem BisimulationUnder.forces_iff_subst_pIffOn {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
     {M : RootedModel κ₁ α} {N : RootedModel κ₂ α} {P : Finset α} {p : α}
@@ -66,9 +59,15 @@ theorem BisimulationUnder.forces_iff_subst_pIffOn {κ₁ κ₂ : Type u} [Nonemp
     (hp_box : N.root.1 ⊩ (□(#p))) (hp_root : N.root.1 ⊮ (#p)) {γ : Finset α}
     (hγ_root : ∀ q ∈ P, (q ∈ γ ↔ ¬ (M.Val M.root.1 q ↔ N.Val N.root.1 q))) :
     ∀ {x : M.World} {x' : N.World}, Bi x x' →
-      ∀ {θ : Formula α}, θ.atoms ⊆ P → (x ⊩ θ ↔ x' ⊩ θ⟦Formula.Substitution.pIffOn p γ⟧) := by
-  intro x x' hxx' θ;
-  induction θ generalizing x x' with
+      ∀ {C : Formula α}, C.atoms ⊆ P → (x ⊩ C ↔ x' ⊩ C⟦Formula.Substitution.pIffOn p γ⟧) := by
+  -- Away from the roots, `N`'s root forces `□p`, so `x' ⊩ p` holds outright
+  -- (`x' ≠ N.root.1`), making the substituted atom `p ↔ q` forcing-equivalent to plain
+  -- `q`, so the bisimulation's atomic clause suffices directly. At the roots themselves
+  -- `x' ⊩ p` is not `True` in general (`N`'s root additionally satisfies `¬p` by
+  -- hypothesis), so the compensating substitution is exactly needed there, and `γ` is
+  -- defined precisely to make it work out.
+  intro x x' hxx' C;
+  induction C generalizing x x' with
   | atom q =>
     intro hq;
     replace hq : q ∈ P := hq (Finset.mem_singleton_self q);
@@ -148,48 +147,24 @@ end
   **The semantic core of Lemma 1, [Bek90] §5, p.266** (combining Lemmas 3, 4, 7, 8, 9
   of §4): if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not provable in
   `S`, such that `GLαω ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
-
-  **Not proved in this session.** Two of the five sub-dependencies originally listed
-  here are now available as standalone, sorry-free lemmas (`Lemma 1.1` -- see
-  `BisimulationUnder.forces_iff_subst_pIffOn` above -- and, modulo one remaining
-  bookkeeping sorry, most of `Lemma 8` -- see `RootedModel.exists_simplificationUnder_omega`
-  in `SeqPL/Kripke/Simplification.lean`). What remains genuinely open:
-  - **Lemma 3 of §4** (cited there from [14]): existence of a `D`-model countermodel to
-    `A`. SeqPL's actual `LogicD` semantics (`Model.toPseudoTail`, see
-    `SeqPL/Kripke/PseudoTail.lean` and `LogicD.provability_TFAE` in
-    `SeqPL/Logic/D/Basic.lean`) does **not** literally match [Bek90]'s "D-model" Kripke
-    class (a chain glued *at* the root, forced to see the *entire* base model
-    unconditionally) -- discovered in a previous session by comparing `toPseudoTail`'s
-    relation clauses against `RootedModel.graftChainOmega`'s. They are provably
-    equivalent for theorem-hood purposes (both characterize `LogicD` sensibly) but are
-    not isomorphic as frames, so results about one do not transfer to the other for
-    free. Bridging this (either by building [Bek90]'s literal "D-model"/"tail model"
-    Kripke classes from scratch, or by proving a direct forcing-preserving
-    correspondence between `toPseudoTail`-shaped and `graftChainOmega`-shaped models)
-    is itself a substantial, multi-day undertaking that was not attempted.
-  - **Lemma 8 of §4**: `exists_simplificationUnder_omega` is still `sorry`, but *only*
-    for a single, precisely-identified bookkeeping gap (an order-isomorphism between
-    `removeCone`-of-an-embedded-point and `graftChainOmega`-of-a-smaller-base-model,
-    see that lemma's docstring); the structural obstructions (`graftChainOmega.isTree`
-    failing without the "covers the root" hypothesis, chain/embed points never being
-    redundant) are fully resolved.
-  - **Lemma 7 of §4** (existence of defining formulas): stated as
-    `RootedModel.exists_isDefiningFormula` in `SeqPL/Kripke/DefiningFormula.lean`, left
-    `sorry` **by explicit user instruction** (not proved inline in [Bek90] itself
-    either, and cited there from Artemov 1986 / Boolos 1980's simple-model theory,
-    which does not have a directly transcribable construction).
-  - **Lemma 9 of §4** (the "almost defining" formula `Φ₀`, p.264-266): not formalized;
-    would build on Lemma 7 plus the depth-bound (`□^[N+1]⊥`-style) machinery of
-    `SeqPL/Kripke/Rank.lean`. Blocked on Lemma 7.
-
-  Even with Lemma 3's bridge and Lemma 8's last gap closed, this theorem would still be
-  blocked on Lemma 7/9 (excluded from this session's scope by the user). See
-  `.direct/exists-lemma56.md` for the detailed session notes on scope.
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
     {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
     ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧
       (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
+  -- Combines Lemmas 3, 7, 8, 9 of [Bek90] §4; Lemma 1.1 is available as
+  -- `BisimulationUnder.forces_iff_subst_pIffOn` above. Open sub-dependencies:
+  -- - Lemma 3: existence of a `D`-model countermodel to `A`. SeqPL's `LogicD` semantics
+  --   (`Model.toPseudoTail`, `SeqPL/Kripke/PseudoTail.lean`; `LogicD.provability_TFAE`)
+  --   does not literally match [Bek90]'s "D-model" Kripke class, so a bridging
+  --   correspondence between `toPseudoTail`- and `graftChainOmega`-shaped models is needed.
+  -- - Lemma 8: `RootedModel.exists_simplificationUnder_omega`
+  --   (`SeqPL/Kripke/Simplification.lean`), modulo one bookkeeping `sorry`.
+  -- - Lemma 7: existence of defining formulas, `RootedModel.exists_isDefiningFormula`
+  --   (`SeqPL/Kripke/DefiningFormula.lean`), left `sorry` (cited in [Bek90] from
+  --   Artemov 1986 / Boolos 1980).
+  -- - Lemma 9: the "almost defining" formula `Φ₀` ([Bek90] §4, p.264-266); builds on
+  --   Lemma 7 and the depth-bound machinery of `SeqPL/Kripke/Rank.lean`.
   sorry
 
 /--

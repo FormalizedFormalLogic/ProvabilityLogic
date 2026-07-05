@@ -23,6 +23,7 @@ variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α}
 @[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ ⊕ᴸ L₂) := by apply Logic.sumNormal.mem₁;
 @[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ ⊕ᴸ L₂) := by apply Logic.sumNormal.mem₂;
 
+/-- Every quasi-normal sum is contained in the corresponding normal sum. -/
 lemma sumQuasiNormal_subset : (L₁ +ᴸ L₂) ⊆ (L₁ ⊕ᴸ L₂) := by
   intro A h;
   induction h with

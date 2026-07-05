@@ -304,7 +304,7 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
   intro κ _ M _ x hant
   have h₁ : x ⊩ ⊡(A 🡘 #p) := hant _ (by simp)
   have h₂ : x ⊩ ⊡((A⟦p ↦ #q⟧) 🡘 #q) := hant _ (by simp)
-  refine ⟨(#p : Formula α) 🡘 #q, by simp, ?_⟩
+  use (#p : Formula α) 🡘 #q, by simp
   have hval := Model.World.val_iff_of_fixpoints (x := x) (q := q) hA
     (by
       intro y hy

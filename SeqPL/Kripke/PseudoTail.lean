@@ -17,8 +17,10 @@ namespace Model
 abbrev toPseudoTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
 
 /--
-  pseudo-tail model（ω 拡大モデル）：ω（`chainPoint ⊤`）を根とし，その下に無限降下鎖 `chainPoint n`（`n : ℕ`）を
-  挟んで元のモデル `M` の全体を接続する．鎖上（`chainPoint n`）の付値は `M.Val tail`，ω 上の付値は `o` で与える．
+  The pseudo-tail model (an ω-extension of `M`): rooted at ω (`chainPoint ⊤`), with an
+  infinite descending chain `chainPoint n` (`n : ℕ`) attached below it, connecting to the
+  whole of the original model `M`. Chain points (`chainPoint n`) take the valuation
+  `M.Val tail`, while ω takes the valuation `o`.
 -/
 abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) :
     RootedModel (toPseudoTail.World M) α where
@@ -99,7 +101,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toPseudoTa
   intro s hs;
   by_cases hs₁ : {x | Sum.inl x ∈ s}.Nonempty;
   . obtain ⟨m, hm₁, hm₂⟩ := ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
-    refine ⟨toPseudoTail.embed m, hm₁, ?_⟩;
+    use toPseudoTail.embed m, hm₁;
     rintro (y | j) hy;
     . exact hm₂ y hy;
     . exact not_rel_embed_chainPoint;
@@ -109,7 +111,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toPseudoTa
       | .inl x => exact absurd ⟨x, hx⟩ hs₁;
       | .inr i => exact ⟨i, hx⟩;
     obtain ⟨m, hm₁, hm₂⟩ := (wellFounded_lt (α := ℕ∞)).has_min _ hs₂;
-    refine ⟨toPseudoTail.chainPoint m, hm₁, ?_⟩;
+    use toPseudoTail.chainPoint m, hm₁;
     rintro (y | j) hy;
     . exact absurd ⟨y, hy⟩ hs₁;
     . exact fun h => hm₂ j hy (rel_chainPoint_chainPoint.mp h);
@@ -119,7 +121,7 @@ instance [M.IsGL] : (M.toPseudoTail tail o).IsGL where
 
 open Model.World (Forces)
 
-/-- 元のモデルから pseudo-tail model への埋め込みは p-morphism である． -/
+/-- The embedding of the original model into the pseudo-tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) (o : α → Prop) :
     M →ₚ (M.toPseudoTail tail o).toModel where
   toFun := toPseudoTail.embed
@@ -134,12 +136,13 @@ lemma modal_equivalent_original {x : M.World} :
     Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toPseudoTail tail o).toModel) x (toPseudoTail.embed x) :=
   (pMorphismOriginal M tail o).modal_equivalence x
 
-/-- 元のモデルの世界（`embed x`）では pseudo-tail model と元のモデルの forces が一致する． -/
+/-- At an original-model world (`embed x`), forcing in the pseudo-tail model agrees
+with forcing in the original model. -/
 lemma forces_inl {x : M.World} :
     Forces (M := (M.toPseudoTail tail o).toModel) (toPseudoTail.embed x) A ↔ x ⊩ A :=
   modal_equivalent_original.symm
 
-/-- pseudo-tail model の根（ω）で `□A` が成立するならば全ての点で `□A` が成立する． -/
+/-- If `□A` holds at the pseudo-tail model's root (ω), it holds at every point. -/
 lemma forces_box_of_root_forces_box {x : (M.toPseudoTail tail o).World}
   (h : (M.toPseudoTail tail o).root.1 ⊩ (□A)) :
   x ⊩ (□A) := by
@@ -151,8 +154,9 @@ lemma forces_box_of_root_forces_box {x : (M.toPseudoTail tail o).World}
   | .inr i, .inr j => exact rel_chainPoint_chainPoint.mpr $ lt_of_lt_of_le (rel_chainPoint_chainPoint.mp Rxy) le_top;
 
 /--
-  部分論理式について閉じた集合 `S` の各 `□B ∈ S` に対して根で `□B 🡒 B` が成立しているならば，
-  `S` の各論理式の forces は根と鎖上の各点（`chainPoint n`）で一致する．
+  If `S` is closed under subformulas and the root forces `□B 🡒 B` for every `□B ∈ S`,
+  then forcing of every formula in `S` at the root agrees with forcing at every chain
+  point (`chainPoint n`).
 -/
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {o : α → Prop} {S : FormulaFinset α}

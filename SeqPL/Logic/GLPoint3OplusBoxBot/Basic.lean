@@ -19,10 +19,12 @@ namespace LogicGLPoint3OplusBoxBot
 variable {α : Type*} [DecidableEq α] {n : ℕ} {A B C : Formula α}
 
 omit [DecidableEq α] in
+/-- `GLPoint3OplusBoxBot n` unfolds to `GLPoint3 ⊕ᴸ {□^[n]⊥}` for finite `n`. -/
 @[simp]
 lemma eq_some : LogicGLPoint3OplusBoxBot (α := α) (n : ℕ∞) = (LogicGLPoint3 ⊕ᴸ {□^[n]⊥}) := rfl
 
 omit [DecidableEq α] in
+/-- Lift a `GLPoint3` theorem into `GLPoint3OplusBoxBot n`. -/
 lemma provable_of_provable_GLPoint3 (h : A ∈ LogicGLPoint3) : A ∈ LogicGLPoint3OplusBoxBot n :=
   Logic.sumNormal.mem₁ h
 

@@ -6,7 +6,6 @@ public import SeqPL.Formula.Map
 @[expose]
 public section
 
-universe u
 variable {α : Type u}
 
 /--
@@ -215,9 +214,7 @@ lemma impTrans : ⊢ʰ A 🡒 B → ⊢ʰ B 🡒 C → ⊢ʰ A 🡒 C := by
   have hnA : ({∼A, A}) ⊢ʰ A 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.mdp hnA hA;
 
-/-- The Łukasiewicz-style contraposition axiom `elimContra`, recovered from the
-`Minimal + DNE` primitives (`dne`) via the deduction theorem. Formerly a
-primitive constructor of `ProofHilbert`. -/
+/-- The Łukasiewicz-style contraposition axiom: `(∼A 🡒 ∼B) 🡒 (B 🡒 A)`. -/
 @[simp, grind .] lemma elimContra : ⊢ʰ (∼A 🡒 ∼B) 🡒 (B 🡒 A) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;

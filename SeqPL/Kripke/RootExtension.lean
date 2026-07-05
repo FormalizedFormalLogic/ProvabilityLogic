@@ -205,20 +205,21 @@ end RootedModel.extendRoot
 
 section
 
-/-! ### 非反射的・推移的モデルの chain 上での公理 T -/
+/-! ### Axiom T on a chain in an irreflexive transitive model -/
 
 open Classical
 open Model.World
 
 variable {M : Model κ α} {A : Formula α} {l : List M.World}
 
-/-- 非反射的・推移的モデルの chain 上で公理 T `□A 🡒 A` を反証する点は高々 1 つ． -/
+/-- In an irreflexive transitive model, at most one point on a chain refutes the axiom T
+instance `□A 🡒 A`. -/
 lemma atmost_one_not_forces_axiomT_in_chain [IsTrans _ M.Rel] (l_chain : List.IsChain (· ≺ ·) l) :
     (∀ x ∈ l, x ⊩ (□A 🡒 A)) ∨ (∃! x, x ∈ l ∧ ¬(x ⊩ (□A 🡒 A))) := by
   apply or_iff_not_imp_left.mpr;
   push Not;
   rintro ⟨x, x_l, hx⟩;
-  refine ⟨x, ⟨x_l, hx⟩, ?_⟩;
+  use x, ⟨x_l, hx⟩;
   rintro y ⟨y_l, hy⟩;
   by_contra neyx;
   obtain ⟨hx₁, hx₂⟩ := not_forces_imp.mp hx;
@@ -238,8 +239,8 @@ lemma card_not_forces_axiomT_in_chain [IsTrans _ M.Rel]
   . rw [hu a ha, hu b hb];
 
 /--
-  非反射的・推移的モデルの，`Γ.card` より長い chain 上には，
-  `Γ` の全ての論理式の公理 T インスタンスが成立する点が存在する．
+  On a chain in an irreflexive transitive model longer than `Γ.card`, there is a point
+  where the axiom T instance holds for every formula in `Γ`.
 -/
 lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
     [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Γ : FormulaFinset α}
@@ -261,7 +262,7 @@ lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
     rw [List.card_toFinset, List.dedup_eq_self.mpr l_chain.nodup_of_irrefl_trans];
   have hss : t₁ ⊂ t₂ := Finset.ssubset_of_subset_lt_card (Finset.filter_subset _ _) (by omega);
   obtain ⟨x, hx₂, nhx₁⟩ := Finset.exists_of_ssubset hss;
-  refine ⟨x, List.mem_toFinset.mp hx₂, ?_⟩;
+  use x, List.mem_toFinset.mp hx₂;
   intro B hB;
   by_contra hxB;
   apply nhx₁;
@@ -282,8 +283,8 @@ instance [M.IsFiniteGL] : (M.extendRoot n).IsFiniteGL where
   finite := inferInstance
 
 /--
-  `Γ.card` より長く根を延長すれば，chain 上に `Γ` の全ての論理式の公理 T インスタンスが
-  成立する点が存在する．
+  Extending the root by more than `Γ.card` points yields a chain containing a point
+  where the axiom T instance holds for every formula in `Γ`.
 -/
 lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
     {Γ : FormulaFinset α} (hn : Γ.card < n) :
@@ -295,7 +296,8 @@ lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
     simpa [extendRoot.tail, eq_comm] using hx;
   exact ⟨i, h⟩;
 
-/-- boxdot 変換された論理式の forces は chain 上の各点と元の根とで一致する． -/
+/-- Forcing of the boxdot translation of a formula agrees between every chain point and
+the original root. -/
 lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula α} :
     Forces (M := (M.extendRoot n).toModel) (.inr i) (Aᵇ) ↔ M.root.1 ⊩ (Aᵇ) := by
   induction A generalizing i with

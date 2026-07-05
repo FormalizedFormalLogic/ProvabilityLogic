@@ -5,7 +5,6 @@ public import SeqPL.Formula.Basic
 @[expose]
 public section
 
-universe u
 variable {α : Type u} [DecidableEq α]
 
 structure Sequent (α : Type u) where
@@ -64,10 +63,10 @@ def mdpL_mem (A B) (h₁ : A 🡒 B ∈ Γ := by grind) (h₂ : A ∈ Γ := by g
 
 
 /--
-  Invertibility of `impR`, proved by structural recursion on the proof.
-  Stated without a membership hypothesis `A 🡒 B ∈ Δ`:
+  Invertibility of `impR`. Stated without a membership hypothesis `A 🡒 B ∈ Δ`:
   when `A 🡒 B ∉ Δ` the statement degenerates to weakening.
 -/
+-- Proved by structural recursion on the proof.
 def impRInv (A B : Formula α) {S : Sequent α} : ⊢ᵍ! S → ⊢ᵍ! (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B)))
   | .axm C =>
     if h : C = A 🡒 B then by
@@ -96,13 +95,14 @@ def impRInv (A B : Formula α) {S : Sequent α} : ⊢ᵍ! S → ⊢ᵍ! (insert 
       exact impR (wkR (wkL ih (by grind)) (by grind));
   | .boxGL π => wkR (wkL (boxGL π))
 
-/-- Syntactic proof transformation for one direction of the deduction theorem (just `impR`). -/
+/-- One direction of the deduction theorem. -/
 def deductionTheorem (π : ⊢ᵍ! (insert A Γ ⟹ {B})) : ⊢ᵍ! (Γ ⟹ {A 🡒 B}) := by
   rw [← insert_empty_eq];
   apply impR;
   rwa [insert_empty_eq];
 
-/-- Syntactic proof transformation for the converse direction of the deduction theorem, via `impRInv`. -/
+/-- The converse direction of the deduction theorem. -/
+-- Proved via `impRInv`.
 def deductionTheoremInv (π : ⊢ᵍ! (Γ ⟹ {A 🡒 B})) : ⊢ᵍ! (insert A Γ ⟹ {B}) := by
   have p := impRInv A B π;
   rwa [(show ({A 🡒 B} : FormulaFinset α).erase (A 🡒 B) = ∅ by grind), insert_empty_eq] at p;
@@ -282,11 +282,10 @@ lemma orIntroL : ⊢ᵍ (∅ ⟹ {A 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroL
 lemma orIntroR : ⊢ᵍ (∅ ⟹ {B 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroR⟩
 lemma orElim : ⊢ᵍ (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := ⟨ProofGentzen.orElim⟩
 
-/-- Invertibility of `impR` (a purely syntactic proof transformation, see `ProofGentzen.impRInv`). -/
+/-- Invertibility of `impR`. -/
 lemma impR_inv {S : Sequent α} (h : ⊢ᵍ S) : ⊢ᵍ (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B))) := ⟨h.some.impRInv A B⟩
 
-/-- Deduction theorem, via the syntactic proof transformations
-    `ProofGentzen.deductionTheorem` and `ProofGentzen.deductionTheoremInv`. -/
+/-- Deduction theorem. -/
 theorem deduction_theorem : ⊢ᵍ (insert A Γ ⟹ {B}) ↔ ⊢ᵍ (Γ ⟹ {A 🡒 B}) :=
   ⟨λ ⟨π⟩ => ⟨π.deductionTheorem⟩, λ ⟨π⟩ => ⟨π.deductionTheoremInv⟩⟩
 

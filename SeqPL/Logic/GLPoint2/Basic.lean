@@ -70,8 +70,8 @@ protected lemma substlessInduction
   (axiomWeakPoint2 : ∀ {A B}, motive ((◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B)) provable_axiomWeakPoint2)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicGLPoint2} → {hA : A ∈ LogicGLPoint2} →
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumNormal.mdp hAB hA))
-  (nec : ∀ {A}, {hA : A ∈ LogicGLPoint2} → motive A hA → motive (□A) (Logic.sumNormal.nec hA))
-  : ∀ {A}, (h : A ∈ LogicGLPoint2) → motive A h := by
+    (nec : ∀ {A}, {hA : A ∈ LogicGLPoint2} → motive A hA → motive (□A) (Logic.sumNormal.nec hA)) :
+    ∀ {A}, (h : A ∈ LogicGLPoint2) → motive A h := by
   intro A h;
   induction substless.ofLogicGLPoint2 h with
   | provable_GL hg => exact provable_GL hg;
@@ -121,7 +121,8 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     . right;
       obtain ⟨y, hxy, hy⟩ := Model.World.forces_dia.mp h;
       apply Model.World.forces_dia.mpr;
-      refine ⟨y, hxy, Model.World.forces_and.mpr ⟨?_, hy⟩⟩;
+      use y, hxy;
+      refine Model.World.forces_and.mpr ⟨?_, hy⟩
       apply Model.World.forces_box.mpr;
       intro z hyz;
       exact absurd (Model.World.forces_box.mp hy z hyz) Model.World.not_forces_bot;
@@ -168,7 +169,8 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
       obtain ⟨hwC, hwBC⟩ := Model.World.forces_and.mp (Model.World.not_forces_neg.mp hw₂);
       have hwBBC : w ⊩ □□C := Model.World.forces_box.mp h4 w hxw hwBC;
       apply Model.World.forces_dia.mpr;
-      refine ⟨w, hxw, Model.World.forces_and.mpr ⟨?_, hwC⟩⟩;
+      use w, hxw;
+      refine Model.World.forces_and.mpr ⟨?_, hwC⟩
       apply Model.World.forces_box.mpr;
       intro z hwz;
       have hzD : z ⊩ C ⋏ □C := Model.World.forces_and.mpr
@@ -194,7 +196,8 @@ lemma weakPoint3_bridge : (∼□(⊡A 🡒 B) 🡒 ◇(⊡B 🡒 A ⋏ □(⊡B
   obtain ⟨hyA, _⟩ := Model.World.not_forces_imp.mp hy;
   obtain ⟨hyA₁, hyA₂⟩ := Model.World.forces_boxdot.mp hyA;
   apply Model.World.forces_dia.mpr;
-  refine ⟨y, hxy, Model.World.forces_and.mpr ⟨fun _ => hyA₁, ?_⟩⟩;
+  use y, hxy;
+  refine Model.World.forces_and.mpr ⟨fun _ => hyA₁, ?_⟩
   apply Model.World.forces_box.mpr;
   intro z hyz;
   exact fun _ => hyA₂ z hyz;

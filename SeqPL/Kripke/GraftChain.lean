@@ -139,9 +139,8 @@ lemma inr_relItr_inl_a {i : Fin k} :
   | succ m ih =>
     intro i hi;
     have hm : m < k := by omega;
-    refine ⟨.inr ⟨m, hm⟩, ?_, ih ⟨m, hm⟩ rfl⟩;
-    show m < (i : ℕ);
-    omega;
+    use .inr ⟨m, hm⟩;
+    exact ⟨show m < (i : ℕ) by omega, ih ⟨m, hm⟩ rfl⟩;
 
 /-- The length of a chain starting from the root is bounded by `max M.height (a.rank + k + 1)`. -/
 lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graftChain a k).World}
@@ -190,11 +189,11 @@ lemma height_eq (Rra : M.root.1 ≺ a)
       obtain ⟨t, ht⟩ := Model.exists_rank_terminal (M := M.toModel) a;
       match k with
       | 0 =>
-        refine ⟨.inl t, ?_⟩;
+        use .inl t;
         rw [show Model.World.rank a + 0 + 1 = 1 + Model.World.rank a by omega];
         exact Model.relItr_comp ⟨.inl a, Rra, by simp⟩ (relItr_inl ht);
       | k + 1 =>
-        refine ⟨.inl t, ?_⟩;
+        use .inl t;
         rw [show Model.World.rank a + (k + 1) + 1 = ((k + 1) + Model.World.rank a) + 1 by omega];
         refine ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1) ?_ (relItr_inl ht)⟩;
         simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
@@ -341,7 +340,7 @@ def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftChainOmega a).IsGL wher
     . -- A maximal non-root `inl` world of `s` is maximal in `s`.
       obtain ⟨m, ⟨hm₁, hm₂⟩, hm₃⟩ :=
         ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
-      refine ⟨.inl m, hm₁, ?_⟩;
+      use .inl m, hm₁;
       rintro (y | j) hy;
       . intro R;
         have R' : m ≺ y := R;
@@ -350,7 +349,7 @@ def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftChainOmega a).IsGL wher
     . by_cases hs₂ : {i : ℕ | Sum.inr i ∈ s}.Nonempty;
       . -- The least chain index in `s` is maximal in `s`.
         obtain ⟨i₀, hi₀, hmin⟩ := (wellFounded_lt (α := ℕ)).has_min _ hs₂;
-        refine ⟨.inr i₀, hi₀, ?_⟩;
+        use .inr i₀, hi₀;
         rintro (y | j) hy;
         . rintro (rfl | R);
           . exact hs₁ ⟨y, hy, hne⟩;
@@ -365,7 +364,7 @@ def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftChainOmega a).IsGL wher
             exact hs₁ ⟨x, hw, fun h => hx (by rw [h])⟩;
           | .inr i => exact absurd ⟨i, hw⟩ hs₂;
         subst hw_root;
-        refine ⟨.inl M.root.1, hw, ?_⟩;
+        use .inl M.root.1, hw;
         rintro (y | j) hy;
         . intro R;
           have R' : M.root.1 ≺ y := R;
@@ -378,9 +377,8 @@ lemma inr_relItr_inr_zero {n : ℕ} :
   induction n with
   | zero => simp;
   | succ n ih =>
-    refine ⟨.inr n, ?_, ih⟩;
-    show n < n + 1;
-    omega;
+    use .inr n;
+    exact ⟨show n < n + 1 by omega, ih⟩;
 
 open Model.World in
 /-- The root of `M.graftChainOmega a` has infinite depth: it refutes `□^[n]⊥` for

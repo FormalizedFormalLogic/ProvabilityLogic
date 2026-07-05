@@ -27,10 +27,11 @@ theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   . intro h κ _ M _;
     exact LogicGLPoint3.sound h M.root.1;
   . intro h;
-    -- sorry の理由: `GLPoint3` のKripke完全性（有限根付き線形モデルに関する完全性）．
-    -- Valentini & Solitro 1983 の Theorem 10（sequent calculus `LS` の完全性定理）および
-    -- Theorem 11 (b), (c)（`GLlin` の有限モデル性・`(ω, >)` に関する完全性）に相当する，
-    -- Kripke 意味論の深い議論であり，ユーザー指示により `sorry` とする．
+    -- Reason for the sorry: this is the Kripke completeness of `GLPoint3` with respect to
+    -- finite rooted linear GL models, corresponding to Theorem 10 (completeness of the
+    -- sequent calculus `LS`) and Theorem 11 (b), (c) (finite model property and
+    -- completeness with respect to `(ω, >)`) of Valentini & Solitro 1983. Left as `sorry`
+    -- per user instruction, as it requires a substantial Kripke semantics argument.
     sorry;
 
 end LogicGLPoint3

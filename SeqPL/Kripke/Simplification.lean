@@ -228,11 +228,9 @@ section OmegaSimplification
 
 omit [DecidableEq α] in
 /--
-  Auxiliary step for `graftChainOmega.isTree`: any `M`-predecessor `x₀` of a point
-  `z₀` comparable with `a` (i.e. `z₀ = a` or `a ≺ z₀`) is itself comparable with the
-  root or with `a`. Uses `hcov` (`a` covers the root, no intermediate points) to rule
-  out the case where `x₀` is a *proper* intermediate ancestor of `a` distinct from the
-  root.
+  Auxiliary step for `graftChainOmega.isTree`: any `M`-predecessor `x₀` of a point `z₀`
+  comparable with `a` (i.e. `z₀ = a` or `a ≺ z₀`) is itself comparable with the root or
+  with `a`.
 -/
 private lemma graftChainOmega.isTree_aux {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
     (hTree : M.IsTree) (Rra : M.root.1 ≺ a) (hcov : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a)
@@ -254,12 +252,10 @@ private lemma graftChainOmega.isTree_aux {M : RootedModel κ α} [M.IsFiniteGL] 
 
 omit [DecidableEq α] in
 /--
-  **`M.graftChainOmega a` is a tree** (`RootedModel.IsTree`), provided `M` is a tree
-  and `a` *covers* the root directly (no point strictly between `M.root.1` and `a`).
-  This "covers the root" hypothesis is exactly condition 6/7 of [Bek90]'s ω-model
-  definition (the expanded point must cover the minimum); without it the tree property
-  genuinely fails (a counterexample: an intermediate ancestor `x₀` of `a`, `x₀ ≠ root`,
-  is then incomparable with `chainPoint 0` in `M.graftChainOmega a`).
+  **`M.graftChainOmega a` is a tree** (`RootedModel.IsTree`), provided `M` is a tree and
+  `a` *covers* the root directly (no point strictly between `M.root.1` and `a`). The
+  "covers the root" hypothesis is condition 6/7 of [Bek90]'s ω-model definition and is
+  necessary for tree-ness.
 -/
 lemma graftChainOmega.isTree {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
     (hTree : M.IsTree) (Rra : M.root.1 ≺ a) (hcov : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a) :
@@ -291,26 +287,16 @@ lemma graftChainOmega.isTree {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World
     . exact Or.inr (Or.inl h);
 
 omit [DecidableEq α] in
-/--
-  **Chain points of an ω-model are never `P`-redundant** (Lemma 8 in [Bek90] §4: "if
-  `b ≺ x ≺ r`, then, by condition 6 of the definition of ω-model, `x` is the unique
-  point covering some point `y`; hence there are no cones above `𝒳_x` other than
-  `𝒳_x` itself").
-
-  The precise mechanism (matching the paper's "unique covering point" argument,
-  rather than any rank/depth invariant): `chainPoint (i + 1)` is the *unique* point
-  covering `chainPoint i` -- i.e. its immediate `≺`-predecessor -- and in fact *every*
-  one of `chainPoint (i + 1)`'s successors other than `chainPoint i` itself already
-  lies inside `chainPoint i`'s own cone (either a lower chain point `chainPoint j`,
-  `j < i`, or a point of `M`'s cone above `a`, both of which `chainPoint i` directly
-  relates to by construction). So testing `Redundant` at the specific predecessor
-  `chainPoint (i + 1)` of `chainPoint i`, *every* candidate witness is automatically
-  comparable to `chainPoint i`, hence excluded by the mutual-incomparability clause.
--/
+/-- **Chain points of an ω-model are never `P`-redundant** (Lemma 8 in [Bek90] §4). -/
 lemma graftChainOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
     (a : M.World) (P : Finset α) (i : ℕ) :
     ¬ (M.graftChainOmega a).Redundant P (Sum.inr i : (M.graftChainOmega a).World) := by
   rintro ⟨-, hred⟩;
+  -- `chainPoint (i + 1)` is the unique point covering `chainPoint i` (its immediate
+  -- `≺`-predecessor), and every other successor of `chainPoint (i + 1)` already lies
+  -- inside `chainPoint i`'s own cone. So testing `Redundant` at `chainPoint (i + 1)`,
+  -- every candidate witness `u` is comparable to `chainPoint i`, contradicting the
+  -- mutual-incomparability clause.
   have hwa : (M.graftChainOmega a).Rel (Sum.inr (i + 1)) (Sum.inr i) := by
     show i < i + 1;
     omega;
@@ -325,16 +311,13 @@ lemma graftChainOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFini
     omega;
 
 omit [DecidableEq α] in
-/--
-  **The grafted point `a` itself is never `P`-redundant either**, by the same
-  "unique covering point" mechanism as `not_redundant_chainPoint`: `chainPoint 0` is
-  the unique point covering `embed a`, and every other successor of `chainPoint 0`
-  (a proper descendant of `a` within `M`) is already comparable to `a`.
--/
+/-- **The grafted point `a` itself is never `P`-redundant either** (Lemma 8 in [Bek90] §4). -/
 lemma graftChainOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
     (a : M.World) (P : Finset α) :
     ¬ (M.graftChainOmega a).Redundant P (Sum.inl a : (M.graftChainOmega a).World) := by
   rintro ⟨-, hred⟩;
+  -- `chainPoint 0` is the unique point covering `embed a`, and every other successor of
+  -- `chainPoint 0` (a proper descendant of `a`) is already comparable to `a`.
   have hwa : (M.graftChainOmega a).Rel (Sum.inr 0) (Sum.inl a) := by
     show a = a ∨ M.Rel a a;
     exact Or.inl rfl;
@@ -358,9 +341,7 @@ lemma graftChainOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
   . exact absurd hred (not_redundant_chainPoint a P i);
 
 omit [DecidableEq α] in
-/-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftChainOmega
-a` -- combines `graftChainOmega.isTree`'s "covers the root" hypothesis (ruling out `m`
-being a proper ancestor of `a` other than the root) with `m ≠ a`. -/
+/-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftChainOmega a`. -/
 lemma graftChainOmega.not_isSuccessorOf_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
     {a : M.World} (_Rra : M.root.1 ≺ a) (hcov : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a)
     {P : Finset α} {m : M.World} (hm : m ≠ M.root.1)
@@ -371,25 +352,8 @@ lemma graftChainOmega.not_isSuccessorOf_of_redundant {M : RootedModel κ α} [M.
   . exact hcov m (M.root.2 m hm) ham;
 
 /--
-  **Lemma 8 in [Bek90] §4**, specialized to `graftChainOmega`-shaped ω-models (the
-  paper's actual scope: an "ω-model" is precisely a finite `GL`-model expanded to
-  length `ω` at a point *covering the minimum*, see [Bek90] p.261 item 6/7 and the
-  corollary to Lemma 5). For a finite tree `M` and a point `a` covering `M`'s root,
-  the ω-model `M.graftChainOmega a` admits a `P`-simplification.
-
-  **Not proved in this session.** By `graftChainOmega.exists_of_redundant`, only
-  embedded points can ever be redundant, and `M` is finite, so the natural strategy is
-  the same strong induction on `Fintype.card M.World` as `exists_simplificationUnder`,
-  removing one redundant embedded point's cone at a time. The missing piece is a
-  lemma identifying `(M.graftChainOmega a).removeCone (Sum.inl m) _` (for a redundant
-  embedded `m`, which survives with `a` intact by `not_isSuccessorOf_of_redundant`)
-  with `(M.removeCone m _).graftChainOmega a'` for the corresponding image `a'` of
-  `a` -- i.e. that "removing an embedded cone" commutes with "grafting the ω-chain".
-  This is plausible (removing `cone(m)` never touches the chain, since chain points
-  only relate into `cone(a)` and `m` is not an ancestor of `a`) but constructing the
-  explicit order-isomorphism (and re-deriving `graftChainOmega.isTree`/`IsFiniteGL`
-  for the smaller base model at each step) was not completed this session; see
-  `.direct/exists-lemma56.md`.
+  **Lemma 8 in [Bek90] §4**: a `graftChainOmega`-shaped ω-model over a finite tree `M`
+  at a point `a` covering the root admits a `P`-simplification.
 -/
 theorem exists_simplificationUnder_omega {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
     (hTree : M.IsTree) (Rra : M.root.1 ≺ a) (hcov : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a)
@@ -398,6 +362,13 @@ theorem exists_simplificationUnder_omega {M : RootedModel κ α} [M.IsFiniteGL] 
       M'.IsTree ∧ IsSimpleUnder M' P ∧
       ∀ C : Formula α, C.atoms ⊆ P →
         ((M.graftChainOmega a).root.1 ⊩ C ↔ M'.root.1 ⊩ C) := by
+  -- Proof roadmap (not yet completed): only embedded points can be redundant
+  -- (`graftChainOmega.exists_of_redundant`) and `M` is finite, so run the same strong
+  -- induction on `Fintype.card M.World` as `exists_simplificationUnder`, removing one
+  -- redundant embedded point's cone at a time. The missing piece is that
+  -- `(M.graftChainOmega a).removeCone (Sum.inl m) _` agrees with
+  -- `(M.removeCone m _).graftChainOmega a'`, i.e. removing an embedded cone commutes
+  -- with grafting the ω-chain (constructing the explicit order-isomorphism remains).
   sorry
 
 end OmegaSimplification

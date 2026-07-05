@@ -453,7 +453,7 @@ theorem unprovable_realization_exists
     T.height < (M.extendRoot 1).height := S.theory_height (T.standardProvability.syntactical_sound ℕ) (A := A) ?_ h
     _        = _                       := by
       have := RootedModel.extendRoot.Ext1.eq_height_original_height_succ (M := M);
-      simp_all only [ne_eq, PNat.val_ofNat, Nat.cast_add, Nat.cast_one];
+      simp_all only [ne_eq, Nat.cast_add, Nat.cast_one];
   . apply Model.World.forces_dia.mpr;
     use M.root;
     constructor;

@@ -68,8 +68,8 @@ protected lemma substlessInduction
   (axiomWeakPoint3 : ∀ {A B}, motive ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) provable_axiomWeakPoint3)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicGLPoint3} → {hA : A ∈ LogicGLPoint3} →
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumNormal.mdp hAB hA))
-  (nec : ∀ {A}, {hA : A ∈ LogicGLPoint3} → motive A hA → motive (□A) (Logic.sumNormal.nec hA))
-  : ∀ {A}, (h : A ∈ LogicGLPoint3) → motive A h := by
+    (nec : ∀ {A}, {hA : A ∈ LogicGLPoint3} → motive A hA → motive (□A) (Logic.sumNormal.nec hA)) :
+    ∀ {A}, (h : A ∈ LogicGLPoint3) → motive A h := by
   intro A h;
   induction substless.ofLogicGLPoint3 h with
   | provable_GL hg => exact provable_GL hg;

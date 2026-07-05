@@ -13,45 +13,6 @@ public section
 universe u
 variable {α : Type u}
 
-
-namespace Formula
-
-end Formula
-
-/-
-def Model.uLift.{u₁, u₂, v} {κ : Type u₁} [Nonempty κ] {α : Type v} (M : Model κ α) : Model (ULift.{u₂, u₁} κ) α where
-  Rel' x y := M.Rel x.down y.down
-  Val' x a := M.Val x.down a
-
-namespace Model.uLift
-
-variable {κ₁ : Type u₁} [Nonempty κ₁] {M : Model κ₁ α}
-variable {α : Type v} {A B : Formula α}
-
-
-protected def embed : M.World → (M.uLift.{u₁, u₂}).World := fun x => ⟨x⟩
-
-open Model.uLift (embed)
-instance : Coe M.World (M.uLift.{u₁, u₂}).World := ⟨embed⟩
-
-@[grind =]
-lemma rel_iff {x y : M.World} : M.Rel x y ↔ (M.uLift.{u₁, u₂}).Rel x y := by simp [Model.uLift, Model.Rel, embed]
-
-lemma same_forces {x : M.World} {A : Formula α} : Model.World.Forces (M := M.uLift.{u₁, u₂, v}) (embed x) A ↔ x ⊩ A := by
-  induction A generalizing x with
-  | atom a => simp [Model.uLift, Model.World.Forces, embed]
-  | bot => simp [Model.uLift, Model.World.Forces, embed]
-  | imp A B ihA ihB => grind;
-  | box A ihA =>
-    constructor;
-    . intro h y Rxy;
-      exact ihA |>.mp $ @h (embed y) (rel_iff.mpr Rxy);
-    . rintro h ⟨y⟩ Rxy;
-      exact ihA |>.mpr $ @h y (rel_iff.mp Rxy);
-
-end Model.uLift
--/
-
 namespace Formula
 
 variable {n : ℕ} {A B : Formula α}
@@ -171,7 +132,7 @@ lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
       obtain ⟨z', Rzz', hz'⟩ := ih
         (Γ := Γ.erase B₀) (by rw [Finset.card_erase_of_mem hB₀, hΓ]; rfl)
         (x := z) (by omega);
-      refine ⟨z', IsTrans.trans _ _ _ Rxz Rzz', ?_⟩;
+      use z', IsTrans.trans _ _ _ Rxz Rzz';
       intro B hB;
       by_cases hBB₀ : B = B₀;
       . subst hBB₀;
@@ -195,7 +156,8 @@ lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : For
   obtain ⟨z, Rrz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank
     (Γ := A.subfmls.prebox) rfl (x := M.root.1) (by omega);
   apply Model.World.forces_dia.mpr;
-  refine ⟨z, Rrz, Model.World.forces_fconj.mpr ?_⟩;
+  use z, Rrz;
+  apply Model.World.forces_fconj.mpr;
   intro C hC;
   obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
   exact hz B hB;
@@ -266,7 +228,7 @@ lemma trace_subst_subset {A : Formula α} {s : Formula.Substitution α} : (A⟦s
   obtain ⟨κ, _, M, _, _, hh, hr⟩ := Formula.iff_mem_trace.mp hn;
   exact Formula.iff_mem_trace.mpr ⟨κ, inferInstance, M.substModel s, inferInstance, inferInstance, hh, fun h => hr (Model.forces_substModel.mpr h)⟩;
 
-lemma eq_LogicGL_quasiExtension_trace {X : FormulaSet α} (X_subst : ∀ A ∈ X, ∀ s, A.subst s ∈ X) : (LogicGL +ᴸ X).trace = X.trace := by
+lemma eq_LogicGL_quasiExtension_trace {X : FormulaSet α} (_ : ∀ A ∈ X, ∀ s, A.subst s ∈ X) : (LogicGL +ᴸ X).trace = X.trace := by
   classical
   ext n;
   constructor;
