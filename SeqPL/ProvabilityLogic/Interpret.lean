@@ -79,6 +79,17 @@ lemma Formula.interpret_subst {f : Realization α 𝔅} {s : Formula.Substitutio
   | atom a => rfl
   | _ => simp_all [Formula.interpret, Formula.subst_imp, Formula.subst_box]
 
+/-- Realizations that agree on every atom up to `T₀`-provable equivalence interpret every
+formula equivalently. -/
+lemma Formula.interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α 𝔅}
+    (h : ∀ a, T₀ ⊢ (f₁.val a) 🡘 (f₂.val a)) (A : Formula α) :
+    T₀ ⊢ (f₁ A) 🡘 (f₂ A) := by
+  induction A with
+  | atom a => exact h a
+  | bot => dsimp [Formula.interpret]; cl_prover
+  | imp A B ihA ihB => dsimp [Formula.interpret]; cl_prover [ihA, ihB]
+  | box A ih => exact 𝔅.ext' ih
+
 end interpret_map
 
 

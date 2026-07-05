@@ -35,6 +35,7 @@ public import SeqPL.Logic.GL.Fixedpoint
 public import SeqPL.Logic.GL.Letterless
 public import SeqPL.Logic.GLPlusBoxBot.Basic
 public import SeqPL.Logic.GLPoint3.Basic
+public import SeqPL.Logic.GLPoint3.Completeness
 public import SeqPL.Logic.GLPoint3.Letterless
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.S.Boxdot
@@ -51,6 +52,7 @@ public import SeqPL.ProvabilityLogic.D.Basic
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
+public import SeqPL.ProvabilityLogic.GLPoint3.Basic
 public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.S.Basic
