@@ -4,6 +4,7 @@ public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PseudoTail
+public import SeqPL.Kripke.Rank
 
 @[expose]
 public section
@@ -170,6 +171,14 @@ lemma provable_fdisj_axiomD [DecidableEq α] {Γ : FormulaFinset α} : (□(⋁(
     have t₃ : ((□A ⋎ □(⋁(□Γ))) 🡒 (□A ⋎ ⋁(□Γ))) ∈ LogicD := provable_of_provable_GL_imp GL_taut_or_mono ih;
     have t₄ : ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicD := provable_of_provable_GL GL_or_fdisj_insert;
     exact provable_imp_trans (provable_imp_trans (provable_imp_trans t₁ t₂) t₃) t₄;
+
+/-- `D` proves every `TBB n`, i.e. `□^[n+1]⊥ 🡒 □^[n]⊥`: the base case is the axiom `P`
+and the successor case is the singleton instance of the `n`-ary axiom `D`. In particular
+`D` has trace `ω`. -/
+lemma provable_TBB [DecidableEq α] {n : ℕ} : (TBB n : Formula α) ∈ LogicD := by
+  match n with
+  | 0 => exact provable_axiomP;
+  | n + 1 => simpa [TBB, Formula.boxItr] using provable_fdisj_axiomD (Γ := ({□^[n]⊥} : FormulaFinset α));
 
 lemma provable_lconj_of_forall_provable {Γ : FormulaList α} (h : ∀ B ∈ Γ, B ∈ LogicD) : (⋀Γ) ∈ LogicD := by
   match Γ with
