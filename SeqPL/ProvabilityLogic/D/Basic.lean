@@ -51,9 +51,8 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁]
 /-- For sound `T`, every local reflection instance for `T` is true in the standard
 model: if `Pr_T(σ)` holds in `ℕ` then `T ⊢ σ` (`Provability.SoundOn`), hence `σ` is
 true by the soundness of `T`. So `T + Rfn_Γₙ(T)` is sound as well. -/
-instance LO.FirstOrder.ArithmeticTheory.models_localReflection
-    [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : ℕ} :
-    ℕ↓[ℒₒᵣ] ⊧* (T ∪ T.localReflection Γ n) := by
+instance LO.FirstOrder.ArithmeticTheory.models_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : ℕ}
+  : ℕ↓[ℒₒᵣ] ⊧* (T ∪ T.localReflection Γ n) := by
   apply Semantics.modelsSet_iff.mpr;
   rintro φ (hφ | ⟨σ, hσ, rfl⟩);
   . exact Semantics.modelsSet_iff.mp inferInstance hφ;
@@ -77,10 +76,9 @@ instance LO.FirstOrder.ArithmeticTheory.models_localReflection
   the detailed analysis.
 -/
 theorem LO.FirstOrder.ArithmeticTheory.unbounded_localReflection
-    (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
-    [Entailment.Consistent (T ∪ T.localReflection 𝚺 1)] :
-    ¬∀ σ : FirstOrder.Sentence ℒₒᵣ,
-      (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
+  (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
+  [Entailment.Consistent (T ∪ T.localReflection 𝚺 1)] :
+  ¬∀ σ : FirstOrder.Sentence ℒₒᵣ, (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
   sorry
 
 end
@@ -104,25 +102,18 @@ theorem arithmetical_soundness (h : A ∈ LogicD) (f : StandardRealization α T)
     (T ∪ T.localReflection 𝚺 1) ⊢ f A := by
   induction h using LogicD.substlessInduction with
   | provable_GL h => exact Entailment.WeakerThan.pbl $ LogicGL.arithmetical_soundness' h;
-  | axiomP =>
-    -- the interpretation of `∼□⊥` is the reflection instance at `σ = ⊥`.
+  | axiomP | axiomD =>
     apply Entailment.by_axm;
-    apply Set.mem_union_right;
-    exact FirstOrder.ArithmeticTheory.mem_localReflection (by simp [Formula.interpret]);
-  | axiomD =>
-    -- the interpretation of `□(□A ⋎ □B) 🡒 (□A ⋎ □B)` is the reflection instance
-    -- at the `𝚺₁`-sentence `σ = f (□A ⋎ □B)`.
-    apply Entailment.by_axm;
-    apply Set.mem_union_right;
-    exact FirstOrder.ArithmeticTheory.mem_localReflection
-      (by simp [Formula.interpret, Arithmetic.standardProvability_def]);
+    right;
+    apply FirstOrder.ArithmeticTheory.mem_localReflection;
+    simp [Formula.interpret, Arithmetic.standardProvability_def];
   | mdp ihAB ihA => exact ihAB ⨀ ihA;
 
 /-- Arithmetical soundness of `D` specialized to Peano arithmetic (Example 60 in
 [AB05]): every theorem of `D` is provable in `𝗣𝗔 + Rfn_Σ₁(𝗣𝗔)` under every standard
 realization for `𝗣𝗔`. -/
 theorem arithmetical_soundness_PA (h : A ∈ LogicD) (f : StandardRealization α 𝗣𝗔) :
-    (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) ⊢ f A :=
+  (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) ⊢ f A :=
   arithmetical_soundness h f
 
 
@@ -133,11 +124,11 @@ variable [DecidableEq α]
 /-- The provability logic of `T` relative to `T + Rfn_Σ₁(T)` has trace `ω`: it contains
 `D` by arithmetical soundness, and `D ⊢ TBB n` for every `n`. -/
 lemma trace_univ_provabilityLogicRelativeTo_localReflection :
-    (T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) : Logic α).trace
-      = Set.univ := by
+  (T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) : Logic α).trace = Set.univ := by
   apply Set.eq_univ_of_forall;
   intro n;
-  exact mem_trace_of_provable_TBB (fun f => arithmetical_soundness provable_TBB f);
+  apply mem_trace_of_provable_TBB;
+  exact arithmetical_soundness provable_TBB;
 
 /--
   **Example 60 in [AB05]**: for sound `T`, the logic `D` is the provability logic of
@@ -155,25 +146,24 @@ lemma trace_univ_provabilityLogicRelativeTo_localReflection :
   `provable_reflection_of_mem_not_LogicD`) and the unboundedness theorem.
 -/
 theorem eq_provabilityLogicRelativeTo_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] :
-    @LogicD α = T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) := by
+  @LogicD α = T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) := by
   haveI hTU : T ⪯ (T ∪ T.localReflection 𝚺 1) := inferInstance;
-  haveI : 𝗜𝚺₁ ⪯ (T ∪ T.localReflection 𝚺 1) :=
-    Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ T)) hTU;
-  haveI : Entailment.Consistent (T ∪ T.localReflection 𝚺 1) :=
-    consistent_of_model (T ∪ T.localReflection 𝚺 1) ℕ;
+  haveI : 𝗜𝚺₁ ⪯ (T ∪ T.localReflection 𝚺 1) := Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ T)) hTU;
+  haveI : Entailment.Consistent (T ∪ T.localReflection 𝚺 1) := consistent_of_model (T ∪ T.localReflection 𝚺 1) ℕ;
   apply Set.Subset.antisymm;
-  . intro A hA f;
-    exact arithmetical_soundness hA f;
+  . grind [arithmetical_soundness];
   . intro A hAL;
-    by_contra hAD;
-    exact T.unbounded_localReflection
-      (provable_reflection_of_mem_not_LogicD
-        trace_univ_provabilityLogicRelativeTo_localReflection hAL hAD);
+    by_contra! hAD;
+    apply T.unbounded_localReflection;
+    apply provable_reflection_of_mem_not_LogicD (A := A);
+    . exact trace_univ_provabilityLogicRelativeTo_localReflection;
+    . exact hAL;
+    . exact hAD;
 
 /-- **Example 60 in [AB05]** specialized to Peano arithmetic:
 `D = PL_PA(PA + Rfn_Σ₁(PA))`. -/
 theorem eq_provabilityLogic_PA_localReflection :
-    @LogicD α = 𝗣𝗔.provabilityLogicRelativeTo (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) :=
+  @LogicD α = 𝗣𝗔.provabilityLogicRelativeTo (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) :=
   eq_provabilityLogicRelativeTo_localReflection
 
 end completeness
