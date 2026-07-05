@@ -43,6 +43,7 @@ public import SeqPL.ProvabilityLogic.Classification.Full
 public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.ProvabilityLogic.Classification.Result
 public import SeqPL.ProvabilityLogic.Classification.Trace
+public import SeqPL.ProvabilityLogic.D.Basic
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform
 public import SeqPL.ProvabilityLogic.GLPlusBoxBot.Basic
