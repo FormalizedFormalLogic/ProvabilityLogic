@@ -23,6 +23,8 @@ universe determined by the labels and the subformula closure of the sequent,
 both of which are invariant under saturation steps.
 -/
 
+namespace LabelledGentzen
+
 variable {α : Type u} [DecidableEq α]
 
 namespace LabelledSequent
@@ -785,8 +787,4 @@ automatically; the `T` axiom `□a 🡒 a` and `□a` itself, which are not theo
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 🡒 #0)]).isNone
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0)]).isNone
 
-#eval match search0 (α := ℕ) [] [] [0 ∶ (□(□#0 🡒 #0) 🡒 □#0)] with
-  | some p => ProofLabelledGentzen.toString p
-  | none => "no proof found"
-
-end
+end LabelledGentzen

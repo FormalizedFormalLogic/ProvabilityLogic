@@ -30,6 +30,7 @@ public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Basic
 public import SeqPL.LabelledGentzen.Loop
 public import SeqPL.LabelledGentzen.Search
+public import SeqPL.LabelledGentzen.ToString
 public import SeqPL.Logic.A.Basic
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic

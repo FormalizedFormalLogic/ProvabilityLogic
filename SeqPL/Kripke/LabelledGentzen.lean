@@ -14,12 +14,14 @@ whenever all relational atoms and all antecedent formulas hold, some succedent
 formula holds.
 -/
 
+open LabelledGentzen
+
 variable {κ : Type u} [Nonempty κ]
          {α : Type v} [DecidableEq α]
          {M : Model κ α}
 
 
-namespace LabelledSequent
+namespace LabelledGentzen.LabelledSequent
 
 variable {S : LabelledSequent α} {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)}
          {lf : LabelledFormula α} {p : Label × Label}
@@ -44,7 +46,7 @@ omit [DecidableEq α] in
 lemma mem_labels_of_mem_rel_snd (h : p ∈ S.rel) : p.2 ∈ S.labels :=
   Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
 
-end LabelledSequent
+end LabelledGentzen.LabelledSequent
 
 
 namespace Model
@@ -139,7 +141,7 @@ lemma validate_labelled_trans [IsTrans _ M.Rel]
   . exact _root_.trans (hrel (x, y) hxy) (hrel (y, z) hyz);
   . exact hrel p hp;
 
-open LabelledSequent in
+open LabelledGentzen.LabelledSequent in
 lemma validate_labelled_boxRLob [M.IsGL]
   (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels)
   (h : ∀ v : Label → M.World, M ⊧ˡ[v] (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ))
@@ -203,7 +205,7 @@ lemma validate_labelled_boxRLob [M.IsGL]
 end Model
 
 
-namespace ProvableLabelledGentzen
+namespace LabelledGentzen.ProvableLabelledGentzen
 
 namespace Kripke
 
@@ -236,6 +238,6 @@ theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ �
 
 end Kripke
 
-end ProvableLabelledGentzen
+end LabelledGentzen.ProvableLabelledGentzen
 
 end

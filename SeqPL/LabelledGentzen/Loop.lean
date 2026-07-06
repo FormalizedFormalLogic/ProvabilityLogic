@@ -15,12 +15,14 @@ formulas, some boxed formula repeats at both ends of a subchain, so the
 sequent is provable by Lemma 5.2.
 -/
 
+open LabelledGentzen
+
 variable {α : Type u} [DecidableEq α]
          {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
 
-namespace ProvableLabelledGentzen
+namespace LabelledGentzen.ProvableLabelledGentzen
 
 /-- If `y` is reachable from `x` through a nonempty chain of relational atoms in `R`,
 then the relational atom `(x, y)` can be discharged by `Trans`. -/
@@ -124,4 +126,4 @@ theorem provable_of_long_chain {X : Finset (Formula α)} (hX : X.card < n)
 
 end Pigeonhole
 
-end ProvableLabelledGentzen
+end LabelledGentzen.ProvableLabelledGentzen

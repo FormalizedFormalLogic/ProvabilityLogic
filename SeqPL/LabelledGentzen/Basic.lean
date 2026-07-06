@@ -13,6 +13,8 @@ Light*, JAR 2023), §2.2 (calculus `G3K`) and §6 (Fig. 2/3, calculus
 `G3KGL`). World-labels are drawn from `ℕ`.
 -/
 
+namespace LabelledGentzen
+
 variable {α : Type u} [DecidableEq α]
 
 /-- World-labels of the labelled sequent calculus. A bare `abbrev` for `ℕ`, kept
@@ -65,17 +67,6 @@ lemma freshLabel_notMem : S.freshLabel ∉ S.labels := by
   have := Finset.le_sup (f := id) h;
   simp only [id, freshLabel] at this;
   exact Nat.not_succ_le_self _ this;
-
-/-- Typst math-mode source for this sequent. Extracting the elements of a `Finset` is
-noncomputable in general (it goes through `Multiset.toList`), so this is for
-human-readable display (e.g. in the goal view) rather than `#eval`. -/
-protected noncomputable def toString [ToString α] (S : LabelledSequent α) : String :=
-  let relStr := String.intercalate ", " (S.rel.toList.map (fun p => s!"{p.1} R {p.2}"))
-  let antStr := String.intercalate ", " (S.ant.toList.map LabelledFormula.toString)
-  let sucStr := String.intercalate ", " (S.suc.toList.map LabelledFormula.toString)
-  s!"{relStr}, {antStr} tack.r {sucStr}"
-
-noncomputable instance [ToString α] : ToString (LabelledSequent α) := ⟨LabelledSequent.toString⟩
 
 end LabelledSequent
 
@@ -168,36 +159,6 @@ def loop (x y z : Label) (A : Formula α)
   apply boxL x z A (hxy := by grind) (hxA := by grind);
   exact union z A (by grind) (by grind);
 
-/-- Builds a `curryst` `rule(...)` call for this node (see `.notes/unpublished/*.typ`),
-recursing into premises as nested `rule(...)` calls. Deliberately does *not* print the
-ambient sequent `S` at each node (unlike `LabelledSequent.toString`), since extracting
-the contents of its `Finset`s is noncomputable; this keeps the printer usable in `#eval`.
-Structural rules, for which no closed-form witness is available, show `dots.h` in place
-of the conclusion. -/
-partial def toStringAux [ToString α] {S : LabelledSequent α} : ⊢ˡ! S → String
-  | .axm x A => s!"rule(name: [Ax], ${x} : {A}$)"
-  | .botL x => s!"rule(name: [$bot$L], ${x} : bot$)"
-  | .wkRel p _ => s!"rule(name: [$W_R$], $dots.h$, {toStringAux p})"
-  | .wkAnt p _ => s!"rule(name: [$W_(cal(L))$], $dots.h$, {toStringAux p})"
-  | .wkSuc p _ => s!"rule(name: [$W_(cal(R))$], $dots.h$, {toStringAux p})"
-  | .impL p q => s!"rule(name: [$->L$], $dots.h$, {toStringAux p}, {toStringAux q})"
-  | .impR p => s!"rule(name: [$->R$], $dots.h$, {toStringAux p})"
-  | .boxL x y A _ _ p =>
-    s!"rule(name: [$class(\"unary\", square)L$], ${x} R {y} tack.r {y} : {Formula.toString A}$, {toStringAux p})"
-  | .boxRLob x y A _ p =>
-    s!"rule(name: [$class(\"unary\", square)R^Löb$], ${x} R {y} tack.r {x} : class(\"unary\", square) {Formula.toString A}$, {toStringAux p})"
-  | .irref x _ => s!"rule(name: [Irref], ${x} R {x}$)"
-  | .trans x y z _ _ p =>
-    s!"rule(name: [Trans], ${x} R {y}, {y} R {z} tack.r {x} R {z}$, {toStringAux p})"
-
-/-- Typst source rendering this proof as a `curryst` proof tree; wrap the containing
-document with `#import "@preview/curryst:0.5.0": prooftree, rule` for it to compile. -/
-def toString [ToString α] {S : LabelledSequent α} (p : ⊢ˡ! S) : String :=
-  s!"#prooftree(\n  {toStringAux p}\n)"
-
-instance [ToString α] {S : LabelledSequent α} : ToString (⊢ˡ! S) := ⟨ProofLabelledGentzen.toString⟩
-instance [ToString α] {S : LabelledSequent α} : Repr (⊢ˡ! S) := ⟨λ p _ => Std.Format.text $ ProofLabelledGentzen.toString p⟩
-
 end ProofLabelledGentzen
 
 
@@ -242,5 +203,7 @@ prefix:120 "⊬ˡ " => λ S => ¬⊢ˡ S
 lemma iff_unprovableLabelledGentzen_isEmpty_ProofLabelledGentzen {S : LabelledSequent α} : (⊬ˡ S) ↔ (IsEmpty (⊢ˡ! S)) := by simp [ProvableLabelledGentzen];
 
 end ProvableLabelledGentzen
+
+end LabelledGentzen
 
 end
