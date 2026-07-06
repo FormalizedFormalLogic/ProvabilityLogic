@@ -108,7 +108,6 @@ end LabelledGentzen
 
 namespace ProvableGentzen
 
-set_option maxHeartbeats 1000000 in
 /--
   Generalized embedding statement: if `S` is `ProvableGentzen` and every antecedent
   formula `B` of `S` is represented in `Θ` either as `z ∶ B`, or (for `B = □C`)
