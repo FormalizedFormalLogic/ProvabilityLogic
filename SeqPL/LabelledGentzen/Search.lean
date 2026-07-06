@@ -777,6 +777,11 @@ def search0 (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
   Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
   search ∅ R Γ Δ (Finset.empty_subset _)
 
+/-- Whether `search0` succeeds is decidable: it is a computable `Bool`-valued function
+of its (finite, decidable) inputs. -/
+instance search0.decidableIsSome (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
+  Decidable (search0 R Γ Δ).isSome := inferInstance
+
 /-! Sanity checks: the Löb axiom `□(□a 🡒 a) 🡒 □a` and the `K` axiom are found
 automatically; the `T` axiom `□a 🡒 a` and `□a` itself, which are not theorems of
 `GL`, are rejected. -/
