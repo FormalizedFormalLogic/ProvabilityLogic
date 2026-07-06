@@ -214,9 +214,8 @@ open Model in
 (`[Neg14]` Theorem 5.4). -/
 theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → ∀ v : Label → M.World, M ⊧ˡ[v] S := by
-  obtain ⟨p⟩ := h;
   intro κ _ M _;
-  induction p with
+  induction h with
   | axm x A => exact λ _ => validate_labelled_axm;
   | botL x => exact λ _ => validate_labelled_botL;
   | wkRel _ hR ih => exact λ v => validate_labelled_wkRel (ih v) hR;
@@ -224,10 +223,10 @@ theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
   | wkSuc _ hΔ ih => exact λ v => validate_labelled_wkSuc (ih v) hΔ;
   | impL _ _ ih₁ ih₂ => exact λ v => validate_labelled_impL (ih₁ v) (ih₂ v);
   | impR _ ih => exact λ v => validate_labelled_impR (ih v);
-  | boxL x y A hxy hxA _ ih => exact λ v => validate_labelled_boxL hxy hxA (ih v);
-  | boxRLob x y A hfresh _ ih => exact λ v => validate_labelled_boxRLob hfresh ih;
-  | irref x hxx => exact λ _ => validate_labelled_irref hxx;
-  | trans x y z hxy hyz _ ih => exact λ v => validate_labelled_trans hxy hyz (ih v);
+  | boxL hxy hxA _ ih => exact λ v => validate_labelled_boxL hxy hxA (ih v);
+  | boxRLob hfresh _ ih => exact λ v => validate_labelled_boxRLob hfresh ih;
+  | irref hxx => exact λ _ => validate_labelled_irref hxx;
+  | trans hxy hyz _ ih => exact λ v => validate_labelled_trans hxy hyz (ih v);
 
 /-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `GL` model. -/
 theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :

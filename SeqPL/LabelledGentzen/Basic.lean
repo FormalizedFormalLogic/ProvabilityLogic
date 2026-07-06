@@ -198,6 +198,43 @@ lemma loop (x y : Label) (A : Formula α) (hR : (x, y) ∈ R := by grind)
   (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) :=
   ⟨ProofLabelledGentzen.loop x y (R ⸴ Γ ⟹ˡ Δ).freshLabel A LabelledSequent.freshLabel_notMem hR hx hy⟩
 
+@[induction_eliminator]
+lemma rec
+  {motive : (S : LabelledSequent α) → ⊢ˡ S → Prop}
+  (axm : ∀ x A, motive (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) (ProvableLabelledGentzen.axm x A))
+  (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) (ProvableLabelledGentzen.botL x))
+  (wkRel : ∀ {R R' Γ Δ} (h : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ)) (h' : R ⊆ R'),
+    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R' ⸴ Γ ⟹ˡ Δ) (wkRel h h')
+  )
+  (wkAnt : ∀ {R Γ Γ' Δ} (h : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ)) (h' : Γ ⊆ Γ'),
+    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ' ⟹ˡ Δ) (wkAnt h h')
+  )
+  (wkSuc : ∀ {R Γ Δ Δ'} (h : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ)) (h' : Δ ⊆ Δ'),
+    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ') (wkSuc h h')
+  )
+  (impL : ∀ {R Γ Δ x A B} (h₁ : ⊢ˡ (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (h₂ : ⊢ˡ (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)),
+    motive (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ) h₁ → motive (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ) h₂ →
+    motive (R ⸴ (insert (x ∶ A 🡒 B) Γ) ⟹ˡ Δ) (impL h₁ h₂)
+  )
+  (impR : ∀ {R Γ Δ x A B} (h : ⊢ˡ (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ))),
+    motive (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ)) h → motive (R ⸴ Γ ⟹ˡ (insert (x ∶ A 🡒 B) Δ)) (impR h)
+  )
+  (boxL : ∀ {R Γ Δ x y A} (hxy : (x, y) ∈ R) (hxA : (x ∶ □A) ∈ Γ) (h : ⊢ˡ (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ)),
+    motive (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ) (boxL hxy hxA h)
+  )
+  (boxRLob : ∀ {R Γ Δ x y A} (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels)
+      (h : ⊢ˡ (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ)),
+    motive (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ) h →
+    motive (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) (boxRLob hfresh h)
+  )
+  (irref : ∀ {R Γ Δ x} (h : (x, x) ∈ R), motive (R ⸴ Γ ⟹ˡ Δ) (irref h))
+  (trans : ∀ {R Γ Δ x y z} (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R) (h : ⊢ˡ (insert (x, z) R ⸴ Γ ⟹ˡ Δ)),
+    motive (insert (x, z) R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ) (trans hxy hyz h)
+  )
+  : ∀ {S : LabelledSequent α} (h : ⊢ˡ S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h <;> grind;
+
 prefix:120 "⊬ˡ " => λ S => ¬⊢ˡ S
 
 lemma iff_unprovableLabelledGentzen_isEmpty_ProofLabelledGentzen {S : LabelledSequent α} : (⊬ˡ S) ↔ (IsEmpty (⊢ˡ! S)) := by simp [ProvableLabelledGentzen];

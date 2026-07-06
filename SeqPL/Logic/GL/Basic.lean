@@ -5,6 +5,7 @@ public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Unravelling
+public import SeqPL.LabelledGentzen.Gentzen
 public import Mathlib.Tactic.TFAE
 
 @[expose]
@@ -21,6 +22,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ʰ A,
   ⊢ᵍ (∅ ⟹ {A}),
   ⊢ᵍᶜ (∅ ⟹ {A}),
+  ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩ A
@@ -33,20 +35,21 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
     simpa using ProvableHilbert.mdp (ProvableHilbert.of_provableGentzen (S := ∅ ⟹ {A}) h) (by simp);
   tfae_have 3 → 4 := GentzenWithCutProvable.of_without_cut;
   tfae_have 4 → 3 := ProvableGentzen.of_with_cut;
-  tfae_have 2 → 5 := by
+  tfae_have 3 ↔ 5 := iff_provableGentzen_provableLabelledGentzen;
+  tfae_have 2 → 6 := by
     intro h κ _;
     apply ProvableHilbert.Kripke.finite_soundness h;
-  tfae_have 5 → 2 := ProvableHilbert.Kripke.completeness;
-  tfae_have 5 → 6 := by
-    intro h κ _ M _;
-    apply h;
-  tfae_have 6 → 5 := by
-    intro h κ _ M _ x;
-    exact Model.toRootedModel.forces_same_at_root.mp $ h (M.toRootedModel x);
+  tfae_have 6 → 2 := ProvableHilbert.Kripke.completeness;
   tfae_have 6 → 7 := by
     intro h κ _ M _;
-    exact h M;
+    apply h;
   tfae_have 7 → 6 := by
+    intro h κ _ M _ x;
+    exact Model.toRootedModel.forces_same_at_root.mp $ h (M.toRootedModel x);
+  tfae_have 7 → 8 := by
+    intro h κ _ M _;
+    exact h M;
+  tfae_have 8 → 7 := by
     intro h κ _ M _;
     exact (RootedModel.unravelling.modal_equivalence_root (M := M)).mp $ h M.unravelling;
   tfae_finish;
@@ -60,13 +63,17 @@ theorem iff_provableGentzen [DecidableEq α] {A : Formula α} : A ∈ LogicGL �
 theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ᵍᶜ (∅ ⟹ {A}) :=
   provability_TFAE.out 0 3
 
+theorem iff_provableLabelledGentzen [DecidableEq α] {A : Formula α} :
+    A ∈ LogicGL ↔ ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}) :=
+  provability_TFAE.out 0 4
+
 theorem iff_forces [DecidableEq α] {A : Formula α} :
     A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 0 5
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
     A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 0 6
 
 /-- GL-provability is characterized by validity over the (smaller) class of finite
 GL *tree* models (`IsFiniteGLTree`): it suffices to check finite GL-models that
@@ -74,7 +81,7 @@ are trees. -/
 theorem iff_forces_root_tree [DecidableEq α] {A : Formula α} :
     A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] →
       M.root.1 ⊩ A :=
-  provability_TFAE.out 0 6
+  provability_TFAE.out 0 7
 
 theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :
     ⊢ᵍ (∅ ⟹ {A}) → ⊢ʰ A :=
