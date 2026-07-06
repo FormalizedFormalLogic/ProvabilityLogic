@@ -9,18 +9,18 @@ public import SeqPL.Kripke.LabelledGentzen
 public section
 
 /-!
-Syntactic embedding of the label-free Gentzen calculus (`ProofGentzen`/`⊢ᵍ`) into
-Negri's labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡ`).
+Syntactic embedding of the label-free Gentzen calculus (`ProvableGentzen`/`⊢ᵍ`) into
+Negri's labelled sequent calculus (`ProvableLabelledGentzen`/`⊢ˡ`).
 
-The embedding is by structural recursion on `ProofGentzen`, via the
-generalized statement `ProofGentzen.toLabelledGentzenAux`: each antecedent
-formula `B` of the label-free sequent is represented in the labelled
-antecedent either directly as `z ∶ B`, or (for `B = □C`) as `x ∶ □C` at some
-`R`-predecessor `x` of `z`.  The latter representation is what makes the
-`boxGL` case go through: after `R□^Löb` introduces a fresh label `y`, the
-boxed context `Γ.box` stays at `z`, and is transferred to `y` on demand by
-`Trans` (`transMany`) and `L□` (`boxLMany`), while a boxed formula meeting
-its succedent copy across a relational atom is closed by `loop`.
+The embedding is by structural induction on `ProvableGentzen` (via `ProvableGentzen.rec`),
+through the generalized statement `ProvableGentzen.toLabelledGentzenAux`: each antecedent
+formula `B` of the label-free sequent is represented in the labelled antecedent either
+directly as `z ∶ B`, or (for `B = □C`) as `x ∶ □C` at some `R`-predecessor `x` of `z`.
+The latter representation is what makes the `boxGL` case go through: after `R□^Löb`
+introduces a fresh label `y`, the boxed context `Γ.box` stays at `z`, and is transferred to
+`y` on demand by `Trans` (`ProvableLabelledGentzen.transMany`) and `L□`
+(`ProvableLabelledGentzen.boxLMany`), while a boxed formula meeting its succedent copy across
+a relational atom is closed by `loop`.
 -/
 
 open LabelledGentzen
@@ -38,48 +38,39 @@ namespace LabelledGentzen
 variable {R : Finset (Label × Label)} {Γ Δ Θ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
-namespace ProofLabelledGentzen
-
-/-- Iterated `Trans` (`List` version): relational atoms `(x, y)` for all `x ∈ l`
-may be assumed, provided `(z, y) ∈ R` and `(x, z) ∈ R` for each `x ∈ l`. -/
-def transManyList (l : List Label) (hzy : (z, y) ∈ R) (hl : ∀ x ∈ l, (x, z) ∈ R)
-  (π : ⊢ˡ! ((R ∪ (l.map (·, y)).toFinset) ⸴ Γ ⟹ˡ Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
-  induction l generalizing R with
-  | nil => simpa using π;
-  | cons x l ih =>
-    apply trans x z y (hl x (by simp)) hzy;
-    apply ih (by grind) (by grind);
-    exact wkRel π (by intro p hp; simp at hp ⊢; grind);
+namespace ProvableLabelledGentzen
 
 /-- Iterated `Trans`: relational atoms `(x, y)` for all `x ∈ T` may be assumed,
 provided `(z, y) ∈ R` and `(x, z) ∈ R` for each `x ∈ T`. -/
-noncomputable def transMany (T : Finset Label) (hzy : (z, y) ∈ R) (hT : ∀ x ∈ T, (x, z) ∈ R)
-  (π : ⊢ˡ! ((R ∪ T.image (·, y)) ⸴ Γ ⟹ˡ Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
-  apply transManyList T.toList hzy (by simpa using hT);
-  rw [(show (T.toList.map (·, y)).toFinset = T.image (·, y) by ext p; simp)];
-  exact π;
-
-/-- Iterated `L□` (`List` version): labelled formulas `y ∶ B` for all `(x, B) ∈ l`
-may be assumed, provided `(x, y) ∈ R` and `x ∶ □B ∈ Γ` for each `(x, B) ∈ l`. -/
-def boxLManyList (l : List (Label × Formula α)) (hl : ∀ p ∈ l, (p.1, y) ∈ R ∧ (p.1 ∶ □p.2) ∈ Γ)
-  (π : ⊢ˡ! (R ⸴ (Γ ∪ (l.map (fun p => y ∶ p.2)).toFinset) ⟹ˡ Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
-  induction l generalizing Γ with
-  | nil => simpa using π;
-  | cons p l ih =>
-    apply boxL p.1 y p.2 (hl p (by simp)).1 (hl p (by simp)).2;
-    apply ih (by grind);
-    exact wkAnt π (by intro f hf; simp at hf ⊢; grind);
+lemma transMany (T : Finset Label) (hzy : (z, y) ∈ R) (hT : ∀ x ∈ T, (x, z) ∈ R)
+  (π : ⊢ˡ ((R ∪ T.image (·, y)) ⸴ Γ ⟹ˡ Δ)) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
+  induction T using Finset.induction generalizing R with
+  | empty => simpa using π;
+  | insert x T hxT ih =>
+    apply trans (hxy := hT x (by simp)) (hyz := hzy);
+    apply ih (by grind) (by grind);
+    apply wkRel π;
+    intro p hp;
+    simp only [Finset.image_insert, Finset.mem_union, Finset.mem_insert] at hp ⊢;
+    grind;
 
 /-- Iterated `L□`: labelled formulas `y ∶ B` for all `(x, B) ∈ T` may be assumed,
 provided `(x, y) ∈ R` and `x ∶ □B ∈ Γ` for each `(x, B) ∈ T`. -/
-noncomputable def boxLMany (T : Finset (Label × Formula α)) (hT : ∀ p ∈ T, (p.1, y) ∈ R ∧ (p.1 ∶ □p.2) ∈ Γ)
-  (π : ⊢ˡ! (R ⸴ (Γ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
-  apply boxLManyList (y := y) T.toList (by simpa using hT);
-  rw [(show (T.toList.map (fun p => y ∶ p.2)).toFinset = T.image (fun p => y ∶ p.2) by
-    ext f; simp)];
-  exact π;
+lemma boxLMany (T : Finset (Label × Formula α)) (hT : ∀ p ∈ T, (p.1, y) ∈ R ∧ (p.1 ∶ □p.2) ∈ Γ)
+  (π : ⊢ˡ (R ⸴ (Γ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ Δ)) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
+  induction T using Finset.induction generalizing Γ with
+  | empty => simpa using π;
+  | insert p T hpT ih =>
+    apply boxL (hT p (by simp)).1 (hT p (by simp)).2;
+    apply ih (fun q hq =>
+      ⟨(hT q (Finset.mem_insert_of_mem hq)).1,
+        Finset.mem_insert_of_mem (hT q (Finset.mem_insert_of_mem hq)).2⟩);
+    apply wkAnt π;
+    intro f hf;
+    simp only [Finset.image_insert, Finset.mem_union, Finset.mem_insert] at hf ⊢;
+    grind;
 
-end ProofLabelledGentzen
+end ProvableLabelledGentzen
 
 /-- The boxed formula of `f` that can be unfolded at `y`: `some (x, B)` when
 `f = x ∶ □B` with `(x, y) ∈ R`, and `none` otherwise. -/
@@ -115,74 +106,82 @@ lemma mem_boxTargets : (x, B) ∈ boxTargets y R Θ ↔ (x, y) ∈ R ∧ (x ∶ 
 end LabelledGentzen
 
 
-namespace ProofGentzen
+namespace ProvableGentzen
 
--- Proved by structural recursion on the proof.
 set_option maxHeartbeats 1000000 in
 /--
-  Generalized embedding statement: if `S` has a `ProofGentzen` and every antecedent
+  Generalized embedding statement: if `S` is `ProvableGentzen` and every antecedent
   formula `B` of `S` is represented in `Θ` either as `z ∶ B`, or (for `B = □C`)
   as `x ∶ □C` at some `R`-predecessor `x` of `z`, then the labelled sequent
-  `R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)` has a `ProofLabelledGentzen`.
+  `R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)` is `ProvableLabelledGentzen`.
 -/
-noncomputable def toLabelledGentzenAux {S : Sequent α} :
-  ⊢ᵍ! S → (z : Label) → (R : Finset (Label × Label)) → (Θ : Finset (LabelledFormula α)) →
+lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ S) :
+  ∀ (z : Label) (R : Finset (Label × Label)) (Θ : Finset (LabelledFormula α)),
   (∀ B ∈ S.ant, (z ∶ B) ∈ Θ ∨ ∃ x C, B = □C ∧ (x, z) ∈ R ∧ (x ∶ □C) ∈ Θ) →
-  ⊢ˡ! (R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·))
-  | .axm A, z, R, Θ, H => by
+  ⊢ˡ (R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)) := by
+  induction h using ProvableGentzen.rec with
+  | axm A =>
+    intro z R Θ H;
     simp only [Finset.image_singleton];
     if hzA : (z ∶ A) ∈ Θ then
-      exact ProofLabelledGentzen.union z A hzA (by simp);
+      exact ProvableLabelledGentzen.union z A hzA (by simp);
     else
       have hA : ∃ x C, A = □C ∧ (x, z) ∈ R ∧ (x ∶ □C) ∈ Θ := (H A (by simp)).resolve_left hzA;
       clear hzA H;
       cases A with
       | box C =>
         have hex : ∃ x : Label, (x, z) ∈ R ∧ (x ∶ □C) ∈ Θ := by grind;
-        exact ProofLabelledGentzen.loop (Nat.find hex) z ((R ⸴ Θ ⟹ˡ {z ∶ □C}).freshLabel) C
-          LabelledSequent.freshLabel_notMem (Nat.find_spec hex).1 (Nat.find_spec hex).2 (by simp);
+        obtain ⟨w, hwz, hwC⟩ := hex;
+        exact ProvableLabelledGentzen.loop w z C hwz hwC (by simp);
       | atom a => simp at hA;
       | bot => simp at hA;
       | imp B C => simp at hA;
-  | .botL, z, R, Θ, H => by
+  | botL =>
+    intro z R Θ H;
     have hz : (z ∶ (⊥ : Formula α)) ∈ Θ := by have := H ⊥ (by simp); grind;
-    exact ProofLabelledGentzen.botL_mem z hz;
-  | .wkL π h, z, R, Θ, H => toLabelledGentzenAux π z R Θ (fun B hB => H B (h hB))
-  | .wkR π h, z, R, Θ, H =>
-    ProofLabelledGentzen.wkSuc (toLabelledGentzenAux π z R Θ H) (Finset.image_subset_image h)
-  | .impL (A := A) (B := B) π₁ π₂, z, R, Θ, H => by
+    exact ProvableLabelledGentzen.botL_mem z hz;
+  | wkL h h' ih =>
+    intro z R Θ H;
+    exact ih z R Θ (fun B hB => H B (h' hB));
+  | wkR h h' ih =>
+    intro z R Θ H;
+    exact ProvableLabelledGentzen.wkSuc (ih z R Θ H) (Finset.image_subset_image h');
+  | @impL Γ Δ A B h₁ h₂ ih₁ ih₂ =>
+    intro z R Θ H;
     have hAB : (z ∶ A 🡒 B) ∈ Θ := by have := H (A 🡒 B) (by simp); grind;
-    have h₁ := toLabelledGentzenAux π₁ z R Θ (fun C hC => H C (Finset.mem_insert_of_mem hC));
-    have h₂ := toLabelledGentzenAux π₂ z R (insert (z ∶ B) Θ) (fun C hC => by
+    have h₁ := ih₁ z R Θ (fun C hC => H C (Finset.mem_insert_of_mem hC));
+    have h₂ := ih₂ z R (insert (z ∶ B) Θ) (fun C hC => by
       rcases Finset.mem_insert.mp hC with rfl | hC;
       . exact Or.inl (by simp);
       . have := H C (Finset.mem_insert_of_mem hC); grind;
     );
     rw [(show Θ = insert (z ∶ A 🡒 B) Θ by grind)];
     simp only [Finset.image_insert] at h₁;
-    exact ProofLabelledGentzen.impL h₁ h₂;
-  | .impR (A := A) (B := B) π, z, R, Θ, H => by
-    have h := toLabelledGentzenAux π z R (insert (z ∶ A) Θ) (fun C hC => by
+    exact ProvableLabelledGentzen.impL h₁ h₂;
+  | @impR Γ Δ A B h ih =>
+    intro z R Θ H;
+    have h := ih z R (insert (z ∶ A) Θ) (fun C hC => by
       rcases Finset.mem_insert.mp hC with rfl | hC;
       . exact Or.inl (by simp);
       . have := H C hC; grind;
     );
     simp only [Finset.image_insert] at h ⊢;
-    exact ProofLabelledGentzen.impR h;
-  | .boxGL (Γ := Γ) (A := A) π, z, R, Θ, H => by
+    exact ProvableLabelledGentzen.impR h;
+  | @boxGL Γ A h ih =>
+    intro z R Θ H;
     simp only [Finset.image_singleton];
     rw [← insert_empty_eq];
-    apply ProofLabelledGentzen.boxRLob z ((R ⸴ Θ ⟹ˡ insert (z ∶ □A) ∅).freshLabel) A
-      LabelledSequent.freshLabel_notMem;
+    apply ProvableLabelledGentzen.boxRLob (x := z) (A := A)
+      (y := (R ⸴ Θ ⟹ˡ insert (z ∶ □A) ∅).freshLabel) (hfresh := LabelledSequent.freshLabel_notMem);
     generalize (R ⸴ Θ ⟹ˡ insert (z ∶ □A) ∅).freshLabel = y;
     -- transfer the relational atoms `(x, z) ∈ R` to `(x, y)` by `Trans`
-    apply ProofLabelledGentzen.transMany (z := z) (y := y)
+    apply ProvableLabelledGentzen.transMany (z := z) (y := y)
       (T := (R.filter (fun p => p.2 = z)).image Prod.fst)
       (by grind) (by intro x hx; simp at hx; grind);
     set R' := insert (z, y) R ∪ ((R.filter (fun p => p.2 = z)).image Prod.fst).image (·, y)
       with hR';
     -- unfold every available boxed formula at `y` by `L□`
-    apply ProofLabelledGentzen.boxLMany (y := y) (T := boxTargets y R' (insert (y ∶ □A) Θ))
+    apply ProvableLabelledGentzen.boxLMany (y := y) (T := boxTargets y R' (insert (y ∶ □A) Θ))
       (by rintro ⟨x, B⟩ hp; exact mem_boxTargets.mp hp);
     have hzy : (z, y) ∈ R' := by grind;
     have hsat : ∀ x, (x, z) ∈ R → (x, y) ∈ R' := by
@@ -191,7 +190,7 @@ noncomputable def toLabelledGentzenAux {S : Sequent α} :
       have h₁ : (x, z) ∈ R.filter (fun p => p.2 = z) := Finset.mem_filter.mpr ⟨hxz, rfl⟩;
       have h₂ : x ∈ (R.filter (fun p => p.2 = z)).image Prod.fst := Finset.mem_image_of_mem _ h₁;
       exact Finset.mem_image_of_mem _ h₂;
-    have h := toLabelledGentzenAux π y R'
+    have h := ih y R'
       (insert (y ∶ □A) Θ ∪ (boxTargets y R' (insert (y ∶ □A) Θ)).image (fun p => y ∶ p.2))
       (fun E hE => by
         rcases Finset.mem_insert.mp hE with rfl | hE;
@@ -216,17 +215,17 @@ noncomputable def toLabelledGentzenAux {S : Sequent α} :
     rw [insert_empty_eq];
     exact h;
 
-/-- Embedding of `ProofGentzen` into `ProofLabelledGentzen`: a proof of `S` yields a proof of
-`S.toLabelled z` for any label `z`. -/
-noncomputable def toLabelledGentzen (z : Label) {S : Sequent α} (π : ⊢ᵍ! S) : ⊢ˡ! (S.toLabelled z) :=
-  toLabelledGentzenAux π z ∅ (S.ant.image (z ∶ ·)) (fun _ hB => Or.inl (Finset.mem_image_of_mem _ hB))
+/-- Embedding of `ProvableGentzen` into `ProvableLabelledGentzen`: a proof of `S` yields a proof
+of `S.toLabelled z` for any label `z`. -/
+lemma toLabelledGentzen (z : Label) {S : Sequent α} (h : ⊢ᵍ S) : ⊢ˡ (S.toLabelled z) :=
+  toLabelledGentzenAux h z ∅ (S.ant.image (z ∶ ·)) (fun _ hB => Or.inl (Finset.mem_image_of_mem _ hB))
 
-end ProofGentzen
+end ProvableGentzen
 
 
 /-- Embedding of `ProvableGentzen` into `ProvableLabelledGentzen`. -/
 theorem ProvableGentzen.toLabelled (z : Label) {S : Sequent α} (h : ⊢ᵍ S) : ⊢ˡ (S.toLabelled z) :=
-  ⟨h.some.toLabelledGentzen z⟩
+  ProvableGentzen.toLabelledGentzen z h
 
 
 /-- Converse embedding, via Kripke semantics: soundness of `ProvableLabelledGentzen`
