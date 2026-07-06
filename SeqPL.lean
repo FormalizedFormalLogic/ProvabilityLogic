@@ -15,6 +15,7 @@ public import SeqPL.Kripke.Convergence
 public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.LabelledGentzen
 public import SeqPL.Kripke.Linearity
 public import SeqPL.Kripke.Overwrite
 public import SeqPL.Kripke.PointGenerate
@@ -26,6 +27,9 @@ public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Simplification
 public import SeqPL.Kripke.Tail
 public import SeqPL.Kripke.Unravelling
+public import SeqPL.LabelledGentzen.Basic
+public import SeqPL.LabelledGentzen.Loop
+public import SeqPL.LabelledGentzen.Search
 public import SeqPL.Logic.A.Basic
 public import SeqPL.Logic.Basic
 public import SeqPL.Logic.D.Basic

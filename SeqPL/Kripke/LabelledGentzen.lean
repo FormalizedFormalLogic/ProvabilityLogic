@@ -1,0 +1,241 @@
+module
+
+public import SeqPL.Kripke.Basic
+public import SeqPL.LabelledGentzen.Basic
+
+@[expose]
+public section
+
+/-!
+Kripke semantics for the labelled sequent calculus `G3KGL` (`⊢ˡ!`), following
+`[Neg14]` §5 (Definition 5.3, Theorem 5.4). A label assignment `v : Label → M.World`
+interprets the world-labels, and a labelled sequent is valid under `v` when,
+whenever all relational atoms and all antecedent formulas hold, some succedent
+formula holds.
+-/
+
+variable {κ : Type u} [Nonempty κ]
+         {α : Type v} [DecidableEq α]
+         {M : Model κ α}
+
+
+namespace LabelledSequent
+
+variable {S : LabelledSequent α} {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)}
+         {lf : LabelledFormula α} {p : Label × Label}
+
+omit [DecidableEq α] in
+@[grind =>]
+lemma label_mem_labels_of_mem_ant (h : lf ∈ S.ant) : lf.label ∈ S.labels :=
+  Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_image_of_mem _ h
+
+omit [DecidableEq α] in
+@[grind =>]
+lemma label_mem_labels_of_mem_suc (h : lf ∈ S.suc) : lf.label ∈ S.labels :=
+  Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
+
+omit [DecidableEq α] in
+@[grind =>]
+lemma mem_labels_of_mem_rel_fst (h : p ∈ S.rel) : p.1 ∈ S.labels :=
+  Finset.mem_union_left _ $ Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
+
+omit [DecidableEq α] in
+@[grind =>]
+lemma mem_labels_of_mem_rel_snd (h : p ∈ S.rel) : p.2 ∈ S.labels :=
+  Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
+
+end LabelledSequent
+
+
+namespace Model
+
+/-- Validity of a labelled sequent in `M` under the label assignment `v`:
+if every relational atom and every antecedent formula holds under `v`, then
+some succedent formula holds under `v`. -/
+@[grind]
+def ValidateLabelled (M : Model κ α) (v : Label → M.World) (S : LabelledSequent α) : Prop :=
+  (∀ p ∈ S.rel, v p.1 ≺ v p.2) →
+  (∀ lf ∈ S.ant, v lf.label ⊩ lf.formula) →
+  ∃ lf ∈ S.suc, v lf.label ⊩ lf.formula
+
+notation:50 M " ⊧ˡ[" v "] " S:51 => Model.ValidateLabelled M v S
+
+variable {v : Label → M.World} {R R' : Finset (Label × Label)} {Γ Γ' Δ Δ' : Finset (LabelledFormula α)}
+         {x y z : Label} {A B : Formula α}
+
+omit [DecidableEq α] in
+lemma validate_labelled_axm : M ⊧ˡ[v] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := by
+  intro _ h;
+  exact ⟨x ∶ A, by grind, h _ (by grind)⟩;
+
+omit [DecidableEq α] in
+lemma validate_labelled_botL : M ⊧ˡ[v] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := by
+  intro _ h;
+  have := h (x ∶ (⊥ : Formula α)) (by grind);
+  grind;
+
+omit [DecidableEq α] in
+lemma validate_labelled_wkRel (h : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ)) (hR : R ⊆ R') : M ⊧ˡ[v] (R' ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel hant;
+  exact h (λ p hp => hrel p (hR hp)) hant;
+
+omit [DecidableEq α] in
+lemma validate_labelled_wkAnt (h : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ)) (hΓ : Γ ⊆ Γ') : M ⊧ˡ[v] (R ⸴ Γ' ⟹ˡ Δ) := by
+  intro hrel hant;
+  exact h hrel (λ lf hlf => hant lf (hΓ hlf));
+
+omit [DecidableEq α] in
+lemma validate_labelled_wkSuc (h : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ)) (hΔ : Δ ⊆ Δ') : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ') := by
+  intro hrel hant;
+  obtain ⟨lf, hlf, h⟩ := h hrel hant;
+  exact ⟨lf, hΔ hlf, h⟩;
+
+lemma validate_labelled_impL
+  (h₁ : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ))
+  (h₂ : M ⊧ˡ[v] (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ))
+  : M ⊧ˡ[v] (R ⸴ insert (x ∶ A 🡒 B) Γ ⟹ˡ Δ) := by
+  intro hrel hant;
+  replace h₁ := h₁ hrel;
+  replace h₂ := h₂ hrel;
+  simp only [Finset.mem_insert, forall_eq_or_imp] at hant;
+  grind;
+
+lemma validate_labelled_impR
+  (h : M ⊧ˡ[v] (R ⸴ insert (x ∶ A) Γ ⟹ˡ insert (x ∶ B) Δ))
+  : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ insert (x ∶ A 🡒 B) Δ) := by
+  intro hrel hant;
+  by_cases hA : v x ⊩ A;
+  . obtain ⟨lf, hlf, hf⟩ := h hrel (by grind);
+    rcases Finset.mem_insert.mp hlf with rfl | hlf;
+    . exact ⟨x ∶ A 🡒 B, by grind, by grind⟩;
+    . exact ⟨lf, by grind, hf⟩;
+  . exact ⟨x ∶ A 🡒 B, by grind, by grind⟩;
+
+lemma validate_labelled_boxL
+  (hxy : (x, y) ∈ R) (hxA : (x ∶ □A) ∈ Γ)
+  (h : M ⊧ˡ[v] (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ))
+  : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel hant;
+  apply h hrel;
+  intro lf hlf;
+  rcases Finset.mem_insert.mp hlf with rfl | hlf;
+  . exact hant (x ∶ □A) hxA (v y) (hrel (x, y) hxy);
+  . exact hant lf hlf;
+
+omit [DecidableEq α] in
+lemma validate_labelled_irref [Std.Irrefl M.Rel] (hxx : (x, x) ∈ R) : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel _;
+  exact absurd (hrel (x, x) hxx) (Std.Irrefl.irrefl _);
+
+omit [DecidableEq α] in
+lemma validate_labelled_trans [IsTrans _ M.Rel]
+  (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R)
+  (h : M ⊧ˡ[v] (insert (x, z) R ⸴ Γ ⟹ˡ Δ))
+  : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel hant;
+  apply h ?_ hant;
+  intro p hp;
+  rcases Finset.mem_insert.mp hp with rfl | hp;
+  . exact _root_.trans (hrel (x, y) hxy) (hrel (y, z) hyz);
+  . exact hrel p hp;
+
+open LabelledSequent in
+lemma validate_labelled_boxRLob [M.IsGL]
+  (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels)
+  (h : ∀ v : Label → M.World, M ⊧ˡ[v] (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ))
+  : M ⊧ˡ[v] (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) := by
+  intro hrel hant;
+  by_contra hC;
+  push Not at hC;
+  have hyx : y ≠ x := by
+    rintro rfl;
+    exact hfresh $ label_mem_labels_of_mem_suc (lf := y ∶ □A) (by grind);
+  have hxA : v x ⊮ □A := hC (x ∶ □A) (by grind);
+  obtain ⟨z, Rxz, hz⟩ := Model.World.not_forces_box.mp hxA;
+  obtain ⟨t, ⟨Rxt, hntA⟩, ht⟩ := M.terminalOf {w | v x ≺ w ∧ w ⊮ A} ⟨z, Rxz, hz⟩;
+  have hrel' : ∀ p ∈ (insert (x, y) R : Finset (Label × Label)),
+      Function.update v y t p.1 ≺ Function.update v y t p.2 := by
+    rintro p hp;
+    rcases Finset.mem_insert.mp hp with rfl | hp';
+    . show Function.update v y t x ≺ Function.update v y t y;
+      rw [Function.update_self, Function.update_of_ne (Ne.symm hyx)];
+      exact Rxt;
+    . have h₁ : p.1 ≠ y := by
+        intro heq;
+        apply hfresh;
+        have := mem_labels_of_mem_rel_fst (S := R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) hp';
+        rwa [heq] at this;
+      have h₂ : p.2 ≠ y := by
+        intro heq;
+        apply hfresh;
+        have := mem_labels_of_mem_rel_snd (S := R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) hp';
+        rwa [heq] at this;
+      simpa [Function.update_of_ne h₁, Function.update_of_ne h₂] using hrel p hp';
+  have hant' : ∀ lf ∈ insert (y ∶ □A) Γ,
+      Function.update v y t lf.label ⊩ lf.formula := by
+    rintro lf hlf;
+    rcases Finset.mem_insert.mp hlf with rfl | hlf';
+    . show Function.update v y t y ⊩ □A;
+      rw [Function.update_self];
+      intro u Rtu;
+      by_contra hu;
+      exact ht u ⟨_root_.trans Rxt Rtu, hu⟩ Rtu;
+    . have hly : lf.label ≠ y := by
+        intro hly;
+        apply hfresh;
+        have := label_mem_labels_of_mem_ant (S := R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) hlf';
+        rwa [hly] at this;
+      rw [Function.update_of_ne hly];
+      exact hant lf hlf';
+  obtain ⟨lf, hlf, hf⟩ := h (Function.update v y t) hrel' hant';
+  rcases Finset.mem_insert.mp hlf with rfl | hlf';
+  . apply hntA;
+    have : Function.update v y t y ⊩ A := hf;
+    rwa [Function.update_self] at this;
+  . have hly : lf.label ≠ y := by
+      intro hly;
+      apply hfresh;
+      have := label_mem_labels_of_mem_suc (S := R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) (lf := lf) (by grind);
+      rwa [hly] at this;
+    apply hC lf (by grind);
+    rwa [Function.update_of_ne hly] at hf;
+
+end Model
+
+
+namespace ProvableLabelledGentzen
+
+namespace Kripke
+
+open Model in
+/-- Soundness of `G3KGL` with respect to Kripke semantics on `GL` models
+(`[Neg14]` Theorem 5.4). -/
+theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
+  ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → ∀ v : Label → M.World, M ⊧ˡ[v] S := by
+  obtain ⟨p⟩ := h;
+  intro κ _ M _;
+  induction p with
+  | axm x A => exact λ _ => validate_labelled_axm;
+  | botL x => exact λ _ => validate_labelled_botL;
+  | wkRel _ hR ih => exact λ v => validate_labelled_wkRel (ih v) hR;
+  | wkAnt _ hΓ ih => exact λ v => validate_labelled_wkAnt (ih v) hΓ;
+  | wkSuc _ hΔ ih => exact λ v => validate_labelled_wkSuc (ih v) hΔ;
+  | impL _ _ ih₁ ih₂ => exact λ v => validate_labelled_impL (ih₁ v) (ih₂ v);
+  | impR _ ih => exact λ v => validate_labelled_impR (ih v);
+  | boxL x y A hxy hxA _ ih => exact λ v => validate_labelled_boxL hxy hxA (ih v);
+  | boxRLob x y A hfresh _ ih => exact λ v => validate_labelled_boxRLob hfresh ih;
+  | irref x hxx => exact λ _ => validate_labelled_irref hxx;
+  | trans x y z hxy hyz _ ih => exact λ v => validate_labelled_trans hxy hyz (ih v);
+
+/-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `GL` model. -/
+theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
+  ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M.Validate A := by
+  intro κ _ M _ w;
+  obtain ⟨lf, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
+  grind;
+
+end Kripke
+
+end ProvableLabelledGentzen
+
+end

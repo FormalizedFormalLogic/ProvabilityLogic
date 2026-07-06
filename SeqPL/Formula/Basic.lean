@@ -96,16 +96,16 @@ instance : DecidablePred (Formula.IsBox (α := α)) := λ A => by
   case box => exact isTrue $ by grind;
   case atom | bot | imp => exact isFalse $ by grind;
 
+/-- Typst math-mode source for this formula, using `curryst`'s `class("unary", ·)` idiom
+for the modalities (see the `.notes/unpublished/*.typ` project notes). -/
 protected def toString [ToString α] : Formula α → String
-| #a    => "#" ++ toString a
-| ◇A    => "◇" ++ Formula.toString A
-| □A    => "□" ++ Formula.toString A
+| #a    => s!"p_({a})"
+| ◇A    => s!"class(\"unary\", diamond) {Formula.toString A}"
+| □A    => s!"class(\"unary\", square) {Formula.toString A}"
 | ⊤     => "⊤"
 | ⊥     => "⊥"
-| ∼A    => "∼" ++ Formula.toString A
-| A 🡒 B => "(" ++ Formula.toString A ++ " 🡒 " ++ Formula.toString B ++ ")"
--- | A ⋏ B => "(" ++ Formula.toString A ++ " ⋏ " ++ Formula.toString B ++ ")"
--- | A ⋎ B => "(" ++ Formula.toString A ++ " ⋎ " ++ Formula.toString B ++ ")"
+| ∼A    => s!"not {Formula.toString A}"
+| A 🡒 B => s!"({Formula.toString A} -> {Formula.toString B})"
 
 instance [ToString α] : ToString (Formula α) := ⟨Formula.toString⟩
 instance [ToString α] : Repr (Formula α) := ⟨λ A _ => Std.Format.text $ Formula.toString A⟩
@@ -203,6 +203,27 @@ lemma complexity_box : A.complexity < (□A).complexity := by grind;
 
 @[grind =>]
 lemma complexity_le_of_mem_subfmls [DecidableEq α] (h : A ∈ B.subfmls) : A.complexity ≤ B.complexity := by
+  induction B <;> grind;
+
+/-- The modal degree of a formula: the maximal nesting depth of `□` (implication does not count). -/
+@[grind]
+def degree : Formula α → ℕ
+  | #_    => 0
+  | ⊥     => 0
+  | A 🡒 B => max A.degree B.degree
+  | □A    => A.degree + 1
+
+@[simp, grind .]
+lemma degree_imp_left : A.degree ≤ (A 🡒 B).degree := by grind;
+
+@[simp, grind .]
+lemma degree_imp_right : B.degree ≤ (A 🡒 B).degree := by grind;
+
+@[simp, grind .]
+lemma degree_box : A.degree < (□A).degree := by grind;
+
+@[grind =>]
+lemma degree_le_of_mem_subfmls [DecidableEq α] (h : A ∈ B.subfmls) : A.degree ≤ B.degree := by
   induction B <;> grind;
 
 /-- The atoms of a subformula `B` of `A` are contained in the atoms of `A`. -/
