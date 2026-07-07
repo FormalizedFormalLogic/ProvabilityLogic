@@ -12,3 +12,4 @@ git = "https://github.com/FormalizedFormalLogic/Foundation"
 [[require]]
 name = "lean_typst"
 git = "https://github.com/SnO2WMaN/lean-typst.git"
+rev = "main"
