@@ -3,7 +3,7 @@ module
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.Kripke.PointGenerate
+public import SeqPL.Kripke.Cone
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Gentzen
 public import SeqPL.LabelledGentzen.Completeness

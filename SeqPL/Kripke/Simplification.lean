@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Kripke.Preservation
-public import SeqPL.Kripke.PointGenerate
+public import SeqPL.Kripke.Cone
 public import SeqPL.Kripke.GraftChain
 public import SeqPL.Kripke.Rank
 
@@ -53,7 +53,7 @@ instance {M : RootedModel κ α} [M.IsFiniteGL] [M.IsTree] : M.IsFiniteGLTree wh
 variable {M : RootedModel κ α} {P : Finset α}
 
 open Model (BisimulationUnder World.forces_iff_of_pbisimilar)
-open Model.World (IsSuccessorOf IsProperPredecessorOf)
+open Model.World (IsInConeOf IsProperPredecessorOf)
 
 /--
   A point `a` is `P`-redundant (Bek90 §4, item 3, "Removal of a redundant cone") if it
@@ -75,19 +75,19 @@ section RemoveCone
 variable [M.IsGL]
 
 omit [DecidableEq α] in
-lemma not_isSuccessorOf_root_of_ne {a : M.World} (ha : a ≠ M.root.1) :
-  ¬ M.root.1.IsSuccessorOf a := by
+lemma not_isInConeOf_root_of_ne {a : M.World} (ha : a ≠ M.root.1) :
+  ¬ M.root.1.IsInConeOf a := by
   rintro (h | h);
   . exact ha h.symm;
   . exact Std.Irrefl.irrefl M.root.1 (IsTrans.trans _ _ _ (M.root.2 a ha) h);
 
 /-- The carrier of `removeCone`. -/
 abbrev removeCone.World (M : RootedModel κ α) (a : M.NonRoot) : Type _ :=
-  {x : M.World // ¬ x.IsSuccessorOf a.1}
+  {x : M.World // ¬ x.IsInConeOf a.1}
 
 omit [DecidableEq α] in
 instance removeCone.instNonempty (a : M.NonRoot) : Nonempty (removeCone.World M a) :=
-  ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne a.2⟩⟩
+  ⟨⟨M.root.1, not_isInConeOf_root_of_ne a.2⟩⟩
 
 /-- Removal of the cone above `a` (Bek90 §4, item 3): the sub-model on the points that
 are not successors of `a`. -/
@@ -95,7 +95,7 @@ def removeCone (M : RootedModel κ α) [M.IsGL] (a : M.NonRoot) :
   RootedModel (removeCone.World M a) α where
   Rel' x y := M.Rel x.1 y.1
   Val' x q := M.Val x.1 q
-  root := ⟨⟨M.root.1, not_isSuccessorOf_root_of_ne a.2⟩, by
+  root := ⟨⟨M.root.1, not_isInConeOf_root_of_ne a.2⟩, by
     rintro ⟨x, hx⟩ hne;
     show M.Rel M.root.1 x;
     exact M.root.2 x (by rintro rfl; exact hne rfl)⟩
@@ -130,7 +130,7 @@ instance (a : M.NonRoot) : (M.removeCone a).IsFiniteGL where
 omit [DecidableEq α] [M.IsFiniteGL] in
 lemma card_lt (a : M.NonRoot) [Fintype M.World] [Fintype (M.removeCone a).World] :
   Fintype.card (M.removeCone a).World < Fintype.card M.World :=
-  Fintype.card_subtype_lt (p := fun x : M.World => ¬ x.IsSuccessorOf a.1) (x := a.1)
+  Fintype.card_subtype_lt (p := fun x : M.World => ¬ x.IsInConeOf a.1) (x := a.1)
     (not_not_intro (Or.inl rfl))
 
 end Finite
@@ -155,7 +155,7 @@ theorem forces_iff {a : M.NonRoot} [hTree : M.IsTree] (hred : Redundant M P a.1)
     replace hC : B.atoms ⊆ P := by simpa [Formula.atoms] using hC;
     constructor;
     . intro h z hxz;
-      by_cases hzS : z.IsSuccessorOf a.1;
+      by_cases hzS : z.IsInConeOf a.1;
       . -- `z` was removed: transport the box-witness through the redundancy of `a`.
         have hxa : x ≺ a.1 := by
           rcases hzS with rfl | haz;
@@ -165,14 +165,14 @@ theorem forces_iff {a : M.NonRoot} [hTree : M.IsTree] (hred : Redundant M P a.1)
             . exact hxa;
             . exact absurd (Or.inr hax) hx;
         obtain ⟨y, Bi, hxy, hyna, hnay, hyne, hBiya⟩ := hred.exists_alt x hxa;
-        have hynS : ¬ y.IsSuccessorOf a.1 := by rintro (rfl | h); exacts [hyne rfl, hnay h];
+        have hynS : ¬ y.IsInConeOf a.1 := by rintro (rfl | h); exacts [hyne rfl, hnay h];
         have hyB : y ⊩ B := (ihB hC ⟨y, hynS⟩).mp (h ⟨y, hynS⟩ hxy);
         have haB : a.1 ⊩ B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
         rcases hzS with rfl | haz;
         . exact haB;
         . obtain ⟨z', hBiz'z, hyz'⟩ := Bi.back hBiya haz;
           have hxz' : x ≺ z' := IsTrans.trans _ _ _ hxy hyz';
-          have hz'nS : ¬ z'.IsSuccessorOf a.1 := by
+          have hz'nS : ¬ z'.IsInConeOf a.1 := by
             rintro (rfl | haz');
             . exact hyna hyz';
             . rcases hTree.tree y a.1 z' hyz' haz' with (hya | hya | hya);
@@ -308,12 +308,12 @@ lemma graftChainOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
 
 omit [DecidableEq α] in
 /-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftChainOmega a`. -/
-lemma graftChainOmega.not_isSuccessorOf_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
+lemma graftChainOmega.not_isInConeOf_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
   {a : M.World} (_Rra : M.root.1 ≺ a)
   (hcov : ∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1)
   {P : Finset α} {m : M.World} (hm : m ≠ M.root.1)
   (hred : (M.graftChainOmega a).Redundant P (Sum.inl m)) :
-  ¬ a.IsSuccessorOf m := by
+  ¬ a.IsInConeOf m := by
   rintro (rfl | ham);
   . exact not_redundant_embed_a a P hred;
   . exact hm (hcov m ⟨fun h => Std.Irrefl.irrefl a (h ▸ ham), ham⟩);
@@ -327,9 +327,9 @@ lemma graftChainOmega.inl_ne_root {M : RootedModel κ α} {a m : M.World} (hm : 
 omit [DecidableEq α] in
 /-- An embedded point of `M.graftChainOmega a` is a successor of the embedded `m` iff it
 is a successor of `m` in `M`. -/
-lemma graftChainOmega.inl_isSuccessorOf_inl_iff {M : RootedModel κ α} {a m x : M.World} :
-  IsSuccessorOf (M := (M.graftChainOmega a).toModel) (Sum.inl x) (Sum.inl m) ↔
-  x.IsSuccessorOf m := by
+lemma graftChainOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a m x : M.World} :
+  IsInConeOf (M := (M.graftChainOmega a).toModel) (Sum.inl x) (Sum.inl m) ↔
+  x.IsInConeOf m := by
   constructor;
   . rintro (h | h);
     . exact Or.inl (Sum.inl.inj h);
@@ -341,9 +341,9 @@ lemma graftChainOmega.inl_isSuccessorOf_inl_iff {M : RootedModel κ α} {a m x :
 omit [DecidableEq α] in
 /-- Chain points of `M.graftChainOmega a` are never successors of an embedded non-root
 point, so they all survive removal of its cone. -/
-lemma graftChainOmega.not_inr_isSuccessorOf_inl {M : RootedModel κ α} {a m : M.World}
+lemma graftChainOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a m : M.World}
   (hm : m ≠ M.root.1) (i : ℕ) :
-  ¬ IsSuccessorOf (M := (M.graftChainOmega a).toModel) (Sum.inr i) (Sum.inl m) := by
+  ¬ IsInConeOf (M := (M.graftChainOmega a).toModel) (Sum.inr i) (Sum.inl m) := by
   rintro (h | h);
   . simp at h;
   . exact hm h;
@@ -356,11 +356,11 @@ omit [DecidableEq α] in
 -/
 def graftChainOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
   {a m : M.World} [(M.graftChainOmega a).IsGL]
-  (hm : m ≠ M.root.1) (hma : ¬ a.IsSuccessorOf m) :
+  (hm : m ≠ M.root.1) (hma : ¬ a.IsInConeOf m) :
   ((M.graftChainOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).toModel →ₚ
   ((M.removeCone ⟨m, hm⟩).graftChainOmega ⟨a, hma⟩).toModel where
   toFun := fun
-    | ⟨.inl x, hx⟩ => .inl ⟨x, fun h => hx (inl_isSuccessorOf_inl_iff.mpr h)⟩
+    | ⟨.inl x, hx⟩ => .inl ⟨x, fun h => hx (inl_isInConeOf_inl_iff.mpr h)⟩
     | ⟨.inr i, _⟩ => .inr i
   forth := by
     rintro ⟨(x | i), hx⟩ ⟨(y | j), hy⟩ Rxy;
@@ -372,13 +372,13 @@ def graftChainOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
     . exact Rxy;
   back := by
     rintro ⟨(x | i), hx⟩ (⟨y, hy⟩ | j) h;
-    . exact ⟨⟨.inl y, fun hs => hy (inl_isSuccessorOf_inl_iff.mp hs)⟩, rfl, h⟩;
-    . exact ⟨⟨.inr j, not_inr_isSuccessorOf_inl hm j⟩, rfl, congrArg Subtype.val h⟩;
-    . refine ⟨⟨.inl y, fun hs => hy (inl_isSuccessorOf_inl_iff.mp hs)⟩, rfl, ?_⟩;
+    . exact ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, h⟩;
+    . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, congrArg Subtype.val h⟩;
+    . refine ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, ?_⟩;
       rcases h with h | h;
       . exact Or.inl (congrArg Subtype.val h);
       . exact Or.inr h;
-    . exact ⟨⟨.inr j, not_inr_isSuccessorOf_inl hm j⟩, rfl, h⟩;
+    . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, h⟩;
   atomic := by
     rintro ⟨(x | i), hx⟩ b;
     . exact Iff.rfl;
@@ -389,7 +389,7 @@ omit [DecidableEq α] in
 `(M.removeCone m).graftChainOmega a`. -/
 lemma graftChainOmega.removeCone_root_forces_iff {M : RootedModel κ α} [M.IsGL]
   {a m : M.World} [(M.graftChainOmega a).IsGL]
-  (hm : m ≠ M.root.1) (hma : ¬ a.IsSuccessorOf m) {C : Formula α} :
+  (hm : m ≠ M.root.1) (hma : ¬ a.IsInConeOf m) {C : Formula α} :
   ((M.graftChainOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).root.1 ⊩ C ↔
   ((M.removeCone ⟨m, hm⟩).graftChainOmega ⟨a, hma⟩).root.1 ⊩ C :=
   (removeConePseudoEpimorphism hm hma).modal_equivalence _ (A := C)
@@ -416,8 +416,8 @@ theorem exists_simplificationUnder_omega_aux :
     . obtain ⟨w, hred⟩ := hex;
       obtain ⟨m, -, rfl⟩ := graftChainOmega.exists_of_redundant hred;
       have hm : m ≠ M.root.1 := fun h => hred.ne_root (congrArg Sum.inl h);
-      have hma : ¬ a.IsSuccessorOf m :=
-        graftChainOmega.not_isSuccessorOf_of_redundant Rra hcov hm hred;
+      have hma : ¬ a.IsInConeOf m :=
+        graftChainOmega.not_isInConeOf_of_redundant Rra hcov hm hred;
       haveI : Fintype (M.removeCone ⟨m, hm⟩).World := Fintype.ofFinite _;
       haveI : (M.removeCone ⟨m, hm⟩).IsTree := removeCone.isTree;
       have hcov' : ∀ x : (M.removeCone ⟨m, hm⟩).World,

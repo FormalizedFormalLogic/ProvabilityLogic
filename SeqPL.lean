@@ -11,12 +11,12 @@ public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
+public import SeqPL.Kripke.Cone
 public import SeqPL.Kripke.Convergence
 public import SeqPL.Kripke.DefiningFormula
 public import SeqPL.Kripke.GraftChain
 public import SeqPL.Kripke.Linearity
 public import SeqPL.Kripke.Overwrite
-public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Preservation
 public import SeqPL.Kripke.PseudoTail
 public import SeqPL.Kripke.Rank

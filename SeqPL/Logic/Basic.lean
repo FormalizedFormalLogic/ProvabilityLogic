@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Hilbert.Basic
-public import SeqPL.Kripke.PointGenerate
+public import SeqPL.Kripke.Cone
 public import Mathlib.Tactic.TFAE
 
 @[expose]

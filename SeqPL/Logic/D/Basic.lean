@@ -302,7 +302,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
       · intro hroot;
         rintro (w | j) Rωw;
         · apply Model.toPseudoTail.forces_inl.mpr;
-          apply Model.toRootedModel.forces_same_at_successor.mpr;
+          apply Model.toRootedModel.forces_same_at_cone_point.mpr;
           rcases w.2 with (hwx | hxw);
           · rw [hwx]; exact hroot _ Rrx;
           · exact hroot _ (IsTrans.trans _ _ _ Rrx hxw);
