@@ -97,15 +97,26 @@ instance : DecidablePred (Formula.IsBox (α := α)) := λ A => by
   case atom | bot | imp => exact isFalse $ by grind;
 
 /-- Typst math-mode source for this formula, using `curryst`'s `class("unary", ·)` idiom
-for the modalities (see the `.notes/unpublished/*.typ` project notes). -/
-protected def toString [ToString α] : Formula α → String
+for the modalities (see the `.notes/unpublished/*.typ` project notes). Always parenthesizes
+a `→`, since as a subformula its scope would otherwise be ambiguous; used for every
+subformula occurrence. `Formula.toString` (below) is the top-level entry point, which omits
+these parentheses around the formula's own outermost `→`, since nothing there needs
+disambiguating. -/
+protected def toStringAux [ToString α] : Formula α → String
 | #a    => s!"p_({a})"
-| ◇A    => s!"class(\"unary\", diamond) {Formula.toString A}"
-| □A    => s!"class(\"unary\", square) {Formula.toString A}"
+| ◇A    => s!"class(\"unary\", diamond) {Formula.toStringAux A}"
+| □A    => s!"class(\"unary\", square) {Formula.toStringAux A}"
 | ⊤     => "⊤"
 | ⊥     => "⊥"
-| ∼A    => s!"not {Formula.toString A}"
-| A 🡒 B => s!"({Formula.toString A} -> {Formula.toString B})"
+| ∼A    => s!"not {Formula.toStringAux A}"
+| A 🡒 B => s!"({Formula.toStringAux A} -> {Formula.toStringAux B})"
+
+/-- Typst math-mode source for this formula. See `Formula.toStringAux` for the
+parenthesization convention; this entry point omits the outermost parentheses around a
+top-level `→`. -/
+protected def toString [ToString α] : Formula α → String
+| A 🡒 B => s!"{Formula.toStringAux A} -> {Formula.toStringAux B}"
+| A     => Formula.toStringAux A
 
 instance [ToString α] : ToString (Formula α) := ⟨Formula.toString⟩
 instance [ToString α] : Repr (Formula α) := ⟨λ A _ => Std.Format.text $ Formula.toString A⟩
