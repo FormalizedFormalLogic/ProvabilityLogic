@@ -15,15 +15,15 @@ omit [DecidableEq α] in
 atoms `#0, #1, #2` (checked mechanically via `decide`, using `LogicGL.decidableMem`) and
 then transported to arbitrary `A B C : Formula α` along the atom-to-formula assignment
 `#0 ↦ A, #1 ↦ B, #2 ↦ C`, using closure of `LogicGL` under substitution
-(`ProvableHilbert.bind`, `LogicGL.iff_provableHilbert`). -/
+(`ProvableHilbert.subst`, `LogicGL.iff_provableHilbert`). -/
 theorem imp_trans : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 A 🡒 C) ∈ @LogicGL α := by
   suffices h : ((#0 🡒 #1) 🡒 (#1 🡒 #2) 🡒 #0 🡒 #2) ∈ @LogicGL ℕ by
-    simpa using ProvableHilbert.bind (fun n =>
+    simpa using ProvableHilbert.subst (s := fun n =>
       match n with
       | 0 => A
       | 1 => B
       | _ => C
-    ) $ h;
+    ) h;
   native_decide;
 
 end LogicGL

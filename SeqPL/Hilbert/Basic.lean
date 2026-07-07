@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Gentzen.WithCut
-public import SeqPL.Formula.Map
+public import SeqPL.Formula.Substitution
 
 @[expose]
 public section
@@ -657,7 +657,7 @@ lemma ProvableHilbert.map {β : Type*} (f : α → β) {A : Formula α} (h : ⊢
 
 /-- Hilbert provability is preserved under substitution of atoms by arbitrary formulas,
 even across a change of alphabet. -/
-lemma ProvableHilbert.bind {β : Type*} (g : α → Formula β) {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.bind g) := by
+lemma ProvableHilbert.subst {β : Type*} {s : α → Formula β} {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A⟦s⟧) := by
   induction h using ProvableHilbert.rec with
   | implyK => exact ProvableHilbert.implyK
   | implyS => exact ProvableHilbert.implyS

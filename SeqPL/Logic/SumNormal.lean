@@ -18,7 +18,7 @@ infix:50 " ⊕ᴸ " => Logic.sumNormal
 
 namespace Logic.sumNormal
 
-variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α}
+variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α α}
 
 @[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ ⊕ᴸ L₂) := by apply Logic.sumNormal.mem₁;
 @[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ ⊕ᴸ L₂) := by apply Logic.sumNormal.mem₂;

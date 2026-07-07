@@ -4,7 +4,6 @@ public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Countable
 public import SeqPL.Formula.Letterless
-public import SeqPL.Formula.Map
 public import SeqPL.Formula.Substitution
 public import SeqPL.Gentzen.Basic
 public import SeqPL.Gentzen.Kripke

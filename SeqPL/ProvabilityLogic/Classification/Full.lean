@@ -223,7 +223,7 @@ end FormulaSet
 
 abbrev Logic.trace (L : Logic α) : Set ℕ := FormulaSet.trace L
 
-lemma trace_subst_subset {A : Formula α} {s : Formula.Substitution α} : (A⟦s⟧).trace ⊆ A.trace := by
+lemma trace_subst_subset {A : Formula α} {s : Formula.Substitution α α} : (A⟦s⟧).trace ⊆ A.trace := by
   intro n hn;
   obtain ⟨κ, _, M, _, _, hh, hr⟩ := Formula.iff_mem_trace.mp hn;
   exact Formula.iff_mem_trace.mpr ⟨κ, inferInstance, M.substModel s, inferInstance, inferInstance, hh, fun h => hr (Model.forces_substModel.mpr h)⟩;

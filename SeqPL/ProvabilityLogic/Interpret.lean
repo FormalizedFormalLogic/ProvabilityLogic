@@ -3,7 +3,6 @@ module
 public import Foundation.FirstOrder.Incompleteness.StandardProvability
 public import SeqPL.Formula.Letterless
 public import SeqPL.Formula.Substitution
-public import SeqPL.Formula.Map
 public import SeqPL.Logic.GL.Basic
 
 @[expose] public section
@@ -53,8 +52,8 @@ lemma Formula.interpret_map {f : Realization β 𝔅} {g : α → β} {A : Formu
   induction A with
   | atom a => rfl
   | bot => rfl
-  | imp A B ihA ihB => simp only [Formula.map_imp, Formula.interpret, ihA, ihB]
-  | box A ih => simp only [Formula.map_box, Formula.interpret, ih]
+  | imp A B ihA ihB => simp only [Formula.subst_imp, Formula.interpret, ihA, ihB]
+  | box A ih => simp only [Formula.subst_box, Formula.interpret, ih]
 
 /-- Two realizations agreeing on the atoms of `A` interpret `A` identically. -/
 lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α 𝔅} {A : Formula α}
@@ -73,7 +72,7 @@ lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α
 
 /-- Interpreting a substituted formula is interpreting under the realization composed with
 the substitution's own interpretation. -/
-lemma Formula.interpret_subst {f : Realization α 𝔅} {s : Formula.Substitution α} {A : Formula α} :
+lemma Formula.interpret_subst {f : Realization α 𝔅} {s : Formula.Substitution α α} {A : Formula α} :
     Formula.interpret f (A⟦s⟧) = Formula.interpret (⟨fun a => Formula.interpret f (s a)⟩ : Realization α 𝔅) A := by
   induction A with
   | atom a => rfl

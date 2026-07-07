@@ -19,7 +19,7 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
   finite set of atoms `S`, replace every `q ∈ S` by `#p 🡘 #q`, leaving other atoms
   (in particular `p` itself) untouched.
 -/
-noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula.Substitution α :=
+noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula.Substitution α α :=
   fun q => if q ∈ S then (#p 🡘 #q) else #q
 
 @[simp]

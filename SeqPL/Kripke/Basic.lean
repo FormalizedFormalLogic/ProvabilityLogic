@@ -2,7 +2,6 @@ module
 
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Substitution
-public import SeqPL.Formula.Map
 public import SeqPL.Vorspiel.CWF
 public import Mathlib.Data.PNat.Defs
 public import Mathlib.Data.PNat.Basic
@@ -215,11 +214,11 @@ end Model
 namespace Model
 
 /-- Model obtained by composing the valuation with a substitution `s` (the frame is unchanged). -/
-abbrev substModel (M : Model κ α) (s : Formula.Substitution α) : Model κ α where
+abbrev substModel (M : Model κ α) (s : Formula.Substitution α α) : Model κ α where
   Rel' := M.Rel'
   Val' x a := Model.World.Forces (M := M) x (s a)
 
-lemma forces_substModel {s : Formula.Substitution α} {A : Formula α} {x : M.World} :
+lemma forces_substModel {s : Formula.Substitution α α} {A : Formula α} {x : M.World} :
     x ⊩ A⟦s⟧ ↔ Model.World.Forces (M := M.substModel s) x A := by
   induction A generalizing x with
   | atom a => rw [Formula.subst_atom]; rfl
@@ -231,8 +230,8 @@ lemma forces_substModel {s : Formula.Substitution α} {A : Formula α} {x : M.Wo
     · intro h y hy; exact ih.mp (h y hy);
     · intro h y hy; exact ih.mpr (h y hy);
 
-instance {s : Formula.Substitution α} [Fintype M.World] : Fintype (M.substModel s).World := ‹Fintype M.World›
-instance {s : Formula.Substitution α} [h : M.IsGL] : (M.substModel s).IsGL where __ := h
+instance {s : Formula.Substitution α α} [Fintype M.World] : Fintype (M.substModel s).World := ‹Fintype M.World›
+instance {s : Formula.Substitution α α} [h : M.IsGL] : (M.substModel s).IsGL where __ := h
 
 end Model
 

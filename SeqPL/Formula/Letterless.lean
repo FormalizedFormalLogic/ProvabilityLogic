@@ -27,7 +27,7 @@ instance : Coe LetterlessFormula (Formula α) := ⟨lift⟩
 
 /-- Substitution acts trivially on lifted letterless formulas. -/
 @[simp, grind =]
-lemma subst_lift {s : Formula.Substitution α} : (lift A : Formula α)⟦s⟧ = lift A := by
+lemma subst_lift {s : Formula.Substitution α α} : (lift A : Formula α)⟦s⟧ = lift A := by
   induction A <;> grind;
 
 variable {B : LetterlessFormula}

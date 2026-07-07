@@ -201,7 +201,7 @@ variable {Γ Δ : FormulaFinset α} {A B D : Formula α} {p q : α}
 /-! ### Substitution closure (GL.typ, Proposition 1.2) -/
 
 /-- `ProofGentzen` is closed under substitution. -/
-theorem subst (s : Substitution α) {S : Sequent α} (h : ⊢ᵍ S) :
+theorem subst (s : Substitution α α) {S : Sequent α} (h : ⊢ᵍ S) :
     ⊢ᵍ (S.ant.image (·⟦s⟧) ⟹ S.suc.image (·⟦s⟧)) := by
   induction h with
   | axm A => simpa using axm (A⟦s⟧)
