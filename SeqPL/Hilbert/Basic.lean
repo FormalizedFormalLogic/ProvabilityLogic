@@ -655,4 +655,23 @@ lemma ProvableHilbert.map {β : Type*} (f : α → β) {A : Formula α} (h : ⊢
   | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
   | nec h ih => exact ProvableHilbert.nec ih
 
+/-- Hilbert provability is preserved under substitution of atoms by arbitrary formulas,
+even across a change of alphabet. -/
+lemma ProvableHilbert.bind {β : Type*} (g : α → Formula β) {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.bind g) := by
+  induction h using ProvableHilbert.rec with
+  | implyK => exact ProvableHilbert.implyK
+  | implyS => exact ProvableHilbert.implyS
+  | dne => exact ProvableHilbert.dne
+  | andElimL => exact ProvableHilbert.andElimL
+  | andElimR => exact ProvableHilbert.andElimR
+  | andIntro => exact ProvableHilbert.andIntro
+  | orIntroL => exact ProvableHilbert.orIntroL
+  | orIntroR => exact ProvableHilbert.orIntroR
+  | orElim => exact ProvableHilbert.orElim
+  | modalK => exact ProvableHilbert.modalK
+  | modal4 => exact ProvableHilbert.modal4
+  | modalL => exact ProvableHilbert.modalL
+  | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
+  | nec h ih => exact ProvableHilbert.nec ih
+
 end

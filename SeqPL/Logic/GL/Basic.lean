@@ -6,6 +6,7 @@ public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PointGenerate
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Gentzen
+public import SeqPL.LabelledGentzen.Completeness
 public import Mathlib.Tactic.TFAE
 
 @[expose]
@@ -88,5 +89,15 @@ theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :
   fun h => provability_TFAE.out 2 1 |>.mp h
 
 end LogicGL
+
+/-- Provability of a formula in the label-free Gentzen calculus `⊢ᵍ` is decidable,
+via the labelled proof search. -/
+instance decidable_provableGentzen_formula (A : Formula α) [DecidableEq α] :
+  Decidable (⊢ᵍ (∅ ⟹ {A})) :=
+  decidable_of_iff _ (iff_provableGentzen_provableLabelledGentzen (x := 0)).symm
+
+/-- Membership in `LogicGL` is decidable, via the labelled proof search. -/
+instance LogicGL.decidableMem (A : Formula α) [DecidableEq α] : Decidable (A ∈ LogicGL) :=
+  decidable_of_iff _ LogicGL.iff_provableGentzen.symm
 
 end

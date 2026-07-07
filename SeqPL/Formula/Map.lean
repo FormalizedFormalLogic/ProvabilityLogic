@@ -59,3 +59,29 @@ lemma subst_eq_self_of_forall_atoms [DecidableEq α] {s : Substitution α}
     rw [Formula.subst_box, ih (fun a ha => h a (by simpa [Formula.atoms] using ha))];
 
 end Formula
+
+
+namespace Formula
+
+/-- Substitution across atom types: each atom of `A` is replaced by a formula over `β`,
+following `g`. Unlike `subst`, which stays within a single type `α`, `bind` allows the
+target type `β` to differ, so that `A` (over an arbitrary alphabet `α`, e.g. `ℕ`) can be
+turned into a formula over any `β` without needing `β` itself to carry designated atoms. -/
+@[grind]
+def bind (g : α → Formula β) : Formula α → Formula β
+  | #a => g a
+  | ⊥ => ⊥
+  | A 🡒 B => A.bind g 🡒 B.bind g
+  | □A => □(A.bind g)
+
+variable {g : α → Formula β} {A B : Formula α}
+
+@[simp, grind =] lemma bind_atom {a : α} : (#a : Formula α).bind g = g a := rfl
+@[simp, grind =] lemma bind_bot : (⊥ : Formula α).bind g = ⊥ := rfl
+@[simp, grind =] lemma bind_imp : (A 🡒 B).bind g = A.bind g 🡒 B.bind g := rfl
+@[simp, grind =] lemma bind_box : (□A).bind g = □(A.bind g) := rfl
+@[simp, grind =] lemma bind_neg : (∼A).bind g = ∼(A.bind g) := by grind;
+@[simp, grind =] lemma bind_and : (A ⋏ B).bind g = A.bind g ⋏ B.bind g := by grind;
+@[simp, grind =] lemma bind_or  : (A ⋎ B).bind g = A.bind g ⋎ B.bind g := by grind;
+
+end Formula

@@ -24,7 +24,7 @@ namespace LabelledSequent
 components (as with `LabelledSequent.ofLists`). Unlike `LabelledSequent.toString`, this is
 computable and thus usable with `#eval`. -/
 def toStringOfLists [ToString α]
-  (L : List (Label × Label) × List (LabelledFormula α) × List (LabelledFormula α)) : String :=
+  (L : List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)) : String :=
   let relStr := String.intercalate ", " (L.1.map (fun p => s!"{p.1} R {p.2}"))
   let antStr := String.intercalate ", " (L.2.1.map LabelledFormula.toString)
   let sucStr := String.intercalate ", " (L.2.2.map LabelledFormula.toString)
@@ -61,8 +61,8 @@ well-founded recursion. -/
 /-- Curryst `rule(...)` call for the proof search starting from `(R, Γ, Δ)` with `processed`
 already treated by `R□^Löb`, recursing into premises as nested `rule(...)` calls. See the
 module docstring above this definition. -/
-partial def searchTraceAux [ToString α] (processed : Finset (Formula α))
-  (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) : String :=
+partial def searchTraceAux [ToString α] (processed : Finset (LabelledFormula α))
+  (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) : String :=
   let concl := LabelledSequent.toStringOfLists (R, Γ, Δ)
   match Γ.find? (fun lf => decide (lf ∈ Δ)) with
   | some _ => s!"rule(name: [Ax], ${concl}$)"
@@ -93,18 +93,20 @@ partial def searchTraceAux [ToString α] (processed : Finset (Formula α))
   match loopTarget? R Γ Δ with
   | some _ => s!"rule(name: [Loop], ${concl}$)"
   | none =>
-  match lobTarget? processed Δ with
+  match lobTarget? processed R Γ Δ with
   | some (x, A) =>
     let y := (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).freshLabel;
+    let preds := (R.filter (fun p => p.2 = x)).map Prod.fst;
     s!"rule(name: [$class(\"unary\", square)R^Löb$], ${concl}$, \
-      {searchTraceAux (insert (□A) processed) ((x, y) :: R) ((y ∶ □A) :: Γ) ((y ∶ A) :: Δ)})"
+      {searchTraceAux (insert (x ∶ □A) processed)
+        (preds.map (fun w => (w, y)) ++ (x, y) :: R) ((y ∶ □A) :: Γ) ((y ∶ A) :: Δ)})"
   | none => s!"rule(name: [$?$], ${concl}$)"
 
 /-- Typst source rendering the proof-search trace for `search0 R Γ Δ` as a `curryst`
 proof tree; wrap the containing document with `#import "@preview/curryst:0.5.0": prooftree, rule`
 for it to compile. Computable and thus `#eval`-friendly, and shows the full sequent at
 every node. -/
-def searchTrace0 [ToString α] (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) : String :=
+def searchTrace0 [ToString α] (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) : String :=
   s!"#prooftree(\n  {searchTraceAux ∅ R Γ Δ}\n)"
 
 #eval LabelledSequent.toStringOfLists (α := ℕ) ([], [], [0 ∶ (□(□#0 🡒 #0) 🡒 □#0)])

@@ -2,13 +2,14 @@ module
 
 public import SeqPL.LabelledGentzen.Basic
 public import Mathlib.Data.Finset.Prod
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 meta import SeqPL.LabelledGentzen.Basic
 
 @[expose]
 public section
 
 /-!
-Saturation for proof search in the labelled sequent calculus `G3KGL`.
+Saturation for proof search in the labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡ`).
 
 `saturate` exhaustively applies the propositional rules (`impL`/`impR`), the
 relational rule `Trans` and the modal rule `L□` (each keeping its principal
@@ -29,8 +30,8 @@ variable {α : Type u} [DecidableEq α]
 
 namespace LabelledSequent
 
-variable {S : LabelledSequent α} {Rf : Finset (Label × Label)} {Γf Δf : Finset (LabelledFormula α)}
-variable {lf : LabelledFormula α} {p : Label × Label} {x y z : Label} {A B : Formula α}
+variable {S : LabelledSequent α} {Rf : Finset LabelRel} {Γf Δf : Finset (LabelledFormula α)}
+variable {lf : LabelledFormula α} {p : LabelRel} {x y z : Label} {A B : Formula α}
 
 /-- The subformula closure of all formulas occurring in `S`. -/
 @[grind]
@@ -325,12 +326,227 @@ structure Saturated (S : LabelledSequent α) : Prop where
   rel_trans : ∀ x y z, (x, y) ∈ S.rel → (y, z) ∈ S.rel → (x, z) ∈ S.rel
   box_ant : ∀ x y A, (x, y) ∈ S.rel → (x ∶ □A) ∈ S.ant → (y ∶ A) ∈ S.ant
 
+/-! ### Termination measure for the outer proof search (`lobMeasure`)
+
+The outer search (`search`/`searchLeaves`) records `R□^Löb` applications *per label*
+in `processed : Finset (LabelledFormula α)`.  Its termination follows `[Neg14]`,
+Theorem 5.5: along a single ancestry chain of labels the same `□A` is treated at most
+once (a second occurrence closes by `axm` or by `loop` before `R□^Löb` is consulted),
+so only sibling chains count independently, and the length of every chain is bounded
+by the number of boxed subformulas.  This is implemented by the weighted measure
+`lobMeasure`: each label `x` carries the *blocked* boxed subformulas `blockedBoxes x`
+(present in the antecedent at `x` itself or at a direct `R`-predecessor of `x`), and
+a `R□^Löb` step at `x` creates one fresh label whose blocked set strictly contains
+the one of `x`, so its exponential weight drops by a factor that dominates the (at
+most `boxSf.card`) new pending boxes it brings.
+-/
+
+/-- The boxed formulas in the subformula closure of `S`. -/
+def boxSf (S : LabelledSequent α) : FormulaFinset α := S.sf.filter Formula.IsBox
+
+/-- The boxed subformulas that can no longer become `R□^Löb` targets at the label `x`:
+those in the antecedent at `x` itself (the sequent closes by `axm`) or at a direct
+`R`-predecessor of `x` (the sequent closes by `loop`, cf. `[Neg14]` Lemma 5.2). -/
+def blockedBoxes (S : LabelledSequent α) (x : Label) : FormulaFinset α :=
+  S.boxSf.filter (fun B => (x ∶ B) ∈ S.ant ∨ ∃ p ∈ S.rel, p.2 = x ∧ (p.1 ∶ B) ∈ S.ant)
+
+/-- The boxed subformulas still available as `R□^Löb` targets at the label `x`:
+not yet processed there and not blocked. -/
+def pendingBoxes (S : LabelledSequent α) (P : Finset (LabelledFormula α)) (x : Label) :
+  FormulaFinset α :=
+  S.boxSf.filter (fun B => (x ∶ B) ∉ P ∧ B ∉ S.blockedBoxes x)
+
+/-- Exponential weight of the label `x` in `lobMeasure`. -/
+def lobWeight (S : LabelledSequent α) (x : Label) : ℕ :=
+  (S.boxSf.card + 1) ^ (S.boxSf.card - (S.blockedBoxes x).card)
+
+/-- Termination measure for `search`/`searchLeaves`: the weighted number of pending
+`R□^Löb` targets over all labels of `S`. -/
+def lobMeasure (S : LabelledSequent α) (P : Finset (LabelledFormula α)) : ℕ :=
+  ∑ x ∈ S.labels, (S.pendingBoxes P x).card * S.lobWeight x
+
+section lobMeasure
+
+variable {P : Finset (LabelledFormula α)} {S' : LabelledSequent α}
+
+lemma blockedBoxes_subset_boxSf : S.blockedBoxes x ⊆ S.boxSf := Finset.filter_subset _ _
+
+lemma boxSf_congr (h : S.sf = S'.sf) : S.boxSf = S'.boxSf := by rw [boxSf, boxSf, h];
+
+lemma blockedBoxes_mono (hsf : S.sf = S'.sf) (hrel : S.rel ⊆ S'.rel) (hant : S.ant ⊆ S'.ant) :
+  S.blockedBoxes x ⊆ S'.blockedBoxes x := by
+  intro B hB;
+  simp only [blockedBoxes, Finset.mem_filter] at hB ⊢;
+  refine ⟨boxSf_congr hsf ▸ hB.1, ?_⟩;
+  rcases hB.2 with h | ⟨p, hp, h1, h2⟩;
+  · exact Or.inl (hant h);
+  · exact Or.inr ⟨p, hrel hp, h1, hant h2⟩;
+
+/-- `lobMeasure` does not increase along saturation: saturation keeps `labels` and `sf`
+and only adds relational atoms and antecedent formulas, so every `blockedBoxes x` grows
+and every summand of `lobMeasure` shrinks. -/
+lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
+  (hrel : S.rel ⊆ S'.rel) (hant : S.ant ⊆ S'.ant) :
+  S'.lobMeasure P ≤ S.lobMeasure P := by
+  rw [lobMeasure, lobMeasure, hlab];
+  apply Finset.sum_le_sum;
+  intro z _;
+  have hbox : S'.boxSf = S.boxSf := boxSf_congr hsf;
+  have hbl : S.blockedBoxes z ⊆ S'.blockedBoxes z := blockedBoxes_mono hsf.symm hrel hant;
+  apply Nat.mul_le_mul;
+  · apply Finset.card_le_card;
+    intro B hB;
+    simp only [pendingBoxes, Finset.mem_filter] at hB ⊢;
+    exact ⟨hbox ▸ hB.1, hB.2.1, fun h => hB.2.2 (hbl h)⟩;
+  · rw [lobWeight, lobWeight, hbox];
+    exact Nat.pow_le_pow_right (by omega) (Nat.sub_le_sub_left (Finset.card_le_card hbl) _);
+
+/-- Key decrease lemma for the termination of `search`/`searchLeaves` (`[Neg14]`, Thm 5.5):
+applying `R□^Löb` at an unblocked, unprocessed target `x ∶ □A` with a fresh label `y` —
+adding, besides `(x, y)`, the relational atoms `(w, y)` for every direct predecessor `w`
+of `x` (which `Trans`-saturation would add anyway) — strictly decreases `lobMeasure`. -/
+lemma lobMeasure_lob_lt
+  (hΔ : (x ∶ □A) ∈ Δf) (hP : (x ∶ □A) ∉ P) (hΓ : (x ∶ □A) ∉ Γf)
+  (hpred : ∀ w, (w, x) ∈ Rf → (w ∶ □A) ∉ Γf)
+  (hy : y ∉ (Rf ⸴ Γf ⟹ˡ Δf).labels) :
+  (insert (x, y) ((Rf.filter (fun p => p.2 = x)).image (fun p => (p.1, y)) ∪ Rf) ⸴
+    insert (y ∶ □A) Γf ⟹ˡ insert (y ∶ A) Δf).lobMeasure (insert (x ∶ □A) P) <
+  (Rf ⸴ Γf ⟹ˡ Δf).lobMeasure P := by
+  set L := Rf ⸴ Γf ⟹ˡ Δf with hL;
+  set N : Finset LabelRel :=
+    insert (x, y) ((Rf.filter (fun p => p.2 = x)).image (fun p => (p.1, y)) ∪ Rf) with hN;
+  set S' := N ⸴ insert (y ∶ □A) Γf ⟹ˡ insert (y ∶ A) Δf with hS';
+  set P' : Finset (LabelledFormula α) := insert (x ∶ □A) P with hP';
+  have hxlab : x ∈ L.labels := mem_labels_of_mem_suc (lf := x ∶ □A) hΔ;
+  have hboxA : (□A) ∈ L.sf := mem_sf_of_mem_suc (lf := x ∶ □A) hΔ;
+  have hsf' : S'.sf = L.sf := by
+    have h1 : (□A) ∈ (N ⸴ Γf ⟹ˡ insert (y ∶ A) Δf).sf :=
+      mem_sf_of_mem_suc (lf := x ∶ □A) (Finset.mem_insert_of_mem hΔ);
+    have h2 : A ∈ (N ⸴ Γf ⟹ˡ Δf).sf := mem_sf_of_box (mem_sf_of_mem_suc (lf := x ∶ □A) hΔ);
+    calc S'.sf = (N ⸴ Γf ⟹ˡ insert (y ∶ A) Δf).sf := sf_insert_ant_of_mem (lf := y ∶ □A) h1
+    _ = (N ⸴ Γf ⟹ˡ Δf).sf := sf_insert_suc_of_mem (lf := y ∶ A) h2
+    _ = L.sf := rfl;
+  have hAbox : (□A) ∈ L.boxSf := Finset.mem_filter.mpr ⟨hboxA, by grind⟩;
+  have hfsty : ∀ p ∈ Rf, p.1 ≠ y := fun p hp h => hy (h ▸ fst_mem_labels_of_mem_rel hp);
+  have hsndy : ∀ p ∈ Rf, p.2 ≠ y := fun p hp h => hy (h ▸ snd_mem_labels_of_mem_rel hp);
+  have hlab' : S'.labels = insert y L.labels := by
+    ext w;
+    simp only [labels, hS', hN, hL, Finset.mem_union, Finset.mem_insert, Finset.mem_image,
+      Finset.mem_filter];
+    grind;
+  have hylab : y ∉ L.labels := hy;
+  have hblock_old : ∀ z ∈ L.labels, S'.blockedBoxes z = L.blockedBoxes z := by
+    intro z hz;
+    have hzy : z ≠ y := fun h => hy (h ▸ hz);
+    rw [blockedBoxes, blockedBoxes, boxSf_congr hsf'];
+    apply Finset.filter_congr;
+    intro B _;
+    show ((z ∶ B) ∈ insert (y ∶ □A) Γf ∨ ∃ p ∈ N, p.2 = z ∧ (p.1 ∶ B) ∈ insert (y ∶ □A) Γf) ↔
+      ((z ∶ B) ∈ Γf ∨ ∃ p ∈ Rf, p.2 = z ∧ (p.1 ∶ B) ∈ Γf);
+    simp only [hN, Finset.mem_insert, Finset.mem_union, Finset.mem_image, Finset.mem_filter];
+    grind;
+  have hblocky : insert (□A) (L.blockedBoxes x) ⊆ S'.blockedBoxes y := by
+    intro B hB;
+    simp only [Finset.mem_insert] at hB;
+    simp only [blockedBoxes, Finset.mem_filter, boxSf_congr hsf'];
+    rcases hB with rfl | hB;
+    · exact ⟨hAbox, Or.inl (Finset.mem_insert_self _ _)⟩;
+    · obtain ⟨hBbox, h⟩ := Finset.mem_filter.mp hB;
+      refine ⟨hBbox, Or.inr ?_⟩;
+      rcases h with h | ⟨p, hp, hp2, hp1⟩;
+      · exact ⟨(x, y), by grind, rfl, Finset.mem_insert_of_mem h⟩;
+      · exact ⟨(p.1, y), by grind, rfl, Finset.mem_insert_of_mem hp1⟩;
+  have hAnb : (□A) ∉ L.blockedBoxes x := by
+    simp only [blockedBoxes, Finset.mem_filter, hL];
+    grind;
+  set b := L.boxSf.card with hb;
+  have hbx_lt : (L.blockedBoxes x).card < b :=
+    Finset.card_lt_card ((Finset.ssubset_iff_of_subset blockedBoxes_subset_boxSf).mpr
+      ⟨□A, hAbox, hAnb⟩);
+  have hby : (L.blockedBoxes x).card + 1 ≤ (S'.blockedBoxes y).card := by
+    calc (L.blockedBoxes x).card + 1 = (insert (□A) (L.blockedBoxes x)).card :=
+      (Finset.card_insert_of_notMem hAnb).symm
+    _ ≤ _ := Finset.card_le_card hblocky;
+  have hpend_old : ∀ z ∈ L.labels, z ≠ x → S'.pendingBoxes P' z = L.pendingBoxes P z := by
+    intro z hz hzx;
+    ext B;
+    simp only [pendingBoxes, Finset.mem_filter, boxSf_congr hsf', hblock_old z hz, hP',
+      Finset.mem_insert];
+    grind;
+  have hpend_x : S'.pendingBoxes P' x = (L.pendingBoxes P x).erase (□A) := by
+    ext B;
+    simp only [pendingBoxes, Finset.mem_filter, Finset.mem_erase, boxSf_congr hsf',
+      hblock_old x hxlab, hP', Finset.mem_insert];
+    grind;
+  have hApend : (□A) ∈ L.pendingBoxes P x := Finset.mem_filter.mpr ⟨hAbox, hP, hAnb⟩;
+  have hw_old : ∀ z ∈ L.labels, S'.lobWeight z = L.lobWeight z := by
+    intro z hz;
+    rw [lobWeight, lobWeight, boxSf_congr hsf', hblock_old z hz];
+  have hpendy_le : (S'.pendingBoxes P' y).card ≤ b := by
+    calc (S'.pendingBoxes P' y).card ≤ S'.boxSf.card := Finset.card_le_card (Finset.filter_subset _ _)
+    _ = b := by rw [boxSf_congr hsf'];
+  -- The fresh label's contribution is strictly dominated by the weight freed at `x`.
+  have hstrict : (S'.pendingBoxes P' y).card * S'.lobWeight y < L.lobWeight x := by
+    have hwy : S'.lobWeight y ≤ (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := by
+      rw [lobWeight, boxSf_congr hsf'];
+      exact Nat.pow_le_pow_right (by omega) (Nat.sub_le_sub_left hby _);
+    have h1 : (S'.pendingBoxes P' y).card * S'.lobWeight y ≤
+      b * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := Nat.mul_le_mul hpendy_le hwy;
+    have h2 : (b + 1) * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) =
+      (b + 1) ^ (b - (L.blockedBoxes x).card) := by
+      rw [← pow_succ'];
+      congr 1;
+      omega;
+    have h3 : b * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) <
+      (b + 1) * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) :=
+      Nat.mul_lt_mul_of_lt_of_le (by omega) le_rfl (Nat.pow_pos (by omega));
+    calc (S'.pendingBoxes P' y).card * S'.lobWeight y
+        ≤ b * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := h1
+    _ < (b + 1) * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := h3
+    _ = (b + 1) ^ (b - (L.blockedBoxes x).card) := h2
+    _ = L.lobWeight x := rfl;
+  -- Assemble: split the fresh label `y` and the target label `x` out of both sums.
+  have hsum' : S'.lobMeasure P' =
+    (S'.pendingBoxes P' y).card * S'.lobWeight y +
+    ∑ z ∈ L.labels, (S'.pendingBoxes P' z).card * S'.lobWeight z := by
+    rw [lobMeasure, hlab', Finset.sum_insert hylab];
+  have hx_term : (S'.pendingBoxes P' x).card * S'.lobWeight x + L.lobWeight x =
+    (L.pendingBoxes P x).card * L.lobWeight x := by
+    rw [hpend_x, Finset.card_erase_of_mem hApend, hw_old x hxlab];
+    have hpos : 1 ≤ (L.pendingBoxes P x).card := Finset.card_pos.mpr ⟨□A, hApend⟩;
+    calc ((L.pendingBoxes P x).card - 1) * L.lobWeight x + L.lobWeight x
+        = (((L.pendingBoxes P x).card - 1) + 1) * L.lobWeight x := by rw [Nat.succ_mul]
+    _ = (L.pendingBoxes P x).card * L.lobWeight x := by rw [Nat.sub_add_cancel hpos];
+  have hsum_rest : ∑ z ∈ L.labels.erase x, (S'.pendingBoxes P' z).card * S'.lobWeight z =
+    ∑ z ∈ L.labels.erase x, (L.pendingBoxes P z).card * L.lobWeight z := by
+    apply Finset.sum_congr rfl;
+    intro z hz;
+    have hz' : z ∈ L.labels := Finset.mem_of_mem_erase hz;
+    rw [hpend_old z hz' (Finset.ne_of_mem_erase hz), hw_old z hz'];
+  have hsplit' : (S'.pendingBoxes P' x).card * S'.lobWeight x +
+    ∑ z ∈ L.labels.erase x, (S'.pendingBoxes P' z).card * S'.lobWeight z =
+    ∑ z ∈ L.labels, (S'.pendingBoxes P' z).card * S'.lobWeight z :=
+    Finset.add_sum_erase _ (fun z => (S'.pendingBoxes P' z).card * S'.lobWeight z) hxlab;
+  have hsplit : (L.pendingBoxes P x).card * L.lobWeight x +
+    ∑ z ∈ L.labels.erase x, (L.pendingBoxes P z).card * L.lobWeight z = L.lobMeasure P :=
+    Finset.add_sum_erase _ (fun z => (L.pendingBoxes P z).card * L.lobWeight z) hxlab;
+  -- abbreviate the nonlinear atoms so that `omega` can finish
+  set a₁ := (S'.pendingBoxes P' y).card * S'.lobWeight y with ha₁;
+  set a₂ := (S'.pendingBoxes P' x).card * S'.lobWeight x with ha₂;
+  set a₃ := (L.pendingBoxes P x).card * L.lobWeight x with ha₃;
+  set a₄ := ∑ z ∈ L.labels.erase x, (S'.pendingBoxes P' z).card * S'.lobWeight z with ha₄;
+  set a₅ := ∑ z ∈ L.labels.erase x, (L.pendingBoxes P z).card * L.lobWeight z with ha₅;
+  set a₆ := ∑ z ∈ L.labels, (S'.pendingBoxes P' z).card * S'.lobWeight z with ha₆;
+  omega;
+
+end lobMeasure
+
 end LabelledSequent
 
 
 namespace ProofLabelledGentzen
 
-variable {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)} {x : Label} {A B : Formula α}
+variable {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)} {x : Label} {A B : Formula α}
 
 /-- `impR` with the principal formula kept in the succedent. -/
 def impR_mem (h : (x ∶ A 🡒 B) ∈ Δ)
@@ -344,6 +560,20 @@ def impL_mem (h : (x ∶ A 🡒 B) ∈ Γ)
   rw [show Γ = insert (x ∶ A 🡒 B) Γ by grind];
   exact impL p q;
 
+/-- Iterated `Trans`: discharges the relational atoms `(w, y)` for a list of labels `ws`
+whose members are all `R`-predecessors of `x`, given `(x, y) ∈ R`.  Used by the proof
+search to justify the eagerly added transitive pairs of a `R□^Löb` step. -/
+def transMany (x y : Label) :
+  (ws : List Label) → (hws : ∀ w ∈ ws, (w, x) ∈ R) → (hxy : (x, y) ∈ R) →
+  ⊢ˡ! ((ws.map (fun w => (w, y))).toFinset ∪ R ⸴ Γ ⟹ˡ Δ) → ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ)
+  | [], _, _, π => by simpa using π
+  | w :: ws, hws, hxy, π =>
+    transMany x y ws (fun v hv => hws v (List.mem_cons_of_mem _ hv)) hxy
+      (ProofLabelledGentzen.trans w x y
+        (hxy := Finset.mem_union_right _ (hws w List.mem_cons_self))
+        (hyz := Finset.mem_union_right _ hxy)
+        (by simpa [Finset.insert_union] using π))
+
 end ProofLabelledGentzen
 
 
@@ -351,59 +581,79 @@ end ProofLabelledGentzen
 Used to keep the leaves of `saturate` computably enumerable (extracting elements
 from a `Finset` is noncomputable). -/
 abbrev LabelledSequent.ofLists
-  (L : List (Label × Label) × List (LabelledFormula α) × List (LabelledFormula α)) : LabelledSequent α :=
+  (L : List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)) : LabelledSequent α :=
   L.1.toFinset ⸴ L.2.1.toFinset ⟹ˡ L.2.2.toFinset
 
 /-- The result of saturating a labelled sequent `S`: either a proof of `S`, or a
 finite list of saturated open sequents (the leaves of the saturation tree, given by
 list-representations of their components for computability) together with a way of
 recovering a proof of `S` from proofs of all of them.  The leaves have the same
-labels and the same subformula closure as `S`. -/
+labels and the same subformula closure as `S`, and extend `S` componentwise
+(saturation only ever *adds* relational atoms and labelled formulas). -/
 inductive SaturationResult (S : LabelledSequent α) : Type u
   | closed (π : ⊢ˡ! S) : SaturationResult S
-  | stuck (leaves : List (List (Label × Label) × List (LabelledFormula α) × List (LabelledFormula α)))
+  | stuck (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
       (hsat : ∀ L ∈ leaves, (LabelledSequent.ofLists L).Saturated)
       (hlab : ∀ L ∈ leaves, (LabelledSequent.ofLists L).labels = S.labels)
       (hsf : ∀ L ∈ leaves, (LabelledSequent.ofLists L).sf = S.sf)
+      (hmono : ∀ L ∈ leaves,
+        S.rel ⊆ (LabelledSequent.ofLists L).rel ∧
+        S.ant ⊆ (LabelledSequent.ofLists L).ant ∧
+        S.suc ⊆ (LabelledSequent.ofLists L).suc)
       (k : (∀ L ∈ leaves, ⊢ˡ! (LabelledSequent.ofLists L)) → ⊢ˡ! S) : SaturationResult S
 
 namespace SaturationResult
 
 variable {S S' S₁ S₂ : LabelledSequent α}
 
-/-- Transports a `SaturationResult` along a one-premise derivation step. -/
-def map (f : ⊢ˡ! S → ⊢ˡ! S') (hlab : S.labels = S'.labels) (hsf : S.sf = S'.sf) :
+/-- Transports a `SaturationResult` along a one-premise derivation step whose premise
+`S` extends the conclusion `S'` componentwise. -/
+def map (f : ⊢ˡ! S → ⊢ˡ! S') (hlab : S.labels = S'.labels) (hsf : S.sf = S'.sf)
+  (hrel : S'.rel ⊆ S.rel) (hant : S'.ant ⊆ S.ant) (hsuc : S'.suc ⊆ S.suc) :
   SaturationResult S → SaturationResult S'
   | closed π => closed (f π)
-  | stuck leaves hsat hl hs k =>
+  | stuck leaves hsat hl hs hm k =>
       stuck leaves hsat
         (fun T hT => (hl T hT).trans hlab)
         (fun T hT => (hs T hT).trans hsf)
+        (fun T hT => ⟨hrel.trans (hm T hT).1, hant.trans (hm T hT).2.1, hsuc.trans (hm T hT).2.2⟩)
         (fun ps => f (k ps))
 
-/-- Transports two `SaturationResult`s along a two-premise derivation step. -/
+/-- Transports two `SaturationResult`s along a two-premise derivation step whose premises
+`S₁`/`S₂` extend the conclusion `S'` componentwise. -/
 def map₂ (f : ⊢ˡ! S₁ → ⊢ˡ! S₂ → ⊢ˡ! S')
   (hlab₁ : S₁.labels = S'.labels) (hsf₁ : S₁.sf = S'.sf)
-  (hlab₂ : S₂.labels = S'.labels) (hsf₂ : S₂.sf = S'.sf) :
+  (hlab₂ : S₂.labels = S'.labels) (hsf₂ : S₂.sf = S'.sf)
+  (hrel₁ : S'.rel ⊆ S₁.rel) (hant₁ : S'.ant ⊆ S₁.ant) (hsuc₁ : S'.suc ⊆ S₁.suc)
+  (hrel₂ : S'.rel ⊆ S₂.rel) (hant₂ : S'.ant ⊆ S₂.ant) (hsuc₂ : S'.suc ⊆ S₂.suc) :
   SaturationResult S₁ → SaturationResult S₂ → SaturationResult S'
   | closed π₁, closed π₂ => closed (f π₁ π₂)
-  | closed π₁, stuck l₂ hsat₂ hl₂ hs₂ k₂ =>
+  | closed π₁, stuck l₂ hsat₂ hl₂ hs₂ hm₂ k₂ =>
       stuck l₂ hsat₂
         (fun T hT => (hl₂ T hT).trans hlab₂)
         (fun T hT => (hs₂ T hT).trans hsf₂)
+        (fun T hT =>
+          ⟨hrel₂.trans (hm₂ T hT).1, hant₂.trans (hm₂ T hT).2.1, hsuc₂.trans (hm₂ T hT).2.2⟩)
         (fun ps => f π₁ (k₂ ps))
-  | stuck l₁ hsat₁ hl₁ hs₁ k₁, closed π₂ =>
+  | stuck l₁ hsat₁ hl₁ hs₁ hm₁ k₁, closed π₂ =>
       stuck l₁ hsat₁
         (fun T hT => (hl₁ T hT).trans hlab₁)
         (fun T hT => (hs₁ T hT).trans hsf₁)
+        (fun T hT =>
+          ⟨hrel₁.trans (hm₁ T hT).1, hant₁.trans (hm₁ T hT).2.1, hsuc₁.trans (hm₁ T hT).2.2⟩)
         (fun ps => f (k₁ ps) π₂)
-  | stuck l₁ hsat₁ hl₁ hs₁ k₁, stuck l₂ hsat₂ hl₂ hs₂ k₂ =>
+  | stuck l₁ hsat₁ hl₁ hs₁ hm₁ k₁, stuck l₂ hsat₂ hl₂ hs₂ hm₂ k₂ =>
       stuck (l₁ ++ l₂)
         (fun T hT => (List.mem_append.mp hT).elim (hsat₁ T) (hsat₂ T))
         (fun T hT => (List.mem_append.mp hT).elim
           (fun h => (hl₁ T h).trans hlab₁) (fun h => (hl₂ T h).trans hlab₂))
         (fun T hT => (List.mem_append.mp hT).elim
           (fun h => (hs₁ T h).trans hsf₁) (fun h => (hs₂ T h).trans hsf₂))
+        (fun T hT => (List.mem_append.mp hT).elim
+          (fun h =>
+            ⟨hrel₁.trans (hm₁ T h).1, hant₁.trans (hm₁ T h).2.1, hsuc₁.trans (hm₁ T h).2.2⟩)
+          (fun h =>
+            ⟨hrel₂.trans (hm₂ T h).1, hant₂.trans (hm₂ T h).2.1, hsuc₂.trans (hm₂ T h).2.2⟩))
         (fun ps => f
           (k₁ (fun T hT => ps T (List.mem_append_left _ hT)))
           (k₂ (fun T hT => ps T (List.mem_append_right _ hT))))
@@ -415,7 +665,7 @@ end SaturationResult
 
 section finders
 
-variable (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α))
+variable (R : List LabelRel) (Γ Δ : List (LabelledFormula α))
 
 /-- Finds an implication in the succedent whose `impR`-decomposition is still missing. -/
 def impRTarget? : Option (Label × Formula α × Formula α) :=
@@ -451,7 +701,7 @@ end finders
 
 section finders
 
-variable {R : List (Label × Label)} {Γ Δ : List (LabelledFormula α)} {x y z : Label} {A B : Formula α}
+variable {R : List LabelRel} {Γ Δ : List (LabelledFormula α)} {x y z : Label} {A B : Formula α}
 
 lemma impRTarget?_some (h : impRTarget? Γ Δ = some (x, A, B)) :
   (x ∶ A 🡒 B) ∈ Δ.toFinset ∧ ((x ∶ A) ∉ Γ.toFinset ∨ (x ∶ B) ∉ Δ.toFinset) := by
@@ -518,7 +768,7 @@ end finders
 /-- Saturates the labelled sequent `R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset`, exhaustively
 applying `impL`/`impR`/`L□`/`Trans` (keeping principal formulas) until the sequent is
 closed by `axm`/`botL`/`Irref` or saturated. -/
-def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
+def saturate (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
   SaturationResult (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset) :=
   match h₁ : Γ.find? (fun lf => decide (lf ∈ Δ)) with
   | some lf =>
@@ -554,6 +804,9 @@ def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
       (fun π => ProofLabelledGentzen.impR_mem (impRTarget?_some h₄).1 (by simpa using π))
       (by simp only [List.toFinset_cons]; exact LabelledSequent.labels_impR (impRTarget?_some h₄).1)
       (by simp only [List.toFinset_cons]; exact LabelledSequent.sf_impR (impRTarget?_some h₄).1)
+      (by exact subset_rfl)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
   | none =>
   match h₅ : impLTarget? Γ Δ with
   | some (x, A, B) =>
@@ -564,6 +817,11 @@ def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
       (by simp only [List.toFinset_cons]; exact LabelledSequent.sf_impL_left (impLTarget?_some h₅).1)
       (by simp only [List.toFinset_cons]; exact LabelledSequent.labels_impL_right (impLTarget?_some h₅).1)
       (by simp only [List.toFinset_cons]; exact LabelledSequent.sf_impL_right (impLTarget?_some h₅).1)
+      (by exact subset_rfl) (by exact subset_rfl)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
+      (by exact subset_rfl)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
+      (by exact subset_rfl)
       (saturate R Γ ((x ∶ A) :: Δ))
       (saturate R ((x ∶ B) :: Γ) Δ)
   | none =>
@@ -574,6 +832,9 @@ def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
         (boxLTarget?_some h₆).1 (boxLTarget?_some h₆).2.1 (by simpa using π))
       (by simp only [List.toFinset_cons]; exact LabelledSequent.labels_boxL (boxLTarget?_some h₆).1)
       (by simp only [List.toFinset_cons]; exact LabelledSequent.sf_boxL (boxLTarget?_some h₆).2.1)
+      (by exact subset_rfl)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
+      (by exact subset_rfl)
   | none =>
   match h₇ : transTarget? R with
   | some (x, y, z) =>
@@ -584,6 +845,8 @@ def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
         simp only [List.toFinset_cons];
         exact LabelledSequent.labels_trans (transTarget?_some h₇).1 (transTarget?_some h₇).2.1)
       (by simp only [List.toFinset_cons]; exact LabelledSequent.sf_insert_rel)
+      (by simp only [List.toFinset_cons]; exact Finset.subset_insert _ _)
+      (by exact subset_rfl) (by exact subset_rfl)
   | none =>
     .stuck [(R, Γ, Δ)]
       (by
@@ -600,6 +863,11 @@ def saturate (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
         · exact fun x y A hR hm => boxLTarget?_none h₆ hR hm)
       (by intro T hT; rw [List.mem_singleton] at hT; subst hT; rfl)
       (by intro T hT; rw [List.mem_singleton] at hT; subst hT; rfl)
+      (by
+        intro T hT;
+        rw [List.mem_singleton] at hT;
+        subst hT;
+        exact ⟨subset_rfl, subset_rfl, subset_rfl⟩)
       (fun ps => ps _ (List.mem_singleton_self _))
 termination_by (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).saturationMeasure
 decreasing_by
@@ -621,7 +889,7 @@ decreasing_by
 
 section finders
 
-variable (processed : Finset (Formula α)) (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α))
+variable (processed : Finset (LabelledFormula α)) (R : List LabelRel) (Γ Δ : List (LabelledFormula α))
 
 /-- Finds a *looping* boxed formula (cf. `[Neg14]` Lemma 5.2): some `x ∶ □A` in the
 succedent together with a predecessor `w` of `x` carrying `w ∶ □A` in the antecedent. -/
@@ -632,18 +900,24 @@ def loopTarget? : Option (Label × Label × Formula α) :=
         if p.2 = x ∧ (p.1 ∶ □A) ∈ Γ then some (p.1, x, A) else none
     | _ => none
 
-/-- Finds a boxed formula in the succedent not yet processed by `R□^Löb` on the current branch. -/
+/-- Finds a boxed formula in the succedent that is still a `R□^Löb` candidate: not yet
+processed *at its label* on the current branch, not closable by `axm` (`x ∶ □A ∉ Γ`)
+and not closable by `loop` (no direct `R`-predecessor of `x` carries `□A` in the
+antecedent).  The latter two checks are vacuous on saturated, loop-free leaves, but
+provide the computable evidence needed by the termination measure `lobMeasure`. -/
 def lobTarget? : Option (Label × Formula α) :=
   Δ.findSome? fun lf =>
     match lf with
-    | ⟨x, □A⟩ => if □A ∈ processed then none else some (x, A)
+    | ⟨x, □A⟩ =>
+      if (x ∶ □A) ∈ processed ∨ (x ∶ □A) ∈ Γ ∨ ∃ p ∈ R, p.2 = x ∧ (p.1 ∶ □A) ∈ Γ then none
+      else some (x, A)
     | _ => none
 
 end finders
 
 section finders
 
-variable {processed : Finset (Formula α)} {R : List (Label × Label)} {Γ Δ : List (LabelledFormula α)}
+variable {processed : Finset (LabelledFormula α)} {R : List LabelRel} {Γ Δ : List (LabelledFormula α)}
 variable {w x : Label} {A : Formula α}
 
 lemma loopTarget?_some (h : loopTarget? R Γ Δ = some (w, x, A)) :
@@ -655,11 +929,29 @@ lemma loopTarget?_some (h : loopTarget? R Γ Δ = some (w, x, A)) :
     obtain ⟨p, hp, h2⟩ := List.exists_of_findSome?_eq_some h1;
     grind [List.mem_toFinset];
 
-lemma lobTarget?_some (h : lobTarget? processed Δ = some (x, A)) :
-  (x ∶ □A) ∈ Δ.toFinset ∧ □A ∉ processed := by
+lemma lobTarget?_some (h : lobTarget? processed R Γ Δ = some (x, A)) :
+  (x ∶ □A) ∈ Δ.toFinset ∧ (x ∶ □A) ∉ processed ∧ (x ∶ □A) ∉ Γ.toFinset ∧
+  ∀ w, (w, x) ∈ R.toFinset → (w ∶ □A) ∉ Γ.toFinset := by
   obtain ⟨lf, hlf, h1⟩ := List.exists_of_findSome?_eq_some h;
   obtain ⟨x', F⟩ := lf;
   cases F <;> grind [List.mem_toFinset];
+
+lemma loopTarget?_none (h : loopTarget? R Γ Δ = none)
+  (hΔ : (x ∶ □A) ∈ Δ.toFinset) (hR : (w, x) ∈ R.toFinset) : (w ∶ □A) ∉ Γ.toFinset := by
+  unfold loopTarget? at h;
+  rw [List.findSome?_eq_none_iff] at h;
+  have h1 := h (x ∶ □A) (List.mem_toFinset.mp hΔ);
+  simp only [List.findSome?_eq_none_iff] at h1;
+  have h2 := h1 (w, x) (List.mem_toFinset.mp hR);
+  grind [List.mem_toFinset];
+
+lemma lobTarget?_none (h : lobTarget? processed R Γ Δ = none) (hΔ : (x ∶ □A) ∈ Δ.toFinset) :
+  (x ∶ □A) ∈ processed ∨ (x ∶ □A) ∈ Γ.toFinset ∨
+  ∃ w, (w, x) ∈ R.toFinset ∧ (w ∶ □A) ∈ Γ.toFinset := by
+  unfold lobTarget? at h;
+  rw [List.findSome?_eq_none_iff] at h;
+  have h1 := h (x ∶ □A) (List.mem_toFinset.mp hΔ);
+  grind [List.mem_toFinset];
 
 end finders
 
@@ -671,39 +963,44 @@ def consAllMem {β : Type v} [DecidableEq β] {f : β → Type w} {b : β} {l : 
 
 mutual
 
-/-- Proof search for `G3KGL`, following the termination argument of `[Neg14]`, Theorem 5.5:
-saturate, then solve every stuck leaf (`searchLeaves`).  The parameter `processed` records
-the boxed formulas already treated by `R□^Löb` on the current branch; since all formulas
-occurring during the search are subformulas of the root sequent (`hsub`, preserved by
-`saturate` and by the keep-principal `R□^Löb` step), the search terminates. -/
-def search (processed : Finset (Formula α)) (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α))
-  (hsub : processed ⊆ (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).sf) :
+/-- Proof search for `ProvableLabelledGentzen`, following the termination argument of `[Neg14]`, Theorem 5.5:
+saturate, then solve every stuck leaf (`searchLeaves`).  The parameter `processed` records,
+*per label*, the boxed formulas already treated by `R□^Löb` on the current branch; the
+search terminates because every `R□^Löb` step strictly decreases the weighted measure
+`LabelledSequent.lobMeasure` (`lobMeasure_lob_lt`), which saturation never increases
+(`lobMeasure_le`). -/
+def search (processed : Finset (LabelledFormula α)) (R : List LabelRel)
+  (Γ Δ : List (LabelledFormula α)) :
   Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
   match saturate R Γ Δ with
   | .closed π => some π
-  | .stuck leaves _ _ hsf k =>
-    match searchLeaves processed ((R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)).sf hsub leaves hsf with
+  | .stuck leaves _ hlab hsf hmono k =>
+    match searchLeaves processed ((R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).lobMeasure processed)
+      leaves
+      (fun L hL => LabelledSequent.lobMeasure_le (hlab L hL) (hsf L hL)
+        (hmono L hL).1 (hmono L hL).2.1) with
     | some ps => some (k ps)
     | none => none
-termination_by ((R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).sf.card - processed.card, 1, 0)
+termination_by ((R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).lobMeasure processed, 1, 0)
 decreasing_by
   apply Prod.Lex.right;
   exact Prod.Lex.left _ _ Nat.zero_lt_one;
 
 /-- Solves every stuck leaf produced by `saturate`: a leaf is closed either by a looping
 sequent (`[Neg14]` Lemma 5.2, via `ProofLabelledGentzen.loop`), or by applying `R□^Löb`
-(keeping the principal formula) to a boxed succedent formula not yet in `processed` and
-recursing with `search`. -/
-def searchLeaves (processed : Finset (Formula α)) (X : FormulaFinset α) (hsub : processed ⊆ X)
-  (leaves : List (List (Label × Label) × List (LabelledFormula α) × List (LabelledFormula α)))
-  (hsf : ∀ L ∈ leaves, (LabelledSequent.ofLists L).sf = X) :
+(keeping the principal formula) to a boxed succedent formula not yet processed at its
+label and recursing with `search`.  The parameter `m` bounds the `lobMeasure` of every
+leaf (`hbound`) and drives the lexicographic termination measure. -/
+def searchLeaves (processed : Finset (LabelledFormula α)) (m : ℕ)
+  (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
+  (hbound : ∀ L ∈ leaves, (LabelledSequent.ofLists L).lobMeasure processed ≤ m) :
   Option (∀ L ∈ leaves, ⊢ˡ! (LabelledSequent.ofLists L)) :=
-  match leaves, hsf with
+  match leaves, hbound with
   | [], _ => some (fun _ hL => nomatch hL)
-  | ⟨Rl, Γl, Δl⟩ :: rest, hsf =>
+  | ⟨Rl, Γl, Δl⟩ :: rest, hbound =>
     match h₁ : loopTarget? Rl Γl Δl with
     | some (w, x, A) =>
-      match searchLeaves processed X hsub rest (fun L hL => hsf L (List.mem_cons_of_mem _ hL)) with
+      match searchLeaves processed m rest (fun L hL => hbound L (List.mem_cons_of_mem _ hL)) with
       | some ps =>
         some (consAllMem
           (ProofLabelledGentzen.loop w x (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).freshLabel A
@@ -712,39 +1009,33 @@ def searchLeaves (processed : Finset (Formula α)) (X : FormulaFinset α) (hsub 
           ps)
       | none => none
     | none =>
-    match h₂ : lobTarget? processed Δl with
+    match h₂ : lobTarget? processed Rl Γl Δl with
     | some (x, A) =>
       have hΔ : (x ∶ □A) ∈ Δl.toFinset := (lobTarget?_some h₂).1;
-      have hnew : (□A) ∉ processed := (lobTarget?_some h₂).2;
-      have hbox : (□A) ∈ (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).sf :=
-        LabelledSequent.mem_sf_of_mem_suc (lf := x ∶ □A) hΔ;
-      have hsf₀ : (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).sf = X := hsf (Rl, Γl, Δl) (by simp);
+      have hP : (x ∶ □A) ∉ processed := (lobTarget?_some h₂).2.1;
+      have hΓ : (x ∶ □A) ∉ Γl.toFinset := (lobTarget?_some h₂).2.2.1;
+      have hpred : ∀ w, (w, x) ∈ Rl.toFinset → (w ∶ □A) ∉ Γl.toFinset :=
+        (lobTarget?_some h₂).2.2.2;
       let y : Label := (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).freshLabel;
-      have hA1 : (□A) ∈ (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ insert (y ∶ A) Δl.toFinset).sf :=
-        LabelledSequent.mem_sf_of_mem_suc (lf := x ∶ □A) (Finset.mem_insert_of_mem hΔ);
-      have hA2 : A ∈ (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).sf :=
-        LabelledSequent.mem_sf_of_box hbox;
-      have hprem :
-        (((x, y) :: Rl).toFinset ⸴ ((y ∶ □A) :: Γl).toFinset ⟹ˡ ((y ∶ A) :: Δl).toFinset).sf = X := by
-        simp only [List.toFinset_cons];
-        rw [LabelledSequent.sf_insert_rel,
-          LabelledSequent.sf_insert_ant_of_mem (lf := y ∶ □A) hA1,
-          LabelledSequent.sf_insert_suc_of_mem (lf := y ∶ A) hA2];
-        exact hsf₀;
-      have hsub' : insert (□A) processed ⊆
-        (((x, y) :: Rl).toFinset ⸴ ((y ∶ □A) :: Γl).toFinset ⟹ˡ ((y ∶ A) :: Δl).toFinset).sf := by
-        rw [hprem];
-        exact Finset.insert_subset_iff.mpr ⟨hsf₀ ▸ hbox, hsub⟩;
-      have hlt :
-        (((x, y) :: Rl).toFinset ⸴ ((y ∶ □A) :: Γl).toFinset ⟹ˡ ((y ∶ A) :: Δl).toFinset).sf.card
-          - (insert (□A) processed).card < X.card - processed.card := by
-        have h1 := Finset.card_insert_of_notMem hnew;
-        have h2 := Finset.card_le_card (hprem ▸ hsub');
-        rw [hprem];
-        omega;
-      match search (insert (□A) processed) ((x, y) :: Rl) ((y ∶ □A) :: Γl) ((y ∶ A) :: Δl) hsub' with
+      -- eagerly added transitive pairs (`Trans`-saturation would add them anyway)
+      let preds : List Label := (Rl.filter (fun p => p.2 = x)).map Prod.fst;
+      let R' : List LabelRel := preds.map (fun w => (w, y)) ++ (x, y) :: Rl;
+      have hrelEq : R'.toFinset =
+        insert (x, y)
+          ((Rl.toFinset.filter (fun p => p.2 = x)).image (fun p => (p.1, y)) ∪ Rl.toFinset) := by
+        ext p;
+        simp only [R', preds, List.mem_toFinset, List.mem_append, List.mem_cons, List.mem_map,
+          List.mem_filter, Finset.mem_insert, Finset.mem_union, Finset.mem_image,
+          Finset.mem_filter, decide_eq_true_eq];
+        grind;
+      have hlt : (R'.toFinset ⸴ ((y ∶ □A) :: Γl).toFinset ⟹ˡ ((y ∶ A) :: Δl).toFinset).lobMeasure
+        (insert (x ∶ □A) processed) < m := by
+        apply lt_of_lt_of_le ?_ (hbound (Rl, Γl, Δl) (by simp));
+        rw [List.toFinset_cons, List.toFinset_cons, hrelEq];
+        exact LabelledSequent.lobMeasure_lob_lt hΔ hP hΓ hpred LabelledSequent.freshLabel_notMem;
+      match search (insert (x ∶ □A) processed) R' ((y ∶ □A) :: Γl) ((y ∶ A) :: Δl) with
       | some π =>
-        match searchLeaves processed X hsub rest (fun L hL => hsf L (List.mem_cons_of_mem _ hL)) with
+        match searchLeaves processed m rest (fun L hL => hbound L (List.mem_cons_of_mem _ hL)) with
         | some ps =>
           have hlab0 : x ∈ (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset).labels :=
             LabelledSequent.mem_labels_of_mem_suc (lf := x ∶ □A) hΔ;
@@ -754,13 +1045,32 @@ def searchLeaves (processed : Finset (Formula α)) (X : FormulaFinset α) (hsub 
           some (consAllMem
             (by
               show ⊢ˡ! (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset);
-              rw [show Δl.toFinset = insert (x ∶ □A) Δl.toFinset from (Finset.insert_eq_self.mpr hΔ).symm];
-              exact ProofLabelledGentzen.boxRLob x y A hfresh (by simpa only [List.toFinset_cons] using π))
+              -- strip the eager transitive pairs by iterated `Trans`
+              have π' : ⊢ˡ! ((preds.map (fun w => (w, y))).toFinset ∪ ((x, y) :: Rl).toFinset ⸴
+                insert (y ∶ □A) Γl.toFinset ⟹ˡ insert (y ∶ A) Δl.toFinset) := by
+                have hR' : R'.toFinset =
+                  (preds.map (fun w => (w, y))).toFinset ∪ ((x, y) :: Rl).toFinset :=
+                  List.toFinset_append;
+                simpa only [List.toFinset_cons, hR'] using π;
+              have hpreds : ∀ w ∈ preds, (w, x) ∈ ((x, y) :: Rl).toFinset := by
+                intro w hw;
+                simp only [preds, List.mem_map, List.mem_filter, decide_eq_true_eq] at hw;
+                obtain ⟨p, ⟨hp, hpx⟩, rfl⟩ := hw;
+                simp only [List.toFinset_cons, Finset.mem_insert, List.mem_toFinset];
+                right;
+                rwa [← hpx, Prod.mk.eta];
+              have π'' : ⊢ˡ! (((x, y) :: Rl).toFinset ⸴
+                insert (y ∶ □A) Γl.toFinset ⟹ˡ insert (y ∶ A) Δl.toFinset) :=
+                ProofLabelledGentzen.transMany x y preds hpreds (by simp) π';
+              rw [show Δl.toFinset = insert (x ∶ □A) Δl.toFinset
+                from (Finset.insert_eq_self.mpr hΔ).symm];
+              exact ProofLabelledGentzen.boxRLob x y A hfresh
+                (by simpa only [List.toFinset_cons] using π''))
             ps)
         | none => none
       | none => none
     | none => none
-termination_by (X.card - processed.card, 0, leaves.length)
+termination_by (m, 0, leaves.length)
 decreasing_by
   · apply Prod.Lex.right;
     apply Prod.Lex.right;
@@ -773,13 +1083,13 @@ decreasing_by
 end
 
 /-- Entry point of the proof search: no boxed formula has been processed yet. -/
-def search0 (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
+def search0 (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
   Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
-  search ∅ R Γ Δ (Finset.empty_subset _)
+  search ∅ R Γ Δ
 
 /-- Whether `search0` succeeds is decidable: it is a computable `Bool`-valued function
 of its (finite, decidable) inputs. -/
-instance search0.decidableIsSome (R : List (Label × Label)) (Γ Δ : List (LabelledFormula α)) :
+instance search0.decidableIsSome (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
   Decidable (search0 R Γ Δ).isSome := inferInstance
 
 /-! Sanity checks: the Löb axiom `□(□a 🡒 a) 🡒 □a` and the `K` axiom are found
@@ -791,5 +1101,136 @@ automatically; the `T` axiom `□a 🡒 a` and `□a` itself, which are not theo
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 🡒 □□#0)]).isSome
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 🡒 #0)]).isNone
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0)]).isNone
+
+/-! Phase 0 checks (completeness plan for `search`/`searchLeaves`): sanity checks that
+probed whether the earlier formula-only `processed : Finset (Formula α)` tracking
+(ignoring which label a boxed formula sits at) could cause spurious failure — kept as
+regression tests for the label-aware redesign. -/
+
+-- Two-level nested Löb-processing chain (root 0 → fresh y1 → fresh y2): still found.
+#guard (search0 (α := ℕ) [] [] [0 ∶ (□(□(□#0 🡒 #0) 🡒 □#0))]).isSome
+
+-- Same box content `□#0` needed at label `0` on *both* sides of a conjunction
+-- (distinct Löb instances sharing the atom `#0`, but staying at the same label): still found.
+#guard (search0 (α := ℕ) [] [] [0 ∶ ((□(□#0 🡒 #0) 🡒 □#0) ⋏ (□(□#0 🡒 #0) 🡒 □#0))]).isSome
+
+-- Distinct atoms, both needing their own Löb-processing at the same label: still found.
+#guard (search0 (α := ℕ) [] [] [0 ∶ ((□(□#0 🡒 #0) 🡒 □#0) ⋏ (□(□#1 🡒 #1) 🡒 □#1))]).isSome
+
+-- Adversarial *direct* multi-label input: two unrelated root labels `0`, `1`, both carrying
+-- the same theorem `□(□a 🡒 a) 🡒 □a` in the succedent (a disjunctive goal, individually
+-- closable at either label): still found (does not require touching the other label).
+#guard (search0 (α := ℕ) [] [] [0 ∶ (□(□#0 🡒 #0) 🡒 □#0), 1 ∶ (□(□#0 🡒 #0) 🡒 □#0)]).isSome
+
+-- Adversarial direct multi-label input with *no* supporting structure: two unrelated labels
+-- both claiming `□a` in the succedent, with empty antecedent. This is genuinely GL-invalid
+-- (no shared witness world), so rejection here is the *correct* answer, not evidence of a bug.
+#guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 : Formula ℕ), 1 ∶ (□#0 : Formula ℕ)]).isNone
+
+/-! ### The formula-only `processed` bookkeeping was incomplete (historical note)
+
+An earlier version of `search`/`searchLeaves` recorded processed `R□^Löb` targets as a
+`processed : Finset (Formula α)`, ignoring at *which label* a boxed formula was treated.
+That made `search0` *incomplete*: there were sequents provable as `ProvableLabelledGentzen`
+on which it returned `none`.  Starting from the single-label sequent `⟹ˡ 0 ∶ ∼□a 🡒 □□a`,
+saturation puts both `0 ∶ □a` and `0 ∶ □□a` into the succedent (in this list order),
+so the search
+
+1. processes `□a` at `0`, creating the fresh child `1` (`0R1`, `1 ∶ □a` left, `1 ∶ a` right);
+2. processes `□□a` at `0`, creating the fresh child `2` (`0R2`, `2 ∶ □□a` left,
+   `2 ∶ □a` right) — a *sibling* of `1`, incomparable with it in the transitive closure.
+
+Then `2 ∶ □a` sat in the succedent with `□a ∈ processed`, but the recorded witness
+(`1 ∶ a`) is unreachable from `2`: the boxed formula was *orphaned*, and neither
+`loopTarget?` nor `lobTarget?` fired, so the leaf was abandoned.  In particular the
+labels reached from a single-label root do **not** form a linear `R`-chain.
+
+For `∼□a 🡒 □□a` itself the rejection happened to be correct (it is not a `GL`-theorem),
+but the genuine `GL`-theorem `□□⊥ 🡒 (∼□a 🡒 □□a)` (provable outright, by `R□^Löb` at
+`2 ∶ □a` followed by `L□` on the inherited `2 ∶ □⊥`) ran into the very same orphaned
+leaf and was rejected.
+
+This incompleteness was fixed by making the bookkeeping label-aware
+(`processed : Finset (LabelledFormula α)`) with the Negri-style termination measure
+`LabelledSequent.lobMeasure` (`[Neg14]`, Thm 5.5): the sibling label `2` may now process
+`□a` independently of the earlier treatment at label `0` (see the `lobTarget?` check
+below), and the counterexample is found by `search0`, as the following `#guard`s verify.
+-/
+
+section incompleteness
+
+/-- A formula provable as `ProvableLabelledGentzen` that the earlier, formula-only
+`processed` bookkeeping rejected (see the section documentation): `□□⊥ 🡒 (∼□a 🡒 □□a)`. -/
+def lobProcessedCounterexample : Formula ℕ := □□⊥ 🡒 (∼□#0 🡒 □□#0)
+
+/-- `lobProcessedCounterexample` is provable as `ProvableLabelledGentzen`: after two `impR`s and `R□^Löb`
+at `0 ∶ □□a` (fresh label `1`), the antecedent `□□⊥` yields `1 ∶ □⊥` by `L□`, so a second
+`R□^Löb` at `1 ∶ □a` (fresh label `2`) closes by `L□` (giving `2 ∶ ⊥`) and `botL`. -/
+lemma provable_lobProcessedCounterexample :
+  ⊢ˡ ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
+  rw [show ({0 ∶ lobProcessedCounterexample} : Finset (LabelledFormula ℕ)) =
+    insert (0 ∶ (□□⊥ 🡒 (∼□#0 🡒 □□#0))) ∅ by rfl];
+  apply ProvableLabelledGentzen.impR (x := 0);
+  apply ProvableLabelledGentzen.impR (x := 0);
+  apply ProvableLabelledGentzen.boxRLob (x := 0) (y := 1) (A := □#0) (hfresh := by decide);
+  apply ProvableLabelledGentzen.boxL (x := 0) (y := 1) (A := □⊥) (hxy := by grind) (hxA := by grind);
+  apply ProvableLabelledGentzen.boxRLob (x := 1) (y := 2) (A := #0) (hfresh := by decide);
+  apply ProvableLabelledGentzen.boxL (x := 1) (y := 2) (A := ⊥) (hxy := by grind) (hxA := by grind);
+  exact ProvableLabelledGentzen.botL_mem 2 (by grind);
+
+-- ... and, since the label-aware redesign of `processed`, `search0` finds it.
+#guard (search0 [] [] [0 ∶ lobProcessedCounterexample]).isSome
+
+/-! The mechanism, machine-checked step by step on the subformula `∼□a 🡒 □□a`
+(a non-theorem, whose search tree exhibits the sibling branching): the sibling
+labels `1`, `2` still arise, but the orphaned `2 ∶ □a` is now a fresh `R□^Löb`
+target at label `2`. -/
+
+/-- The stuck leaves of `saturate` (empty if the sequent was closed); test-only. -/
+private def stuckLeaves (R : List LabelRel) (Γ Δ : List (LabelledFormula ℕ)) :
+  List (List LabelRel × List (LabelledFormula ℕ) × List (LabelledFormula ℕ)) :=
+  match saturate R Γ Δ with
+  | .closed _ => []
+  | .stuck leaves _ _ _ _ _ => leaves
+
+-- Saturating the root puts `0 ∶ □a` *before* `0 ∶ □□a` in the succedent list.
+#guard stuckLeaves [] [] [0 ∶ (∼□#0 🡒 □□#0)] =
+  [([], [0 ∶ ∼□#0], [0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)])]
+
+-- Hence the first `R□^Löb` processes `□a` at label `0` (not `□□a`) ...
+#guard lobTarget? (∅ : Finset (LabelledFormula ℕ)) [] [0 ∶ ∼□#0]
+    [0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
+  some (0, #0)
+
+-- ... creating the fresh child `1`; the resulting sequent is already saturated ...
+#guard stuckLeaves [(0, 1)] [1 ∶ □#0, 0 ∶ ∼□#0]
+    [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
+  [([(0, 1)], [1 ∶ □#0, 0 ∶ ∼□#0], [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)])]
+
+-- ... and the second `R□^Löb` processes `□□a` again at label `0` (not at `1`),
+-- creating the fresh child `2` as a *sibling* of `1` ...
+#guard lobTarget? ({0 ∶ □#0} : Finset (LabelledFormula ℕ)) [(0, 1)] [1 ∶ □#0, 0 ∶ ∼□#0]
+    [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
+  some (0, □#0)
+
+-- ... reaching a leaf with `2 ∶ □a` in the succedent whose only would-be witness
+-- (`1 ∶ a`) is unreachable from `2` (`R = {(0,2), (0,1)}` is not a chain):
+#guard stuckLeaves [(0, 2), (0, 1)] [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0]
+    [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
+  [([(0, 2), (0, 1)], [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0],
+    [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)])]
+
+-- `loopTarget?` does not fire on this leaf; the formula-only bookkeeping used to
+-- also block `lobTarget?` here (`□a ∈ processed`), abandoning the leaf ...
+#guard loopTarget? [(0, 2), (0, 1)] [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0]
+    [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] = none
+
+-- ... but the label-aware `lobTarget?` now correctly reprocesses `□a` at label `2`.
+#guard lobTarget? ({0 ∶ □#0, 0 ∶ □□#0} : Finset (LabelledFormula ℕ)) [(0, 2), (0, 1)]
+    [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0]
+    [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
+  some (2, #0)
+
+end incompleteness
 
 end LabelledGentzen

@@ -18,7 +18,7 @@ sequent is provable by Lemma 5.2.
 open LabelledGentzen
 
 variable {α : Type u} [DecidableEq α]
-         {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)}
+         {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
 

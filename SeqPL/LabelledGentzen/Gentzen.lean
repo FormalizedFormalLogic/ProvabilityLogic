@@ -35,7 +35,7 @@ def Sequent.toLabelled (z : Label) (S : Sequent α) : LabelledSequent α :=
 
 namespace LabelledGentzen
 
-variable {R : Finset (Label × Label)} {Γ Δ Θ : Finset (LabelledFormula α)}
+variable {R : Finset LabelRel} {Γ Δ Θ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
 namespace ProvableLabelledGentzen
@@ -74,7 +74,7 @@ end ProvableLabelledGentzen
 
 /-- The boxed formula of `f` that can be unfolded at `y`: `some (x, B)` when
 `f = x ∶ □B` with `(x, y) ∈ R`, and `none` otherwise. -/
-def LabelledFormula.boxTarget (y : Label) (R : Finset (Label × Label)) :
+def LabelledFormula.boxTarget (y : Label) (R : Finset LabelRel) :
   LabelledFormula α → Option (Label × Formula α)
   | ⟨x, □B⟩ => if (x, y) ∈ R then some (x, B) else none
   | _ => none
@@ -90,7 +90,7 @@ lemma LabelledFormula.boxTarget_eq_some {f : LabelledFormula α} {p : Label × F
 
 /-- All pairs `(x, B)` with `x ∶ □B ∈ Θ` and `(x, y) ∈ R`: the boxed formulas of `Θ`
 that can be unfolded at `y` by `L□`. -/
-def boxTargets (y : Label) (R : Finset (Label × Label)) (Θ : Finset (LabelledFormula α)) :
+def boxTargets (y : Label) (R : Finset LabelRel) (Θ : Finset (LabelledFormula α)) :
   Finset (Label × Formula α) :=
   Θ.filterMap (LabelledFormula.boxTarget y R) (by
     intro f f' p hf hf';
@@ -115,7 +115,7 @@ namespace ProvableGentzen
   `R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)` is `ProvableLabelledGentzen`.
 -/
 lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ S) :
-  ∀ (z : Label) (R : Finset (Label × Label)) (Θ : Finset (LabelledFormula α)),
+  ∀ (z : Label) (R : Finset LabelRel) (Θ : Finset (LabelledFormula α)),
   (∀ B ∈ S.ant, (z ∶ B) ∈ Θ ∨ ∃ x C, B = □C ∧ (x, z) ∈ R ∧ (x ∶ □C) ∈ Θ) →
   ⊢ˡ (R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)) := by
   induction h using ProvableGentzen.rec with

@@ -27,6 +27,7 @@ public import SeqPL.Kripke.Simplification
 public import SeqPL.Kripke.Tail
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Basic
+public import SeqPL.LabelledGentzen.Completeness
 public import SeqPL.LabelledGentzen.Gentzen
 public import SeqPL.LabelledGentzen.Kripke
 public import SeqPL.LabelledGentzen.Loop

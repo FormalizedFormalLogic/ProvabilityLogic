@@ -22,6 +22,9 @@ distinct so that arithmetic on `Formula`/proof-search data is not confused with
 label bookkeeping. -/
 abbrev Label := ℕ
 
+/-- A relational atom `x R y` between two world-labels. -/
+abbrev LabelRel := Label × Label
+
 /-- A labelled formula `x : A`: the formula `A` tagged with the world-label `x`. -/
 structure LabelledFormula (α : Type u) where
   label : Label
@@ -43,7 +46,7 @@ end LabelledFormula
 /-- A labelled sequent `R ⸴ Γ ⟹ˡ Δ`: `R` is a finite set of relational atoms
 `x R y`, and `Γ`/`Δ` are finite sets of labelled formulas. -/
 structure LabelledSequent (α : Type u) where
-  rel : Finset (Label × Label)
+  rel : Finset LabelRel
   ant : Finset (LabelledFormula α)
   suc : Finset (LabelledFormula α)
 
@@ -103,7 +106,7 @@ prefix:120 "⊢ˡ! " => ProofLabelledGentzen
 
 namespace ProofLabelledGentzen
 
-variable {R : Finset (Label × Label)} {Γ Δ : Finset (LabelledFormula α)} {x y : Label} {A B : Formula α}
+variable {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)} {x y : Label} {A B : Formula α}
 
 def union (x A) (hΓ : (x ∶ A) ∈ Γ := by grind) (hΔ : (x ∶ A) ∈ Δ := by grind) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) :=
   wkSuc $ wkAnt $ wkRel (axm x A)
@@ -167,7 +170,7 @@ prefix:120 "⊢ˡ " => ProvableLabelledGentzen
 
 namespace ProvableLabelledGentzen
 
-variable {R R' : Finset (Label × Label)} {Γ Γ' Δ Δ' : Finset (LabelledFormula α)} {x y z : Label} {A B : Formula α}
+variable {R R' : Finset LabelRel} {Γ Γ' Δ Δ' : Finset (LabelledFormula α)} {x y z : Label} {A B : Formula α}
 
 lemma axm (x : Label) (A : Formula α) : ⊢ˡ (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := ⟨ProofLabelledGentzen.axm x A⟩
 lemma union (x : Label) (A : Formula α) (hΓ : (x ∶ A) ∈ Γ := by grind) (hΔ : (x ∶ A) ∈ Δ := by grind) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.union x A hΓ hΔ⟩
