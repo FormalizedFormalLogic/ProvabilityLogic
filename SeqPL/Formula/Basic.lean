@@ -134,6 +134,21 @@ def atoms : Formula α → Finset α
 lemma atoms_and (A B : Formula α) : (A ⋏ B).atoms = A.atoms ∪ B.atoms := by
   simp [Formula.atoms]
 
+@[simp, grind =]
+lemma atoms_or (A B : Formula α) : (A ⋎ B).atoms = A.atoms ∪ B.atoms := by
+  simp [Formula.atoms]
+
+@[simp, grind =]
+lemma atoms_neg (A : Formula α) : (∼A).atoms = A.atoms := by
+  simp [Formula.atoms]
+
+@[simp, grind =]
+lemma atoms_box (A : Formula α) : (□A).atoms = A.atoms := rfl
+
+@[simp, grind =]
+lemma atoms_dia (A : Formula α) : (◇A).atoms = A.atoms := by
+  simp [Formula.atoms]
+
 end Formula
 
 
@@ -263,6 +278,24 @@ private lemma atoms_lconj_subset [DecidableEq α] (L : FormulaList α) :
       exact Finset.mem_insert_of_mem hy
 
 
+private lemma atoms_ldisj_subset [DecidableEq α] (L : FormulaList α) :
+    (⋁L).atoms ⊆ L.toFinset.biUnion Formula.atoms := by
+  match L with
+  | [] => simp [FormulaList.disj, Formula.atoms]
+  | [A] => simp
+  | A :: B :: L =>
+    simp only [FormulaList.disj, Formula.atoms_or]
+    have ih := atoms_ldisj_subset (B :: L)
+    intro x hx
+    rcases Finset.mem_union.mp hx with hx | hx
+    · simp only [List.toFinset_cons, Finset.mem_biUnion]
+      exact ⟨A, Finset.mem_insert_self _ _, hx⟩
+    · obtain ⟨y, hy, hxy⟩ := Finset.mem_biUnion.mp (ih hx)
+      refine Finset.mem_biUnion.mpr ⟨y, ?_, hxy⟩
+      simp only [List.toFinset_cons] at hy ⊢
+      exact Finset.mem_insert_of_mem hy
+
+
 namespace FormulaFinset
 
 @[grind]
@@ -324,6 +357,12 @@ lemma atoms_union (Γ Δ : FormulaFinset α) : (Γ ∪ Δ).atoms = Γ.atoms ∪ 
 lemma atoms_conj_subset (Γ : FormulaFinset α) : (⋀Γ).atoms ⊆ Γ.atoms := by
   have := atoms_lconj_subset Γ.toList
   simpa [FormulaFinset.conj, FormulaFinset.atoms] using this
+
+/-- The atoms of `⋁Γ` are contained in the atoms of `Γ`. -/
+@[grind .]
+lemma atoms_disj_subset (Γ : FormulaFinset α) : (⋁Γ).atoms ⊆ Γ.atoms := by
+  have := atoms_ldisj_subset Γ.toList
+  simpa [FormulaFinset.disj, FormulaFinset.atoms] using this
 
 @[simp, grind =]
 lemma box_atoms (Γ : FormulaFinset α) : Γ.box.atoms = Γ.atoms := by
