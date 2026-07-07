@@ -1,6 +1,6 @@
 module
 
-public import SeqPL.Kripke.Gentzen
+public import SeqPL.Gentzen.Basic
 public import SeqPL.Logic.GL.Basic
 
 @[expose]

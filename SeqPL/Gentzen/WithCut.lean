@@ -1,6 +1,6 @@
 module
 
-public import SeqPL.Kripke.Gentzen
+public import SeqPL.Gentzen.Kripke
 
 @[expose]
 public section

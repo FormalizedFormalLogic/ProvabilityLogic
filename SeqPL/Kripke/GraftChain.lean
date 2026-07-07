@@ -2,7 +2,6 @@ module
 
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.Kripke.Gentzen
 
 @[expose]
 public section

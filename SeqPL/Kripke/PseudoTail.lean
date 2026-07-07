@@ -1,6 +1,5 @@
 module
 
-public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.Preservation
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.RootExtension

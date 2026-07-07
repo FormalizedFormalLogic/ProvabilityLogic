@@ -2,8 +2,8 @@ module
 
 public import SeqPL.Gentzen.Basic
 public import SeqPL.LabelledGentzen.Basic
-public import SeqPL.Kripke.Gentzen
-public import SeqPL.Kripke.LabelledGentzen
+public import SeqPL.Gentzen.Kripke
+public import SeqPL.LabelledGentzen.Kripke
 
 @[expose]
 public section

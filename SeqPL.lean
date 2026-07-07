@@ -7,15 +7,14 @@ public import SeqPL.Formula.Letterless
 public import SeqPL.Formula.Map
 public import SeqPL.Formula.Substitution
 public import SeqPL.Gentzen.Basic
+public import SeqPL.Gentzen.Kripke
 public import SeqPL.Gentzen.Maehara
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Convergence
 public import SeqPL.Kripke.DefiningFormula
-public import SeqPL.Kripke.Gentzen
 public import SeqPL.Kripke.GraftChain
-public import SeqPL.Kripke.LabelledGentzen
 public import SeqPL.Kripke.Linearity
 public import SeqPL.Kripke.Overwrite
 public import SeqPL.Kripke.PointGenerate
@@ -29,6 +28,7 @@ public import SeqPL.Kripke.Tail
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Basic
 public import SeqPL.LabelledGentzen.Gentzen
+public import SeqPL.LabelledGentzen.Kripke
 public import SeqPL.LabelledGentzen.Loop
 public import SeqPL.LabelledGentzen.Search
 public import SeqPL.LabelledGentzen.ToString
