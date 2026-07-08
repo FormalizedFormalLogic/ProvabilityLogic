@@ -37,6 +37,52 @@ infix:55 " ⊩ " => ForcesSequent
 omit [DecidableEq α] in lemma forces_ctx_singleton_sequent : x ⊩ (Γ ⟹ {A}) ↔ (∀ C ∈ Γ, x ⊩ C) → x ⊩ A := by grind;
 omit [DecidableEq α] in lemma forces_singleton_sequent : x ⊩ (∅ ⟹ {A}) ↔ (x ⊩ A) := by grind;
 
+variable {Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α}
+
+omit [DecidableEq α] in lemma forces_sequent_axm : x ⊩ ({A} ⟹ {A}) := by
+  intro h;
+  use A;
+  constructor;
+  . grind;
+  . exact h _ (by grind);
+
+omit [DecidableEq α] in lemma forces_sequent_botL : x ⊩ (({⊥} : FormulaFinset α) ⟹ ∅) := by
+  simp [Model.World.ForcesSequent];
+
+omit [DecidableEq α] in lemma forces_sequent_wkL (h : x ⊩ (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ' := by grind) : x ⊩ (Γ' ⟹ Δ) := by
+  intro h';
+  apply h;
+  grind;
+
+omit [DecidableEq α] in lemma forces_sequent_wkR (h : x ⊩ (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ' := by grind) : x ⊩ (Γ ⟹ Δ') := by
+  intro hΓ;
+  obtain ⟨D, hD₁, hD₂⟩ := h hΓ;
+  grind;
+
+lemma forces_sequent_impL (h₁ : x ⊩ (Γ ⟹ insert A Δ)) (h₂ : x ⊩ (insert B Γ ⟹ Δ)) : x ⊩ (insert (A 🡒 B) Γ ⟹ Δ) := by
+  intro h;
+  simp only [Finset.mem_insert, forall_eq_or_imp] at h;
+  grind;
+
+lemma forces_sequent_impR (h : x ⊩ (insert A Γ ⟹ insert B Δ)) : x ⊩ (Γ ⟹ insert (A 🡒 B) Δ) := by
+  intro hΓ;
+  by_cases x ⊩ A;
+  . obtain ⟨D, hD₁, hD₂⟩ := h $ by grind;
+    simp at hD₁;
+    rcases hD₁ with (rfl | hD₁);
+    . use A 🡒 D; grind;
+    . use D; grind;
+  . use A 🡒 B;
+    grind;
+
+lemma forces_sequent_cut (h₁ : x ⊩ (Γ₁ ⟹ insert A Δ₁)) (h₂ : x ⊩ (insert A Γ₂ ⟹ Δ₂)) : x ⊩ (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) := by
+  intro h;
+  obtain ⟨D, hD, hDx⟩ := h₁ (fun C hC => h C (by grind));
+  rcases Finset.mem_insert.mp hD with rfl | hD;
+  . obtain ⟨D', hD', hD'x⟩ := h₂ (fun C hC => by rcases Finset.mem_insert.mp hC with rfl | hC <;> grind);
+    exact ⟨D', by grind, hD'x⟩;
+  . exact ⟨D, by grind, hDx⟩;
+
 end Model.World
 
 

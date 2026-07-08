@@ -4,13 +4,14 @@ public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Logic.GL.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Tail
+public import SeqPL.Gentzen.S.Kripke
 
 @[expose]
 public section
 
 abbrev LogicS {α} : Logic α := (LogicGL) +ᴸ ({ □A 🡒 A | A })
 
-universe u
+universe u v
 variable {α : Type u}
 
 /-- Instances of the T axiom `□B 🡒 B` built from the subformulas of `A`. -/
@@ -161,23 +162,93 @@ lemma root_forces_subfmlsS_imp [DecidableEq α]
     (fun B hB => Formula.subfmls_trans hB) hΓ A Formula.mem_subfmls_self k).mpr (hk k le_rfl);
 
 
-/-- GL-characterization of `LogicS`: `S ⊢ A` iff `GL ⊢ ⋀{□B 🡒 B | □B ∈ Sub(A)} 🡒 A`. -/
+/--
+  Bridge between `Model.World.IsReflexiveOf` (over the boxed prebox-subformulas of `A`) and
+  forcing the conjunction `⋀A.subfmlsS` of the corresponding instances of the T axiom.
+-/
+lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
+  {κ : Type v} [Nonempty κ] {M : Model κ α} {x : M.World} :
+  x.IsReflexiveOf (A.subfmls.prebox.box) ↔ x ⊩ ⋀A.subfmlsS := by
+  simp [Model.World.IsReflexiveOf, forces_fconj, Formula.subfmlsS, FormulaFinset.box]
+
+/--
+  From `GL`-provability of `⋀A.subfmlsS 🡒 A`, the finite set `A.subfmls.prebox.box` witnesses
+  forcing of `∅ ⟹ {A}` at every reflexive world of every `GL`-model.
+-/
+lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
+  (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
+  ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
+  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ ((∅ : FormulaFinset α) ⟹ {A}) := by
+  use A.subfmls.prebox.box;
+  intro κ _ M _ x;
+  have hHilbert := LogicGL.iff_provableHilbert.mp h;
+  have hsound := ProvableHilbert.Kripke.soundness hHilbert M (x : M.World);
+  have hAnt := isReflexive_prebox_box_iff_forces_fconj_subfmlsS.mp x.2;
+  apply Model.World.forces_singleton_sequent.mpr;
+  grind
+
+/-- Direction `4 → 5` of `provability_TFAE`: `GL`-provability of `⋀A.subfmlsS 🡒 A` yields a
+`LogicS.ProofGentzen`-proof of the level-`1` sequent `∅ ⟹[1] {A}`. -/
+lemma provableGentzen_of_GL_provable [DecidableEq α]
+  (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
+  ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) := by
+  apply ProvableGentzen.Kripke.completeness;
+  intro κ _ M _ w hw;
+  obtain ⟨X, hX⟩ := exists_isReflexive_forces_of_GL_provable h;
+  obtain ⟨i, hi⟩ := eventually_forces_of_exists_isReflexive_forces (fun {κ} _ M _ => ⟨X, hX M⟩) M w hw;
+  exact ⟨i, hi i (le_refl i)⟩;
+
+/-- Direction `5 → 2` of `provability_TFAE`: `LogicS.ProofGentzen`-provability of the level-`1`
+sequent `∅ ⟹[1] {A}` yields eventual forcing of `A` along the tail-model chain. -/
+lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
+  (h : ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
+  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A := by
+  intro κ _ M _ tail;
+  have h1 := GentzenWithCutProvable.of_without_cut h;
+  obtain ⟨X, hX⟩ := GentzenWithCutProvable.soundness h1;
+  have hw : ∀ n : ℕ,
+      (toTail.chainPoint (M := M) (tail := tail) (↑(n + 1) : ℕ∞)) ≺
+      (toTail.chainPoint (↑n : ℕ∞)) := by
+    intro n;
+    exact toTail.rel_chainPoint_chainPoint.mpr (by exact_mod_cast Nat.lt_succ_self n);
+  obtain ⟨i, hi⟩ :=
+    Model.eventually_isReflexive_of_descending (M := (M.toTail tail).toModel)
+      (w := fun n => toTail.chainPoint (↑n : ℕ∞)) hw X;
+  refine ⟨i, fun n hn => ?_⟩;
+  exact Model.World.forces_singleton_sequent.mp
+    (hX ((M.toTail tail).toModel) ⟨toTail.chainPoint (↑n : ℕ∞), hi n hn⟩);
+
+/--
+  GL-characterization of `LogicS`: `S ⊢ A` iff `GL ⊢ ⋀{□B 🡒 B | □B ∈ Sub(A)} 🡒 A`. Also
+  characterized by `LogicS.ProofGentzen`-provability of the level-`1` sequent `∅ ⟹[1] {A}`,
+  the two-level sequent calculus for `S` of Kashima–Kato 2023.
+-/
 theorem provability_TFAE [DecidableEq α] : [
     A ∈ LogicS,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩ (⋀A.subfmlsS 🡒 A),
-    (⋀A.subfmlsS 🡒 A) ∈ LogicGL
+    (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
+    ⊢ᴳ (∅ ⟹[1] {A})
   ].TFAE := by
   tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsS_imp;
   tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
+  tfae_have 4 → 5 := provableGentzen_of_GL_provable;
+  tfae_have 5 → 2 := eventually_forces_tail_nat_of_provableGentzen;
   tfae_finish;
 
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+
+/-- `S ⊢ A` iff the level-`1` sequent `∅ ⟹[1] {A}` is provable in `LogicS.ProofGentzen`
+(Kashima–Kato 2023's cut-free sequent calculus for `S`). -/
+theorem iff_provable_provableGentzen [DecidableEq α] :
+    A ∈ LogicS ↔ ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
+  provability_TFAE.out 0 4
 
 end LogicS
 

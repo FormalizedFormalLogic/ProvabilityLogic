@@ -8,6 +8,8 @@ public import SeqPL.Formula.Substitution
 public import SeqPL.Gentzen.Basic
 public import SeqPL.Gentzen.Kripke
 public import SeqPL.Gentzen.Maehara
+public import SeqPL.Gentzen.S.Basic
+public import SeqPL.Gentzen.S.Kripke
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
 public import SeqPL.Kripke.Basic
