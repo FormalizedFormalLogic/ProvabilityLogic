@@ -8,8 +8,9 @@ name = "SeqPL"
 [[require]]
 name = "Foundation"
 git = "https://github.com/FormalizedFormalLogic/Foundation"
+rev = "master"
 
 [[require]]
-name = "lean_typst"
+name = "LeanTypst"
 git = "https://github.com/SnO2WMaN/lean-typst.git"
 rev = "main"
