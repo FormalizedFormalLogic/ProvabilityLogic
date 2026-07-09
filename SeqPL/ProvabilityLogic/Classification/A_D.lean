@@ -103,22 +103,6 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
       ((RootedModel.graft.mainlemma hr ha hB).1 _).symm;
 
 /--
-  The arithmetical fixed-point construction of the modified Solovay sentences: the
-  primitive recursive function `h` of Theorem 2 in §6 of [Bek90], associated to a
-  `StrongReflexiveCountermodel` of `A` and a `𝚺₁` sentence `σ`.
--/
-theorem exists_modifiedSolovaySentences [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
-    {A : Formula α} (X : StrongReflexiveCountermodel κ A)
-    {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
-    Nonempty (T.standardProvability.ModifiedSolovaySentences X σ) :=
-  -- `h`'s limit climbs by refutation proofs but never enters `r`, and jumps from the
-  -- old root `b` to `r` as soon as a witness of `σ` is found, realized via the
-  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.Solovay`;
-  -- the `𝚺₁`-ness of `σ` is needed for the provable `𝚺₁`-completeness arguments behind
-  -- the conditions `SC3r`, `SC5` and `SC6`.
-  ⟨LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences T X hσ⟩
-
-/--
   **Theorem 2 in §6 of [Bek90]** (the arithmetical core of Lemma 51 in [AB05]): if
   `A ∉ GLαω`, then for every `𝚺₁` sentence `σ` there are `n : ℕ` and a realization `f`
   such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` together with
@@ -136,7 +120,7 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
   haveI := hne;
   haveI := hfgl;
   let X := StrongReflexiveCountermodel.ofReflexive M hnA r hr hrS;
-  obtain ⟨S⟩ := exists_modifiedSolovaySentences (T := T) X hσ;
+  let S := LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences T X hσ;
   use Model.World.rank X.r, S.realization;
   have h := S.reflection;
   unfold LO.FirstOrder.ProvabilityAbstraction.Provability.conItr at h;
