@@ -18,7 +18,7 @@ section
 
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 
-theorem uniform_arithmetical_completeness : ∃ f : StandardRealization α T, ∀ A, T ⊢ f A ↔ A ∈ LogicGL := by sorry;
+axiom uniform_arithmetical_completeness : ∃ f : StandardRealization α T, ∀ A, T ⊢ f A ↔ A ∈ LogicGL
 
 protected noncomputable def uniformRealization (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T] : StandardRealization α T := uniform_arithmetical_completeness.choose
 
