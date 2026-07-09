@@ -153,6 +153,25 @@ lemma cwfHeight_lt [IsTrans α r] : ∀ {n}, n < cwfHeight r a → ∃ b, r a b 
       rcases this with ⟨c, hc, rfl⟩
       exact ⟨c, IsTrans.trans _ _ _ hb hc, rfl⟩
 
+/-- `cwfHeight` is invariant under an equivalence of relations: if `f : α ≃ β` carries `r`
+to `r'`, then the heights of corresponding points agree. -/
+lemma cwfHeight_congr {β} [Fintype β] {r' : Rel β β} [IsConverseWellFounded β r']
+  (f : α ≃ β) (hf : ∀ a b, r a b ↔ r' (f a) (f b)) (a : α) :
+  cwfHeight r a = cwfHeight r' (f a) := by
+  apply WellFounded.induction (r := flip r) IsConverseWellFounded.cwf a;
+  intro a ih;
+  apply le_antisymm;
+  · apply cwfHeight_le;
+    intro b hab;
+    rw [ih b hab];
+    exact cwfHeight_gt_of ((hf a b).mp hab);
+  · apply cwfHeight_le;
+    intro b' hab';
+    obtain ⟨b, rfl⟩ := f.surjective b';
+    have hab : r a b := (hf a b).mpr hab';
+    rw [← ih b hab];
+    exact cwfHeight_gt_of hab;
+
 end cwfHeight
 
 end

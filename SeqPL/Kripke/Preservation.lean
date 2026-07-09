@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Kripke.Basic
+public import SeqPL.Formula.Letterless
 
 @[expose]
 public section
@@ -252,6 +253,124 @@ lemma modal_equivalence (w : M₁.World) : w ↭ g.toFun w :=
 end GeneratedSub
 
 end Generation
+
+
+section FrameBisimulation
+
+variable {α₁ α₂ : Type*}
+
+/--
+  A frame bisimulation between `M₁` and `M₂`: a `Bisimulation`-like relation that only
+  needs to respect the accessibility relation (`forth`/`back`) and drops the `atomic`
+  condition, so it makes sense across models `M₁ : Model κ₁ α₁`, `M₂ : Model κ₂ α₂` with
+  different propositional-variable types `α₁`, `α₂`. It records exactly enough structure
+  to preserve forcing of letterless formulas.
+-/
+structure FrameBisimulation (M₁ : Model κ₁ α₁) (M₂ : Model κ₂ α₂) where
+  toRel : M₁.World → M₂.World → Prop
+  forth {x₁ y₁ : M₁.World} {x₂ : M₂.World} : toRel x₁ x₂ → x₁ ≺ y₁ → ∃ y₂ : M₂.World, toRel y₁ y₂ ∧ x₂ ≺ y₂
+  back {x₁ : M₁.World} {x₂ y₂ : M₂.World} : toRel x₁ x₂ → x₂ ≺ y₂ → ∃ y₁ : M₁.World, toRel y₁ y₂ ∧ x₁ ≺ y₁
+
+infix:80 " ⇄ᶠ " => FrameBisimulation
+
+variable {M₁ : Model κ₁ α₁} {M₂ : Model κ₂ α₂}
+
+instance : CoeFun (M₁ ⇄ᶠ M₂) (λ _ => M₁.World → M₂.World → Prop) := ⟨FrameBisimulation.toRel⟩
+
+def FrameBisimulation.symm (bi : M₁ ⇄ᶠ M₂) : M₂ ⇄ᶠ M₁ where
+  toRel x y := bi.toRel y x
+  forth := by
+    intro x₂ y₂ x₁ hxy h;
+    obtain ⟨y₁, hy₁, hxy⟩ := bi.back hxy h;
+    exact ⟨y₁, hy₁, hxy⟩;
+  back := by
+    intro x₂ x₁ y₁ hxy h;
+    obtain ⟨y₂, hy₂, hxy⟩ := bi.forth hxy h;
+    exact ⟨y₂, hy₂, hxy⟩;
+
+variable {x₁ : M₁.World} {x₂ : M₂.World}
+
+lemma FrameBisimulation.forth_iterate (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) {y₁ : M₁.World} {n : ℕ} :
+  x₁ ≺^[n] y₁ → ∃ y₂, Bi y₁ y₂ ∧ x₂ ≺^[n] y₂ := by
+  induction n generalizing x₁ x₂ with
+  | zero => rintro rfl; exact ⟨x₂, bisx, rfl⟩;
+  | succ n ih =>
+    rintro ⟨z₁, Rx₁z₁, Rz₁y₁⟩;
+    obtain ⟨z₂, bisz, Rx₂z₂⟩ := Bi.forth bisx Rx₁z₁;
+    obtain ⟨y₂, bisy, Rz₂y₂⟩ := ih bisz Rz₁y₁;
+    exact ⟨y₂, bisy, z₂, Rx₂z₂, Rz₂y₂⟩;
+
+/--
+  A frame bisimulation forces agreement on every letterless formula (the
+  atomic-condition-free analogue of `World.modal_equivalent_of_bisimilar`).
+-/
+lemma World.letterless_modal_equivalent_of_frameBisimilar (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) :
+  ∀ {B : LetterlessFormula}, x₁ ⊩ (B.lift : Formula α₁) ↔ x₂ ⊩ (B.lift : Formula α₂) := by
+  intro B;
+  induction B generalizing x₁ x₂ with
+  | atom a => exact a.elim;
+  | bot => simp;
+  | imp A B ihA ihB =>
+    constructor;
+    . intro hAB hA;
+      exact ihB bisx |>.mp $ hAB $ ihA bisx |>.mpr hA;
+    . intro hAB hA;
+      exact ihB bisx |>.mpr $ hAB $ ihA bisx |>.mp hA;
+  | box A ih =>
+    constructor;
+    . intro h y₂ Rx₂y₂;
+      obtain ⟨y₁, bisy, Rx₁y₁⟩ := Bi.back bisx Rx₂y₂;
+      exact ih bisy |>.mp $ h _ Rx₁y₁;
+    . intro h y₁ Rx₁y₁;
+      obtain ⟨y₂, bisy, Rx₂y₂⟩ := Bi.forth bisx Rx₁y₁;
+      exact ih bisy |>.mpr $ h _ Rx₂y₂;
+
+end FrameBisimulation
+
+
+section FramePseudoEpimorphism
+
+variable {α₁ α₂ : Type*}
+
+/--
+  A frame pseudo-epimorphism from `M₁` to `M₂`: a `PseudoEpimorphism`-like function that
+  only needs to respect the accessibility relation (`forth`/`back`) and drops the
+  `atomic` condition, so it makes sense across models `M₁ : Model κ₁ α₁`,
+  `M₂ : Model κ₂ α₂` with different propositional-variable types `α₁`, `α₂`.
+-/
+structure FramePseudoEpimorphism (M₁ : Model κ₁ α₁) (M₂ : Model κ₂ α₂) where
+  toFun : M₁.World → M₂.World
+  forth {x y : M₁.World} : x ≺ y → toFun x ≺ toFun y
+  back {w : M₁.World} {v : M₂.World} : toFun w ≺ v → ∃ u, toFun u = v ∧ w ≺ u
+
+infix:80 " →ᶠ " => FramePseudoEpimorphism
+
+variable {M₁ : Model κ₁ α₁} {M₂ : Model κ₂ α₂}
+
+instance : CoeFun (M₁ →ᶠ M₂) (λ _ => M₁.World → M₂.World) := ⟨FramePseudoEpimorphism.toFun⟩
+
+namespace FramePseudoEpimorphism
+
+variable (f : M₁ →ᶠ M₂)
+
+def bisimulation : M₁ ⇄ᶠ M₂ where
+  toRel x y := y = f x
+  forth := by
+    rintro x₁ y₁ x₂ rfl Rxy;
+    exact ⟨f y₁, rfl, f.forth Rxy⟩;
+  back := by
+    rintro x₁ x₂ y₂ rfl Rxy;
+    obtain ⟨u, rfl, Rwu⟩ := f.back Rxy;
+    exact ⟨u, rfl, Rwu⟩;
+
+lemma letterless_modal_equivalence (w : M₁.World) {B : LetterlessFormula} :
+  w ⊩ (B.lift : Formula α₁) ↔ f w ⊩ (B.lift : Formula α₂) :=
+  World.letterless_modal_equivalent_of_frameBisimilar f.bisimulation rfl
+
+end FramePseudoEpimorphism
+
+end FramePseudoEpimorphism
+
 
 end Model
 

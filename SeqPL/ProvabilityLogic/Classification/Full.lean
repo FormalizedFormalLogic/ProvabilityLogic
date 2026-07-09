@@ -38,16 +38,9 @@ lemma iff_mem_not_trace :
 variable {α : Type u} {A B : Formula α}
 
 @[grind =]
-lemma eq_trace_toLetterless_trace (hA : A.Letterless) : A.trace = LetterlessFormula.trace (A.toLetterless hA) := by classical
+lemma eq_trace_toLetterless_trace (hA : A.Letterless) : A.trace = LetterlessFormula.trace (A.toLetterless hA) := by
   ext n;
-  apply Iff.trans ?_ $ spectrum_TFAE.out 1 0 |>.not;
-  push Not;
-  rw [iff_mem_trace];
-  constructor;
-  . sorry;
-  . rintro ⟨κ, _, _, M, _, x, rfl, h⟩;
-    use (ULift κ), inferInstance;
-    sorry;
+  rw [iff_mem_trace, LetterlessFormula.iff_mem_trace_rootedModel, lift_toLetterless hA];
 
 @[simp, grind =]
 lemma trace_top : (⊤ : Formula α).trace = ∅ := by grind;
@@ -348,33 +341,6 @@ lemma Logic.trace_subset_of_mem {L : Logic α} {A : Formula α} (h : A ∈ L) : 
   intro n hn;
   simp only [Logic.trace, FormulaSet.trace, Set.mem_iUnion, exists_prop];
   exact ⟨A, h, hn⟩;
-
-/--
-  Forcing of a lifted letterless formula is determined by the rank
-  (generalization of `Model.iff_forces_rank_mem_spectrum` to models over arbitrary `α`).
--/
-lemma Model.iff_forces_lift_rank_mem_spectrum
-    {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
-    {x : M.World} {B : LetterlessFormula} :
-    x ⊩ (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
-  induction B generalizing x with
-  | atom a => exact a.elim;
-  | bot => simp [LetterlessFormula.lift];
-  | imp B C ihB ihC =>
-    show ((x ⊩ (LetterlessFormula.lift B : Formula α)) → (x ⊩ (LetterlessFormula.lift C : Formula α))) ↔ _;
-    rw [ihB, ihC, LetterlessFormula.spectrum_imp];
-    grind;
-  | box B ihB =>
-    calc
-      _ ↔ ∀ y, x ≺ y → y ⊩ (LetterlessFormula.lift B : Formula α) := by
-        exact Model.World.forces_box (A := (LetterlessFormula.lift B : Formula α));
-      _ ↔ ∀ y, x ≺ y → Model.World.rank y ∈ LetterlessFormula.spectrum B := by simp [ihB];
-      _ ↔ ∀ i < x.rank, i ∈ LetterlessFormula.spectrum B := by
-        constructor;
-        . intro h i hi;
-          grind [Model.of_lt_rank hi];
-        . grind [Model.rank_lt_of_rel];
-      _ ↔ _ := by grind [LetterlessFormula.spectrum_box];
 
 variable [DecidableEq α] {L : Logic α} {A : Formula α}
 

@@ -201,7 +201,7 @@ def substLetterless (g : α → LetterlessFormula) : Formula α → LetterlessFo
 @[simp, grind =]
 lemma lift_substLetterless {g : α → LetterlessFormula} {A : Formula α} :
   (LetterlessFormula.lift (A.substLetterless g) : Formula α) = A⟦fun a => LetterlessFormula.lift (g a)⟧ := by
-  induction A <;> simp_all [Formula.substLetterless, LetterlessFormula.lift];
+  induction A <;> simp_all [Formula.substLetterless];
 
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Theory L}
          {𝔅 : Provability T₀ T}
@@ -235,7 +235,7 @@ open Model Model.World
 
 /- NOTE: forcing of a lifted letterless formula depends only on the rank (cf. Lemma 5
 of Valentini & Solitro 1983); this is the existing (sorry-free) lemma
-`Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.Full`. -/
+`Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.Letterless`. -/
 
 /-- In a finite rooted linear GL model, the rank determines the world: `rank` is
 injective (any two distinct worlds are comparable, hence of distinct ranks). -/

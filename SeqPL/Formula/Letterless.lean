@@ -33,6 +33,8 @@ lemma subst_lift {s : Formula.Substitution α α} : (lift A : Formula α)⟦s⟧
 variable {B : LetterlessFormula}
 
 @[simp, grind =] lemma eq_lift_bot : lift (α := α) ⊥ = ⊥ := by grind;
+@[simp, grind =] lemma eq_lift_imp : lift (α := α) (A 🡒 B) = lift A 🡒 lift B := by grind;
+@[simp, grind =] lemma eq_lift_box : lift (α := α) (□A) = □(lift A) := by grind;
 @[simp, grind =] lemma eq_lift_box_bot : lift (α := α) (□⊥) = □⊥ := by grind;
 @[simp, grind =] lemma eq_lift_boxItr_bot {n : ℕ} : lift (α := α) (□^[n]⊥) = □^[n]⊥ := by induction n <;> grind;
 @[simp, grind =] lemma eq_lift_and : lift (α := α) (A ⋏ B) = (lift A) ⋏ (lift B) := by grind;
@@ -41,7 +43,7 @@ variable {B : LetterlessFormula}
 lemma eq_lift_lconj {Γ : LetterlessFormulaList} : lift (α := α) (⋀Γ) = ⋀(Γ.map lift) := by
   match Γ with
   | [] | [A] => grind;
-  | A :: B :: Γ => simp [FormulaList.conj, eq_lift_and, eq_lift_lconj];
+  | A :: B :: Γ => simp [FormulaList.conj, eq_lift_lconj];
 
 end LetterlessFormula
 
@@ -112,6 +114,21 @@ def projectEmpty : Formula α → LetterlessFormula
     rw [ihA, ihC]
   | box A ih =>
     show □((LetterlessFormula.lift A : Formula α).projectEmpty) = _;
+    rw [ih]
+
+@[simp, grind =]
+lemma lift_toLetterless {A : Formula α} (hA : A.Letterless) :
+    (LetterlessFormula.lift (A.toLetterless hA) : Formula α) = A := by
+  induction A with
+  | atom a => exact absurd hA (by simp [Letterless]);
+  | bot => rfl
+  | imp A C ihA ihC =>
+    obtain ⟨hA', hC'⟩ := hA;
+    show (LetterlessFormula.lift (A.toLetterless hA') : Formula α) 🡒
+      (LetterlessFormula.lift (C.toLetterless hC') : Formula α) = _;
+    rw [ihA, ihC]
+  | box A ih =>
+    show □(LetterlessFormula.lift (A.toLetterless hA) : Formula α) = _;
     rw [ih]
 
 end Formula

@@ -2,6 +2,7 @@ module
 
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.RootExtension
+public import SeqPL.Kripke.Preservation
 
 @[expose]
 public section
@@ -152,6 +153,33 @@ lemma iff_forces_TBB_neq_rank : x ⊩ (TBB n) ↔ x.rank ≠ n := by
 
 @[grind =]
 lemma iff_not_forces_TBB_eq_rank : x ⊮ (TBB n) ↔ x.rank = n := by grind;
+
+section FrameBisimulation
+
+variable {κ₁ κ₂ : Type*} [Nonempty κ₁] [Nonempty κ₂] {α₁ α₂ : Type*}
+  {M₁ : Model κ₁ α₁} {M₂ : Model κ₂ α₂} [Fintype M₁.World] [Fintype M₂.World] [M₁.IsGL] [M₂.IsGL]
+  {x₁ : M₁.World} {x₂ : M₂.World}
+
+lemma rank_le_of_frameBisimilar (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) : x₁.rank ≤ x₂.rank := by
+  obtain ⟨y₁, Rx₁y₁⟩ := exists_rank_terminal x₁;
+  obtain ⟨y₂, -, Rx₂y₂⟩ := Bi.forth_iterate bisx Rx₁y₁;
+  exact iff_le_rank.mpr ⟨y₂, Rx₂y₂⟩;
+
+lemma rank_eq_of_frameBisimilar (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) : x₁.rank = x₂.rank :=
+  le_antisymm (rank_le_of_frameBisimilar Bi bisx) (rank_le_of_frameBisimilar Bi.symm bisx)
+
+end FrameBisimulation
+
+
+section FramePseudoEpimorphism
+
+variable {κ₁ κ₂ : Type*} [Nonempty κ₁] [Nonempty κ₂] {α₁ α₂ : Type*}
+  {M₁ : Model κ₁ α₁} {M₂ : Model κ₂ α₂} [Fintype M₁.World] [Fintype M₂.World] [M₁.IsGL] [M₂.IsGL]
+
+lemma FramePseudoEpimorphism.rank_eq (f : M₁ →ᶠ M₂) (w : M₁.World) : (f w).rank = w.rank :=
+  (rank_eq_of_frameBisimilar f.bisimulation rfl).symm
+
+end FramePseudoEpimorphism
 
 end Model
 

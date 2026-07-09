@@ -192,6 +192,33 @@ lemma iff_forces_rank_mem_spectrum : x ⊩ A ↔ x.rank ∈ (spectrum A) := by
 lemma iff_not_forces_rank_mem_trace : x ⊮ A ↔ x.rank ∈ (trace A) := by
   grind [iff_forces_rank_mem_spectrum];
 
+/--
+  Forcing of a lifted letterless formula is determined by the rank
+  (generalization of `iff_forces_rank_mem_spectrum` to models over arbitrary `α`).
+-/
+lemma iff_forces_lift_rank_mem_spectrum
+    {α : Type*} {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
+    {x : M.World} {B : LetterlessFormula} :
+    x ⊩ (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
+  induction B generalizing x with
+  | atom a => exact a.elim;
+  | bot => simp [LetterlessFormula.lift];
+  | imp B C ihB ihC =>
+    show ((x ⊩ (LetterlessFormula.lift B : Formula α)) → (x ⊩ (LetterlessFormula.lift C : Formula α))) ↔ _;
+    rw [ihB, ihC, LetterlessFormula.spectrum_imp];
+    grind;
+  | box B ihB =>
+    calc
+      _ ↔ ∀ y, x ≺ y → y ⊩ (LetterlessFormula.lift B : Formula α) := by
+        exact Model.World.forces_box (A := (LetterlessFormula.lift B : Formula α));
+      _ ↔ ∀ y, x ≺ y → Model.World.rank y ∈ LetterlessFormula.spectrum B := by simp [ihB];
+      _ ↔ ∀ i < x.rank, i ∈ LetterlessFormula.spectrum B := by
+        constructor;
+        . intro h i hi;
+          grind [Model.of_lt_rank hi];
+        . grind [Model.rank_lt_of_rel];
+      _ ↔ _ := by grind [LetterlessFormula.spectrum_box];
+
 end Model
 
 abbrev finiteLineModel (n : ℕ) : RootedModel (Fin (n + 1)) Empty where
@@ -244,38 +271,111 @@ lemma height_eq : (finiteLineModel n).height = n := by apply rank_eq;
 
 end finiteLineModel
 
+universe u
+
+/-- The `finiteLineModel n` lifted to an arbitrary universe `u` and to an arbitrary
+letterless-formula alphabet `α`, via `ULift`. -/
+abbrev uLiftFiniteLineModel (n : ℕ) {α : Type*} : RootedModel (ULift.{u} (Fin (n + 1))) α where
+  Rel' x y := x.down < y.down
+  Val' _ _ := False
+  root := ⟨ULift.up 0, by
+    rintro ⟨x⟩ hx;
+    apply Fin.pos_of_ne_zero;
+    intro h;
+    subst h;
+    exact hx rfl;
+  ⟩
+
+namespace uLiftFiniteLineModel
+
+variable {n : ℕ} {α : Type*}
+
+instance : Fintype (uLiftFiniteLineModel n (α := α)).World := inferInstance
+instance : (uLiftFiniteLineModel n (α := α)).IsFiniteGL where
+  finite := by infer_instance
+instance : (uLiftFiniteLineModel n (α := α)).IsGL := Model.instIsGLOfIsFiniteGL
+
+/-- The universe-lifting equivalence between the worlds of `finiteLineModel n` and
+`uLiftFiniteLineModel n`, carrying the frame relation `<` to `≺`. -/
+def worldEquiv : (finiteLineModel n).World ≃ (uLiftFiniteLineModel n (α := α)).World := Equiv.ulift.symm
+
+lemma worldEquiv_rel_iff {i j : (finiteLineModel n).World} :
+  i < j ↔ (worldEquiv (α := α) i : (uLiftFiniteLineModel n (α := α)).World) ≺ worldEquiv j := Iff.rfl
+
+lemma rank_eq (x : (uLiftFiniteLineModel n (α := α)).World) : x.rank = (n - x.down) := by
+  haveI : IsConverseWellFounded (finiteLineModel n).World (finiteLineModel n).Rel :=
+    ⟨(inferInstance : (finiteLineModel n).IsGL).cwf⟩;
+  haveI : IsConverseWellFounded (uLiftFiniteLineModel n (α := α)).World (uLiftFiniteLineModel n (α := α)).Rel :=
+    ⟨(inferInstance : (uLiftFiniteLineModel n (α := α)).IsGL).cwf⟩;
+  obtain ⟨i, rfl⟩ := worldEquiv.surjective x;
+  show cwfHeight (uLiftFiniteLineModel n (α := α)).Rel (worldEquiv i) = (n - i);
+  rw [← cwfHeight_congr (r := (finiteLineModel n).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
+  exact finiteLineModel.rank_eq i;
+
+lemma height_eq : (uLiftFiniteLineModel n (α := α)).height = n := by apply rank_eq;
+
+end uLiftFiniteLineModel
+
 section
 
-variable {A B : LetterlessFormula}
+variable {α : Type u} {A B : LetterlessFormula}
 
 lemma spectrum_TFAE : [
   n ∈ spectrum A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [Fintype M.World] → [M.IsGL] → M.height = n → M.root.1 ⊩ A,
+  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL, M.height = n ∧ M.root.1 ⊩ A,
   ∀ {κ : Type 0}, [Nonempty κ] → [Fintype κ] → ∀ M : Model κ Empty, [M.IsGL] → ∀ x : M.World, x.rank = n → x ⊩ A,
   ∃ κ : Type 0, ∃ _ : Nonempty κ, ∃ _ : Fintype κ, ∃ M : Model κ Empty, ∃ _ : M.IsGL, ∃ x : M.World, x.rank = n ∧ x ⊩ A,
 ].TFAE := by
-  tfae_have 1 → 2 := by grind [Model.iff_forces_rank_mem_spectrum];
-  tfae_have 3 → 1 := by grind [Model.iff_forces_rank_mem_spectrum];
+  tfae_have 1 → 2 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 2 → 3 := by
+    intro h;
+    use ULift.{u} (Fin (n + 1)), inferInstance, uLiftFiniteLineModel n (α := α), inferInstance, inferInstance;
+    constructor;
+    . exact uLiftFiniteLineModel.height_eq;
+    . apply h;
+      exact uLiftFiniteLineModel.height_eq;
+  tfae_have 3 → 1 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
+  tfae_have 1 → 4 := by grind [Model.iff_forces_rank_mem_spectrum];
+  tfae_have 4 → 5 := by
     intro h;
     use Fin (n + 1), inferInstance, inferInstance, (finiteLineModel n).toModel, inferInstance, (finiteLineModel n).root.1;
     constructor;
     . exact finiteLineModel.height_eq;
     . apply h;
       exact finiteLineModel.height_eq;
+  tfae_have 5 → 1 := by grind [Model.iff_forces_rank_mem_spectrum];
   tfae_finish;
+
+namespace LetterlessFormula
+
+variable {n : ℕ}
+
+/-- A letterless formula's trace is characterized by non-forcing on a `RootedModel` over an arbitrary universe and `α`. -/
+lemma iff_mem_trace_rootedModel {B : LetterlessFormula} :
+  n ∈ LetterlessFormula.trace B ↔
+  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL,
+    M.height = n ∧ M.root.1 ⊮ (LetterlessFormula.lift B : Formula α) := by
+  have h := spectrum_TFAE (n := n) (A := B) (α := α) |>.out 0 1;
+  unfold LetterlessFormula.trace;
+  rw [Set.mem_compl_iff, h];
+  push Not;
+  rfl
+
+end LetterlessFormula
 
 lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL ↔ spectrum A = Set.univ := by
   rw [Set.eq_univ_iff_forall];
   apply Iff.trans $ LogicGL.iff_forces;
   constructor;
   . intro h n;
-    apply spectrum_TFAE.out 1 0 |>.mp;
+    apply spectrum_TFAE (α := Empty) |>.out 3 0 |>.mp;
     intro κ _ _ M _ x rfl;
     have : Finite M.World := by infer_instance;
     apply @h κ _ M {};
   . intro h κ _ M _ x;
     have : Fintype M.World := Fintype.ofFinite _;
-    have := spectrum_TFAE.out 0 1 |>.mp $ h x.rank;
+    have := spectrum_TFAE (α := Empty) |>.out 0 3 |>.mp $ h x.rank;
     exact this M x rfl;
 
 lemma iff_GL_proves_imp_GL_subset_spectrum : (A 🡒 B) ∈ LogicGL ↔ spectrum A ⊆ spectrum B := by
