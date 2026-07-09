@@ -579,23 +579,23 @@ end model
 section stx
 
 variable (T : ArithmeticTheory) [T.Δ₁] (X : StrongReflexiveCountermodel κ A)
-         (σ : FirstOrder.Sentence ℒₒᵣ) (hσ : Hierarchy 𝚺 1 σ) (θ : 𝚫₀.Semisentence 1)
+         (σ : FirstOrder.ArithmeticSentence) (hσ : Hierarchy 𝚺 1 σ) (θ : 𝚫₀.Semisentence 1)
 
 /-- The ordinary-climb edge condition: every rival successor of `i` other than `r`
 loses the witness race against `j`. -/
-def climbAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) : Semisentence ℒₒᵣ N :=
+def climbAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) : ArithmeticSemisentence N :=
   ⩕ k ∈ { k : X.N.World | i ≺ k ∧ k ≠ X.rN }, (negativeSuccessor T)/[t j, t k]
 
 /-- `σ`, embedded (with no bound variables used) at an arbitrary arity. This is `𝚺₁`
 (unlike its negation), so it is safe to use directly inside `modifiedTwoPointAux`. -/
-def sigmaEmb : Semisentence ℒₒᵣ N := Rew.embSubsts ![] ▹ σ
+def sigmaEmb : ArithmeticSemisentence N := Rew.embSubsts ![] ▹ σ
 
-lemma rew_climbAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+lemma rew_climbAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
     Rew.subst w ▹ climbAux T X t i j = climbAux T X (fun i ↦ Rew.subst w (t i)) i j := by
   simp [climbAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
 
-lemma rew_sigmaEmb (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') :
+lemma rew_sigmaEmb (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') :
     Rew.subst w ▹ sigmaEmb (N := N) σ = sigmaEmb σ := by
   simp [sigmaEmb, ←TransitiveRewriting.comp_app, Rew.subst_comp_embSubsts, Matrix.empty_eq]
 
@@ -606,10 +606,10 @@ lemma rew_sigmaEmb (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') :
   the exclusivity argument at a mixed climb/jump branch point working, exactly as in
   the ordinary climb-vs-climb case).
 -/
-def jumpAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) : Semisentence ℒₒᵣ N :=
+def jumpAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) : ArithmeticSemisentence N :=
   sigmaEmb σ ⋏ ⩕ k ∈ { k : X.N.World | X.b ≺ k ∧ k ≠ X.rN }, (witnessBeatsClimb T θ)/[t k]
 
-lemma rew_jumpAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) :
+lemma rew_jumpAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) :
     Rew.subst w ▹ jumpAux T X σ θ t = jumpAux T X σ θ (fun i ↦ Rew.subst w (t i)) := by
   simp [jumpAux, rew_sigmaEmb, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.constant_eq_singleton]
@@ -619,13 +619,13 @@ lemma rew_jumpAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.
   chain: a jump into `r` (only possible from `b`), or an ordinary climb into some
   `j ≠ r`, additionally required to beat `σ` when climbing away from `b`.
 -/
-def modifiedTwoPointAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) : Semisentence ℒₒᵣ N :=
+def modifiedTwoPointAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) : ArithmeticSemisentence N :=
   if j = X.rN then
     (if i = X.b then jumpAux T X σ θ t else ⊥)
   else
     (climbAux T X t i j) ⋏ (if i = X.b then (climbBeatsWitness T θ)/[t j] else ⊤)
 
-lemma rew_modifiedTwoPointAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+lemma rew_modifiedTwoPointAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
     Rew.subst w ▹ modifiedTwoPointAux T X σ θ t i j = modifiedTwoPointAux T X σ θ (fun i ↦ Rew.subst w (t i)) i j := by
   unfold modifiedTwoPointAux;
   split_ifs with h1 h2 h2 <;>
@@ -636,19 +636,19 @@ private lemma sigmaEmb_sigma1 (hσ : Hierarchy 𝚺 1 σ) : Hierarchy 𝚺 1 (si
   unfold sigmaEmb; exact hσ.rew _
 
 private lemma modifiedTwoPointAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
-    (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+    (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
     Hierarchy 𝚺 1 (modifiedTwoPointAux T X σ θ t i j) := by
   unfold modifiedTwoPointAux;
   split_ifs <;> simp [climbAux, jumpAux, sigmaEmb_sigma1 σ hσ]
 
 /-- The chain condition along a `WChain`-style list of worlds, folding
 `modifiedTwoPointAux` along each consecutive pair. -/
-def modifiedθChainAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) : List X.N.World → Semisentence ℒₒᵣ N
+def modifiedθChainAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) : List X.N.World → ArithmeticSemisentence N
   |          [] => ⊥
   |         [_] => ⊤
   | j :: i :: ε => (modifiedθChainAux t (i :: ε)) ⋏ (modifiedTwoPointAux T X σ θ t i j)
 
-lemma rew_modifiedθChainAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (ε : List X.N.World) :
+lemma rew_modifiedθChainAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List X.N.World) :
     Rew.subst w ▹ modifiedθChainAux T X σ θ t ε = modifiedθChainAux T X σ θ (fun i ↦ Rew.subst w (t i)) ε := by
   match ε with
   |          [] => simp [modifiedθChainAux]
@@ -656,7 +656,7 @@ lemma rew_modifiedθChainAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty 
   | j :: i :: ε => simp [modifiedθChainAux, rew_modifiedθChainAux w _ (i :: ε), rew_modifiedTwoPointAux]
 
 private lemma modifiedθChainAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
-    (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (ε : List X.N.World) :
+    (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List X.N.World) :
     Hierarchy 𝚺 1 (modifiedθChainAux T X σ θ t ε) := by
   match ε with
   |          [] => simp [modifiedθChainAux]
@@ -667,17 +667,17 @@ private lemma modifiedθChainAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
     simp [modifiedθChainAux, h1, h2]
 
 /-- The disjunction, over all chains from the root of `X.N` to `i`, of `modifiedθChainAux`. -/
-def modifiedθAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) : Semisentence ℒₒᵣ N :=
+def modifiedθAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i : X.N.World) : ArithmeticSemisentence N :=
   haveI := X.isFiniteGL;
   haveI : X.N.IsGL := (inferInstance : (X.extendRoot 1).IsGL);
   haveI := Fintype.ofFinite (WChain X.N X.N.root.1 i);
   ⩖ ε : WChain X.N X.N.root.1 i, modifiedθChainAux T X σ θ t ε
 
-lemma rew_modifiedθAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) :
+lemma rew_modifiedθAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i : X.N.World) :
     Rew.subst w ▹ modifiedθAux T X σ θ t i = modifiedθAux T X σ θ (fun i ↦ Rew.subst w (t i)) i := by
   simp [Finset.map_udisj, modifiedθAux, rew_modifiedθChainAux]
 
-lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) :
+lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i : X.N.World) :
     Hierarchy 𝚺 1 (modifiedθAux T X σ θ t i) := by
   simp [modifiedθAux, modifiedθChainAux_sigma1 T X σ θ hσ]
 
@@ -688,7 +688,7 @@ lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstO
   forever means the jump to `r` (which unconditionally requires `Provable σ`,
   regardless of whether `b` has any climb rival at all) never triggers.
 -/
-def _root_.LO.FirstOrder.Theory.modifiedSolovay (i : X.N.World) : Sentence ℒₒᵣ := exclusiveMultifixedpoint
+def _root_.LO.FirstOrder.Theory.modifiedSolovay (i : X.N.World) : ArithmeticSentence := exclusiveMultifixedpoint
   (fun j ↦
     let jj := (Fintype.equivFin X.N.World).symm j
     (modifiedθAux T X σ θ (fun i ↦ #(Fintype.equivFin X.N.World i)) jj) ⋏
@@ -701,14 +701,14 @@ def _root_.LO.FirstOrder.Theory.modifiedSolovay (i : X.N.World) : Sentence ℒ�
   simp [Theory.modifiedSolovay]
 
 /-- The quoted counterpart of `modifiedTwoPointAux`. -/
-def modifiedTwoPoint (i j : X.N.World) : Sentence ℒₒᵣ := modifiedTwoPointAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i j
+def modifiedTwoPoint (i j : X.N.World) : ArithmeticSentence := modifiedTwoPointAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i j
 
 /-- The quoted counterpart of `modifiedθChainAux`. -/
-def modifiedθChain (ε : List X.N.World) : Sentence ℒₒᵣ := modifiedθChainAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) ε
+def modifiedθChain (ε : List X.N.World) : ArithmeticSentence := modifiedθChainAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) ε
 
 /-- The quoted counterpart of `modifiedθAux`, with each bound variable specialized to
 the quoted code of the corresponding modified Solovay sentence. -/
-def modifiedθ (i : X.N.World) : Sentence ℒₒᵣ := modifiedθAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i
+def modifiedθ (i : X.N.World) : ArithmeticSentence := modifiedθAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i
 
 /-- The diagonal fixed-point equation defining `T.modifiedSolovay`. -/
 lemma modifiedSolovay_diag (i : X.N.World) :
@@ -734,7 +734,7 @@ end stx
 
 section model
 
-variable (T : ArithmeticTheory) [T.Δ₁] (X : StrongReflexiveCountermodel κ A) (σ : FirstOrder.Sentence ℒₒᵣ)
+variable (T : ArithmeticTheory) [T.Δ₁] (X : StrongReflexiveCountermodel κ A) (σ : FirstOrder.ArithmeticSentence)
          (θ : 𝚫₀.Semisentence 1)
 variable {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
@@ -1166,7 +1166,7 @@ lemma Modified.models_sigma_of_rest_at_rN :
 
 /-- **Condition SC6.** -/
 lemma Modified.not_sigma_imp_not_rN [𝗜𝚺₁ ⪯ T] :
-    𝗜𝚺₁ ⊢ ((∼σ : FirstOrder.Sentence ℒₒᵣ)) 🡒 ∼(T.modifiedSolovay X σ θ X.rN) :=
+    𝗜𝚺₁ ⊢ ((∼σ : FirstOrder.ArithmeticSentence)) 🡒 ∼(T.modifiedSolovay X σ θ X.rN) :=
   complete _ _ fun (V : Type) _ _ ↦ by
     simpa [models_iff] using! (Modified.models_sigma_of_rest_at_rN (T := T) (X := X) (σ := σ) (θ := θ) (V := V)).mt
 
@@ -1204,7 +1204,7 @@ lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
 -/
 noncomputable def _root_.LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences
     (T : ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
-    (X : StrongReflexiveCountermodel κ A) {σ : FirstOrder.Sentence ℒₒᵣ}
+    (X : StrongReflexiveCountermodel κ A) {σ : FirstOrder.ArithmeticSentence}
     (hσ : Hierarchy 𝚺 1 σ) :
     T.standardProvability.ModifiedSolovaySentences X σ :=
   have hex := exists_delta0_witness_form (n := 0) (φ := σ) hσ;

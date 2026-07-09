@@ -17,7 +17,7 @@ section heightTrace
 
 omit [𝗜𝚺₁ ⪯ T] in
 /-- The standard provability predicate of `T` holds in the standard model iff `T` proves it. -/
-lemma models_standardProvability_iff {σ : Sentence ℒₒᵣ} :
+lemma models_standardProvability_iff {σ : ArithmeticSentence} :
     ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
   constructor;
   . intro h;
@@ -41,7 +41,7 @@ lemma not_models_standardProvability_bot :
 /-- The standard interpretation of `TBB n` holds in the standard model iff `T`'s height
   is not `n`. -/
 lemma models_standardInterpret_TBB_iff {n : ℕ} :
-    ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB n) : Sentence ℒₒᵣ) ↔ T.height ≠ n := by
+    ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB n) : ArithmeticSentence) ↔ T.height ≠ n := by
   have e : LetterlessFormula.standardInterpret T (TBB n)
       = ((T.standardProvability^[n + 1] ⊥) 🡒 (T.standardProvability^[n] ⊥)) := by
     dsimp only [TBB, LetterlessFormula.standardInterpret, LetterlessFormula.interpret];

@@ -527,7 +527,7 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T)) := by
   -- The following `have`s reprove (locally, to avoid an import cycle with the
   -- `HeightTrace*.lean` files, which import this file) facts needed for both directions.
-  have models_standardProvability_iff : ∀ {σ : Sentence ℒₒᵣ},
+  have models_standardProvability_iff : ∀ {σ : ArithmeticSentence},
       ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
     intro σ;
     constructor;
@@ -541,7 +541,7 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
       (Arithmetic.TA.provable_iff.mp (h (⟨fun _ => ⊥⟩ : StandardRealization α T)));
   constructor;
   . intro h;
-    have hSigma1Refl : ∀ {σ : Sentence ℒₒᵣ}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+    have hSigma1Refl : ∀ {σ : ArithmeticSentence}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
         ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
       intro σ hσ;
       apply Arithmetic.TA.provable_iff.mp;
@@ -579,7 +579,7 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
         intro f;
         apply Arithmetic.TA.provable_iff.mpr;
         have e : Formula.interpret f (∼□⊥ : Formula α)
-            = (T.standardProvability (⊥ : Sentence ℒₒᵣ)) 🡒 ⊥ := by
+            = (T.standardProvability (⊥ : ArithmeticSentence)) 🡒 ⊥ := by
           simp [Formula.interpret];
         rw [e, Semantics.Imp.models_imply];
         intro hh;
@@ -607,7 +607,7 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
       rw [Function.iterate_succ_apply', models_standardProvability_iff];
       exact Provability.height_le_iff_boxBot.symm;
     have models_standardInterpret_TBB_iff : ∀ {m : ℕ},
-        ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : Sentence ℒₒᵣ) ↔
+        ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : ArithmeticSentence) ↔
         T.height ≠ m := by
       intro m;
       have e : LetterlessFormula.standardInterpret T (TBB m)
@@ -685,7 +685,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
   -- `HeightTrace.lean`/`HeightTrace2.lean`/`HeightTrace3.lean`, which import this file) the
   -- connection between `T.height` and `TBB`'s truth in the standard model, in the style of
   -- `eq_provabilityLogic_TA_LogicGLBetaMinus_iff` above.
-  have models_standardProvability_iff : ∀ {σ : Sentence ℒₒᵣ},
+  have models_standardProvability_iff : ∀ {σ : ArithmeticSentence},
       ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
     intro σ;
     constructor;
@@ -699,7 +699,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
   have not_models_standardProvability_bot :
       ¬ ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[0] ⊥) := by simp;
   have models_standardInterpret_TBB_iff : ∀ {m : ℕ},
-      ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : Sentence ℒₒᵣ) ↔
+      ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : ArithmeticSentence) ↔
       T.height ≠ m := by
     intro m;
     have e : LetterlessFormula.standardInterpret T (TBB m)
@@ -735,7 +735,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
     . intro hh hcontra;
       have h1 : (TBB m : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) :=
         provable_TBB_of_mem_trace hh;
-      have h2 : ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : Sentence ℒₒᵣ) := by
+      have h2 : ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : ArithmeticSentence) := by
         rw [← eq_interpret_TBB ⟨fun _ => ⊥⟩ m];
         exact Arithmetic.TA.provable_iff.mp (h1 ⟨fun _ => ⊥⟩);
       exact (models_standardInterpret_TBB_iff.mp h2) hcontra;
@@ -760,7 +760,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
   have hDsubset : T.SoundOnHierarchy 𝚺 1 → (LogicD : Logic α) ⊆ (T.provabilityLogicRelativeTo 𝗧𝗔) := by
     intro hSig;
     haveI := hSig;
-    have hReflImp : ∀ {σ : Sentence ℒₒᵣ}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+    have hReflImp : ∀ {σ : ArithmeticSentence}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
         ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
       intro σ hσ;
       rw [Semantics.Imp.models_imply];
@@ -772,7 +772,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
     | axiomP =>
       intro f;
       apply Arithmetic.TA.provable_iff.mpr;
-      have e : Formula.interpret f (∼□⊥ : Formula α) = (T.standardProvability (⊥ : Sentence ℒₒᵣ)) 🡒 ⊥ := by
+      have e : Formula.interpret f (∼□⊥ : Formula α) = (T.standardProvability (⊥ : ArithmeticSentence)) 🡒 ⊥ := by
         simp [Formula.interpret];
       rw [e, Semantics.Imp.models_imply];
       intro hh;
@@ -827,7 +827,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
         apply Set.eq_univ_of_forall;
         intro n;
         exact mem_trace_of_provable_TBB (h ▸ LogicD.provable_TBB);
-      have hreflU : ∀ {σ : Sentence ℒₒᵣ}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+      have hreflU : ∀ {σ : ArithmeticSentence}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
           ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
         intro σ hσ;
         exact Arithmetic.TA.provable_iff.mp
@@ -849,7 +849,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
   -- The following `have`s reprove (locally, to avoid an import cycle with
   -- `HeightTrace.lean`, which imports this file) the connection between `T.height`
   -- and `TBB`'s truth in the standard model.
-  have models_standardProvability_iff : ∀ {σ : Sentence ℒₒᵣ},
+  have models_standardProvability_iff : ∀ {σ : ArithmeticSentence},
       ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
     intro σ;
     constructor;
@@ -863,7 +863,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
   have not_models_standardProvability_bot :
       ¬ ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[0] ⊥) := by simp;
   have models_standardInterpret_TBB_iff : ∀ {m : ℕ},
-      ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : Sentence ℒₒᵣ) ↔
+      ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB m) : ArithmeticSentence) ↔
       T.height ≠ m := by
     intro m;
     have e : LetterlessFormula.standardInterpret T (TBB m)
@@ -918,7 +918,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     have hnTBB : (∼(TBB n) : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       intro f;
       apply Arithmetic.TA.provable_iff.mpr;
-      show ℕ↓[ℒₒᵣ] ⊧ ((Formula.interpret f (TBB n) : Sentence ℒₒᵣ) 🡒 ⊥);
+      show ℕ↓[ℒₒᵣ] ⊧ ((Formula.interpret f (TBB n) : ArithmeticSentence) 🡒 ⊥);
       rw [Semantics.Imp.models_imply];
       intro hcontra;
       rw [eq_interpret_TBB f n] at hcontra;

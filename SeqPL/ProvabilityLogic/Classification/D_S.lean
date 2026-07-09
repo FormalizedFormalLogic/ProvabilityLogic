@@ -346,7 +346,7 @@ theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [Deci
 theorem provable_reflection_of_mem_not_LogicD :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     L.trace = Set.univ → ∀ {A : Formula α}, A ∈ L → A ∉ LogicD →
-    ∀ σ : FirstOrder.Sentence ℒₒᵣ, U ⊢ (T.standardProvability σ) 🡒 σ := by
+    ∀ σ : ArithmeticSentence, U ⊢ (T.standardProvability σ) 🡒 σ := by
   intro hT A hAL hAD σ;
   classical
   -- Pass to `Option α`, where `none` is a fresh atom.

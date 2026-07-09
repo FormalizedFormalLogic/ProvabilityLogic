@@ -23,7 +23,7 @@ omit [𝗜𝚺₁ ⪯ T] in
   model, for any `Σ₁` sentence `σ`.
 -/
 lemma models_standardProvability_imp_of_soundOnHierarchy [T.SoundOnHierarchy 𝚺 1]
-    {σ : Sentence ℒₒᵣ} (hσ : LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ) :
+    {σ : ArithmeticSentence} (hσ : LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ) :
     ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
   rw [Semantics.Imp.models_imply];
   intro h;
@@ -35,7 +35,7 @@ omit [𝗜𝚺₁ ⪯ T] in
   instance for `T` is true in the standard model, then `T` is `Σ₁`-sound.
 -/
 lemma soundOnHierarchy_of_models_standardProvability_imp
-    (h : ∀ {σ : Sentence ℒₒᵣ}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+    (h : ∀ {σ : ArithmeticSentence}, LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
       ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ)) :
     T.SoundOnHierarchy 𝚺 1 := by
   constructor;
@@ -63,7 +63,7 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
     intro f;
     apply Arithmetic.TA.provable_iff.mpr;
     have e : Formula.interpret f (∼□⊥ : Formula α)
-        = (T.standardProvability (⊥ : Sentence ℒₒᵣ)) 🡒 ⊥ := by
+        = (T.standardProvability (⊥ : ArithmeticSentence)) 🡒 ⊥ := by
       simp [Formula.interpret];
     rw [e, Semantics.Imp.models_imply];
     intro h;

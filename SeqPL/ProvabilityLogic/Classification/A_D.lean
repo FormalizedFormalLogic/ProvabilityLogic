@@ -110,7 +110,7 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
 -/
 theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicA)
-    {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
+    {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
     ∃ (n : ℕ) (f : StandardRealization α T),
       𝗜𝚺₁ ⊢ (f (((∼(□^[n]⊥)) ⋏ A : Formula α))) 🡒 ((T.standardProvability σ) 🡒 σ) := by
   -- Obtained by the Solovay construction on the countermodel given by
@@ -142,7 +142,7 @@ end
 theorem provable_sigma1_reflection_of_mem_not_LogicA :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     L.trace = Set.univ → ∀ {A : Formula α}, A ∈ L → A ∉ LogicA →
-    ∀ σ : FirstOrder.Sentence ℒₒᵣ, Arithmetic.Hierarchy 𝚺 1 σ →
+    ∀ σ : ArithmeticSentence, Arithmetic.Hierarchy 𝚺 1 σ →
       U ⊢ (T.standardProvability σ) 🡒 σ := by
   intro hT A hAL hAA σ hσ;
   classical

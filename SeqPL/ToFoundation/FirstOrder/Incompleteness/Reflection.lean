@@ -20,7 +20,7 @@ def localReflection
 /-- The reflection instance at a `Γₙ`-sentence `σ` belongs to `Rfn_Γₙ(T)`. -/
 lemma mem_localReflection
     {T : FirstOrder.ArithmeticTheory} [T.Δ₁] {Γ : Polarity} {n : ℕ}
-    {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy Γ n σ) :
+    {σ : FirstOrder.ArithmeticSentence} (hσ : Arithmetic.Hierarchy Γ n σ) :
     ((T.standardProvability σ) 🡒 σ) ∈ T.localReflection Γ n :=
   ⟨σ, hσ, rfl⟩
 
@@ -59,7 +59,7 @@ instance models_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : 
 theorem unbounded_localReflection
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   [Entailment.Consistent (T ∪ T.localReflection 𝚺 1)] :
-  ¬∀ σ : FirstOrder.Sentence ℒₒᵣ, (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
+  ¬∀ σ : FirstOrder.ArithmeticSentence, (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
   sorry
 
 end

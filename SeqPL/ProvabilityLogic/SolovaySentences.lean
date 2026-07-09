@@ -250,7 +250,7 @@ variable (T) {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
 def NegativeSuccessor (φ ψ : V) : Prop := T.ProvabilityComparisonLE (neg ℒₒᵣ φ) (neg ℒₒᵣ ψ)
 
-lemma NegativeSuccessor.quote_iff_provabilityComparisonLE {φ ψ : Sentence ℒₒᵣ} :
+lemma NegativeSuccessor.quote_iff_provabilityComparisonLE {φ ψ : ArithmeticSentence} :
     NegativeSuccessor (V := V) T ⌜φ⌝ ⌜ψ⌝ ↔ T.ProvabilityComparisonLE (V := V) ⌜∼φ⌝ ⌜∼ψ⌝ := by
   simp [NegativeSuccessor, Sentence.quote_def, Semiformula.quote_def]
 
@@ -284,47 +284,47 @@ instance (i j : M.World) : Finite (WChain M i j) :=
       ⟨fun x y z hxy hyz => IsTrans.trans (r := M.Rel) z y x hyz hxy⟩)
     j i
 
-def twoPointAux (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : M.World) : Semisentence ℒₒᵣ N :=
+def twoPointAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : M.World) : ArithmeticSemisentence N :=
   ⩕ k ∈ { k : M.World | i ≺ k }, (negativeSuccessor T)/[t j, t k]
 
-def θChainAux (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) : List M.World → Semisentence ℒₒᵣ N
+def θChainAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) : List M.World → ArithmeticSemisentence N
   |          [] => ⊥
   |         [_] => ⊤
   | j :: i :: ε => (θChainAux t (i :: ε)) ⋏ (twoPointAux T M t i j)
 
 omit [M.IsGL] in
-lemma rew_twoPointAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) :
+lemma rew_twoPointAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) :
     Rew.subst w ▹ twoPointAux T M t i j = twoPointAux T M (fun i ↦ Rew.subst w (t i)) i j := by
   simp [twoPointAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
 
 omit [M.IsGL] in
-lemma rew_θChainAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (ε : List M.World) :
+lemma rew_θChainAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List M.World) :
     Rew.subst w ▹ θChainAux T M t ε = θChainAux T M (fun i ↦ Rew.subst w (t i)) ε := by
   match ε with
   |          [] => simp [θChainAux]
   |         [_] => simp [θChainAux]
   | j :: i :: ε => simp [θChainAux, rew_θChainAux w _ (i :: ε), rew_twoPointAux]
 
-def θAux (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : M.World) : Semisentence ℒₒᵣ N :=
+def θAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) : ArithmeticSemisentence N :=
   haveI := Fintype.ofFinite (WChain M M.root.1 i);
   ⩖ ε : WChain M M.root.1 i, θChainAux T M t ε
 
-lemma rew_θAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : M.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : M.World) :
+lemma rew_θAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) :
     Rew.subst w ▹ θAux T M t i = θAux T M (fun i ↦ Rew.subst w (t i)) i := by
   simp [Finset.map_udisj, θAux, rew_θChainAux]
 
-def _root_.LO.FirstOrder.Theory.solovay (i : M.World) : Sentence ℒₒᵣ := exclusiveMultifixedpoint
+def _root_.LO.FirstOrder.Theory.solovay (i : M.World) : ArithmeticSentence := exclusiveMultifixedpoint
   (fun j ↦
     let jj := (Fintype.equivFin M.World).symm j
     (θAux T M (fun i ↦ #(Fintype.equivFin M.World i)) jj) ⋏ (⩕ k ∈ { k : M.World | jj ≺ k }, T.consistentWith/[#(Fintype.equivFin M.World k)]))
   (Fintype.equivFin M.World i)
 
-def twoPoint (i j : M.World) : Sentence ℒₒᵣ := twoPointAux T M (fun i ↦ ⌜T.solovay M i⌝) i j
+def twoPoint (i j : M.World) : ArithmeticSentence := twoPointAux T M (fun i ↦ ⌜T.solovay M i⌝) i j
 
-def θChain (ε : List M.World) : Sentence ℒₒᵣ := θChainAux T M (fun i ↦ ⌜T.solovay M i⌝) ε
+def θChain (ε : List M.World) : ArithmeticSentence := θChainAux T M (fun i ↦ ⌜T.solovay M i⌝) ε
 
-def θ (i : M.World) : Sentence ℒₒᵣ := θAux T M (fun i ↦ ⌜T.solovay M i⌝) i
+def θ (i : M.World) : ArithmeticSentence := θAux T M (fun i ↦ ⌜T.solovay M i⌝) i
 
 lemma solovay_diag (i : M.World) :
     𝗜𝚺₁ ⊢ (T.solovay M i) 🡘 ((θ T M i) ⋏ (⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith/[⌜T.solovay M j⌝])) := by
