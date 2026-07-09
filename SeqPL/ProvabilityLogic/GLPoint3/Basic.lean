@@ -3,7 +3,7 @@ module
 public import SeqPL.Logic.GLPoint3.Letterless
 public import SeqPL.Logic.GLPoint3.Completeness
 public import SeqPL.ProvabilityLogic.GL.Basic
-public import SeqPL.ProvabilityLogic.Classification.Full
+public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose] public section
 
@@ -235,7 +235,7 @@ open Model Model.World
 
 /- NOTE: forcing of a lifted letterless formula depends only on the rank (cf. Lemma 5
 of Valentini & Solitro 1983); this is the existing (sorry-free) lemma
-`Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.Letterless`. -/
+`Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.LetterlessTrace`. -/
 
 /-- In a finite rooted linear GL model, the rank determines the world: `rank` is
 injective (any two distinct worlds are comparable, hence of distinct ranks). -/

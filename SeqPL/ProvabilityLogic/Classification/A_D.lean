@@ -4,7 +4,7 @@ public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Graft
 public import SeqPL.Logic.A.Basic
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
-public import SeqPL.ProvabilityLogic.Classification.Trace
+public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose] public section
 

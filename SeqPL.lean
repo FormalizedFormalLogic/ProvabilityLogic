@@ -59,10 +59,9 @@ public import SeqPL.Logic.SumNormal
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.A_D
 public import SeqPL.ProvabilityLogic.Classification.D_S
-public import SeqPL.ProvabilityLogic.Classification.Full
-public import SeqPL.ProvabilityLogic.Classification.Letterless
+public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
+public import SeqPL.ProvabilityLogic.Classification.LetterlessTrace
 public import SeqPL.ProvabilityLogic.Classification.Result
-public import SeqPL.ProvabilityLogic.Classification.Trace
 public import SeqPL.ProvabilityLogic.D.Basic
 public import SeqPL.ProvabilityLogic.GL.Basic
 public import SeqPL.ProvabilityLogic.GL.Uniform

@@ -6,8 +6,8 @@ public import SeqPL.Logic.S.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.GraftOmega
-public import SeqPL.ProvabilityLogic.Classification.Letterless
-public import SeqPL.ProvabilityLogic.Classification.Full
+public import SeqPL.ProvabilityLogic.Classification.LetterlessTrace
+public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose]
 public section

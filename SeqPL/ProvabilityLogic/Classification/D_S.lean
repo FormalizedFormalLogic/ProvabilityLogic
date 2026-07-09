@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Logic.D.Basic
-public import SeqPL.ProvabilityLogic.Classification.Trace
+public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
 public import SeqPL.Kripke.AlmostDefiningFormula
 public import SeqPL.Logic.A.Basic
 public import SeqPL.Kripke.DModelTree
