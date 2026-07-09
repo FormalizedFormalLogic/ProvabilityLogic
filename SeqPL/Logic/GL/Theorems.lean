@@ -10,29 +10,11 @@ namespace LogicGL
 
 variable {α : Type*} [DecidableEq α] {A B C : Formula α}
 
-omit [DecidableEq α] in
 /-- The implication-transitivity tautology is a GL theorem. -/
 theorem imp_trans : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 A 🡒 C) ∈ @LogicGL α := by
-  suffices h : ((#0 🡒 #1) 🡒 (#1 🡒 #2) 🡒 #0 🡒 #2) ∈ @LogicGL ℕ by
-    simpa using ProvableHilbert.subst (s := fun n =>
-      match n with
-      | 0 => A
-      | 1 => B
-      | _ => C
-    ) h;
-  native_decide;
-
-omit [DecidableEq α] in
-/-- The disjunction-monotonicity tautology is a GL theorem. -/
-theorem or_mono : ((A 🡒 B) 🡒 ((C ⋎ A) 🡒 (C ⋎ B))) ∈ @LogicGL α := by
-  suffices h : ((#0 🡒 #1) 🡒 ((#2 ⋎ #0) 🡒 (#2 ⋎ #1))) ∈ @LogicGL ℕ by
-    simpa using ProvableHilbert.subst (s := fun n =>
-      match n with
-      | 0 => A
-      | 1 => B
-      | _ => C
-    ) h;
-  native_decide;
+  apply ProvableHilbert.Kripke.completeness;
+  intro κ _ M _ x;
+  grind;
 
 end LogicGL
 
@@ -45,12 +27,19 @@ automatically via `LogicGL.decidableMem` (itself running the labelled proof sear
 well-founded recursion, so `native_decide` (trusting the compiler) is used instead;
 `#eval decide (... ∈ LogicGL)` confirms the same results via the same instance. -/
 
+/-- Undecidability of consistency: if `PA` does not prove its own inconsistency, then its
+consistency is undecidable. -/
 example : ∼□□⊥ 🡒 (∼□(∼□⊥) ⋏ ∼□(∼∼□⊥)) ∈ @LogicGL ℕ := by native_decide
 
+/-- Undecidability of Gödel's formula: if `A` is a fixed point of `¬□A` and `PA` does not
+prove its own inconsistency, then `A` is undecidable in `PA`. -/
 example : (□((#0) 🡘 ∼□#0) ⋏ ∼□□⊥) 🡒 (∼□#0 ⋏ ∼□(∼#0)) ∈ @LogicGL ℕ := by native_decide
 
+/-- Reflection and iterated consistency. -/
 example : □((□(#0) 🡒 #0) 🡒 ◇◇⊤) 🡒 ◇◇⊤ 🡒 □#0 🡒 #0 ∈ @LogicGL ℕ := by native_decide
 
+/-- Formalised Gödel's second incompleteness theorem: if `PA` is consistent, it cannot
+prove its own consistency. -/
 example : ∼□⊥ 🡒 ∼□◇⊤ ∈ @LogicGL ℕ := by native_decide
 
 end

@@ -2,7 +2,6 @@ module
 
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Logic.S.Basic
-public import SeqPL.Logic.GL.Theorems
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.PseudoTail
 public import SeqPL.Kripke.Rank
@@ -123,6 +122,16 @@ section
 
 open Model.World
 
+private lemma GL_taut_trans [DecidableEq α] :
+    ((A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C)) ∈ LogicGL := by
+  apply LogicGL.provable_of_valid;
+  grind;
+
+private lemma GL_taut_or_mono [DecidableEq α] :
+    ((A 🡒 B) 🡒 ((C ⋎ A) 🡒 (C ⋎ B))) ∈ LogicGL := by
+  apply LogicGL.provable_of_valid;
+  grind;
+
 private lemma GL_box_fdisj_step [DecidableEq α] {Γ : FormulaFinset α} :
     (□(⋁(□(insert A Γ))) 🡒 □(□A ⋎ □(⋁(□Γ)))) ∈ LogicGL := by
   apply LogicGL.provable_of_valid;
@@ -160,7 +169,7 @@ lemma provable_of_provable_GL_imp [DecidableEq α]
 lemma provable_imp_trans [DecidableEq α]
     (h₁ : (A 🡒 B) ∈ LogicD) (h₂ : (B 🡒 C) ∈ LogicD) :
     (A 🡒 C) ∈ LogicD :=
-  Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL LogicGL.imp_trans) h₁) h₂
+  Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL GL_taut_trans) h₁) h₂
 
 /-- The `n`-ary axiom `D`, `□(□A₁ ⋎ ⋯ ⋎ □Aₙ) 🡒 (□A₁ ⋎ ⋯ ⋎ □Aₙ)`, is provable in `LogicD`. -/
 lemma provable_fdisj_axiomD [DecidableEq α] {Γ : FormulaFinset α} :
@@ -172,7 +181,7 @@ lemma provable_fdisj_axiomD [DecidableEq α] {Γ : FormulaFinset α} :
       provable_of_provable_GL GL_box_fdisj_step;
     have t₂ : (□(□A ⋎ □(⋁(□Γ))) 🡒 (□A ⋎ □(⋁(□Γ)))) ∈ LogicD := provable_axiomD;
     have t₃ : ((□A ⋎ □(⋁(□Γ))) 🡒 (□A ⋎ ⋁(□Γ))) ∈ LogicD :=
-      provable_of_provable_GL_imp LogicGL.or_mono ih;
+      provable_of_provable_GL_imp GL_taut_or_mono ih;
     have t₄ : ((□A ⋎ ⋁(□Γ)) 🡒 ⋁(□(insert A Γ))) ∈ LogicD :=
       provable_of_provable_GL GL_or_fdisj_insert;
     exact provable_imp_trans (provable_imp_trans (provable_imp_trans t₁ t₂) t₃) t₄;
