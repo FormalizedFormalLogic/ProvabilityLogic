@@ -559,21 +559,23 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
 -/
 theorem classification_provabilityLogic_TA [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicS ∨ L = LogicD ∨ L = LogicA ∨
-    ∃ n : ℕ, L = LogicGLBetaMinus {n}ᶜ (by simp) := by
+    (ℕ↓[ℒₒᵣ] ⊧* T ∧ L = LogicS) ∨
+    (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T) ∧ L = LogicD) ∨
+    (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞) ∧ L = LogicA) ∨
+    ∃ n : ℕ, T.height = n ∧ L = LogicGLBetaMinus {n}ᶜ (by simp) := by
   by_cases hheight : T.height = (⊤ : ℕ∞);
   . by_cases hSig : T.SoundOnHierarchy 𝚺 1;
     . by_cases hsound : ℕ↓[ℒₒᵣ] ⊧* T;
-      . exact Or.inl eq_provabilityLogic_TA_LogicS_of_sound;
-      . exact Or.inr (Or.inl (eq_provabilityLogic_TA_LogicD_iff.mpr ⟨hSig, hsound⟩));
+      . exact Or.inl ⟨hsound, eq_provabilityLogic_TA_LogicS_of_sound⟩;
+      . exact Or.inr (Or.inl ⟨hSig, hsound, eq_provabilityLogic_TA_LogicD_iff.mpr ⟨hSig, hsound⟩⟩);
     . exact Or.inr (Or.inr (Or.inl
-        (eq_provabilityLogic_TA_LogicA_iff.mpr ⟨hSig, hheight⟩)));
+        ⟨hSig, hheight, eq_provabilityLogic_TA_LogicA_iff.mpr ⟨hSig, hheight⟩⟩));
   . obtain ⟨n, hn⟩ : ∃ n : ℕ, T.height = n := by
       rcases eq_top_or_lt_top T.height with h | h;
       . exact absurd h hheight;
       . obtain ⟨n, hn⟩ := ENat.ne_top_iff_exists.mp (LT.lt.ne_top h);
         exact ⟨n, hn.symm⟩;
-    exact Or.inr (Or.inr (Or.inr ⟨n, eq_provabilityLogic_TA_LogicGLBetaMinus_iff.mpr hn⟩));
+    exact Or.inr (Or.inr (Or.inr ⟨n, hn, eq_provabilityLogic_TA_LogicGLBetaMinus_iff.mpr hn⟩));
 
 end trueArith
 
