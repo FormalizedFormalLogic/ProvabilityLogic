@@ -2,7 +2,7 @@ module
 
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.ProvabilityLogic.Classification.Full
-public import SeqPL.ProvabilityLogic.Solovay
+public import SeqPL.ProvabilityLogic.SolovaySentences
 
 @[expose] public section
 

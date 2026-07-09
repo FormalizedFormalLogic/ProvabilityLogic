@@ -113,7 +113,7 @@ theorem exists_modifiedSolovaySentences [DecidableEq α] {κ : Type u} [Nonempty
     Nonempty (T.standardProvability.ModifiedSolovaySentences X σ) := by
   -- `h`'s limit climbs by refutation proofs but never enters `r`, and jumps from the
   -- old root `b` to `r` as soon as a witness of `σ` is found. To be realized via the
-  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.Solovay`;
+  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.SolovaySentences`;
   -- the `𝚺₁`-ness of `σ` is needed for the provable `𝚺₁`-completeness arguments behind
   -- the conditions `SC3r`, `SC5` and `SC6`.
   sorry

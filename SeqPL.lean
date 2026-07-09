@@ -71,7 +71,6 @@ public import SeqPL.ProvabilityLogic.GLPoint3.Basic
 public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.S.Basic
-public import SeqPL.ProvabilityLogic.Solovay
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Tait.Basic
 public import SeqPL.Vorspiel.CWF

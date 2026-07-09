@@ -5,7 +5,6 @@ public import SeqPL.Kripke.RootedModel
 public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Interpret
-public import SeqPL.ProvabilityLogic.Solovay
 public import SeqPL.ProvabilityLogic.SolovaySentences
 
 @[expose] public section
