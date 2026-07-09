@@ -31,6 +31,8 @@ public import SeqPL.Kripke.Tail
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Basic
 public import SeqPL.LabelledGentzen.Completeness
+public import SeqPL.LabelledGentzen.GLPoint3.Basic
+public import SeqPL.LabelledGentzen.GLPoint3.Kripke
 public import SeqPL.LabelledGentzen.Gentzen
 public import SeqPL.LabelledGentzen.Kripke
 public import SeqPL.LabelledGentzen.Loop
