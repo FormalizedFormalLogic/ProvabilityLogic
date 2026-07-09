@@ -2,7 +2,7 @@ module
 
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.ToFoundation.Vorspiel.Rel.CWF
+public import Foundation.Vorspiel.Rel.CWF
 public import SeqPL.Logic.GL.Letterless
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Formula.Substitution
@@ -263,7 +263,7 @@ lemma rank_eq (i : (finiteLineModel n).World) : i.rank = (n - i) := by
     suffices (finiteLineModel.of i.castSucc).rank = (finiteLineModel.of i.succ).rank + 1 by grind;
     haveI : IsConverseWellFounded (finiteLineModel n).World (finiteLineModel n).Rel :=
       ⟨(inferInstance : (finiteLineModel n).IsGL).cwf⟩;
-    apply cwfHeight_eq_succ_cwfHeight (r := (finiteLineModel n).Rel);
+    apply cwfHeight_eq_succ_cwfHeight (R := (finiteLineModel n).Rel);
     . exact Fin.castSucc_lt_succ;
     . intro c hc;
       simp only [Model.Rel, Fin.lt_def, Fin.ext_iff, Fin.val_castSucc, Fin.val_succ] at hc ⊢;
@@ -311,7 +311,7 @@ lemma rank_eq (x : (uLiftFiniteLineModel n (α := α)).World) : x.rank = (n - x.
     ⟨(inferInstance : (uLiftFiniteLineModel n (α := α)).IsGL).cwf⟩;
   obtain ⟨i, rfl⟩ := worldEquiv.surjective x;
   show cwfHeight (uLiftFiniteLineModel n (α := α)).Rel (worldEquiv i) = (n - i);
-  rw [← cwfHeight_congr (r := (finiteLineModel n).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
+  rw [← cwfHeight_congr (R := (finiteLineModel n).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
   exact finiteLineModel.rank_eq i;
 
 lemma height_eq : (uLiftFiniteLineModel n (α := α)).height = n := by apply rank_eq;
