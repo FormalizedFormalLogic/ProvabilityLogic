@@ -87,7 +87,7 @@ variable {α : Type u}
 
 open Model Model.World
 
-/-- Soundness of `GLPoint3` over finite linear GL models. -/
+/-- Soundness of `LogicGLPoint3` over finite linear GL models. -/
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
     [M.IsFiniteGLPoint3] {A : Formula α} (h : A ∈ LogicGLPoint3) : M ⊧ A := by
   induction h using LogicGLPoint3.substlessInduction with

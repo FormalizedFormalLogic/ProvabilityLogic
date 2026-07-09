@@ -17,7 +17,7 @@ variable {α : Type u}
 
 /-! ### Consistency assertions
 
-A modal formula `A` is a theorem of `GLPoint3` (`GLlin`) iff every arithmetical
+A modal formula `A` is a theorem of `LogicGLPoint3` (`GLlin`) iff every arithmetical
 interpretation of `A` sending each propositional variable to a *consistency
 assertion* is provable in `𝗣𝗔`.
 
@@ -327,8 +327,8 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] [L.DecidableEq]
          {A : Formula α}
 
 /--
-Arithmetical soundness of `GLPoint3` w.r.t. consistency realizations (the easy
-direction of Theorem 1): a `GLPoint3` theorem is provable under every consistency
+Arithmetical soundness of `LogicGLPoint3` w.r.t. consistency realizations (the easy
+direction of Theorem 1): a `LogicGLPoint3` theorem is provable under every consistency
 realization.
 
 - [VS83, Theorem 1]
@@ -350,7 +350,7 @@ theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
     Formula.interpret_iff_congr (f₁ := f.1) (fun a => hg₂ a) A;
   cl_prover [h₂, h₃];
 
-/-- Arithmetical soundness of `GLPoint3` w.r.t. consistency realizations, at the
+/-- Arithmetical soundness of `LogicGLPoint3` w.r.t. consistency realizations, at the
 object-theory level. -/
 theorem arithmetical_soundness' (hA : A ∈ LogicGLPoint3) : U ⊢ f A :=
   Entailment.WeakerThan.pbl (arithmetical_soundness hA)
@@ -365,8 +365,8 @@ open Model Model.World
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] {A : Formula α}
 
 /--
-Arithmetical completeness of `GLPoint3` w.r.t. consistency realizations (the hard
-direction of Theorem 1): if `A` is not a theorem of `GLPoint3`, then some consistency
+Arithmetical completeness of `LogicGLPoint3` w.r.t. consistency realizations (the hard
+direction of Theorem 1): if `A` is not a theorem of `LogicGLPoint3`, then some consistency
 realization of `A` is unprovable in `T` (provided `T.height = ⊤`, e.g. `T = 𝗣𝗔`).
 
 - [VS83, Theorem 1]
@@ -466,7 +466,7 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   exact Provability.height_eq_top_iff.mp height M.height h₄;
 
 /--
-For any theory of infinite height, `A` is a theorem of `GLPoint3` iff every
+For any theory of infinite height, `A` is a theorem of `LogicGLPoint3` iff every
 consistency realization of `A` is provable.
 
 - [VS83, Theorem 1]

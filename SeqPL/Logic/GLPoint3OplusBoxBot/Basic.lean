@@ -8,8 +8,8 @@ public import SeqPL.Logic.GLPoint3.Basic
 @[expose]
 public section
 
-/-- `GLPoint3OplusBoxBot n`: the normal extension of `GLPoint3` by the boxbot axiom
-`□^[n]⊥` for a finite `n`, and `GLPoint3` itself for `n = ∞`. -/
+/-- `LogicGLPoint3OplusBoxBot n`: the normal extension of `LogicGLPoint3` by the boxbot axiom
+`□^[n]⊥` for a finite `n`, and `LogicGLPoint3` itself for `n = ∞`. -/
 def LogicGLPoint3OplusBoxBot {α} : ℕ∞ → Logic α
   | .some n => LogicGLPoint3 ⊕ᴸ {□^[n]⊥}
   | .none   => LogicGLPoint3
@@ -19,21 +19,21 @@ namespace LogicGLPoint3OplusBoxBot
 variable {α : Type*} [DecidableEq α] {n : ℕ} {A B C : Formula α}
 
 omit [DecidableEq α] in
-/-- `GLPoint3OplusBoxBot n` unfolds to `GLPoint3 ⊕ᴸ {□^[n]⊥}` for finite `n`. -/
+/-- `LogicGLPoint3OplusBoxBot n` unfolds to `LogicGLPoint3 ⊕ᴸ {□^[n]⊥}` for finite `n`. -/
 @[simp]
 lemma eq_some : LogicGLPoint3OplusBoxBot (α := α) (n : ℕ∞) = (LogicGLPoint3 ⊕ᴸ {□^[n]⊥}) := rfl
 
 omit [DecidableEq α] in
-/-- Lift a `GLPoint3` theorem into `GLPoint3OplusBoxBot n`. -/
+/-- Lift a `LogicGLPoint3` theorem into `LogicGLPoint3OplusBoxBot n`. -/
 lemma provable_of_provable_GLPoint3 (h : A ∈ LogicGLPoint3) : A ∈ LogicGLPoint3OplusBoxBot n :=
   Logic.sumNormal.mem₁ h
 
 omit [DecidableEq α] in
-/-- The boxbot axiom `□^[n]⊥` is provable in `GLPoint3OplusBoxBot n`. -/
+/-- The boxbot axiom `□^[n]⊥` is provable in `LogicGLPoint3OplusBoxBot n`. -/
 lemma boxbot : (□^[n]⊥ : Formula α) ∈ LogicGLPoint3OplusBoxBot n :=
   Logic.sumNormal.mem₂ rfl
 
-/-- `□^[n]A` is provable in `GLPoint3OplusBoxBot n`. -/
+/-- `□^[n]A` is provable in `LogicGLPoint3OplusBoxBot n`. -/
 lemma axiomNVer : (□^[n]A) ∈ LogicGLPoint3OplusBoxBot n := by
   have himp : (□^[n]⊥ 🡒 □^[n]A) ∈ LogicGLPoint3 := by
     apply LogicGLPoint3.provable_of_provable_GL
@@ -43,16 +43,16 @@ lemma axiomNVer : (□^[n]A) ∈ LogicGLPoint3OplusBoxBot n := by
   exact Logic.sumNormal.mdp (provable_of_provable_GLPoint3 himp) boxbot
 
 omit [DecidableEq α] in
-/-- Lift a GL theorem into `GLPoint3OplusBoxBot n`. -/
+/-- Lift a GL theorem into `LogicGLPoint3OplusBoxBot n`. -/
 lemma of_GL (h : A ∈ LogicGL) : A ∈ LogicGLPoint3OplusBoxBot n :=
   provable_of_provable_GLPoint3 (LogicGLPoint3.provable_of_provable_GL h)
 
-/-- Transitivity of implication inside `GLPoint3OplusBoxBot n`. -/
+/-- Transitivity of implication inside `LogicGLPoint3OplusBoxBot n`. -/
 lemma imp_trans (hAB : (A 🡒 B) ∈ LogicGLPoint3OplusBoxBot n)
     (hBC : (B 🡒 C) ∈ LogicGLPoint3OplusBoxBot n) : (A 🡒 C) ∈ LogicGLPoint3OplusBoxBot n :=
   Logic.sumNormal.imp_trans (LogicGLPoint3.provable_of_provable_GL LogicGL.imp_trans) hAB hBC
 
-/-- The axiom `◇C 🡒 □C` is provable in `GLPoint3OplusBoxBot 2`. -/
+/-- The axiom `◇C 🡒 □C` is provable in `LogicGLPoint3OplusBoxBot 2`. -/
 lemma provable_CD : (◇C 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 := by
   have c1 : (◇C 🡒 (◇C ⋏ □^[2]C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
     have t : (□^[2]C 🡒 ◇C 🡒 (◇C ⋏ □^[2]C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
@@ -90,7 +90,7 @@ lemma provable_CD : (◇C 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 := by
     grind;
   exact Logic.sumNormal.mdp (Logic.sumNormal.mdp t chain) axiomNVer;
 
-/-- The convergence axiom `.2` (`WeakPoint2`) is provable in `GLPoint3OplusBoxBot 2`. -/
+/-- The convergence axiom `.2` (`WeakPoint2`) is provable in `LogicGLPoint3OplusBoxBot 2`. -/
 lemma provable_weakPoint2_in_2 : (◇(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ LogicGLPoint3OplusBoxBot 2 := by
   have cdInst : (◇(□A ⋏ B) 🡒 □(□A ⋏ B)) ∈ LogicGLPoint3OplusBoxBot 2 := provable_CD;
   have w : (□(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ LogicGLPoint3OplusBoxBot 2 := by
@@ -103,7 +103,7 @@ lemma provable_weakPoint2_in_2 : (◇(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ Logi
 end LogicGLPoint3OplusBoxBot
 
 
-/-- `GLPoint3OplusBoxBot 2 = GLPoint2`. -/
+/-- `LogicGLPoint3OplusBoxBot 2 = LogicGLPoint2`. -/
 lemma eq_GLPoint3OplusBoxBot_2_GLPoint2 [DecidableEq α] :
     LogicGLPoint3OplusBoxBot 2 = (LogicGLPoint2 : Logic α) := by
   have e : LogicGLPoint3OplusBoxBot (α := α) 2 = (LogicGLPoint3 ⊕ᴸ {□^[2]⊥}) := rfl

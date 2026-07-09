@@ -11,7 +11,7 @@ variable {α : Type u}
 namespace LogicGLPoint3
 
 /--
-  **Kripke completeness of `GLPoint3`** with respect to finite rooted linear GL models:
+  **Kripke completeness of `LogicGLPoint3`** with respect to finite rooted linear GL models:
   a formula is a theorem of `LogicGLPoint3` iff it is forced at the root of every
   finite rooted linear GL model.
 

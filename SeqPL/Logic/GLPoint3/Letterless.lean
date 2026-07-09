@@ -15,7 +15,7 @@ namespace LogicGLPoint3
 
 variable {α : Type u}
 
-/-- Collapsing all atoms to `⊥` preserves `GLPoint3`-provability. -/
+/-- Collapsing all atoms to `⊥` preserves `LogicGLPoint3`-provability. -/
 lemma projectEmpty_of_provable {A : Formula α} (h : A ∈ LogicGLPoint3) :
     (A.projectEmpty : LetterlessFormula) ∈ LogicGLPoint3 (α := Empty) := by
   induction h using LogicGLPoint3.substlessInduction with
@@ -25,7 +25,7 @@ lemma projectEmpty_of_provable {A : Formula α} (h : A ∈ LogicGLPoint3) :
   | nec ih => exact Logic.sumNormal.nec ih;
 
 /-- **Theorem 2 of Sambin & Valentini**, in its essential form: over `LetterlessFormula`
-(`Formula Empty`), `GLPoint3` and `GL` prove exactly the same formulas. -/
+(`Formula Empty`), `LogicGLPoint3` and `GL` prove exactly the same formulas. -/
 theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
   apply Set.ext;
   intro A;
@@ -41,7 +41,7 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
   . exact provable_of_provable_GL;
 
 /-- **Theorem 2 of Sambin & Valentini**: on letterless formulas (lifted into an arbitrary `α`),
-`GLPoint3` proves exactly what `GL` proves. -/
+`LogicGLPoint3` proves exactly what `GL` proves. -/
 theorem iff_provable_GLPoint3_provable_GL_of_letterless {A : LetterlessFormula} :
     (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔
     (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by
