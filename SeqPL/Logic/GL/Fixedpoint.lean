@@ -133,8 +133,7 @@ lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula
 
 /-- Semantic core of the uniqueness of fixed points (SV82, Lemma 4.3):
 if `A 🡘 p` and `A⟦p ↦ q⟧ 🡘 q` hold at `x` and hereditarily above `x`,
-then `p` and `q` agree at `x` and hereditarily above `x`.
-Proved by converse well-founded induction. -/
+then `p` and `q` agree at `x` and hereditarily above `x`. -/
 lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
     (h₁ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A ↔ M.Val y p))
     (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A⟦p ↦ #q⟧ ↔ M.Val y q)) :
@@ -225,8 +224,9 @@ theorem subst (s : Substitution α α) {S : Sequent α} (h : ⊢ᵍ S) :
 
 /-! ### Admissibility of Löb's rule (GL.typ, rule Löb) -/
 
-/-- Löb's rule is admissible in `ProofGentzen`, via admissibility of cut. -/
+/-- Löb's rule is admissible in `ProofGentzen`. -/
 theorem ruleLoeb (h : ⊢ᵍ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ (Γ ∪ Γ.box ⟹ {A}) := by
+  -- via admissibility of cut
   apply of_with_cut
   have h₁ : ⊢ᵍᶜ ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=
     GentzenWithCutProvable.wkR
@@ -321,7 +321,7 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
 
 /-! ### Existence of fixed points (SV82, Theorem 4.4; GL.typ, Lemma 3.10) -/
 
-/-- The premise sequent for the interpolation argument, proved semantically:
+/-- The premise sequent for the interpolation argument:
 `p, A, □(A 🡘 p), □(A' 🡘 q) ⟹ q, A'` where `A' = A⟦p ↦ q⟧`. -/
 lemma fixpoint_premise (hA : A.ModalizedIn p) :
     ⊢ᵍ ({#p, A, □(A 🡘 #p), □((A⟦p ↦ #q⟧) 🡘 #q)} ⟹ {(#q : Formula α), A⟦p ↦ #q⟧}) := by

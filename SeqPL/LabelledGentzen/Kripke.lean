@@ -213,8 +213,11 @@ namespace LabelledGentzen.ProvableLabelledGentzen
 namespace Kripke
 
 open Model in
-/-- Soundness of `G3KGL` with respect to Kripke semantics on `GL` models
-(`[Neg14]` Theorem 5.4). -/
+/--
+Soundness of `G3KGL` with respect to Kripke semantics on `GL` models.
+
+- [Neg14, Theorem 5.4]
+-/
 theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → ∀ L : M.LabelMap, M ⊧ˡ[L] S := by
   intro κ _ M _;

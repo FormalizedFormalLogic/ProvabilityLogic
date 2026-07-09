@@ -44,9 +44,10 @@ variable {T₀ T : FirstOrder.ArithmeticTheory} [T₀ ⪯ T] [Diagonalization T�
          {𝔅 : Provability T₀ T} [𝔅.HBL] [ℕ↓[ℒₒᵣ] ⊧* T] [𝔅.SoundOn ℕ]
 
 /--
-  **Arithmetical soundness of S** (Theorem 3 in [AB05], soundness half):
-  every theorem of `S` is true in the standard model `ℕ` under every realization
-  of a provability predicate for a sound theory.
+  **Arithmetical soundness of S**: every theorem of `S` is true in the standard model `ℕ`
+  under every realization of a provability predicate for a sound theory.
+
+  - [AB05, Theorem 3 (soundness half)]
 -/
 theorem arithmetical_soundness (h : A ∈ LogicS) (f : Realization α 𝔅) : ℕ↓[ℒₒᵣ] ⊧ f A := by
   induction h using LogicS.substlessInduction with
@@ -71,8 +72,10 @@ open LO.FirstOrder.Arithmetic.Bootstrapping
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ↓[ℒₒᵣ] ⊧* T]
 
 /--
-  **Arithmetical completeness of S** (Theorem 3 in [AB05], completeness half):
-  if `A` is true in `ℕ` under every standard realization for `T`, then `A ∈ LogicS`.
+  **Arithmetical completeness of S**: if `A` is true in `ℕ` under every standard
+  realization for `T`, then `A ∈ LogicS`.
+
+  - [AB05, Theorem 3 (completeness half)]
 -/
 theorem arithmetical_completeness [DecidableEq α]
     (H : ∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A) : A ∈ LogicS := by
@@ -106,9 +109,10 @@ theorem arithmetical_completeness [DecidableEq α]
   exact h₁ h₂;
 
 /--
-  **Arithmetical characterization of S** (Theorem 3 in [AB05]): for any sound theory `T`
-  (i.e. `ℕ↓[ℒₒᵣ] ⊧* T`) extending `𝗜𝚺₁`, `S ⊢ A` iff `f A` is true in `ℕ` for every
-  standard realization `f` for `T`.
+  **Arithmetical characterization of S**: for any sound theory `T` (i.e. `ℕ↓[ℒₒᵣ] ⊧* T`)
+  extending `𝗜𝚺₁`, `S ⊢ A` iff `f A` is true in `ℕ` for every standard realization `f` for `T`.
+
+  - [AB05, Theorem 3]
 -/
 theorem arithmetical_completeness_iff [DecidableEq α] :
     A ∈ LogicS ↔ (∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ f A) :=

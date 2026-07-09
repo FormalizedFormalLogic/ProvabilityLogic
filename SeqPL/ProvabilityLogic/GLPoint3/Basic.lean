@@ -238,9 +238,10 @@ of Valentini & Solitro 1983); this is the existing (sorry-free) lemma
 `Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.LetterlessTrace`. -/
 
 /-- In a finite rooted linear GL model, the rank determines the world: `rank` is
-injective (any two distinct worlds are comparable, hence of distinct ranks). -/
+injective. -/
 lemma RootedModel.eq_of_rank_eq {M : RootedModel κ α} [Fintype M.World] [M.IsFiniteGLPoint3]
   {x y : M.World} (h : x.rank = y.rank) : x = y := by
+  -- Any two distinct worlds are comparable (linearity), hence have distinct ranks.
   by_contra! ne;
   suffices x ≺ y ∨ y ≺ x by grind [Model.rank_lt_of_rel];
   by_cases hx : x ≠ M.root.1 <;>
@@ -316,13 +317,13 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] [L.DecidableEq]
 /--
   **Arithmetical soundness of `GLPoint3` w.r.t. consistency realizations** (the easy
   direction of Theorem 1 of Valentini & Solitro 1983): a `GLPoint3` theorem is provable
-  under every consistency realization. Proved by replacing each atom by an equivalent
-  consistency form, so that the substituted formula is letterless; `GLPoint3` and `GL`
-  prove the same letterless formulas (Theorem 2 of Sambin & Valentini,
-  `iff_provable_GLPoint3_provable_GL_of_letterless`), and the arithmetical soundness of
-  `GL` applies.
+  under every consistency realization.
 -/
 theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
+  -- Replace each atom by an equivalent consistency form, so that the substituted formula
+  -- is letterless; `GLPoint3` and `GL` prove the same letterless formulas (Theorem 2 of
+  -- Sambin & Valentini, `iff_provable_GLPoint3_provable_GL_of_letterless`), and the
+  -- arithmetical soundness of `GL` applies.
   choose g hg₁ hg₂ using fun a => Provability.IsConsistencyAssertion.exists_consistencyForm (f.2 a);
   have hGL : (LetterlessFormula.lift (A.substLetterless g) : Formula α) ∈ LogicGL := by
     apply iff_provable_GLPoint3_provable_GL_of_letterless.mp;
@@ -466,7 +467,7 @@ theorem arithmetical_completeness_iff_of_sigma1_sound [DecidableEq α] [T.SoundO
 
 /--
   **Theorem 1 of Valentini & Solitro 1983**: for each modal formula `A`,
-  `⊢GLlin A` iff `⊢PA φ(A)` for each interpretation `φ` sending every propositional
+  `A ∈ LogicGLPoint3` iff `⊢PA φ(A)` for each interpretation `φ` sending every propositional
   variable to a consistency assertion of `𝗣𝗔`.
 -/
 theorem arithmetical_completeness_iff_peano_arithmetic [DecidableEq α] :

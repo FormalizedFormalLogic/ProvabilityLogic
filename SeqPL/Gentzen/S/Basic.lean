@@ -130,7 +130,7 @@ lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grin
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᴳ (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
-/-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then so is the level-`0` one (contrapositive of `liftUp`). -/
+/-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then so is the level-`0` one. -/
 lemma not_provable_zero_of_not_provable_one : ⊬ᴳ (Γ ⟹[1] Δ) → ⊬ᴳ (Γ ⟹[0] Δ) := by
   contrapose!;
   apply liftUp;

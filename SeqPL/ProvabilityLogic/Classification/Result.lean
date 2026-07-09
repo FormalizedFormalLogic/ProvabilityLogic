@@ -19,7 +19,9 @@ section univ_trace
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and is contained in `S`,
-  then it is one of `GLαω`, `D`, and `S`. Assertion 3 in [Bek90].
+  then it is one of `LogicA`, `D`, and `S`.
+
+  - [Bek90, Assertion 3]
 -/
 lemma classification_LogicS_sublogics_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -45,14 +47,14 @@ variable [DecidableEq α]
 section modal
 
 omit [DecidableEq α] in
-/-- `GLα` is monotone in the trace set. -/
+/-- `LogicGLAlpha` is monotone in the trace set. -/
 lemma LogicGLAlpha.mono {Alpha Alpha' : Set ℕ} (h : Alpha ⊆ Alpha') :
     (LogicGLAlpha Alpha : Logic α) ⊆ LogicGLAlpha Alpha' := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
   rintro A ⟨B, ⟨n, hn, rfl⟩, rfl⟩;
   exact Logic.sumQuasiNormal.mem₂ ⟨TBB n, ⟨n, h hn, rfl⟩, rfl⟩;
 
-/-- `GLα Beta ⊆ GLβ⁻ Beta` for cofinite `Beta` (both have trace `Beta`, and `GLβ⁻` is the largest). -/
+/-- `LogicGLAlpha Beta ⊆ LogicGLBetaMinus Beta` for cofinite `Beta` (both have trace `Beta`, and `LogicGLBetaMinus` is the largest). -/
 lemma LogicGLAlpha.subset_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finite) :
     (LogicGLAlpha Beta : Logic α) ⊆ LogicGLBetaMinus Beta hCf := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
@@ -73,12 +75,15 @@ lemma LogicGLAlpha.subset_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finit
   exact hk' hn;
 
 /--
-  `GLα Beta = GLαω ∩ GLβ⁻ Beta` for cofinite `Beta`: the `η`/`ξ` correspondence of [AB05]
-  evaluated at `GLα Beta`, proved via the finite compactness
-  `GL_sumQuasiNormal_finite_provable` (note `Betaᶜ` is finite).
+  `LogicGLAlpha Beta = LogicA ∩ LogicGLBetaMinus Beta` for cofinite `Beta`: the `η`/`ξ`
+  correspondence evaluated at `LogicGLAlpha Beta`.
+
+  - [AB05]
 -/
 lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finite) :
     (LogicGLAlpha Beta : Logic α) = LogicA ∩ LogicGLBetaMinus Beta hCf := by
+  -- Proved via the finite compactness `GL_sumQuasiNormal_finite_provable`
+  -- (note `Betaᶜ` is finite).
   apply Set.Subset.antisymm;
   . exact Set.subset_inter (LogicGLAlpha.mono (Set.subset_univ Beta))
       (LogicGLAlpha.subset_LogicGLBetaMinus hCf);
@@ -214,13 +219,13 @@ omit [DecidableEq α] in
 /--
   Deduction: if `A` is in the provability logic relative to `U + TBB-axioms` for a
   finite `N`, then `⋀TBB(N) 🡒 A` is in the provability logic relative to `U`.
-  Uses the finiteness of `N` and realization-independence of letterless interpretations.
 -/
 lemma imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB (hN : N.Finite) :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
     ∀ {A : Formula α}, A ∈ L' →
       ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α) 🡒 A) ∈ L := by
+  -- Uses the finiteness of `N` and realization-independence of letterless interpretations.
   intro A hA f;
   obtain ⟨⟨s, hs_sub⟩, hs⟩ := LO.FirstOrder.Theory.compact_add_right (hA f);
   show U ⊢ (Formula.interpret f (LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α))
@@ -272,9 +277,7 @@ lemma trace_univ_addTBB_compl_trace :
 
 include hCf in
 /--
-  If `L ⊆ S`, the extension by the missing `TBB` axioms is still contained in `S`
-  (otherwise, by Lemma 49, it would equal `GLβ⁻ ω` which is inconsistent, contradicting
-  the consistency of `S`).
+  If `L ⊆ S`, the extension by the missing `TBB` axioms is still contained in `S`.
 -/
 lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -343,8 +346,10 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
   exact LogicS.consistent (Logic.sumQuasiNormal.mdp (hS hded) hC₀S);
 
 /--
-  `L = L'' ∩ GLβ⁻ (L.trace)` where `L''` is the extension of `L` by the missing `TBB`
-  axioms: the `η ∘ ξ = id` part of the correspondence in [AB05].
+  `L = L'' ∩ LogicGLBetaMinus (L.trace)` where `L''` is the extension of `L` by the missing
+  `TBB` axioms: the `η ∘ ξ = id` part of the correspondence.
+
+  - [AB05]
 -/
 lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -385,10 +390,8 @@ end
 
 /--
   If the provability logic of `T` relative to `U` has cofinite trace `Beta` and is
-  contained in `S`, then it is one of `GLα Beta`, `D ∩ GLβ⁻ Beta`, and `S ∩ GLβ⁻ Beta`.
-  Obtained from the
-  `ω`-trace classification by adjoining the missing `TBB` axioms (`αPL` in Foundation's
-  `ProvabilityLogic.Classification.Result`) and intersecting back with `GLβ⁻ β`.
+  contained in `S`, then it is one of `LogicGLAlpha Beta`, `D ∩ LogicGLBetaMinus Beta`,
+  and `S ∩ LogicGLBetaMinus Beta`.
 -/
 lemma classification_LogicS_sublogics_of_cofinite_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -396,6 +399,9 @@ lemma classification_LogicS_sublogics_of_cofinite_trace :
       L = LogicGLAlpha L.trace ∨
       L = LogicD ∩ LogicGLBetaMinus L.trace hCf ∨
       L = LogicS ∩ LogicGLBetaMinus L.trace hCf := by
+  -- Obtained from the `ω`-trace classification by adjoining the missing `TBB` axioms
+  -- (`αPL` in Foundation's `ProvabilityLogic.Classification.Result`) and intersecting
+  -- back with `LogicGLBetaMinus β`.
   intro hCf hS;
   haveI hUW : U ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
     FirstOrder.ArithmeticTheory.addTBB.weakerThan;
@@ -424,13 +430,14 @@ open Classical in
 /--
   **The classification theorem of provability logics.**
   Let `L` be the provability logic of `T` relative to `U`.
-  - If `L.trace` is coinfinite, then `L = GLα (L.trace)`.
+  - If `L.trace` is coinfinite, then `L = LogicGLAlpha (L.trace)`.
   - Otherwise `L.trace` is cofinite (by `Formula.trace_finite_or_cofinite`), and:
-    - if `L ⊄ S`, then `L = GLβ⁻ (L.trace)`;
-    - if `L ⊆ S`, then `L` is one of `GLα (L.trace)`, `D ∩ GLβ⁻ (L.trace)`,
-      and `S ∩ GLβ⁻ (L.trace)`.
+    - if `L ⊄ S`, then `L = LogicGLBetaMinus (L.trace)`;
+    - if `L ⊆ S`, then `L` is one of `LogicGLAlpha (L.trace)`, `D ∩ LogicGLBetaMinus (L.trace)`,
+      and `S ∩ LogicGLBetaMinus (L.trace)`.
 
-  Assertion 6 in [Bek90]; Theorem 40 in [AB05].
+  - [Bek90, Assertion 6]
+  - [AB05, Theorem 40]
 -/
 theorem classification_provability_logics [DecidableEq α] :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -468,8 +475,10 @@ properties of `T`:
 section trueArith
 
 /--
-  Corollary 41(i) in [AB05], the `⇐` direction (Solovay's second theorem): the truth
-  provability logic of a sound theory is `S`.
+  The `⇐` direction (Solovay's second theorem): the truth provability logic of a sound
+  theory is `S`.
+
+  - [AB05, Corollary 41(i)]
 -/
 theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒᵣ] ⊧* T] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
@@ -491,10 +500,12 @@ theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒ�
   . exact h;
 
 /--
-  **Corollary 41(i) in [AB05]**: for a type of atoms with at least one element, the truth
-  provability logic of `T` is `S` iff `T` is sound. (Some atom is needed for the forward
-  direction: over `Empty` every theory of infinite characteristic has truth provability
-  logic `S`, since all letterless logics between `GLαω` and `S` coincide.)
+  For a type of atoms with at least one element, the truth provability logic of `T` is
+  `S` iff `T` is sound. (Some atom is needed for the forward direction: over `Empty`
+  every theory of infinite characteristic has truth provability logic `S`, since all
+  letterless logics between `LogicA` and `S` coincide.)
+
+  - [AB05, Corollary 41(i)]
 -/
 theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
@@ -519,8 +530,9 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
     exact eq_provabilityLogic_TA_LogicS_of_sound;
 
 /--
-  **Corollary 41(ii) in [AB05]**: the truth provability logic of `T` is `D` iff `T` is
-  `Σ₁`-sound but not sound.
+  The truth provability logic of `T` is `D` iff `T` is `Σ₁`-sound but not sound.
+
+  - [AB05, Corollary 41(ii)]
 -/
 theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
@@ -675,8 +687,10 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     . exact absurd (eq_provabilityLogic_TA_LogicS_iff.mp h) hsound;
 
 /--
-  **Corollary 41(iii) in [AB05]**: the truth provability logic of `T` is `GLαω` iff `T`
-  is not `Σ₁`-sound but of infinite characteristic.
+  The truth provability logic of `T` is `LogicA` iff `T` is not `Σ₁`-sound but of
+  infinite characteristic.
+
+  - [AB05, Corollary 41(iii)]
 -/
 theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
@@ -840,8 +854,10 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
       exact absurd (inferInstance : T.SoundOnHierarchy 𝚺 1) hSig;
 
 /--
-  **Corollary 41(iv) in [AB05]**: the truth provability logic of `T` is
-  `GLβ⁻ {n}ᶜ = GL{∼TBB n}` iff `T` has characteristic `n`, i.e. `T.height = n`.
+  The truth provability logic of `T` is `LogicGLBetaMinus {n}ᶜ = GL{∼TBB n}` iff `T` has
+  characteristic `n`, i.e. `T.height = n`.
+
+  - [AB05, Corollary 41(iv)]
 -/
 theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
@@ -946,8 +962,10 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     exact LogicGLBetaMinus.congr htrace (cofinite_trace_of_not_subset_LogicS hnotS) (by simp);
 
 /--
-  **Corollary 41 in [AB05]** (exhaustiveness): every truth provability logic is one of
-  `S`, `D`, `GLαω`, and `GLβ⁻ {n}ᶜ`.
+  Exhaustiveness: every truth provability logic is one of `S`, `D`, `LogicA`, and
+  `LogicGLBetaMinus {n}ᶜ`.
+
+  - [AB05, Corollary 41]
 -/
 theorem classification_provabilityLogic_TA [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;

@@ -43,9 +43,10 @@ open Classical
 variable {M : Model κ α} {P : Finset α} {x y : M.World} {N : Model κ' α}
 
 /--
-  The conjunction of literals over `P` pinning down the valuation of `x` on `P`
-  (the formula `p̄^(x)` of [Bek90] §4): `a` for each `a ∈ P` true at `x`, and `∼a`
-  for each `a ∈ P` false at `x`.
+  The conjunction of literals over `P` pinning down the valuation of `x` on `P`:
+  `a` for each `a ∈ P` true at `x`, and `∼a` for each `a ∈ P` false at `x`.
+
+  - [Bek90]
 -/
 def World.valuationConj (P : Finset α) (x : M.World) : Formula α :=
   ⋀(P.image fun a => if M.Val x a then #a else ∼#a)
@@ -83,10 +84,11 @@ abbrev World.Successors (x : M.World) := { y : M.World // x ≺ y }
 instance : Fintype (x.Successors) := Subtype.fintype _
 
 /--
-  The characteristic formula `χ_x` of `x` over `P` ([Bek90] §4): it pins down the
-  valuation of `x` on `P`, asserts that each successor's characteristic formula is
-  possible, and asserts that every successor satisfies some successor's
-  characteristic formula.
+  The characteristic formula of `x` over `P`: it pins down the valuation of `x` on
+  `P`, asserts that each successor's characteristic formula is possible, and
+  asserts that every successor satisfies some successor's characteristic formula.
+
+  - [Bek90]
 -/
 def World.charFormulaUnder [M.IsGL] (P : Finset α) (x : M.World) : Formula α :=
   x.valuationConj P
@@ -183,7 +185,7 @@ lemma World.forces_charFormulaUnder_self : x ⊩ x.charFormulaUnder P := by
 end
 
 /--
-  The characteristic-formula relation `fun x w => w ⊩ χ_x` is a
+  The characteristic-formula relation `fun x w => w ⊩ x.charFormulaUnder P` is a
   bisimulation-under-`P` between a finite GL-model `M` and an *arbitrary* model `N`:
   the atomic/forth/back conditions are exactly the three components of
   `World.forces_charFormulaUnder_iff`.
@@ -209,10 +211,12 @@ open scoped Model
 
 /--
   A formula `A` is a **defining formula** for a (finite) GL-model `M` simple-under-`P`
-  (Bek90 §4, following [12]) if `A` depends only on `P`, is true at `M`'s root, and
-  `M` is the *unique* model simple-under-`P` (up to bisimilarity-under-`P` of the
-  roots, our surrogate for "`P`-isomorphism", see `Model.BisimulationUnder` in
+  (following [12]) if `A` depends only on `P`, is true at `M`'s root, and `M` is
+  the *unique* model simple-under-`P` (up to bisimilarity-under-`P` of the roots,
+  our surrogate for "`P`-isomorphism", see `Model.BisimulationUnder` in
   `SeqPL/Kripke/Preservation.lean`) in which `A` is true.
+
+  - [Bek90]
 -/
 structure IsDefiningFormula (P : Finset α) (M : RootedModel κ α) (A : Formula α) : Prop where
   atoms_subset : A.atoms ⊆ P
@@ -222,14 +226,16 @@ structure IsDefiningFormula (P : Finset α) (M : RootedModel κ α) (A : Formula
     ∃ Bi : M.toModel ⇄[P] N.toModel, Bi M.root.1 N.root.1
 
 /--
-  **Lemma 7 in [Bek90] §4**: if the set of variables `P` is finite, every finite
-  GL-model has a defining formula, namely the characteristic formula of its root.
+  If the set of variables `P` is finite, every finite GL-model has a defining
+  formula, namely the characteristic formula of its root.
 
-  Note that no simpleness (nor tree-ness) hypothesis on `M` is needed: [Bek90]
+  Note that no simpleness (nor tree-ness) hypothesis on `M` is needed: the paper
   states the lemma for models simple-under-`P` because its uniqueness is up to
   `P`-isomorphism, whereas our `IsDefiningFormula` phrases uniqueness via
   `Model.BisimulationUnder`, for which `Model.charBisimulationUnder` works against
   arbitrary models.
+
+  - [Bek90, Lemma 7]
 -/
 theorem exists_isDefiningFormula {M : RootedModel κ α} [M.IsFiniteGL] (P : Finset α) :
   ∃ A : Formula α, IsDefiningFormula P M A := by

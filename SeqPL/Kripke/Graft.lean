@@ -23,10 +23,11 @@ abbrev graft.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin
 
 /--
   The rooted model obtained by grafting a chain of length `k` between the root and `a`
-  (`root ≺ chain ≺ a` and its cone). A variant of the model `Kₙ` in the proof of
-  Lemma 12 in [AB05] ("bone lengthening" in Foundation): hanging the chain directly
-  below the root keeps the rank of every world other than the root unchanged, so that
-  the height is exactly `max M.height (a.rank + k + 1)`.
+  (`root ≺ chain ≺ a` and its cone). A variant of the model `Kₙ` ("bone lengthening" in
+  Foundation): hanging the chain directly below the root keeps the rank of every world
+  other than the root unchanged, so that the height is exactly `max M.height (a.rank + k + 1)`.
+
+  - [AB05, Lemma 12]
 -/
 abbrev graft (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graft.World M k) α where
   Rel' x y :=
@@ -162,14 +163,15 @@ lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graft a k).Wo
       omega;
 
 /--
-  **Height formula** (used in the proof of Lemma 12 in [AB05]):
-  `(M.graft a k).height = max M.height (a.rank + k + 1)`.
-  Note that Foundation's axiom `boneLengthening.eq_height` (claiming `M.height + k`)
-  is false in general when some other branch is higher; this `max` form holds exactly.
+  Height formula: `(M.graft a k).height = max M.height (a.rank + k + 1)`.
+
+  - [AB05, Lemma 12]
 -/
 lemma height_eq (Rra : M.root.1 ≺ a)
     [Fintype (M.graft a k).World] [(M.graft a k).IsGL] :
     (M.graft a k).height = max M.height (Model.World.rank a + k + 1) := by
+  -- Note that Foundation's axiom `boneLengthening.eq_height` (claiming `M.height + k`)
+  -- is false in general when some other branch is higher; this `max` form holds exactly.
   apply le_antisymm;
   . -- Upper bound: from the bound on chain lengths
     apply Nat.lt_succ_iff.mp;
@@ -235,10 +237,12 @@ open Model.World
 variable [DecidableEq α] {A : Formula α}
 
 /--
-  **Main lemma** (the forcing-preservation part of the proof of Lemma 12 in [AB05]):
-  if `a` forces every axiom T instance for the boxed subformulas of `A`, then for every
-  subformula `C` of `A`, forcing at the grafted chain worlds agrees with `a`, and forcing
-  at the `inl` worlds agrees with the original model.
+  The forcing-preservation main lemma: if `a` forces every axiom T instance for the
+  boxed subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
+  chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the original
+  model.
+
+  - [AB05, Lemma 12]
 -/
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
     (ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ ((□B) 🡒 B)) :

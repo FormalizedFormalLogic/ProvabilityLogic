@@ -197,11 +197,12 @@ lemma coverPoint_covers_root {a : M.World} (Rra : M.root.1 ≺ a) :
     omega;
   exact hpre.eq_of_length (by simp [hlen]) |>.symm;
 
-/-- In a GL model nothing lies below the root, so a chain from the root ends at the
-root only if it is the trivial chain: the root of the unravelling is the only
-unravelling world whose last element is `M`'s root. -/
+/-- The root of the tree unravelling is the only unravelling world whose last
+element is `M`'s root. -/
 lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
   (h : World.last t = M.root.1) : t = (M.unravelling).root.1 := by
+  -- In a GL model nothing lies below the root, so a chain from the root ends at
+  -- the root only if it is the trivial chain.
   apply Subtype.ext;
   obtain ⟨rest, hrest⟩ := root_prefix t;
   match rest, hrest with
@@ -225,7 +226,9 @@ lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
   last-element map sends `(M.unravelling).graftOmega (coverPoint Rra)` onto
   `M.graftOmega a`. This converts an arbitrary `graftOmega`-shaped ω-model
   into one over a finite *tree* whose grafted point *covers* the root -- the standing
-  hypotheses of the simplification machinery (Lemma 8 in [Bek90] §4).
+  hypotheses of the simplification machinery.
+
+  - [Bek90, Lemma 8, §4]
 -/
 def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
   (Rra : M.root.1 ≺ a) :

@@ -16,14 +16,16 @@ variable {α : Type u}
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 /--
-  **Half of Corollary 41(ii) in [AB05]** (converse direction): if the truth provability
-  logic of `T` is `D`, then `T` is `Σ₁`-sound. Uses Corollary 52(i)
-  (`provable_sigma1_reflection_of_mem_not_LogicA`) applied to axiom `D` itself, which lies
-  in `D` but not in `GLαω` (`LogicA.not_provable_axiomD`).
+  Converse direction: if the truth provability logic of `T` is `D`, then `T` is
+  `Σ₁`-sound.
+
+  - [AB05, Corollary 41(ii)]
 -/
 lemma soundOnHierarchy_of_eq_provabilityLogicRelativeTo_TA_LogicD [DecidableEq α] [Nonempty α]
     (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) = LogicD) :
     T.SoundOnHierarchy 𝚺 1 := by
+  -- Uses Corollary 52(i) (`provable_sigma1_reflection_of_mem_not_LogicA`) applied to axiom
+  -- `D` itself, which lies in `D` but not in `LogicA` (`LogicA.not_provable_axiomD`).
   apply soundOnHierarchy_of_models_standardProvability_imp;
   intro σ hσ;
   apply Arithmetic.TA.provable_iff.mp;

@@ -13,7 +13,7 @@ open LO.FirstOrder.ProvabilityAbstraction
 variable {α : Type*}
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T U : FirstOrder.Theory L} {𝔅 : Provability T₀ T}
 
-/-- Mapping modal prop vars to first-order sentence -/
+/-- A realization mapping modal propositional variables to first-order sentences. -/
 structure Realization (α : Type*) (𝔅 : Provability T₀ T) where
   val : α → FirstOrder.Sentence L
 

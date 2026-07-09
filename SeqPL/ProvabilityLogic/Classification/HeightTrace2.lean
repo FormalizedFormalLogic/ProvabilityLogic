@@ -48,14 +48,15 @@ end soundOnHierarchy
 section LogicD_TA
 
 /--
-  **Half of Corollary 41(ii) in [AB05]**: if `T` is `Σ₁`-sound, then `D` is contained in
-  the truth provability logic of `T`. Mimics the case split on the generators of `D`
-  (`GL`-fragment, axiom `P`, axiom `D`, `mdp`) used for
-  `subset_LogicD_of_ssubset_LogicA_of_univ_trace`, but derives truth in the standard
-  model directly in each case rather than provability in an extended theory.
+  If `T` is `Σ₁`-sound, then `D` is contained in the truth provability logic of `T`.
+
+  - [AB05, Corollary 41(ii)]
 -/
 lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
     (LogicD : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := by
+  -- Mimics the case split on the generators of `D` (`GL`-fragment, axiom `P`, axiom `D`,
+  -- `mdp`) used for `subset_LogicD_of_ssubset_LogicA_of_univ_trace`, but derives truth in
+  -- the standard model directly in each case rather than provability in an extended theory.
   intro A hA;
   induction hA using LogicD.substlessInduction with
   | provable_GL h => exact provabilityLogic_of_GL h;

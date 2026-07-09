@@ -135,11 +135,14 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [Decida
 
 /--
   **Reflexive main lemma** (cf. `SolovaySentences.rfl_mainlemma` in Foundation, used in
-  the proofs of Lemma 49 and the arithmetical completeness of `S` in [AB05]):
-  when the root of `M` forces all axiom T instances for boxed subformulas of `A`
-  (i.e. the root is `A`-reflexive), the Solovay sentence of the *new* root of
-  `M.extendRoot 1` decides the realizations of all subformulas of `A` according to
-  their truth at the root of `M`.
+  the proofs of the arithmetical completeness of `S`): when the root of `M` forces
+  all axiom T instances for boxed subformulas of `A` (i.e. the root is
+  `A`-reflexive), the Solovay sentence of the *new* root of `M.extendRoot 1` decides
+  the realizations of all subformulas of `A` according to their truth at the root of
+  `M`.
+
+  - [AB05, Lemma 49]
+  - [AB05]
 -/
 lemma rfl_mainlemma
     {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}

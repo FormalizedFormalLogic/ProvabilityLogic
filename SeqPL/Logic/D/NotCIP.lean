@@ -412,10 +412,7 @@ lemma exists_modalized_equiv_of_indep
   exact Model.World.forces_iff.mpr key;
 
 /-- Beklemishev 1989, Section 8, Lemma 12: there is no modalized single-variable formula
-`C(a)` with `S ⊢ C(a) 🡘 a`.  If there were, the de Jongh–Sambin fixed point of `∼C(a)`
-(via `LogicGL.fixpointTheorem`) would give `E` with `GL ⊢ ∼C(E) 🡘 E`; substituting `a ↦ E`
-into `S ⊢ C(a) 🡘 a` yields `S ⊢ C(E) 🡘 E`, whence `S ⊢ E 🡘 ∼E`, contradicting the
-consistency of `S` (`LogicS.consistent`). -/
+`C(a)` with `S ⊢ C(a) 🡘 a`. -/
 lemma not_exists_modalized_equiv_atom [Nontrivial α] :
     ¬ ∃ (C : Formula α) (a : α), C.Modalized ∧ C.atoms ⊆ {a} ∧ (C 🡘 #a) ∈ LogicS := by
   rintro ⟨C, a, hMod, hAtoms, hCp⟩;
@@ -451,12 +448,9 @@ lemma not_exists_modalized_equiv_atom [Nontrivial α] :
 end
 
 /-- Beklemishev 1989, Section 8, Theorem 2: Dzhaparidze's logic `D` does not have Craig's
-interpolation property.  The implication `∼A 🡒 B` with `A = □(□b ⋎ a) 🡒 □b` and
-`B = □(a 🡒 □c) 🡒 □c` is provable in `D` (Lemma 9), but no interpolant `C` in the sole
-common atom `a` exists: by Lemma 10 the root-forcing of `C` in the pseudo-tail D-models is
-independent of the lower valuation, so the modalization `C' = C.modalize` satisfies
-`S ⊢ C' 🡘 a` (via the tail lemma and the GL-characterization of `S`), contradicting
-Lemma 12. -/
+interpolation property.  Witnessed by `∼A 🡒 B` with `A = □(□b ⋎ a) 🡒 □b` and
+`B = □(a 🡒 □c) 🡒 □c`: this implication is provable in `D`, but no formula `C` in the sole
+common atom `a` is an interpolant for it. -/
 theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
     ∃ A B : Formula α, (A 🡒 B) ∈ LogicD ∧
       ¬ ∃ C : Formula α, (A 🡒 C) ∈ LogicD ∧ (C 🡒 B) ∈ LogicD ∧

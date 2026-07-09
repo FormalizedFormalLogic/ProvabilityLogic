@@ -28,10 +28,12 @@ abbrev graftOmega.World (M : RootedModel κ α) : Type _ := M.World ⊕ ℕ
 
 /--
   The rooted model obtained by grafting an infinite descending chain between the root
-  and `a` (`root ≺ ⋯ ≺ chain (n + 1) ≺ chain n ≺ ⋯ ≺ chain 0 ≺ a` and its cone):
-  "expansion of the point `a` to length ω" in the proof of Lemma 5 in §3 of [Bek90].
-  Unlike `Model.toPseudoTail`, the root keeps its other cones (the *lateral cones* of
-  the resulting ω-model), which is essential to refute the axioms of `LogicD`.
+  and `a` (`root ≺ ⋯ ≺ chain (n + 1) ≺ chain n ≺ ⋯ ≺ chain 0 ≺ a` and its cone): the
+  "expansion of the point `a` to length ω". Unlike `Model.toPseudoTail`, the root keeps
+  its other cones (the *lateral cones* of the resulting ω-model), which is essential to
+  refute the axioms of `LogicD`.
+
+  - [Bek90, Lemma 5]
 -/
 abbrev graftOmega (M : RootedModel κ α) (a : M.World) : RootedModel (graftOmega.World M) α where
   Rel' x y :=
@@ -142,14 +144,21 @@ lemma inr_ne_root {i : ℕ} :
   show (Sum.inr i : (M.graftOmega a).World) ≠ Sum.inl M.root.1;
   exact Sum.inr_ne_inl;
 
-/-- `y` **covers** `x` if `y` is an immediate `≺`-successor of `x`: `x ≺ y` and
-nothing lies strictly between them ([Bek90] §4, p.264: "`r_1,…,r_n` are the points
-covering `b`"). -/
+/--
+  `y` **covers** `x` if `y` is an immediate `≺`-successor of `x`: `x ≺ y` and
+  nothing lies strictly between them.
+
+  - [Bek90, §4, p.264]
+-/
 def _root_.Model.World.Covers {M : Model κ α} (y x : M.World) : Prop :=
   x ≺ y ∧ ∀ w : M.World, x ≺ w → w ≺ y → False
 
-/-- `x` is a **branch point** if it has at least two distinct covering points
-([Bek90] §4, p.264, used in the proof of Lemma 9.2). -/
+/--
+  `x` is a **branch point** if it has at least two distinct covering points.
+
+  - [Bek90, §4, p.264]
+  - [Bek90, Lemma 9.2]
+-/
 def _root_.Model.World.IsBranchPoint {M : Model κ α} (x : M.World) : Prop :=
   ∃ y₁ y₂ : M.World, y₁ ≠ y₂ ∧ y₁.Covers x ∧ y₂.Covers x
 
@@ -159,12 +168,14 @@ variable [IsTrans _ M.Rel] [Std.Irrefl M.Rel]
 
 omit [IsTrans _ M.Rel] [Std.Irrefl M.Rel] in
 /--
-  **No chain point of the ω-grafted model is a branch point**: `chainPoint i`'s
+  No chain point of the ω-grafted model is a branch point: `chainPoint i`'s
   *unique* immediate cover is `chainPoint (i - 1)` if `i > 0`, or the embedded point
   `a` if `i = 0` -- the "expansion of `a` to length ω" never branches. This is the
-  D-model analogue of the easy half of Lemma 9.2 (p.265): unlike arbitrary points of
+  D-model analogue of the easy half of the depth bound: unlike arbitrary points of
   the base model `M`, the freshly grafted chain points can never be branch points, so
-  Lemma 9.2's depth bound is only a real constraint on `M`'s own (finite) worlds.
+  the depth bound is only a real constraint on `M`'s own (finite) worlds.
+
+  - [Bek90, Lemma 9.2, p.265]
 -/
 lemma not_isBranchPoint_chainPoint (i : ℕ) :
   ¬ Model.World.IsBranchPoint (M := (M.graftOmega a).toModel) (Sum.inr i) := by
@@ -240,11 +251,12 @@ open Model.World
 variable [DecidableEq α] {A : Formula α}
 
 /--
-  **Forcing preservation for ω-expansion** (the model-theoretic core of the proof of
-  Lemma 5 in §3 of [Bek90]): if `a` forces every axiom T instance for the boxed
-  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
+  Forcing preservation for ω-expansion: if `a` forces every axiom T instance for the
+  boxed subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
   chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
   original model. The ω-analogue of `graft.mainlemma`.
+
+  - [Bek90, Lemma 5]
 -/
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
     (ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ □B 🡒 B) :

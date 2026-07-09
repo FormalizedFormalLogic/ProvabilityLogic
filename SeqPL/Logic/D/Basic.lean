@@ -317,8 +317,10 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   exact h₂ ((transport A (by grind)).mp hA);
 
 
-/-- Characterization of `Logic D` in terms of `GL` (semantic proof via pseudo-tail models). -/
-theorem provability_TFAE [DecidableEq α] : [
+/-- Characterization of `Logic D` in terms of `GL`. -/
+theorem provability_TFAE [DecidableEq α] :
+  -- Proved semantically via pseudo-tail models.
+  [
     A ∈ LogicD,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩ A,
@@ -347,12 +349,10 @@ theorem exists_not_forces_toPseudoTail_of_not_mem [DecidableEq α] {A : Formula 
   push Not at h;
   exact h;
 
-/--
-  Non-provability in `D` transfers along the fresh-atom embedding, semantically via
-  pseudo-tail models.
--/
+/-- Non-provability in `D` transfers along the fresh-atom embedding. -/
 lemma not_provable_map_some [DecidableEq α] {A : Formula α}
     (h : A ∉ LogicD) : (A.map some) ∉ LogicD := by
+  -- Argued semantically via pseudo-tail models.
   intro hc;
   apply h;
   apply LogicD.provability_TFAE.out 1 0 |>.mp;

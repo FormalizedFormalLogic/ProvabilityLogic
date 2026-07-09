@@ -132,14 +132,14 @@ lemma not_validate_countermodel (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)
 
 /-- Soundness invariant of the `processed` set threaded through `search`/`searchLeaves`:
 every recorded pair `(x ∶ □A)` has a witness label `y` with `(x, y) ∈ S.rel` and
-`y ∶ A ∈ S.suc`.  Established by the `R□^Löb` step that records the pair, and preserved
-because the search only ever grows `rel` and `suc`. -/
+`y ∶ A ∈ S.suc`. -/
 def ProcessedWitnessed (P : Finset (LabelledFormula α)) (S : LabelledSequent α) : Prop :=
   ∀ x A, (x ∶ □A) ∈ P → ∃ y, (x, y) ∈ S.rel ∧ (y ∶ A) ∈ S.suc
 
 variable {P : Finset (LabelledFormula α)} {S' : LabelledSequent α}
 
 omit [DecidableEq α] in
+-- `ProcessedWitnessed` is preserved because the search only ever grows `rel` and `suc`.
 lemma ProcessedWitnessed.mono (h : ProcessedWitnessed P S)
   (hrel : S.rel ⊆ S'.rel) (hsuc : S.suc ⊆ S'.suc) : ProcessedWitnessed P S' := by
   intro x A hxA;
@@ -155,9 +155,7 @@ lemma ProcessedWitnessed.empty : ProcessedWitnessed (∅ : Finset (LabelledFormu
 
 /-- An *abandoned leaf* of the proof search over `S₀`: a saturated sequent extending `S₀`
 componentwise on which neither `loopTarget?` nor `lobTarget?` fires, together with a
-`processed` set witnessed in it.  Extracted from a failing run of `search` by
-`search_eq_none_hasFailingLeaf`; refuted by `countermodel` via
-`exists_countermodel_of_hasFailingLeaf`. -/
+`processed` set witnessed in it. -/
 inductive HasFailingLeaf (S₀ : LabelledSequent α) : Prop where
   | intro
       (Rl : List LabelRel)
@@ -178,9 +176,7 @@ lemma HasFailingLeaf.mono (h : S'.HasFailingLeaf)
   exact ⟨Rl, Γl, Δl, P, sat, noLoop, noLob, wit,
     hrel.trans hrel', hant.trans hant', hsuc.trans hsuc'⟩;
 
-/-- On an abandoned leaf every boxed succedent formula is witnessed: by the recorded
-`processed` pair (via `ProcessedWitnessed`), while the other two disjuncts of
-`lobTarget?_none` contradict saturation (`not_axm`) and `loopTarget?_none`. -/
+/-- On an abandoned leaf every boxed succedent formula is witnessed. -/
 lemma HasFailingLeaf.boxSucWitnessed
   {Rl : List LabelRel} {Γl Δl : List (LabelledFormula α)}
   {P : Finset (LabelledFormula α)}
@@ -190,6 +186,8 @@ lemma HasFailingLeaf.boxSucWitnessed
   (wit : ProcessedWitnessed P (LabelledSequent.ofLists (Rl, Γl, Δl))) :
   (LabelledSequent.ofLists (Rl, Γl, Δl)).BoxSucWitnessed := by
   intro x A hxA;
+  -- The three disjuncts of `lobTarget?_none`: witnessed by the recorded `processed` pair,
+  -- or contradicted by saturation (`not_axm`), or by `loopTarget?_none`.
   rcases lobTarget?_none noLob hxA with hP | hΓ | ⟨w, hwR, hwΓ⟩;
   · exact wit x A hP;
   · exact absurd hxA (sat.not_axm _ hΓ);
@@ -213,10 +211,7 @@ end LabelledSequent
 
 open LabelledSequent in
 /-- Auxiliary simultaneous statement for `search_eq_none_hasFailingLeaf` and
-`searchLeaves_eq_none_hasFailingLeaf`, proved by strong induction on a bound `n` of the
-`lobMeasure`: the list recursion of `searchLeaves` is handled by an inner structural
-induction, and each `R□^Löb` step strictly decreases the measure (`lobMeasure_lob_lt`),
-so its child `search` call falls under the outer induction hypothesis. -/
+`searchLeaves_eq_none_hasFailingLeaf`. -/
 theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
   (∀ (P : Finset (LabelledFormula α)) (m : ℕ)
     (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
@@ -229,6 +224,10 @@ theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
     (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).lobMeasure P ≤ n → search P R Γ Δ = none →
     ProcessedWitnessed P (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset) →
     (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).HasFailingLeaf) := by
+  -- Strong induction on a bound `n` of the `lobMeasure`: the list recursion of
+  -- `searchLeaves` is handled by an inner structural induction below, and each `R□^Löb`
+  -- step strictly decreases the measure (`lobMeasure_lob_lt`), so its child `search` call
+  -- falls under the outer induction hypothesis `ih`.
   induction n using Nat.strong_induction_on with
   | _ n ih =>
   have SL : ∀ (P : Finset (LabelledFormula α)) (m : ℕ)

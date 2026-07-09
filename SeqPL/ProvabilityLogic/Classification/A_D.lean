@@ -37,9 +37,10 @@ noncomputable local instance (priority := high) {κ : Type*} [Finite κ] : Finty
   Fintype.ofFinite κ
 
 /--
-  **Corollary to Lemma 5 in §4 of [Bek90]**: any finite rooted `GL` countermodel of `A`
-  whose root sees an `A`-reflexive node `r` yields a countermodel of `A` in the sense of
-  `StrongReflexiveCountermodel`.
+  Any finite rooted `GL` countermodel of `A` whose root sees an `A`-reflexive node `r`
+  yields a countermodel of `A` in the sense of `StrongReflexiveCountermodel`.
+
+  - [Bek90, Corollary to Lemma 5]
 -/
 noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
     {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL]
@@ -103,10 +104,12 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
       ((RootedModel.graft.mainlemma hr ha hB).1 _).symm;
 
 /--
-  **Theorem 2 in §6 of [Bek90]** (the arithmetical core of Lemma 51 in [AB05]): if
-  `A ∉ GLαω`, then for every `𝚺₁` sentence `σ` there are `n : ℕ` and a realization `f`
-  such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` together with
-  `f A` implies the `𝚺₁`-reflection instance `Pr_T(σ) 🡒 σ`.
+  If `A ∉ LogicA`, then for every `𝚺₁` sentence `σ` there are `n : ℕ` and a realization
+  `f` such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` together
+  with `f A` implies the `𝚺₁`-reflection instance `Pr_T(σ) 🡒 σ`.
+
+  - [Bek90, Theorem 2]
+  - [AB05, Lemma 51]
 -/
 theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicA)
@@ -136,8 +139,10 @@ end
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and contains some
-  `A ∉ GLαω`, then `U` proves every `𝚺₁`-reflection instance for `T`. Assertion 2 in
-  §6 of [Bek90] (cf. Lemma 51 in [AB05]).
+  `A ∉ LogicA`, then `U` proves every `𝚺₁`-reflection instance for `T`.
+
+  - [Bek90, Assertion 2]
+  - [AB05, Lemma 51]
 -/
 theorem provable_sigma1_reflection_of_mem_not_LogicA :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -156,12 +161,14 @@ theorem provable_sigma1_reflection_of_mem_not_LogicA :
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and strictly contains
-  `GLαω`, then it contains `D`. Corollary 52(2) in [AB05], via the modified Solovay
-  construction of Lemma 51 (refugees jump to a reflexive node).
+  `LogicA`, then it contains `D`.
+
+  - [AB05, Corollary 52(2)]
 -/
 theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     L.trace = Set.univ → LogicA ⊂ L → LogicD ⊆ L := by
+  -- Via the modified Solovay construction of Lemma 51 (refugees jump to a reflexive node).
   intro hT h;
   obtain ⟨A, hAL, hAA⟩ := Set.exists_of_ssubset h;
   intro B hB;
@@ -181,7 +188,9 @@ theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
   | subst _ ih => intro f; rw [Formula.interpret_subst]; exact ih _;
 
 /--
-  No provability logic lies strictly between `GLαω` and `D`. Corollary 55 in [AB05].
+  No provability logic lies strictly between `LogicA` and `D`.
+
+  - [AB05, Corollary 55]
 -/
 theorem no_logic_between_LogicA_LogicD :
     letI L : Logic α := T.provabilityLogicRelativeTo U;

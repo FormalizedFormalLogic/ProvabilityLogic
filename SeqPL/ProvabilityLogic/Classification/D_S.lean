@@ -19,9 +19,11 @@ variable {α : Type u}
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 /--
-  The `p ↔ q` substitution used in the proof of Lemma 1, [Bek90] §5, p.266: for a
-  finite set of atoms `S`, replace every `q ∈ S` by `#p 🡘 #q`, leaving other atoms
-  (in particular `p` itself) untouched.
+  The `p ↔ q` substitution used in the proof of Lemma 1: for a finite set of atoms
+  `S`, replace every `q ∈ S` by `#p 🡘 #q`, leaving other atoms (in particular `p`
+  itself) untouched.
+
+  - [Bek90, Lemma 1]
 -/
 noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula.Substitution α α :=
   fun q => if q ∈ S then (#p 🡘 #q) else #q
@@ -38,23 +40,27 @@ lemma Formula.atoms_pIffOn [DecidableEq α] (p a : α) (S : Finset α) :
   . simp [Formula.atoms];
 
 /--
-  The conjunction `Δ` of Lemma 1, [Bek90] §5, p.266: over all `2^n` subsets `S` of
-  `A`'s atoms, the substitution instance of `A` obtained by replacing every atom in
-  `S` with `p ↔ (that atom)`.
+  The conjunction `Δ` of Lemma 1: over all `2^n` subsets `S` of `A`'s atoms, the
+  substitution instance of `A` obtained by replacing every atom in `S` with
+  `p ↔ (that atom)`.
+
+  - [Bek90, Lemma 1]
 -/
 noncomputable def Formula.deltaPIff [DecidableEq α] (A : Formula α) (p : α) : Formula α :=
   ⋀(A.atoms.powerset.image (fun S => A⟦.pIffOn p S⟧))
 
 /--
-  **Lemma 1.1 in [Bek90] §5, p.266**: transfer of forcing along a *stabilized*
-  bisimulation-under-`P` `Bi` (our surrogate for the paper's "the stabilizations are
-  `q̄`-isomorphic", see `RootedModel.StabilizedBisimulationUnder` -- the atomic clause
-  is waived at the roots, whose valuations may genuinely disagree on `P`) combined
-  with the `p ↔ q` substitution. If `M₂`'s root forces `□p` but not `p` itself (`p` a
-  fresh atom, not in `P`), then for any `Bi`-related pair `(x, x')` and any formula
-  `C` depending on `P`, forcing of `C` at `x` agrees with forcing, at `x'`, of `C`
-  with every atom in `γ` replaced by `p ↔ (that atom)` -- where `γ` records exactly
-  the atoms on which the two roots' valuations disagree.
+  Transfer of forcing along a *stabilized* bisimulation-under-`P` `Bi` (our surrogate
+  for the paper's "the stabilizations are `q̄`-isomorphic", see
+  `RootedModel.StabilizedBisimulationUnder` -- the atomic clause is waived at the
+  roots, whose valuations may genuinely disagree on `P`) combined with the `p ↔ q`
+  substitution. If `M₂`'s root forces `□p` but not `p` itself (`p` a fresh atom, not
+  in `P`), then for any `Bi`-related pair `(x, x')` and any formula `C` depending on
+  `P`, forcing of `C` at `x` agrees with forcing, at `x'`, of `C` with every atom in
+  `γ` replaced by `p ↔ (that atom)` -- where `γ` records exactly the atoms on which
+  the two roots' valuations disagree.
+
+  - [Bek90, Lemma 1.1]
 -/
 theorem RootedModel.StabilizedBisimulationUnder.forces_iff_subst_pIffOn [DecidableEq α]
     {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
@@ -143,10 +149,11 @@ private lemma provable_fconj_LogicA_add [DecidableEq α] {A₀ : Formula α} {Γ
   provable_lconj_LogicA_add (by simpa using h)
 
 /-- Every substitution instance of `A` -- in particular every conjunct of `A.deltaPIff p`
--- lies in the quasi-normal extension `LogicA +ᴸ A`, since `A` itself does (`mem₂`) and
-quasi-normal extensions are closed under substitution. -/
+-- lies in the quasi-normal extension `LogicA +ᴸ A`. -/
 lemma provable_deltaPIff [DecidableEq α] {A : Formula α} {p : α} :
     A.deltaPIff p ∈ (LogicA +ᴸ A) := by
+  -- `A` itself lies in `LogicA +ᴸ A` (`mem₂`), and quasi-normal extensions are closed
+  -- under substitution, so every conjunct of `A.deltaPIff p` does too.
   apply provable_fconj_LogicA_add;
   intro B hB;
   obtain ⟨S, -, rfl⟩ := Finset.mem_image.mp hB;
@@ -159,11 +166,11 @@ section
 open RootedModel
 
 /--
-  **Lemma 3 in [Bek90] §4**: if `D ⊬ A`, there is a D-model refuting `A`, realized as
-  a tree-shaped ω-model: a finite GL tree `M` and a point `a` covering the root with
-  no lateral cones such that `A` fails at the root of `M.graftOmega a`. Obtained
-  by combining the pseudo-tail semantics of `D` (`LogicD.provability_TFAE`) with the
-  D-model tree realization (`Model.dModelTree`).
+  If `D ⊬ A`, there is a D-model refuting `A`, realized as a tree-shaped ω-model: a
+  finite GL tree `M` and a point `a` covering the root with no lateral cones such
+  that `A` fails at the root of `M.graftOmega a`.
+
+  - [Bek90, Lemma 3]
 -/
 theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicD) :
@@ -175,6 +182,8 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
       (∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1) ∧
       (∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a) ∧
       (M.graftOmega a).root.1 ⊮ A := by
+  -- Obtained by combining the pseudo-tail semantics of `D` (`LogicD.provability_TFAE`)
+  -- with the D-model tree realization (`Model.dModelTree`).
   obtain ⟨κ, hne, M, hgl, r, o, hno⟩ := LogicD.exists_not_forces_toPseudoTail_of_not_mem hA;
   use (Model.dModelTree.World M), inferInstance, M.dModelTree r o, Model.dModelTree.tailPoint;
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩;
@@ -188,16 +197,19 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
 
 /--
   A modalized formula forced at the root of a (tree-shaped) D-model has an
-  `S`-unprovable negation: the stabilization of the D-model is a tail model, on whose
-  chain the formula is eventually forced (Lemma 4 of [Bek90] §4, realized by
-  `graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`), so the
-  tail-model semantics of `S` (`LogicS.provability_TFAE`) refutes the negation.
+  `S`-unprovable negation.
+
+  - [Bek90, Lemma 4]
 -/
 lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
     {κ : Type u} [Nonempty κ] {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
     (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
     {C : Formula α} (hmod : C.Modalized) (hC : (M.graftOmega a).root.1 ⊩ C) :
     (∼C) ∉ LogicS := by
+  -- The stabilization of the D-model is a tail model, on whose chain the formula is
+  -- eventually forced (realized by
+  -- `graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`), so the
+  -- tail-model semantics of `S` (`LogicS.provability_TFAE`) refutes the negation.
   intro hS;
   have hall := LogicS.provability_TFAE (A := ∼C) |>.out 0 1 |>.mp hS;
   obtain ⟨k₀, h₀⟩ :=
@@ -221,26 +233,15 @@ lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} 
   . exact Finset.mem_insert_of_mem (Finset.mem_singleton.mp h₂ ▸ hb);
 
 /--
-  **The semantic core of Lemma 1, [Bek90] §5, p.266** (combining Lemmas 3, 4, 7, 8, 9
-  of §4): if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not provable in
-  `S`, such that `GLαω ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
+  The semantic core: if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not
+  provable in `S`, such that `LogicA ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
 
-  The argument flow follows the paper exactly. From `D ⊬ A`, Lemma 3
-  (`LogicD.exists_graftOmega_countermodel_of_not_mem`) yields a tree-shaped
-  D-model refuting `A`, which Lemma 8 (`exists_simplificationUnder_omega'`)
-  `A.atoms`-simplifies, staying a D-model. Lemma 9
-  (`graftOmega.exists_almostDefiningFormula`) provides its almost defining
-  formula `B₀`; we take
-  `B := ∼B₀`. `S ⊬ ∼B₀` by the stabilization transfer
-  (`not_mem_LogicS_neg_of_graftOmega_root_forces_modalized`). For the `GLαω`
-  implication, suppose some ω-model refutes it (`LogicA.provability_TFAE`); after
-  unravelling to a tree and `(A.atoms ∪ {p})`-simplifying, its root forces
-  `A.deltaPIff p`, `B₀`, `□p` and `¬p`. Since `□p` holds at the root, the model is
-  already `A.atoms`-simple (`IsSimpleUnder.of_insert_of_root_forces_box`), so the
-  almost-defining property of `B₀` yields a stabilized bisimulation to the reference
-  D-model, and Lemma 1.1 (`StabilizedBisimulationUnder.forces_iff_subst_pIffOn`)
-  transports the refutation of `A` to the conjunct of `A.deltaPIff p` at the
-  disagreement set `γ` -- contradicting that the root forces `A.deltaPIff p`.
+  - [Bek90, Lemma 1]
+  - [Bek90, Lemma 3]
+  - [Bek90, Lemma 4]
+  - [Bek90, Lemma 7]
+  - [Bek90, Lemma 8]
+  - [Bek90, Lemma 9]
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
     {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
@@ -319,29 +320,35 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
 end
 
 /--
-  **Lemma 56 in [AB05]** (Lemma 1 in §5 of [Bek90]): if `D ⊬ A` then there is `B` over
-  the atoms of `A` such that `S ⊬ B` and `GLαω{A} ⊢ B ⋎ (□p 🡒 p)` for an atom `p`
-  not occurring in `A`. The semantic content (Kripke-model analysis of `D` via
-  `q`-simplification and almost defining formulas, [Bek90] §4) is isolated in
-  `exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD` above; this
-  lemma is the elementary propositional assembly on top of it: `A.deltaPIff p` is a
-  finite conjunction of substitution instances of `A`, hence provable in `LogicA +ᴸ A`
-  by the substitution rule, so modus ponens with the semantic core's implication gives
-  the result directly.
+  If `D ⊬ A` then there is `B` over the atoms of `A` such that `S ⊬ B` and
+  `LogicA +ᴸ A ⊢ B ⋎ (□p 🡒 p)` for an atom `p` not occurring in `A`.
+
+  - [AB05, Lemma 56]
+  - [Bek90, Lemma 1]
 -/
 theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α]
     {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
     ∃ B : Formula α, B ∉ LogicS ∧ B.atoms ⊆ A.atoms ∧
       (B ⋎ ((□(#p)) 🡒 (#p))) ∈ (LogicA +ᴸ A) := by
+  -- The semantic content (Kripke-model analysis of `D` via `q`-simplification and
+  -- almost defining formulas, [Bek90] §4) is isolated in
+  -- `exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD` above; this
+  -- is the elementary propositional assembly on top of it: `A.deltaPIff p` is a finite
+  -- conjunction of substitution instances of `A`, hence provable in `LogicA +ᴸ A` by
+  -- the substitution rule, so modus ponens with the semantic core's implication gives
+  -- the result directly.
   obtain ⟨B, hBatoms, hBS, hImp⟩ :=
     exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hp hA;
   exact ⟨B, hBS, hBatoms,
     Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hImp) provable_deltaPIff⟩;
 
 /--
-  **Theorem 1 in §5 of [Bek90]** (cf. Lemma 57 in [AB05]): if the provability logic of
-  `T` relative to `U` has trace `ω` and contains some `A ∉ D`, then `U` proves the local
-  reflection schema for `T`. The fresh atom is manufactured by passing to `Option α`.
+  If the provability logic of `T` relative to `U` has trace `ω` and contains some
+  `A ∉ D`, then `U` proves the local reflection schema for `T`. The fresh atom is
+  manufactured by passing to `Option α`.
+
+  - [Bek90, Theorem 1]
+  - [AB05, Lemma 57]
 -/
 theorem provable_reflection_of_mem_not_LogicD :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -473,7 +480,11 @@ theorem provable_reflection_of_mem_not_LogicD :
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and strictly contains
-  `D`, then it contains `S`. Assertion 1 in [Bek90] (Lemma 56 and 57 in [AB05]).
+  `D`, then it contains `S`.
+
+  - [Bek90, Assertion 1]
+  - [AB05, Lemma 56]
+  - [AB05, Lemma 57]
 -/
 theorem subset_LogicS_of_ssubset_LogicD_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
@@ -491,7 +502,9 @@ theorem subset_LogicS_of_ssubset_LogicD_of_univ_trace :
   | subst _ ih => intro f; rw [Formula.interpret_subst]; exact ih _;
 
 /--
-  No provability logic lies strictly between `D` and `S`. Corollary 58 in [AB05].
+  No provability logic lies strictly between `D` and `S`.
+
+  - [AB05, Corollary 58]
 -/
 theorem no_logic_between_LogicD_LogicS :
     letI L : Logic α := T.provabilityLogicRelativeTo U;

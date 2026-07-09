@@ -107,9 +107,9 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
 
 omit [Nonempty κ] [M.IsGL] in
 /--
-  KK23 Theorem 3.1, `2 ⇒ 3`, case split over the finite witness `X`: if there is a finite set
-  `X` witnessing forcing at every `X`-reflexive world of every `GL`-model, then forcing holds
-  eventually along every infinitely descending sequence.
+  KK23 Theorem 3.1, `2 ⇒ 3`: if there is a finite set `X` witnessing forcing at every
+  `X`-reflexive world of every `GL`-model, then forcing holds eventually along every infinitely
+  descending sequence.
 -/
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
