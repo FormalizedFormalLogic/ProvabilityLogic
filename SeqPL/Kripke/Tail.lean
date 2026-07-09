@@ -97,7 +97,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toTail tai
   apply ConverseWellFounded.iff_has_max.mpr;
   intro s hs;
   by_cases hs₁ : {x | Sum.inl x ∈ s}.Nonempty;
-  . obtain ⟨m, hm₁, hm₂⟩ := ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
+  . obtain ⟨m, hm₁, hm₂⟩ := ConverseWellFounded.has_max (IsConverseWellFounded.cwf (rel := M.Rel)) _ hs₁;
     use toTail.embed m, hm₁;
     rintro (y | j) hy;
     . exact hm₂ y hy;

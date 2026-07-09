@@ -2,10 +2,12 @@ module
 
 public import SeqPL.Kripke.Rank
 public import SeqPL.Kripke.RootedModel
+public import SeqPL.ToFoundation.Vorspiel.Rel.CWF
 public import SeqPL.Logic.GL.Letterless
 public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.Formula.Substitution
-public import SeqPL.Vorspiel.Set.Approximate
+public import SeqPL.ToFoundation.Vorspiel.Set.Basic
+public import Foundation.Vorspiel.Finset.Basic
 public import SeqPL.Formula.Countable
 public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.GL.Uniform

@@ -2,7 +2,7 @@ module
 
 public import SeqPL.Kripke.Preservation
 public import SeqPL.Kripke.Simplification
-public import SeqPL.Vorspiel.List
+public import Foundation.Vorspiel.List.Chain
 
 /-!
 # Tree unravelling of GL-models
@@ -127,6 +127,7 @@ instance instIsFiniteGL [M.IsFiniteGL] : (M.unravelling).IsFiniteGL where
 def pMorphism [M.IsGL] : (M.unravelling).toModel →ₚ M.toModel where
   toFun := World.last
   forth := by
+    haveI := Classical.decEq M.World;
     rintro x y ⟨hp, hl⟩;
     apply List.rel_getLast_of_isChain_trans (isChain y) (ne_nil y);
     . exact hp.subset $ List.getLast_mem (ne_nil x);
@@ -137,7 +138,7 @@ def pMorphism [M.IsGL] : (M.unravelling).toModel →ₚ M.toModel where
         rw [ht] at hl;
         omega;
       have hd : x.1.Disjoint t :=
-        List.disjoint_of_nodup_append $ ht ▸ (isChain y).nodup_of_irrefl_trans;
+        List.disjoint_of_nodup_append $ ht ▸ (isChain y).noDup_of_irrefl_trans;
       have he : y.1.getLast (ne_nil y) = t.getLast htne := by
         rw [show y.1.getLast (ne_nil y) = (x.1 ++ t).getLast (ht ▸ ne_nil y) by simp [ht]];
         exact List.getLast_append_of_ne_nil _ htne;
@@ -207,7 +208,7 @@ lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
   | [], hrest => exact hrest.symm;
   | b :: rest, hrest =>
     exfalso;
-    have hnd : t.1.Nodup := (isChain t).nodup_of_irrefl_trans;
+    have hnd : t.1.Nodup := (isChain t).noDup_of_irrefl_trans;
     have hd : List.Disjoint [M.root.1] (b :: rest) :=
       List.disjoint_of_nodup_append (hrest ▸ hnd);
     have hmem : M.root.1 ∈ (b :: rest) := by

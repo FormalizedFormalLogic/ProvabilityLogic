@@ -1,6 +1,8 @@
 module
 
-public import SeqPL.ProvabilityLogic.SolovaySentences
+public import Foundation.FirstOrder.Arithmetic.Schemata
+public import Foundation.FirstOrder.Arithmetic.Definability.Definable
+public import Foundation.FirstOrder.Arithmetic.PeanoMinus.Basic
 
 @[expose] public section
 

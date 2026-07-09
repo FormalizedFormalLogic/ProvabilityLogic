@@ -2,7 +2,8 @@ module
 
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Substitution
-public import SeqPL.Vorspiel.CWF
+public import Foundation.Vorspiel.Rel.CWF
+public import SeqPL.ToFoundation.Vorspiel.Rel.CWF
 public import Mathlib.Data.PNat.Defs
 public import Mathlib.Data.PNat.Basic
 
@@ -117,14 +118,14 @@ class IsFiniteGL (M : Model κ α) extends IsTrans _ M.Rel, Std.Irrefl M.Rel whe
 instance [M.IsFiniteGL] : Finite M.World := IsFiniteGL.finite
 
 instance [M.IsFiniteGL] : M.IsGL where
-  cwf := Finite.converseWellFounded_of_trans_of_irrefl (r := M.Rel);
+  cwf := IsConverseWellFounded.cwf (rel := M.Rel);
 
 instance [M.IsGL] : Std.Irrefl M.Rel := ConverseWellFounded.irrefl
 
 abbrev TerminalOf (X : Set M.World) := { t // t ∈ X ∧ ∀ x ∈ X, ¬(t ≺ x) }
 
 noncomputable def terminalOf [IsConverseWellFounded _ M.Rel] (X : Set M.World) (hX : Set.Nonempty X) : M.TerminalOf X :=
-  haveI t := (ConverseWellFounded.iff_has_max (r := M.Rel) |>.mp IsConverseWellFounded.cwf) X hX;
+  haveI t := (ConverseWellFounded.iff_has_max (R := M.Rel) |>.mp IsConverseWellFounded.cwf) X hX;
   ⟨t.choose, t.choose_spec⟩
 
 abbrev Terminal := M.TerminalOf Set.univ

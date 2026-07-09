@@ -72,7 +72,7 @@ def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftOmega a).IsGL where
     by_cases hs₁ : {x : M.World | Sum.inl x ∈ s ∧ x ≠ M.root.1}.Nonempty;
     . -- A maximal non-root `inl` world of `s` is maximal in `s`.
       obtain ⟨m, ⟨hm₁, hm₂⟩, hm₃⟩ :=
-        ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
+        ConverseWellFounded.has_max (IsConverseWellFounded.cwf (rel := M.Rel)) _ hs₁;
       use .inl m, hm₁;
       rintro (y | j) hy;
       . intro R;

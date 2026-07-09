@@ -140,7 +140,7 @@ lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
     (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A⟦p ↦ #q⟧ ↔ M.Val y q)) :
     ∀ y : M.World, (y = x ∨ x ≺ y) → (M.Val y p ↔ M.Val y q) := by
   intro y
-  induction y using WellFounded.induction (IsConverseWellFounded.cwf (r := M.Rel)) with
+  induction y using WellFounded.induction (IsConverseWellFounded.cwf (rel := M.Rel)) with
   | _ y ih =>
     intro hy
     have hsucc : ∀ w : M.World, y ≺ w → (M.Val w p ↔ M.Val w q) := by

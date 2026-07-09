@@ -1,30 +1,21 @@
-/-
-  Original proof by: @iehality
--/
-
 module
 
-public import Mathlib.Data.Finset.Lattice.Fold
-public import Mathlib.Data.Rel
-public import Mathlib.Data.Fintype.Card
+public import Foundation.Vorspiel.Rel.CWF
+
+/-!
+Foundation's `Foundation.Vorspiel.Rel.CWF` names the height function of a converse
+well-founded relation `fcwHeight`, but `cwfHeight` is the correct/intended name
+(matching the `ConverseWellFounded`/`IsConverseWellFounded` naming already used there).
+This file keeps SeqPL's original `cwfHeight` definition and its API, staged here so it
+can eventually replace Foundation's `fcwHeight` upstream.
+-/
 
 @[expose]
 public section
 
-
 section
 
-abbrev ConverseWellFounded {α} (r : Rel α α) := WellFounded $ flip r
-
-class IsConverseWellFounded (α) (r : Rel α α) : Prop where cwf : ConverseWellFounded r
-
-end
-
-
-
-section
-
-variable {α} {r : Rel α α} {a b : α} {n : ℕ}
+variable {α} {r : Rel α α}
 
 instance [Std.Irrefl (flip r)] : Std.Irrefl r := by
   constructor;
@@ -35,19 +26,7 @@ lemma ConverseWellFounded.irrefl [IsConverseWellFounded α r] : Std.Irrefl r := 
   have := WellFounded.irrefl (r := flip r) IsConverseWellFounded.cwf;
   infer_instance;
 
-lemma ConverseWellFounded.iff_has_max : ConverseWellFounded r ↔ (∀ (s : Set α), Set.Nonempty s → ∃ m ∈ s, ∀ x ∈ s, ¬(r m x)) := by
-  simp [ConverseWellFounded, WellFounded.wellFounded_iff_has_min, flip]
-
-lemma ConverseWellFounded.has_max (h : ConverseWellFounded r) : ∀ (s : Set α), Set.Nonempty s → ∃ m ∈ s, ∀ x ∈ s, ¬(r m x) := by
-  apply ConverseWellFounded.iff_has_max.mp h;
-
-
-
-theorem Finite.converseWellFounded_of_trans_of_irrefl [Finite α] [IsTrans α r] [Std.Irrefl r] : ConverseWellFounded r := by
-  apply @Finite.wellFounded_of_trans_of_irrefl α _ (flip r)
-    ⟨by intro a b c rba rcb; exact IsTrans.trans c b a rcb rba⟩
-    ⟨by simp [flip, Std.Irrefl.irrefl]⟩
-
+end
 
 section cwfHeight
 
@@ -57,7 +36,7 @@ noncomputable def cwfHeight (r) [IsConverseWellFounded α r] [Fintype α] : α �
   WellFounded.fix (r := flip r) (C := fun _ ↦ ℕ) IsConverseWellFounded.cwf fun x ih ↦
     Finset.univ.sup fun y : {y : α // r x y} ↦ ih y y.prop + 1
 
-variable {r : Rel α α}
+variable {α} {r : Rel α α} {a b : α} {n : ℕ}
 
 variable [Fintype α] [IsConverseWellFounded α r]
 
@@ -173,7 +152,5 @@ lemma cwfHeight_congr {β} [Fintype β] {r' : Rel β β} [IsConverseWellFounded 
     exact cwfHeight_gt_of hab;
 
 end cwfHeight
-
-end
 
 end

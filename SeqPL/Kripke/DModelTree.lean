@@ -2,7 +2,8 @@ module
 
 public import SeqPL.Kripke.PseudoTail
 public import SeqPL.Kripke.Simplification
-public import SeqPL.Vorspiel.List
+public import Foundation.Vorspiel.List.Chain
+public import SeqPL.ToFoundation.Vorspiel.List.Chain
 public import Mathlib.Data.Fintype.Option
 
 /-!
@@ -204,6 +205,7 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     | .inl none => .inr ⊤
     | .inr n => .inr ((n : ℕ) + 1 : ℕ)
   forth := by
+    haveI := Classical.decEq M.World;
     rintro ((_ | _ | c) | i) ((_ | _ | c') | j) Rxy;
     -- from the root `b` (↦ ω)
     . exact Rxy.elim;

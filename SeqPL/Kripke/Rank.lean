@@ -284,7 +284,6 @@ lemma eq_embed_original_rank_original_rank {x₀ : M.World} : (embed (n := 1) x�
     . exfalso;
       exact not_relItr_original_tail Rx₀y₀;
     . simp_all [Model.Rel];
-      omega;
 
 @[simp, grind .]
 lemma eq_original_root_rank_original_height : Model.World.rank (M := M.extendRoot 1 |>.toModel) (x := M.root) = M.height := eq_embed_original_rank_original_rank

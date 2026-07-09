@@ -70,9 +70,8 @@ public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.S.Basic
 public import SeqPL.ProvabilityLogic.SolovaySentences
-public import SeqPL.Vorspiel.Arithmetic
-public import SeqPL.Vorspiel.CWF
-public import SeqPL.Vorspiel.Finset
-public import SeqPL.Vorspiel.List
-public import SeqPL.Vorspiel.Set.Approximate
-public import SeqPL.Vorspiel.Set.Cofinite
+public import SeqPL.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
+public import SeqPL.ToFoundation.FirstOrder.Incompleteness.Reflection
+public import SeqPL.ToFoundation.Vorspiel.List.Chain
+public import SeqPL.ToFoundation.Vorspiel.Rel.CWF
+public import SeqPL.ToFoundation.Vorspiel.Set.Basic

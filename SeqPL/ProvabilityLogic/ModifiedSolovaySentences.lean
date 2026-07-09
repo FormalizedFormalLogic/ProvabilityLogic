@@ -3,7 +3,7 @@ module
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Kripke.Graft
 public import SeqPL.Logic.S.Basic
-public import SeqPL.Vorspiel.Arithmetic
+public import SeqPL.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
 
 /-!
 # Modified Solovay sentences (Theorem 2 in §6 of [Bek90])

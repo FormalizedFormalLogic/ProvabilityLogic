@@ -2,8 +2,8 @@ module
 
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.Vorspiel.Finset
-public import SeqPL.Vorspiel.List
+public import Foundation.Vorspiel.Finset.Card
+public import Foundation.Vorspiel.List.Chain
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Data.Finite.Sum
 public import Mathlib.Data.Finset.Union
@@ -93,7 +93,7 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.extendRoot
   cwf := by
     have accInl : ∀ x : M.World, Acc (flip (M.extendRoot n).Rel) (Sum.inl x) := by
       intro x;
-      apply WellFounded.induction (IsConverseWellFounded.cwf (r := M.Rel)) x;
+      apply WellFounded.induction (IsConverseWellFounded.cwf (rel := M.Rel)) x;
       intro x ih;
       constructor;
       intro y hy;
@@ -259,7 +259,7 @@ lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
     _ ≤ Γ.card * 1 := Finset.sum_le_card (fun B _ => card_not_forces_axiomT_in_chain l_chain)
     _ = Γ.card := by omega;
   have ht₂ : t₂.card = l.length := by
-    rw [List.card_toFinset, List.dedup_eq_self.mpr l_chain.nodup_of_irrefl_trans];
+    rw [List.card_toFinset, List.dedup_eq_self.mpr l_chain.noDup_of_irrefl_trans];
   have hss : t₁ ⊂ t₂ := Finset.ssubset_of_subset_lt_card (Finset.filter_subset _ _) (by omega);
   obtain ⟨x, hx₂, nhx₁⟩ := Finset.exists_of_ssubset hss;
   use x, List.mem_toFinset.mp hx₂;
