@@ -43,10 +43,12 @@ instance models_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : 
     simpa using this;
 
 /--
-  The instance of the **unboundedness theorem** ([AB05] Theorem 23, Kreisel–Lévy 1968)
+  The instance of the **unboundedness theorem**, originally due to Kreisel and Lévy (1968),
   needed for the `⊆` half of Example 60: `T + Rfn_Σ₁(T)`, being a consistent extension
   of `T` by `Π₂`-sentences, cannot prove the full local reflection schema `Rfn(T)`
   (already its `Σ₂`-instances are out of reach).
+
+  - [AB05, Theorem 23]
 -/
 theorem unbounded_localReflection
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]

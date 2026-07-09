@@ -16,7 +16,7 @@ structure TwoLayeredSequent (α : Type u) extends Sequent α where
 notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
 
 /--
-  Sequent calculus for the logic `S` (Kashima–Kato 2023, "`GLSseq`"; PLPL §2, "`𝗚𝐒`"),
+  Sequent calculus for the logic `S` ([KK23], "`GLSseq`"; PLPL §2, "`𝗚𝐒`"),
   formulated with a single sequent relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 2`.
   `l = 0` is the level-1 (GL) sequent, coinciding with `SeqPL.Gentzen.ProofGentzen`;
   `l = 1` is the level-2 (S) sequent, obtained from the level-1 one by additionally

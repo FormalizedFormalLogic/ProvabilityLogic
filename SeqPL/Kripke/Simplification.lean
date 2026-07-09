@@ -476,7 +476,6 @@ Auxiliary statement for `exists_simplificationUnder_omega'`: a `graftOmega`-shap
 neither has `M'` at `a'`.
 
 - [Bek90, Lemma 8, §4]
-- [Bek90]
 -/
 theorem exists_simplificationUnder_omega_aux :
   ∀ (n : ℕ) {κ : Type u} [Nonempty κ] (M : RootedModel κ α) [Fintype M.World] [M.IsFiniteGLTree]

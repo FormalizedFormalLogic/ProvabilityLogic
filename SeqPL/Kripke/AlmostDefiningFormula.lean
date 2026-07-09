@@ -439,9 +439,7 @@ end OtherModel
   `P`-simplification (`exists_simplificationUnder_omega'`) -- and is left as
   future work.
 
-  - [Bek90, Lemma 9 (§4, D-model case)]
-  - [Bek90]
-  - [Bek90, Lemma 1 (§5)]
+  - [Bek90, Lemma 9 (§4, D-model case), Lemma 1 (§5)]
 -/
 theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree]
   (Rra : M.root.1 ≺ a)

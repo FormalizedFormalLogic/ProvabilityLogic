@@ -156,8 +156,7 @@ def _root_.Model.World.Covers {M : Model κ α} (y x : M.World) : Prop :=
 /--
   `x` is a **branch point** if it has at least two distinct covering points.
 
-  - [Bek90, §4, p.264]
-  - [Bek90, Lemma 9.2]
+  - [Bek90, §4, p.264, Lemma 9.2]
 -/
 def _root_.Model.World.IsBranchPoint {M : Model κ α} (x : M.World) : Prop :=
   ∃ y₁ y₂ : M.World, y₁ ≠ y₂ ∧ y₁.Covers x ∧ y₂.Covers x

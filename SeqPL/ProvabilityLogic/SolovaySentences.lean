@@ -142,7 +142,6 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [Decida
   `M`.
 
   - [AB05, Lemma 49]
-  - [AB05]
 -/
 lemma rfl_mainlemma
     {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}

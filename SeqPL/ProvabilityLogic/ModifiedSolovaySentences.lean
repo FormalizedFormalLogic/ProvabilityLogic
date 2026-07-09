@@ -31,13 +31,8 @@ principle (`reflection`) are derived. The arithmetical construction of such a fa
 the remaining input (`exists_realization_sigma1_reflection_of_not_mem_LogicA` in
 `SeqPL.ProvabilityLogic.Classification.A_D`).
 
-- [Bek90, Theorem 2 (§6)]
+- [Bek90, Theorem 2 (§6), Lemma 1 (§6), Lemma 1.4a, Lemma 1.5, Lemma 1.6, Lemma 2 (§6)]
 - [AB05, Lemma 51]
-- [Bek90, Lemma 1 (§6)]
-- [Bek90, Lemma 1.4a]
-- [Bek90, Lemma 1.5]
-- [Bek90, Lemma 1.6]
-- [Bek90, Lemma 2 (§6)]
 -/
 
 @[expose] public section
@@ -85,9 +80,7 @@ noncomputable local instance : Fintype κ := Fintype.ofFinite κ
   together with the structural condition that the root is the only predecessor of `r`
   (`r` covers the root). This is the modal input of the modified Solovay construction.
 
-  - [Bek90, Corollary to Lemma 5 (§4)]
-  - [Bek90]
-  - [Bek90, Theorem 2 (§6)]
+  - [Bek90, Corollary to Lemma 5 (§4), Theorem 2 (§6)]
 -/
 structure StrongReflexiveCountermodel extends RootedModel κ α where
   [isFiniteGL : toModel.IsFiniteGL]

@@ -683,11 +683,13 @@ theorem soundness (h : ⊢ᴳᶜ (Γ ⟹[1] Δ)) :
 end GentzenWithCutProvable
 
 /--
-  KK23 (Kashima–Kato 2023) Theorem 3.1: the six equivalent characterizations of `Γ ⟹ Δ`
-  being a theorem of the sequent calculus `LogicS.ProofGentzen` for `S` at level `1` —
-  uniform, model-wise and pointwise finite-set reflexivity witnesses on `GL`-models
-  (conditions `1`–`4`), cut-free `LogicS.ProofGentzen`-provability (condition `5`), and
-  `LogicS.GentzenWithCutProof`-provability (condition `6`).
+  The six equivalent characterizations of `Γ ⟹ Δ` being a theorem of the sequent calculus
+  `LogicS.ProofGentzen` for `S` at level `1` — uniform, model-wise and pointwise finite-set
+  reflexivity witnesses on `GL`-models (conditions `1`–`4`), cut-free
+  `LogicS.ProofGentzen`-provability (condition `5`), and `LogicS.GentzenWithCutProof`-provability
+  (condition `6`).
+
+  - [KK23, Theorem 3.1]
 -/
 theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1

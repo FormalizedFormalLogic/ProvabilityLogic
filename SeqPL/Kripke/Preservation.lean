@@ -175,9 +175,7 @@ variable [DecidableEq α]
   flexible notion that suffices for (and is used directly in) the forcing-preservation
   argument.
 
-  - [Bek90, §4, item 3]
-  - [Bek90, Lemma 6]
-  - [Bek90, Lemma 8]
+  - [Bek90, §4, item 3, Lemma 6, Lemma 8]
 -/
 structure BisimulationUnder (P : Finset α) (M₁ : Model κ₁ α) (M₂ : Model κ₂ α) where
   toRel : M₁.World → M₂.World → Prop

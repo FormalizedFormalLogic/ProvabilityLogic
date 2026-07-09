@@ -472,8 +472,7 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
   If `n` is in the trace of the provability logic of `T` relative to `U`, then `TBB n`
   is a theorem of it. Stated directly for `provabilityLogicRelativeTo`.
 
-- [AB05, Lemma 46]
-- [AB05, Corollary 47]
+- [AB05, Lemma 46, Corollary 47]
 -/
 theorem provable_TBB_of_mem_trace {n : ℕ}
     (h : n ∈ (T.provabilityLogicRelativeTo U : Logic α).trace) :

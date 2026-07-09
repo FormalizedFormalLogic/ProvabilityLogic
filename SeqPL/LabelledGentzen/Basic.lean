@@ -7,9 +7,8 @@ public section
 
 /-!
 Labelled sequent calculus `G3KGL` for `GL`, following Negri's labelled
-sequent calculus for provability logic as presented in `[MPB23]`
-(Maggesi & Perini Brogi, *Mechanising Gödel–Löb Provability Logic in HOL
-Light*, JAR 2023), §2.2 (calculus `G3K`) and §6 (Fig. 2/3, calculus
+sequent calculus for provability logic as presented in `[MPB23]`,
+§2.2 (calculus `G3K`) and §6 (Fig. 2/3, calculus
 `G3KGL`). World-labels are drawn from `ℕ`.
 -/
 

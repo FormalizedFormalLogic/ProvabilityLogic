@@ -236,12 +236,7 @@ lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} 
   The semantic core: if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not
   provable in `S`, such that `LogicA ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
 
-  - [Bek90, Lemma 1]
-  - [Bek90, Lemma 3]
-  - [Bek90, Lemma 4]
-  - [Bek90, Lemma 7]
-  - [Bek90, Lemma 8]
-  - [Bek90, Lemma 9]
+  - [Bek90, Lemma 1, Lemma 3, Lemma 4, Lemma 7, Lemma 8, Lemma 9]
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
     {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
@@ -483,8 +478,7 @@ theorem provable_reflection_of_mem_not_LogicD :
   `D`, then it contains `S`.
 
   - [Bek90, Assertion 1]
-  - [AB05, Lemma 56]
-  - [AB05, Lemma 57]
+  - [AB05, Lemma 56, Lemma 57]
 -/
 theorem subset_LogicS_of_ssubset_LogicD_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;

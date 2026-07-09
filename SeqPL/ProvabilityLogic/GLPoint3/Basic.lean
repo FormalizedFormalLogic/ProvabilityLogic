@@ -15,12 +15,13 @@ open LetterlessFormula (spectrum)
 variable {α : Type u}
 
 
-/-! ### Consistency assertions (Valentini & Solitro 1983, §1)
+/-! ### Consistency assertions
 
-**Theorem 1 of Valentini & Solitro 1983**, "The Modal Logic of Consistency Assertions
-of Peano Arithmetic": a modal formula `A` is a theorem of `GLPoint3` (`GLlin`) iff
-every arithmetical interpretation of `A` sending each propositional variable to a
-*consistency assertion* is provable in `𝗣𝗔`.
+A modal formula `A` is a theorem of `GLPoint3` (`GLlin`) iff every arithmetical
+interpretation of `A` sending each propositional variable to a *consistency
+assertion* is provable in `𝗣𝗔`.
+
+- [VS83, §1, Theorem 1]
 -/
 
 namespace LO.FirstOrder.ProvabilityAbstraction
@@ -28,9 +29,11 @@ namespace LO.FirstOrder.ProvabilityAbstraction
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Theory L}
 
 /--
-  **Consistency assertions** (Valentini & Solitro 1983, §1): the inductive subset of
-  sentences generated from `∼Pr(⌜⊥⌝)` and `Pr(⌜⊥⌝)` (i.e. `¬Pr(⌜0=1⌝)` and `Pr(⌜0=1⌝)`
-  in the paper) by closing under `Pr(⌜·⌝), ∼, ⋏, ⋎, 🡒`.
+Consistency assertions: the inductive subset of sentences generated from
+`∼Pr(⌜⊥⌝)` and `Pr(⌜⊥⌝)` (i.e. `¬Pr(⌜0=1⌝)` and `Pr(⌜0=1⌝)` in the paper) by closing
+under `Pr(⌜·⌝), ∼, ⋏, ⋎, 🡒`.
+
+- [VS83, §1]
 -/
 @[grind]
 inductive Provability.IsConsistencyAssertion (𝔅 : Provability T₀ T) : FirstOrder.Sentence L → Prop
@@ -49,16 +52,19 @@ section
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Theory L}
 
 /--
-  A realization is a *consistency realization* (the interpretation `φ` of Theorem 1 of
-  Valentini & Solitro 1983) iff it sends every propositional variable to a consistency
-  assertion.
+A realization is a *consistency realization* (the interpretation `φ` of Theorem 1) iff
+it sends every propositional variable to a consistency assertion.
+
+- [VS83, Theorem 1]
 -/
 def Realization.IsConsistencyRealization {𝔅 : Provability T₀ T} (f : Realization α 𝔅) : Prop :=
   ∀ a, 𝔅.IsConsistencyAssertion (f.val a)
 
 /--
-  The subtype of realizations sending every propositional variable to a consistency
-  assertion: the type of interpretations `φ` in Theorem 1 of Valentini & Solitro 1983.
+The subtype of realizations sending every propositional variable to a consistency
+assertion: the type of interpretations `φ` in Theorem 1.
+
+- [VS83, Theorem 1]
 -/
 abbrev ConsistencyRealization (α : Type*) (𝔅 : Provability T₀ T) :=
   {f : Realization α 𝔅 // f.IsConsistencyRealization}
@@ -69,8 +75,12 @@ instance {𝔅 : Provability T₀ T} :
 
 end
 
-/-- The consistency realizations for the standard provability predicate of an
-arithmetic theory `T` (Theorem 1 of Valentini & Solitro 1983, specialized to `T`). -/
+/--
+The consistency realizations for the standard provability predicate of an arithmetic
+theory `T` (Theorem 1, specialized to `T`).
+
+- [VS83, Theorem 1]
+-/
 abbrev StandardConsistencyRealization (α : Type*) (T : FirstOrder.ArithmeticTheory) [T.Δ₁] :=
   ConsistencyRealization α T.standardProvability
 
@@ -233,8 +243,8 @@ variable {κ : Type u} [Nonempty κ]
 
 open Model Model.World
 
-/- NOTE: forcing of a lifted letterless formula depends only on the rank (cf. Lemma 5
-of Valentini & Solitro 1983); this is the existing (sorry-free) lemma
+/- NOTE: forcing of a lifted letterless formula depends only on the rank (cf. [VS83, Lemma 5]);
+this is the existing (sorry-free) lemma
 `Model.iff_forces_lift_rank_mem_spectrum` in `SeqPL.ProvabilityLogic.Classification.LetterlessTrace`. -/
 
 /-- In a finite rooted linear GL model, the rank determines the world: `rank` is
@@ -256,10 +266,12 @@ end kripke
 section rankDisj
 
 /--
-  Finite disjunction of "exact rank" formulas: `rankDisj [n₁, …, nₖ]` is a letterless
-  consistency form whose spectrum is exactly `{n₁, …, nₖ}`. This realizes the formula
-  `ψ*(pᵢ) = ⋁_{j ∈ H(pᵢ)} (□^[j+1]⊥ ⋏ ∼□^[j]⊥)` in the proof of Theorem 1/2 of
-  Valentini & Solitro 1983 (`∼TBB j` is equivalent to `□^[j+1]⊥ ⋏ ∼□^[j]⊥`).
+Finite disjunction of "exact rank" formulas: `rankDisj [n₁, …, nₖ]` is a letterless
+consistency form whose spectrum is exactly `{n₁, …, nₖ}`. This realizes the formula
+`ψ*(pᵢ) = ⋁_{j ∈ H(pᵢ)} (□^[j+1]⊥ ⋏ ∼□^[j]⊥)` in the proof of the theorems below
+(`∼TBB j` is equivalent to `□^[j+1]⊥ ⋏ ∼□^[j]⊥`).
+
+- [VS83, Theorem 1, Theorem 2]
 -/
 def rankDisj : List ℕ → LetterlessFormula
   | [] => (□⊥) ⋏ (∼(□⊥))
@@ -315,14 +327,16 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] [L.DecidableEq]
          {A : Formula α}
 
 /--
-  **Arithmetical soundness of `GLPoint3` w.r.t. consistency realizations** (the easy
-  direction of Theorem 1 of Valentini & Solitro 1983): a `GLPoint3` theorem is provable
-  under every consistency realization.
+Arithmetical soundness of `GLPoint3` w.r.t. consistency realizations (the easy
+direction of Theorem 1): a `GLPoint3` theorem is provable under every consistency
+realization.
+
+- [VS83, Theorem 1]
 -/
 theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
   -- Replace each atom by an equivalent consistency form, so that the substituted formula
-  -- is letterless; `GLPoint3` and `GL` prove the same letterless formulas (Theorem 2 of
-  -- Sambin & Valentini, `iff_provable_GLPoint3_provable_GL_of_letterless`), and the
+  -- is letterless; `GLPoint3` and `GL` prove the same letterless formulas
+  -- ([SV82, Theorem 2], `iff_provable_GLPoint3_provable_GL_of_letterless`), and the
   -- arithmetical soundness of `GL` applies.
   choose g hg₁ hg₂ using fun a => Provability.IsConsistencyAssertion.exists_consistencyForm (f.2 a);
   have hGL : (LetterlessFormula.lift (A.substLetterless g) : Formula α) ∈ LogicGL := by
@@ -351,10 +365,11 @@ open Model Model.World
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] {A : Formula α}
 
 /--
-  **Arithmetical completeness of `GLPoint3` w.r.t. consistency realizations** (the hard
-  direction of Theorem 1 of Valentini & Solitro 1983): if `A` is not a theorem of
-  `GLPoint3`, then some consistency realization of `A` is unprovable in `T` (provided
-  `T.height = ⊤`, e.g. `T = 𝗣𝗔`).
+Arithmetical completeness of `GLPoint3` w.r.t. consistency realizations (the hard
+direction of Theorem 1): if `A` is not a theorem of `GLPoint3`, then some consistency
+realization of `A` is unprovable in `T` (provided `T.height = ⊤`, e.g. `T = 𝗣𝗔`).
+
+- [VS83, Theorem 1]
 -/
 theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   (∀ f : StandardConsistencyRealization α T, T ⊢ f A) → A ∈ LogicGLPoint3 := by
@@ -451,8 +466,10 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   exact Provability.height_eq_top_iff.mp height M.height h₄;
 
 /--
-  **Theorem 1 of Valentini & Solitro 1983** for any theory of infinite height:
-  `A` is a theorem of `GLPoint3` iff every consistency realization of `A` is provable.
+For any theory of infinite height, `A` is a theorem of `GLPoint3` iff every
+consistency realization of `A` is provable.
+
+- [VS83, Theorem 1]
 -/
 theorem arithmetical_completeness_iff_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   A ∈ LogicGLPoint3 ↔ ∀ f : StandardConsistencyRealization α T, T ⊢ f A := by
@@ -466,9 +483,10 @@ theorem arithmetical_completeness_iff_of_sigma1_sound [DecidableEq α] [T.SoundO
   arithmetical_completeness_iff_of_infinity_height (FirstOrder.Arithmetic.height_eq_top_of_sigma1_sound T)
 
 /--
-  **Theorem 1 of Valentini & Solitro 1983**: for each modal formula `A`,
-  `A ∈ LogicGLPoint3` iff `⊢PA φ(A)` for each interpretation `φ` sending every propositional
-  variable to a consistency assertion of `𝗣𝗔`.
+For each modal formula `A`, `A ∈ LogicGLPoint3` iff `⊢PA φ(A)` for each interpretation
+`φ` sending every propositional variable to a consistency assertion of `𝗣𝗔`.
+
+- [VS83, Theorem 1]
 -/
 theorem arithmetical_completeness_iff_peano_arithmetic [DecidableEq α] :
   A ∈ LogicGLPoint3 ↔ ∀ f : StandardConsistencyRealization α 𝗣𝗔, 𝗣𝗔 ⊢ f A :=

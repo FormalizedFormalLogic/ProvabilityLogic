@@ -16,9 +16,10 @@ namespace LogicGLPoint3
   finite rooted linear GL model.
 
   The soundness direction is `LogicGLPoint3.sound`. The completeness direction
-  corresponds to Theorem 10 (completeness of the sequent calculus `LS`) and
-  Theorem 11 (b), (c) (finite model property and completeness with respect to
-  `(ω, >)`) of Valentini & Solitro 1983.
+  corresponds to the completeness of the sequent calculus `LS` and the finite model
+  property and completeness with respect to `(ω, >)`.
+
+  - [VS83, Theorem 10, Theorem 11(b), Theorem 11(c)]
 -/
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
@@ -28,10 +29,10 @@ theorem iff_forces_root [DecidableEq α] {A : Formula α} :
     exact LogicGLPoint3.sound h M.root.1;
   . intro h;
     -- Reason for the sorry: this is the Kripke completeness of `GLPoint3` with respect to
-    -- finite rooted linear GL models, corresponding to Theorem 10 (completeness of the
-    -- sequent calculus `LS`) and Theorem 11 (b), (c) (finite model property and
-    -- completeness with respect to `(ω, >)`) of Valentini & Solitro 1983. Left as `sorry`
-    -- per user instruction, as it requires a substantial Kripke semantics argument.
+    -- finite rooted linear GL models, corresponding to the completeness of the
+    -- sequent calculus `LS` and the finite model property and completeness with respect to
+    -- `(ω, >)` ([VS83, Theorem 10, Theorem 11(b), Theorem 11(c)]). Left as
+    -- `sorry` per user instruction, as it requires a substantial Kripke semantics argument.
     sorry;
 
 end LogicGLPoint3

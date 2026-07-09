@@ -8,7 +8,7 @@ public import SeqPL.Kripke.Simplification
 This file defines defining formulas (matching [Bek90] §4) and proves Lemma 7: every
 finite GL-model has a defining formula over any finite set of variables `P`.
 
-[Bek90] cites prior work ([12], Artemov 1986) for Lemma 7 and states it for models
+[Bek90] cites prior work ([12], [Art86]) for Lemma 7 and states it for models
 simple-under-`P`, with uniqueness up to `P`-isomorphism. SeqPL's `IsDefiningFormula`
 instead phrases uniqueness via `Model.BisimulationUnder` (bisimilarity-under-`P` of the
 roots), and under this formulation the lemma reduces to the classical characteristic
