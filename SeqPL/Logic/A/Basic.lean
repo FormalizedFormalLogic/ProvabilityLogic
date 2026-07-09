@@ -5,7 +5,7 @@ public import SeqPL.Logic.GL.Basic
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Rank
-public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.GraftOmega
 public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.ProvabilityLogic.Classification.Full
 
@@ -185,7 +185,7 @@ open Model Model.World
 lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
   ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (x : M.World),
   (∀ n < N, x ⊩ TBB n) → x ⊩ A := by
-  -- No frame construction (pseudo-tail / tail model / graftChainOmega) is needed: it suffices
+  -- No frame construction (pseudo-tail / tail model / graftOmega) is needed: it suffices
   -- to follow the Hilbert derivation semantically.
   induction h using LogicA.substlessInductionTBB with
   | GL h =>
@@ -229,7 +229,7 @@ lemma root_forces_neg_boxItr_bot_imp
 /--
   Deduction-theorem-style GL-characterization of `LogicA` (Artemov's logic `A`, `GLαω`):
   `A ∈ LogicA` iff `GL ⊢ ∼□^[n]⊥ 🡒 A` for some `n`. Proved purely from the rank semantics
-  of `Kripke.Rank`, without `graftChainOmega` or `Trace`.
+  of `Kripke.Rank`, without `graftOmega` or `Trace`.
 -/
 theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
   A ∈ LogicA ↔ ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL := by
@@ -271,7 +271,7 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
 
 /--
   **ω-model completeness of `GLαω`** (Lemma 5 in §3 of [Bek90], "On the classification
-  of propositional provability logics"). The ω-models are realized as `M.graftChainOmega a`
+  of propositional provability logics"). The ω-models are realized as `M.graftOmega a`
   for finite rooted GL models `M` and points `a` above the root. The middle item is the
   deduction-theorem form used in the paper's proof.
 -/
@@ -280,15 +280,15 @@ theorem provability_TFAE : [
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ a : M.World, M.root.1 ≺ a →
-    (M.graftChainOmega a).root.1 ⊩ A
+    (M.graftOmega a).root.1 ⊩ A
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
     rintro ⟨n, hGL⟩ κ _ M _ a Rra;
-    haveI := RootedModel.graftChainOmega.isGL (M := M) (a := a) Rra;
-    exact ProvableHilbert.Kripke.soundness hGL ((M.graftChainOmega a).toModel)
-      (M.graftChainOmega a).root.1
-      (Model.World.forces_neg.mpr RootedModel.graftChainOmega.root_not_forces_boxItr_bot);
+    haveI := RootedModel.graftOmega.isGL (M := M) (a := a) Rra;
+    exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega a).toModel)
+      (M.graftOmega a).root.1
+      (Model.World.forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
   tfae_have 3 → 1 := by
     intro h;
     by_contra hA;
@@ -300,7 +300,7 @@ theorem provability_TFAE : [
       exact Model.World.forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
     apply hroot;
-    exact RootedModel.graftChainOmega.mainlemma Rrr ha Formula.mem_subfmls_self
+    exact RootedModel.graftOmega.mainlemma Rrr ha Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
   tfae_finish;
 
@@ -308,11 +308,11 @@ theorem provability_TFAE : [
   A formula is a `GLαω` theorem iff it is forced at the root of every ω-model
   (Lemma 5 in §3 of [Bek90]).
 -/
-theorem iff_provable_forces_graftChainOmega_root :
+theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ a : M.World, M.root.1 ≺ a →
-    (M.graftChainOmega a).root.1 ⊩ A) :=
+    (M.graftOmega a).root.1 ⊩ A) :=
   LogicA.provability_TFAE.out 0 2
 
 end LogicA

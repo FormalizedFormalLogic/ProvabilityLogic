@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.ProvabilityLogic.SolovaySentences
-public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.Graft
 public import SeqPL.Logic.S.Basic
 
 /-!

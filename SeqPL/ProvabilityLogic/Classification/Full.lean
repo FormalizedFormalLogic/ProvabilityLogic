@@ -4,7 +4,7 @@ public import SeqPL.ProvabilityLogic.Classification.Letterless
 public import SeqPL.Logic.S.Basic
 public import SeqPL.Logic.D.Basic
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.Graft
 public import SeqPL.Formula.Substitution
 
 @[expose]
@@ -168,7 +168,7 @@ end
   **Finiteness or cofiniteness of traces** (Lemma 12 in [AB05]): the trace of any formula
   is either finite or cofinite. If the trace is infinite, take a countermodel whose height
   exceeds the number of boxed subformulas; the chain lemma yields a world `a` forcing all
-  axiom T instances, and `graftChain` then produces countermodels of every height `≥ M.height`.
+  axiom T instances, and `graft` then produces countermodels of every height `≥ M.height`.
 -/
 lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     A.trace.Finite ∨ A.traceᶜ.Finite := by
@@ -200,15 +200,15 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
   apply hn;
   replace hge : M.height ≤ n := by simpa using hge;
   have hra : Model.World.rank a < M.height := RootedModel.rank_lt_height Rra;
-  haveI := RootedModel.graftChain.isFiniteGL (M := M) (a := a) (k := n - Model.World.rank a - 1) Rra;
+  haveI := RootedModel.graft.isFiniteGL (M := M) (a := a) (k := n - Model.World.rank a - 1) Rra;
   apply Formula.iff_mem_trace.mpr;
   refine ⟨κ ⊕ Fin (n - Model.World.rank a - 1), inferInstance,
-    M.graftChain a (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
-  . rw [RootedModel.graftChain.height_eq Rra];
+    M.graft a (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
+  . rw [RootedModel.graft.height_eq Rra];
     omega;
   . intro hc;
     apply hr;
-    exact RootedModel.graftChain.mainlemma Rra ha (Formula.mem_subfmls_self) |>.2 M.root.1 |>.mp hc;
+    exact RootedModel.graft.mainlemma Rra ha (Formula.mem_subfmls_self) |>.2 M.root.1 |>.mp hc;
 
 
 namespace FormulaSet

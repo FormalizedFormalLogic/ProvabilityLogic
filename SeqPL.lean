@@ -12,11 +12,14 @@ public import SeqPL.Gentzen.S.Basic
 public import SeqPL.Gentzen.S.Kripke
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
+public import SeqPL.Kripke.AlmostDefiningFormula
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Cone
 public import SeqPL.Kripke.Convergence
+public import SeqPL.Kripke.DModelTree
 public import SeqPL.Kripke.DefiningFormula
-public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.Graft
+public import SeqPL.Kripke.GraftOmega
 public import SeqPL.Kripke.Linearity
 public import SeqPL.Kripke.Overwrite
 public import SeqPL.Kripke.Preservation

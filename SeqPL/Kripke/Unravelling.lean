@@ -162,6 +162,122 @@ lemma modal_equivalence_root [M.IsGL] :
   rwa [show (pMorphism (M := M)).toFun (M.unravelling).root.1 = M.root.1 from root_last]
     at h;
 
+section GraftOmega
+
+open Model.World (IsProperPredecessorOf)
+
+/-- The unravelling world `[root, a]`, for `a` a successor of the root: the canonical
+point of the tree unravelling covering its root and projecting onto `a`. -/
+def coverPoint {a : M.World} (Rra : M.root.1 ≺ a) : (M.unravelling).World :=
+  ⟨[M.root.1, a], ⟨[a], rfl⟩, by simpa using Rra⟩
+
+@[simp]
+lemma coverPoint_last {a : M.World} (Rra : M.root.1 ≺ a) :
+  World.last (coverPoint Rra) = a := by
+  simp [coverPoint, World.last];
+
+/-- `coverPoint Rra` lies above the unravelling's root. -/
+lemma root_rel_coverPoint {a : M.World} (Rra : M.root.1 ≺ a) :
+  (M.unravelling).root.1 ≺ coverPoint Rra :=
+  ⟨⟨[a], rfl⟩, by simp [coverPoint]⟩
+
+/-- `coverPoint Rra` covers the unravelling's root: its only proper predecessor is the
+root itself. -/
+lemma coverPoint_covers_root {a : M.World} (Rra : M.root.1 ≺ a) :
+  ∀ x : (M.unravelling).World,
+  IsProperPredecessorOf (M := (M.unravelling).toModel) x (coverPoint Rra) →
+  x = (M.unravelling).root.1 := by
+  rintro ⟨l, hpre, hchain⟩ ⟨-, hl₁, hl₂⟩;
+  apply Subtype.ext;
+  have hlen : l.length = 1 := by
+    have := hpre.length_le;
+    simp only [coverPoint, List.length_cons] at hl₂;
+    simp_all;
+    omega;
+  exact hpre.eq_of_length (by simp [hlen]) |>.symm;
+
+/-- In a GL model nothing lies below the root, so a chain from the root ends at the
+root only if it is the trivial chain: the root of the unravelling is the only
+unravelling world whose last element is `M`'s root. -/
+lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
+  (h : World.last t = M.root.1) : t = (M.unravelling).root.1 := by
+  apply Subtype.ext;
+  obtain ⟨rest, hrest⟩ := root_prefix t;
+  match rest, hrest with
+  | [], hrest => exact hrest.symm;
+  | b :: rest, hrest =>
+    exfalso;
+    have hnd : t.1.Nodup := (isChain t).nodup_of_irrefl_trans;
+    have hd : List.Disjoint [M.root.1] (b :: rest) :=
+      List.disjoint_of_nodup_append (hrest ▸ hnd);
+    have hmem : M.root.1 ∈ (b :: rest) := by
+      have hlast : t.1.getLast (ne_nil t) = (b :: rest).getLast (by simp) := by
+        rw [show t.1.getLast (ne_nil t)
+          = ([M.root.1] ++ (b :: rest)).getLast (hrest ▸ ne_nil t) by simp [← hrest]];
+        exact List.getLast_append_of_ne_nil _ (by simp);
+      rw [show M.root.1 = World.last t from h.symm, World.last, hlast];
+      exact List.getLast_mem _;
+    exact hd (by simp) hmem;
+
+/--
+  Unravelling commutes with grafting the ω-chain, up to a pseudo-epimorphism: the
+  last-element map sends `(M.unravelling).graftOmega (coverPoint Rra)` onto
+  `M.graftOmega a`. This converts an arbitrary `graftOmega`-shaped ω-model
+  into one over a finite *tree* whose grafted point *covers* the root -- the standing
+  hypotheses of the simplification machinery (Lemma 8 in [Bek90] §4).
+-/
+def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
+  (Rra : M.root.1 ≺ a) :
+  ((M.unravelling).graftOmega (coverPoint Rra)).toModel →ₚ
+  (M.graftOmega a).toModel where
+  toFun := fun
+    | .inl t => .inl (World.last t)
+    | .inr i => .inr i
+  forth := by
+    rintro (t | i) (s | j) Rxy;
+    . exact (pMorphism (M := M)).forth Rxy;
+    . show World.last t = M.root.1;
+      rw [show t = (M.unravelling).root.1 from Rxy];
+      exact root_last;
+    . show World.last s = a ∨ M.Rel a (World.last s);
+      rcases Rxy with rfl | hR;
+      . exact Or.inl (coverPoint_last Rra);
+      . exact Or.inr (coverPoint_last Rra ▸ (pMorphism (M := M)).forth hR);
+    . exact Rxy;
+  back := by
+    rintro (t | i) ((w | j)) h;
+    . obtain ⟨s, hs, hts⟩ := (pMorphism (M := M)).back h;
+      exact ⟨.inl s, congrArg Sum.inl hs, hts⟩;
+    . have ht : t = (M.unravelling).root.1 := eq_root_of_last_eq_root h;
+      exact ⟨.inr j, rfl, ht⟩;
+    . rcases (show w = a ∨ M.Rel a w from h) with rfl | hR;
+      . exact ⟨.inl (coverPoint Rra), congrArg Sum.inl (coverPoint_last Rra), Or.inl rfl⟩;
+      . have hR' : (pMorphism (M := M)).toFun (coverPoint Rra) ≺ w := by
+          rw [show (pMorphism (M := M)).toFun (coverPoint Rra) = a from coverPoint_last Rra];
+          exact hR;
+        obtain ⟨s, hs, hts⟩ := (pMorphism (M := M)).back hR';
+        exact ⟨.inl s, congrArg Sum.inl hs, Or.inr hts⟩;
+    . exact ⟨.inr j, rfl, h⟩;
+  atomic := by
+    rintro (t | i) q;
+    . exact Iff.rfl;
+    . show M.Val (World.last (coverPoint Rra)) q ↔ M.Val a q;
+      rw [coverPoint_last Rra];
+
+/-- Root forcing transfers from an arbitrary `graftOmega`-shaped ω-model to its
+tree unravelling counterpart. -/
+lemma graftOmega_root_forces_iff [M.IsGL] {a : M.World} (Rra : M.root.1 ≺ a)
+  {C : Formula α} :
+  ((M.unravelling).graftOmega (coverPoint Rra)).root.1 ⊩ C ↔
+  (M.graftOmega a).root.1 ⊩ C := by
+  have h := (graftOmegaPseudoEpimorphism M Rra).modal_equivalence
+    ((M.unravelling).graftOmega (coverPoint Rra)).root.1 (A := C);
+  rwa [show (graftOmegaPseudoEpimorphism M Rra).toFun
+      ((M.unravelling).graftOmega (coverPoint Rra)).root.1
+    = (M.graftOmega a).root.1 from congrArg Sum.inl root_last] at h;
+
+end GraftOmega
+
 end unravelling
 
 end RootedModel

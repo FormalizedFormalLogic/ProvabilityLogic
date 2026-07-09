@@ -81,6 +81,17 @@ lemma not_rel_over_rank (h : x.rank < n) : ¬x ≺^[n] y := by
 @[grind =]
 lemma iff_rank_lt_forces_boxItr_bot : x.rank < n ↔ x ⊩ (□^[n]⊥) := by grind;
 
+omit [Fintype M.World] [M.IsGL] in
+/-- Forcing of `□^[n]⊥` is monotone in `n`: a world with no outgoing chain of length
+`n` has none of length `m ≥ n` either. -/
+lemma World.forces_boxItr_bot_mono {n m : ℕ} (hnm : n ≤ m) (h : x ⊩ (□^[n]⊥)) :
+  x ⊩ (□^[m]⊥) := by
+  apply forces_boxItr.mpr;
+  intro y hy;
+  rw [show m = n + (m - n) by omega] at hy;
+  obtain ⟨z, hz, -⟩ := Model.relItr_decomp hy;
+  exact forces_boxItr.mp h z hz;
+
 @[grind =>]
 lemma pos_rank_of_forces_dia (h : x ⊩ ◇A) : 0 < x.rank := by grind;
 

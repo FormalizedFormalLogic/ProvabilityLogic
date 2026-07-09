@@ -2,6 +2,10 @@ module
 
 public import SeqPL.Logic.D.Basic
 public import SeqPL.ProvabilityLogic.Classification.Trace
+public import SeqPL.Kripke.AlmostDefiningFormula
+public import SeqPL.Logic.A.Basic
+public import SeqPL.Kripke.DModelTree
+public import SeqPL.Kripke.Unravelling
 
 @[expose] public section
 
@@ -23,7 +27,7 @@ noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula
   fun q => if q ∈ S then (#p 🡘 #q) else #q
 
 @[simp]
-lemma Formula.atoms_pIffOn (p a : α) (S : Finset α) :
+lemma Formula.atoms_pIffOn [DecidableEq α] (p a : α) (S : Finset α) :
     (Formula.Substitution.pIffOn p S a).atoms ⊆ insert p {a} := by
   unfold Formula.Substitution.pIffOn;
   split;
@@ -39,62 +43,69 @@ lemma Formula.atoms_pIffOn (p a : α) (S : Finset α) :
   `S` with `p ↔ (that atom)`.
 -/
 noncomputable def Formula.deltaPIff [DecidableEq α] (A : Formula α) (p : α) : Formula α :=
-  ⋀(A.atoms.powerset.image (fun S => A⟦Formula.Substitution.pIffOn p S⟧))
+  ⋀(A.atoms.powerset.image (fun S => A⟦.pIffOn p S⟧))
 
 /--
-  **Lemma 1.1 in [Bek90] §5, p.266**: transfer of forcing along a bisimulation-under-`P`
-  `Bi` (our surrogate for the paper's "`q̄`-isomorphism", see `Model.BisimulationUnder`)
-  combined with the `p ↔ q` substitution. If `Bi` "reflects the root" (a `Bi`-related
-  pair has its `N`-component equal to `N`'s root iff its `M`-component equals `M`'s
-  root -- automatic for an actual isomorphism of rooted trees) and `N`'s root forces
-  `□p` but not `p` itself (`p` a fresh atom, not in `P`), then for any `Bi`-related pair
-  `(x, x')` and any formula `C` depending on `P`, forcing of `C` at `x` agrees with
-  forcing, at `x'`, of `C` with every atom in `γ` replaced by `p ↔ (that atom)` --
-  where `γ` records exactly the atoms on which the two roots' valuations disagree.
+  **Lemma 1.1 in [Bek90] §5, p.266**: transfer of forcing along a *stabilized*
+  bisimulation-under-`P` `Bi` (our surrogate for the paper's "the stabilizations are
+  `q̄`-isomorphic", see `RootedModel.StabilizedBisimulationUnder` -- the atomic clause
+  is waived at the roots, whose valuations may genuinely disagree on `P`) combined
+  with the `p ↔ q` substitution. If `M₂`'s root forces `□p` but not `p` itself (`p` a
+  fresh atom, not in `P`), then for any `Bi`-related pair `(x, x')` and any formula
+  `C` depending on `P`, forcing of `C` at `x` agrees with forcing, at `x'`, of `C`
+  with every atom in `γ` replaced by `p ↔ (that atom)` -- where `γ` records exactly
+  the atoms on which the two roots' valuations disagree.
 -/
-theorem BisimulationUnder.forces_iff_subst_pIffOn {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
-    {M : RootedModel κ₁ α} {N : RootedModel κ₂ α} {P : Finset α} {p : α}
-    (Bi : Model.BisimulationUnder P M.toModel N.toModel)
-    (hroot_reflect : ∀ {x : M.World} {x' : N.World}, Bi x x' → (x' = N.root.1 ↔ x = M.root.1))
-    (hp_box : N.root.1 ⊩ (□(#p))) (hp_root : N.root.1 ⊮ (#p)) {γ : Finset α}
-    (hγ_root : ∀ q ∈ P, (q ∈ γ ↔ ¬ (M.Val M.root.1 q ↔ N.Val N.root.1 q))) :
-    ∀ {x : M.World} {x' : N.World}, Bi x x' →
-      ∀ {C : Formula α}, C.atoms ⊆ P → (x ⊩ C ↔ x' ⊩ C⟦Formula.Substitution.pIffOn p γ⟧) := by
-  -- Away from the roots, `N`'s root forces `□p`, so `x' ⊩ p` holds outright
-  -- (`x' ≠ N.root.1`), making the substituted atom `p ↔ q` forcing-equivalent to plain
+theorem RootedModel.StabilizedBisimulationUnder.forces_iff_subst_pIffOn [DecidableEq α]
+    {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
+    {M₁ : RootedModel κ₁ α} {M₂ : RootedModel κ₂ α} {P : Finset α} {p : α}
+    (Bi : RootedModel.StabilizedBisimulationUnder P M₁ M₂)
+    (hp_box : M₂.root.1 ⊩ (□(#p))) (hp_root : M₂.root.1 ⊮ (#p)) {γ : Finset α}
+    (hγ_root : ∀ q ∈ P, (q ∈ γ ↔ ¬ (M₁.Val M₁.root.1 q ↔ M₂.Val M₂.root.1 q))) :
+    ∀ {x₁ : M₁.World} {x₂ : M₂.World}, Bi x₁ x₂ →
+      ∀ {C : Formula α}, C.atoms ⊆ P → (x₁ ⊩ C ↔ x₂ ⊩ C⟦.pIffOn p γ⟧) := by
+  -- Away from the roots, `M₂`'s root forces `□p`, so `x₂ ⊩ p` holds outright
+  -- (`x₂ ≠ M₂.root.1`), making the substituted atom `p ↔ q` forcing-equivalent to plain
   -- `q`, so the bisimulation's atomic clause suffices directly. At the roots themselves
-  -- `x' ⊩ p` is not `True` in general (`N`'s root additionally satisfies `¬p` by
+  -- `x₂ ⊩ p` is not `True` in general (`M₂`'s root additionally satisfies `¬p` by
   -- hypothesis), so the compensating substitution is exactly needed there, and `γ` is
   -- defined precisely to make it work out.
-  intro x x' hxx' C;
-  induction C generalizing x x' with
+  intro x₁ x₂ Bx₁x₂ C;
+  induction C generalizing x₁ x₂ with
   | atom q =>
     intro hq;
     replace hq : q ∈ P := hq (Finset.mem_singleton_self q);
-    show (M.Val x q ↔ x' ⊩ (Formula.Substitution.pIffOn p γ q));
+    show (M₁.Val x₁ q ↔ x₂ ⊩ (Formula.Substitution.pIffOn p γ q));
     simp only [Formula.Substitution.pIffOn];
     split;
     case isTrue hqγ =>
       rw [forces_iff];
-      by_cases hxroot : x' = N.root.1;
-      . obtain rfl : x = M.root.1 := (hroot_reflect hxx').mp hxroot;
+      by_cases hxroot : x₂ = M₂.root.1;
+      . obtain rfl : x₁ = M₁.root.1 := (Bi.root_reflect Bx₁x₂).mp hxroot;
         subst hxroot;
         have hγq := (hγ_root q hq).mp hqγ;
-        show (M.Val M.root.1 q ↔ (N.Val N.root.1 p ↔ N.Val N.root.1 q));
-        have hnp : ¬ N.Val N.root.1 p := hp_root;
+        show (M₁.Val M₁.root.1 q ↔ (M₂.Val M₂.root.1 p ↔ M₂.Val M₂.root.1 q));
+        have hnp : ¬ M₂.Val M₂.root.1 p := hp_root;
         tauto;
-      . have hx'p : N.Val x' p := hp_box x' (N.root.2 x' hxroot);
-        show (M.Val x q ↔ (N.Val x' p ↔ N.Val x' q));
-        have := Bi.atomic hq hxx';
+      . have hx₂p : M₂.Val x₂ p := hp_box x₂ (M₂.root.2 x₂ hxroot);
+        show (M₁.Val x₁ q ↔ (M₂.Val x₂ p ↔ M₂.Val x₂ q));
+        have := Bi.atomic hq Bx₁x₂ hxroot;
         tauto;
     case isFalse hqγ =>
-      exact Bi.atomic hq hxx';
+      by_cases hxroot : x₂ = M₂.root.1;
+      . obtain rfl : x₁ = M₁.root.1 := (Bi.root_reflect Bx₁x₂).mp hxroot;
+        subst hxroot;
+        show (M₁.Val M₁.root.1 q ↔ M₂.Val M₂.root.1 q);
+        have hnn : ¬¬(M₁.Val M₁.root.1 q ↔ M₂.Val M₂.root.1 q) :=
+          fun hne => hqγ ((hγ_root q hq).mpr hne);
+        exact not_not.mp hnn;
+      . exact Bi.atomic hq Bx₁x₂ hxroot;
   | bot => intro _; exact Iff.rfl;
   | imp A B ihA ihB =>
     intro hAB;
     simp only [Formula.atoms, Finset.union_subset_iff] at hAB;
-    replace ihA := ihA hxx' hAB.1;
-    replace ihB := ihB hxx' hAB.2;
+    replace ihA := ihA Bx₁x₂ hAB.1;
+    replace ihB := ihB Bx₁x₂ hAB.2;
     rw [Formula.subst_imp];
     constructor;
     . intro h hA; exact ihB.mp (h (ihA.mpr hA));
@@ -104,12 +115,12 @@ theorem BisimulationUnder.forces_iff_subst_pIffOn {κ₁ κ₂ : Type u} [Nonemp
     replace hA : A.atoms ⊆ P := by simpa [Formula.atoms] using hA;
     simp only [Formula.subst_box, forces_box];
     constructor;
-    . intro h y' Rx'y';
-      obtain ⟨y, hyy', Rxy⟩ := Bi.back hxx' Rx'y';
-      exact (ihA hyy' hA).mp (h y Rxy);
-    . intro h y Rxy;
-      obtain ⟨y', hyy', Rx'y'⟩ := Bi.forth hxx' Rxy;
-      exact (ihA hyy' hA).mpr (h y' Rx'y');
+    . intro h y₂ Rxy₂;
+      obtain ⟨y₁, hyy, Rxy₁⟩ := Bi.back Bx₁x₂ Rxy₂;
+      exact (ihA hyy hA).mp (h y₁ Rxy₁);
+    . intro h y₁ Rxy₁;
+      obtain ⟨y₂, hyy, Rxy₂⟩ := Bi.forth Bx₁x₂ Rxy₁;
+      exact (ihA hyy hA).mpr (h y₂ Rxy₂);
 
 section
 
@@ -143,29 +154,169 @@ lemma provable_deltaPIff [DecidableEq α] {A : Formula α} {p : α} :
 
 end
 
+section
+
+open RootedModel
+
+/--
+  **Lemma 3 in [Bek90] §4**: if `D ⊬ A`, there is a D-model refuting `A`, realized as
+  a tree-shaped ω-model: a finite GL tree `M` and a point `a` covering the root with
+  no lateral cones such that `A` fails at the root of `M.graftOmega a`. Obtained
+  by combining the pseudo-tail semantics of `D` (`LogicD.provability_TFAE`) with the
+  D-model tree realization (`Model.dModelTree`).
+-/
+theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
+    {A : Formula α} (hA : A ∉ LogicD) :
+    ∃ (κ : Type u) (_ : Nonempty κ)
+      (M : RootedModel κ α) (a : M.World),
+      M.IsFiniteGL ∧
+      M.IsTree ∧
+      M.root.1 ≺ a ∧
+      (∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1) ∧
+      (∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a) ∧
+      (M.graftOmega a).root.1 ⊮ A := by
+  obtain ⟨κ, hne, M, hgl, r, o, hno⟩ := LogicD.exists_not_forces_toPseudoTail_of_not_mem hA;
+  use (Model.dModelTree.World M), inferInstance, M.dModelTree r o, Model.dModelTree.tailPoint;
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩;
+  . infer_instance;
+  . infer_instance;
+  . exact Model.dModelTree.root_rel_tailPoint;
+  . exact Model.dModelTree.tailPoint_covers_root;
+  . exact Model.dModelTree.isInConeOf_tailPoint_of_root_rel;
+  . contrapose! hno;
+    exact Model.dModelTree.graftOmega_root_forces_iff.mp hno;
+
+/--
+  A modalized formula forced at the root of a (tree-shaped) D-model has an
+  `S`-unprovable negation: the stabilization of the D-model is a tail model, on whose
+  chain the formula is eventually forced (Lemma 4 of [Bek90] §4, realized by
+  `graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`), so the
+  tail-model semantics of `S` (`LogicS.provability_TFAE`) refutes the negation.
+-/
+lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
+    {κ : Type u} [Nonempty κ] {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
+    (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
+    {C : Formula α} (hmod : C.Modalized) (hC : (M.graftOmega a).root.1 ⊩ C) :
+    (∼C) ∉ LogicS := by
+  intro hS;
+  have hall := LogicS.provability_TFAE (A := ∼C) |>.out 0 1 |>.mp hS;
+  obtain ⟨k₀, h₀⟩ :=
+    hall (Model.toRootedModel M.toModel a).toModel (Model.toRootedModel M.toModel a).root.1;
+  obtain ⟨k₁, h₁⟩ :=
+    graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized Rra hlat hmod;
+  have h₂ := (h₁ (max k₀ k₁) (le_max_right _ _)).mpr hC;
+  have h₃ := h₀ (max k₀ k₁) (le_max_left _ _);
+  exact (forces_neg.mp h₃) h₂;
+
+/-- The atoms of `A.deltaPIff p` are contained in `A.atoms ∪ {p}`. -/
+lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} :
+    (A.deltaPIff p).atoms ⊆ insert p A.atoms := by
+  intro q hq;
+  have h₁ := FormulaFinset.atoms_conj_subset _ hq;
+  simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_image] at h₁;
+  obtain ⟨B, ⟨S, -, rfl⟩, hqB⟩ := h₁;
+  obtain ⟨b, hb, hqb⟩ := Finset.mem_biUnion.mp (Formula.atoms_subst_subset hqB);
+  rcases Finset.mem_insert.mp (Formula.atoms_pIffOn p b S hqb) with rfl | h₂;
+  . exact Finset.mem_insert_self _ _;
+  . exact Finset.mem_insert_of_mem (Finset.mem_singleton.mp h₂ ▸ hb);
+
 /--
   **The semantic core of Lemma 1, [Bek90] §5, p.266** (combining Lemmas 3, 4, 7, 8, 9
   of §4): if `D ⊬ A`, there is a formula `B` over the atoms of `A`, not provable in
   `S`, such that `GLαω ⊢ A.deltaPIff p → B ⋎ (□p → p)`.
+
+  The argument flow follows the paper exactly. From `D ⊬ A`, Lemma 3
+  (`LogicD.exists_graftOmega_countermodel_of_not_mem`) yields a tree-shaped
+  D-model refuting `A`, which Lemma 8 (`exists_simplificationUnder_omega'`)
+  `A.atoms`-simplifies, staying a D-model. Lemma 9
+  (`graftOmega.exists_almostDefiningFormula`) provides its almost defining
+  formula `B₀`; we take
+  `B := ∼B₀`. `S ⊬ ∼B₀` by the stabilization transfer
+  (`not_mem_LogicS_neg_of_graftOmega_root_forces_modalized`). For the `GLαω`
+  implication, suppose some ω-model refutes it (`LogicA.provability_TFAE`); after
+  unravelling to a tree and `(A.atoms ∪ {p})`-simplifying, its root forces
+  `A.deltaPIff p`, `B₀`, `□p` and `¬p`. Since `□p` holds at the root, the model is
+  already `A.atoms`-simple (`IsSimpleUnder.of_insert_of_root_forces_box`), so the
+  almost-defining property of `B₀` yields a stabilized bisimulation to the reference
+  D-model, and Lemma 1.1 (`StabilizedBisimulationUnder.forces_iff_subst_pIffOn`)
+  transports the refutation of `A` to the conjunct of `A.deltaPIff p` at the
+  disagreement set `γ` -- contradicting that the root forces `A.deltaPIff p`.
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
     {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
     ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧
       (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
-  -- Combines Lemmas 3, 7, 8, 9 of [Bek90] §4; Lemma 1.1 is available as
-  -- `BisimulationUnder.forces_iff_subst_pIffOn` above. Open sub-dependencies:
-  -- - Lemma 3: existence of a `D`-model countermodel to `A`. SeqPL's `LogicD` semantics
-  --   (`Model.toPseudoTail`, `SeqPL/Kripke/PseudoTail.lean`; `LogicD.provability_TFAE`)
-  --   does not literally match [Bek90]'s "D-model" Kripke class, so a bridging
-  --   correspondence between `toPseudoTail`- and `graftChainOmega`-shaped models is needed.
-  -- - Lemma 8: `RootedModel.exists_simplificationUnder_omega`
-  --   (`SeqPL/Kripke/Simplification.lean`), modulo one bookkeeping `sorry`.
-  -- - Lemma 7: existence of defining formulas, `RootedModel.exists_isDefiningFormula`
-  --   (`SeqPL/Kripke/DefiningFormula.lean`), left `sorry` (cited in [Bek90] from
-  --   Artemov 1986 / Boolos 1980).
-  -- - Lemma 9: the "almost defining" formula `Φ₀` ([Bek90] §4, p.264-266); builds on
-  --   Lemma 7 and the depth-bound machinery of `SeqPL/Kripke/Rank.lean`.
-  sorry
+  classical
+  -- **Lemma 3**: a D-model countermodel to `A`, realized as a tree-shaped ω-model.
+  obtain ⟨κ₁, hne₁, M₁, hgl₁, htree₁, a₁, Rra₁, hcov₁, hlat₁, hnA₁⟩ :=
+    LogicD.exists_graftOmega_countermodel_of_not_mem hA;
+  haveI := hne₁; haveI := hgl₁; haveI := htree₁;
+  -- **Lemma 8**: `A.atoms`-simplification, staying a tree-shaped D-model.
+  obtain ⟨κ₂, hne₂, M₂, hgl₂, htree₂, a₂, Rra₂, hcov₂, hlatimp₂, hsimple₂, htrans₂⟩ :=
+    exists_simplificationUnder_omega' Rra₁ hcov₁ A.atoms;
+  haveI := hne₂; haveI := hgl₂; haveI := htree₂;
+  have hlat₂ := hlatimp₂ hlat₁;
+  have hnA₂ : (M₂.graftOmega a₂).root.1 ⊮ A :=
+    fun h => hnA₁ ((htrans₂ A (Finset.Subset.refl _)).mpr h);
+  -- **Lemma 9**: the almost defining formula of the simplified D-model.
+  obtain ⟨B, hBatoms, hBmod, hBroot, hBdef⟩ :=
+    graftOmega.exists_almostDefiningFormula Rra₂ hcov₂ hlat₂ hsimple₂;
+  refine ⟨∼B, by rw [Formula.atoms_neg]; exact hBatoms, ?_, ?_⟩;
+  . -- `S ⊬ ∼B` (Lemma 4 of [Bek90] §4 + the tail-model semantics of `S`)
+    exact not_mem_LogicS_neg_of_graftOmega_root_forces_modalized Rra₂ hlat₂ hBmod hBroot;
+  . -- `GLαω ⊢ Δ 🡒 ∼B ⋎ (□p 🡒 p)`, by the ω-model semantics of `GLαω`.
+    apply LogicA.iff_provable_forces_graftOmega_root.mpr;
+    intro κ₃ hne₃ N hgl₃ c Rrc;
+    haveI := hne₃; haveI := hgl₃;
+    by_contra hcon;
+    -- Pass to the tree unravelling, where the grafted point covers the root.
+    rw [← unravelling.graftOmega_root_forces_iff Rrc] at hcon;
+    -- **Lemma 8** again: `(A.atoms ∪ {p})`-simplification of the putative countermodel.
+    obtain ⟨κ₄, hne₄, L, hgl₄, htree₄, c₄, Rrc₄, hcov₄, -, hsimple₄, htrans₄⟩ :=
+      exists_simplificationUnder_omega' (unravelling.root_rel_coverPoint Rrc)
+        (unravelling.coverPoint_covers_root Rrc) (insert p A.atoms);
+    haveI := hne₄; haveI := hgl₄; haveI := htree₄;
+    haveI hLgl : (L.graftOmega c₄).IsGL := graftOmega.isGL Rrc₄;
+    haveI : IsTrans _ (L.graftOmega c₄).Rel := hLgl.toIsTrans;
+    haveI : IsConverseWellFounded _ (L.graftOmega c₄).Rel := hLgl.toIsConverseWellFounded;
+    haveI : Std.Irrefl (L.graftOmega c₄).Rel := ConverseWellFounded.irrefl;
+    -- Unpack the countermodel and transport each part along the simplification.
+    obtain ⟨hΔT, hdisjT⟩ := not_forces_imp.mp hcon;
+    obtain ⟨hnBT, hnTT⟩ := not_forces_or.mp hdisjT;
+    obtain ⟨hboxT, hnpT⟩ := not_forces_imp.mp hnTT;
+    have hpin : ((#p : Formula α)).atoms ⊆ insert p A.atoms := by
+      simp [Formula.atoms];
+    have hΔ := (htrans₄ _ Formula.atoms_deltaPIff_subset).mp hΔT;
+    have hBL : (L.graftOmega c₄).root.1 ⊩ B :=
+      (htrans₄ B (hBatoms.trans (Finset.subset_insert _ _))).mp (not_forces_neg.mp hnBT);
+    have hboxp : (L.graftOmega c₄).root.1 ⊩ (□(#p)) :=
+      (htrans₄ (□(#p)) (by rwa [Formula.atoms_box])).mp hboxT;
+    have hnp : (L.graftOmega c₄).root.1 ⊮ (#p) :=
+      fun hc => hnpT ((htrans₄ (#p) hpin).mpr hc);
+    -- `□p` at the root downgrades `(A.atoms ∪ {p})`-simplicity to `A.atoms`-simplicity.
+    have hsimpleP : (L.graftOmega c₄).IsSimpleUnder A.atoms :=
+      hsimple₄.of_insert_of_root_forces_box hboxp;
+    -- The almost-defining property yields a stabilized bisimulation to the D-model.
+    obtain ⟨Bi⟩ := hBdef L c₄ Rrc₄ hcov₄ hsimpleP hBL;
+    -- `γ` records the atoms on which the two roots disagree.
+    set γ : Finset α := A.atoms.filter
+      (fun q => ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
+        (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) with hγdef;
+    have hγ_root : ∀ q ∈ A.atoms,
+        (q ∈ γ ↔ ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
+          (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) := by
+      intro q hq;
+      simp [hγdef, Finset.mem_filter, hq];
+    -- **Lemma 1.1**: transport `¬A` along the `p ↔ q` substitution at `γ`.
+    have htransport :=
+      Bi.forces_iff_subst_pIffOn hboxp hnp hγ_root Bi.root_rel (Finset.Subset.refl A.atoms);
+    -- The `γ`-conjunct of `Δ` is forced at the root, contradiction.
+    have hconj : (L.graftOmega c₄).root.1 ⊩ (A⟦Formula.Substitution.pIffOn p γ⟧) := by
+      apply forces_fconj.mp hΔ;
+      exact Finset.mem_image_of_mem _ (Finset.mem_powerset.mpr (Finset.filter_subset _ _));
+    exact hnA₂ (htransport.mpr hconj);
+
+end
 
 /--
   **Lemma 56 in [AB05]** (Lemma 1 in §5 of [Bek90]): if `D ⊬ A` then there is `B` over

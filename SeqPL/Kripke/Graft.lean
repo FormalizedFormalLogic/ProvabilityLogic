@@ -19,7 +19,7 @@ lemma not_rel_root [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {x : M.World} : ¬x ≺ 
   . exact Std.Irrefl.irrefl x $ IsTrans.trans _ _ _ h (M.root.2 x hx);
 
 /-- Worlds of the grafted model: the original worlds plus a chain of length `k`. -/
-abbrev graftChain.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin k
+abbrev graft.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin k
 
 /--
   The rooted model obtained by grafting a chain of length `k` between the root and `a`
@@ -28,7 +28,7 @@ abbrev graftChain.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World �
   below the root keeps the rank of every world other than the root unchanged, so that
   the height is exactly `max M.height (a.rank + k + 1)`.
 -/
-abbrev graftChain (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graftChain.World M k) α where
+abbrev graft (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graft.World M k) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
@@ -44,7 +44,7 @@ abbrev graftChain (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel 
     . exact M.root.2 x (by simpa using hx);
     . simp [Model.Rel];⟩
 
-namespace graftChain
+namespace graft
 
 variable {a : M.World} {k : ℕ}
 
@@ -52,7 +52,7 @@ lemma ne_root_of_rel [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
   fun h => Std.Irrefl.irrefl _ (h ▸ Rra)
 
 @[reducible]
-def isFiniteGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftChain a k).IsFiniteGL where
+def isFiniteGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graft a k).IsFiniteGL where
   trans := by
     have hne : a ≠ M.root.1 := ne_root_of_rel Rra;
     have hnr : ∀ x : M.World, ¬x ≺ M.root.1 := fun _ => not_rel_root;
@@ -73,7 +73,7 @@ variable [Fintype M.World] [M.IsGL]
 omit [Fintype M.World] [M.IsGL] in
 /-- `inl` preserves `relItr`. -/
 lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
-    Model.RelItr (M := (M.graftChain a k).toModel) n (.inl x) (.inl y) := by
+    Model.RelItr (M := (M.graft a k).toModel) n (.inl x) (.inl y) := by
   induction n generalizing x with
   | zero => simp_all;
   | succ n ih =>
@@ -82,8 +82,8 @@ lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
 
 omit [Fintype M.World] in
 /-- A chain starting from a non-root `inl` world stays inside `inl` and projects to a chain in `M`. -/
-lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graftChain a k).World}
-    (hx : x ≠ M.root.1) (h : Model.RelItr (M := (M.graftChain a k).toModel) n (.inl x) w) :
+lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graft a k).World}
+    (hx : x ≠ M.root.1) (h : Model.RelItr (M := (M.graft a k).toModel) n (.inl x) w) :
     ∃ y : M.World, w = .inl y ∧ x ≺^[n] y ∧ y ≠ M.root.1 := by
   induction n generalizing x with
   | zero => exact ⟨x, by simp_all, by simp_all, hx⟩;
@@ -97,8 +97,8 @@ lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graftChain a k).World}
       exact ⟨z, rfl, ⟨y, Rxy, hyz⟩, hz⟩;
 
 /-- The length of a chain starting from a grafted world is bounded by `i + 1 + a.rank`. -/
-lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.graftChain a k).World}
-    (h : Model.RelItr (M := (M.graftChain a k).toModel) n (.inr i) w) :
+lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.graft a k).World}
+    (h : Model.RelItr (M := (M.graft a k).toModel) n (.inr i) w) :
     n ≤ i + 1 + Model.World.rank a := by
   induction n generalizing i w with
   | zero => omega;
@@ -126,9 +126,9 @@ lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.gr
 omit [Fintype M.World] [M.IsGL] in
 /-- There is a chain of length `i + 1` from the grafted world `inr i` down to `inl a`. -/
 lemma inr_relItr_inl_a {i : Fin k} :
-    Model.RelItr (M := (M.graftChain a k).toModel) ((i : ℕ) + 1) (.inr i) (.inl a) := by
+    Model.RelItr (M := (M.graft a k).toModel) ((i : ℕ) + 1) (.inr i) (.inl a) := by
   suffices ∀ (m : ℕ) (i : Fin k), (i : ℕ) = m →
-      Model.RelItr (M := (M.graftChain a k).toModel) (m + 1) (.inr i) (.inl a) by
+      Model.RelItr (M := (M.graft a k).toModel) (m + 1) (.inr i) (.inl a) by
     exact this i i rfl;
   intro m;
   induction m with
@@ -142,8 +142,8 @@ lemma inr_relItr_inl_a {i : Fin k} :
     exact ⟨show m < (i : ℕ) by omega, ih ⟨m, hm⟩ rfl⟩;
 
 /-- The length of a chain starting from the root is bounded by `max M.height (a.rank + k + 1)`. -/
-lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graftChain a k).World}
-    (h : Model.RelItr (M := (M.graftChain a k).toModel) n (.inl M.root.1) w) :
+lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graft a k).World}
+    (h : Model.RelItr (M := (M.graft a k).toModel) n (.inl M.root.1) w) :
     n ≤ max M.height (Model.World.rank a + k + 1) := by
   match n with
   | 0 => omega;
@@ -163,13 +163,13 @@ lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graftChain a 
 
 /--
   **Height formula** (used in the proof of Lemma 12 in [AB05]):
-  `(M.graftChain a k).height = max M.height (a.rank + k + 1)`.
+  `(M.graft a k).height = max M.height (a.rank + k + 1)`.
   Note that Foundation's axiom `boneLengthening.eq_height` (claiming `M.height + k`)
   is false in general when some other branch is higher; this `max` form holds exactly.
 -/
 lemma height_eq (Rra : M.root.1 ≺ a)
-    [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL] :
-    (M.graftChain a k).height = max M.height (Model.World.rank a + k + 1) := by
+    [Fintype (M.graft a k).World] [(M.graft a k).IsGL] :
+    (M.graft a k).height = max M.height (Model.World.rank a + k + 1) := by
   apply le_antisymm;
   . -- Upper bound: from the bound on chain lengths
     apply Nat.lt_succ_iff.mp;
@@ -198,9 +198,9 @@ lemma height_eq (Rra : M.root.1 ≺ a)
         simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
 
 /-- `inl` preserves the rank of non-root worlds. -/
-lemma rank_inl [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL]
+lemma rank_inl [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     {x : M.World} (hx : x ≠ M.root.1) :
-    Model.World.rank (M := (M.graftChain a k).toModel) (.inl x) = Model.World.rank x := by
+    Model.World.rank (M := (M.graft a k).toModel) (.inl x) = Model.World.rank x := by
   apply le_antisymm;
   . apply Nat.lt_succ_iff.mp;
     apply Model.iff_rank_lt.mpr;
@@ -212,9 +212,9 @@ lemma rank_inl [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL]
     exact ⟨.inl t, relItr_inl ht⟩;
 
 /-- The rank of the grafted world `inr i` is exactly `i + 1 + a.rank`. -/
-lemma rank_inr [Fintype (M.graftChain a k).World] [(M.graftChain a k).IsGL]
+lemma rank_inr [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     (Rra : M.root.1 ≺ a) {i : Fin k} :
-    Model.World.rank (M := (M.graftChain a k).toModel) (.inr i)
+    Model.World.rank (M := (M.graft a k).toModel) (.inr i)
       = (i : ℕ) + 1 + Model.World.rank a := by
   apply le_antisymm;
   . apply Nat.lt_succ_iff.mp;
@@ -243,9 +243,9 @@ variable [DecidableEq α] {A : Formula α}
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
     (ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ ((□B) 🡒 B)) :
     ∀ {C : Formula α}, C ∈ A.subfmls →
-    (∀ i : Fin k, (Forces (M := (M.graftChain a k).toModel) (.inr i) C ↔
-      Forces (M := (M.graftChain a k).toModel) (.inl a) C)) ∧
-    (∀ x : M.World, (Forces (M := (M.graftChain a k).toModel) (.inl x) C ↔ x ⊩ C)) := by
+    (∀ i : Fin k, (Forces (M := (M.graft a k).toModel) (.inr i) C ↔
+      Forces (M := (M.graft a k).toModel) (.inl a) C)) ∧
+    (∀ x : M.World, (Forces (M := (M.graft a k).toModel) (.inl x) C ↔ x ⊩ C)) := by
   intro C;
   induction C with
   | atom p => intro _; exact ⟨fun i => Iff.rfl, fun x => Iff.rfl⟩;
@@ -264,7 +264,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
   | box B ihB =>
     intro hB;
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
-    have h₂ : ∀ x : M.World, (Forces (M := (M.graftChain a k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
+    have h₂ : ∀ x : M.World, (Forces (M := (M.graft a k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
       intro x;
       constructor;
       . intro h y Rxy;
@@ -289,162 +289,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
 
 end Mainlemma
 
-end graftChain
-
-
-/-- Worlds of the ω-grafted model: the original worlds plus an infinite descending chain. -/
-abbrev graftChainOmega.World (M : RootedModel κ α) : Type _ := M.World ⊕ ℕ
-
-/--
-  The rooted model obtained by grafting an infinite descending chain between the root
-  and `a` (`root ≺ ⋯ ≺ chain (n + 1) ≺ chain n ≺ ⋯ ≺ chain 0 ≺ a` and its cone):
-  "expansion of the point `a` to length ω" in the proof of Lemma 5 in §3 of [Bek90].
-  Unlike `Model.toPseudoTail`, the root keeps its other cones (the *lateral cones* of
-  the resulting ω-model), which is essential to refute the axioms of `LogicD`.
--/
-abbrev graftChainOmega (M : RootedModel κ α) (a : M.World) : RootedModel (graftChainOmega.World M) α where
-  Rel' x y :=
-    match x, y with
-    | .inl x, .inl y => M.Rel x y
-    | .inl x, .inr _ => x = M.root.1
-    | .inr _, .inl y => y = a ∨ M.Rel a y
-    | .inr i, .inr j => j < i
-  Val' x p :=
-    match x with
-    | .inl x => M.Val x p
-    | .inr _ => M.Val a p
-  root := ⟨.inl M.root.1, by
-    rintro (x | i) hx;
-    . exact M.root.2 x (by simpa using hx);
-    . simp [Model.Rel];⟩
-
-namespace graftChainOmega
-
-variable {a : M.World}
-
-/-- `M.graftChainOmega a` is a (necessarily infinite) GL model whenever `M` is a finite
-GL model and `a` lies strictly above the root. -/
-@[reducible]
-def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftChainOmega a).IsGL where
-  trans := by
-    have hne : a ≠ M.root.1 := graftChain.ne_root_of_rel Rra;
-    have hnr : ∀ x : M.World, ¬x ≺ M.root.1 := fun _ => not_rel_root;
-    have htr : ∀ x y z : M.World, x ≺ y → y ≺ z → x ≺ z := fun _ _ _ h h' => IsTrans.trans _ _ _ h h';
-    rintro (x | i) (y | j) (z | l) Rxy Ryz <;> simp_all only [Model.Rel] <;> grind;
-  cwf := by
-    have hne : a ≠ M.root.1 := graftChain.ne_root_of_rel Rra;
-    apply ConverseWellFounded.iff_has_max.mpr;
-    intro s hs;
-    by_cases hs₁ : {x : M.World | Sum.inl x ∈ s ∧ x ≠ M.root.1}.Nonempty;
-    . -- A maximal non-root `inl` world of `s` is maximal in `s`.
-      obtain ⟨m, ⟨hm₁, hm₂⟩, hm₃⟩ :=
-        ConverseWellFounded.has_max (IsConverseWellFounded.cwf (r := M.Rel)) _ hs₁;
-      use .inl m, hm₁;
-      rintro (y | j) hy;
-      . intro R;
-        have R' : m ≺ y := R;
-        exact hm₃ y ⟨hy, fun h => not_rel_root (h ▸ R')⟩ R';
-      . exact fun h => hm₂ h;
-    . by_cases hs₂ : {i : ℕ | Sum.inr i ∈ s}.Nonempty;
-      . -- The least chain index in `s` is maximal in `s`.
-        obtain ⟨i₀, hi₀, hmin⟩ := (wellFounded_lt (α := ℕ)).has_min _ hs₂;
-        use .inr i₀, hi₀;
-        rintro (y | j) hy;
-        . rintro (rfl | R);
-          . exact hs₁ ⟨y, hy, hne⟩;
-          . exact hs₁ ⟨y, hy, fun h => not_rel_root (h ▸ R)⟩;
-        . exact fun R => hmin j hy R;
-      . -- Otherwise `s` can only contain the (embedded) root.
-        obtain ⟨w, hw⟩ := hs;
-        have hw_root : w = Sum.inl M.root.1 := by
-          match w with
-          | .inl x =>
-            by_contra hx;
-            exact hs₁ ⟨x, hw, fun h => hx (by rw [h])⟩;
-          | .inr i => exact absurd ⟨i, hw⟩ hs₂;
-        subst hw_root;
-        use .inl M.root.1, hw;
-        rintro (y | j) hy;
-        . intro R;
-          have R' : M.root.1 ≺ y := R;
-          exact hs₁ ⟨y, hy, fun h => not_rel_root (h ▸ R')⟩;
-        . exact fun _ => hs₂ ⟨j, hy⟩;
-
-/-- There is a chain of length `n` from the grafted world `inr n` down to `inr 0`. -/
-lemma inr_relItr_inr_zero {n : ℕ} :
-    Model.RelItr (M := (M.graftChainOmega a).toModel) n (.inr n) (.inr 0) := by
-  induction n with
-  | zero => simp;
-  | succ n ih =>
-    use .inr n;
-    exact ⟨show n < n + 1 by omega, ih⟩;
-
-open Model.World in
-/-- The root of `M.graftChainOmega a` has infinite depth: it refutes `□^[n]⊥` for
-every `n`, hence forces every `TBB n` (and `∼(□^[n]⊥)`). -/
-lemma root_not_forces_boxItr_bot {n : ℕ} :
-    ¬((M.graftChainOmega a).root.1 ⊩ (□^[n]⊥)) := by
-  intro h;
-  match n with
-  | 0 => exact h;
-  | n + 1 =>
-    have hchain : Model.RelItr (M := (M.graftChainOmega a).toModel) (n + 1)
-        (.inl M.root.1) (.inr 0) :=
-      ⟨.inr n, rfl, inr_relItr_inr_zero⟩;
-    exact forces_boxItr.mp h _ hchain;
-
-section Mainlemma
-
-open Model.World
-
-variable [DecidableEq α] {A : Formula α}
-
-/--
-  **Forcing preservation for ω-expansion** (the model-theoretic core of the proof of
-  Lemma 5 in §3 of [Bek90]): if `a` forces every axiom T instance for the boxed
-  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
-  chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
-  original model. The ω-analogue of `graftChain.mainlemma`.
--/
-lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
-    (ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ □B 🡒 B) :
-    ∀ {C : Formula α}, C ∈ A.subfmls →
-    (∀ i : ℕ, (Forces (M := (M.graftChainOmega a).toModel) (.inr i) C ↔
-      Forces (M := (M.graftChainOmega a).toModel) (.inl a) C)) ∧
-    (∀ x : M.World, (Forces (M := (M.graftChainOmega a).toModel) (.inl x) C ↔ x ⊩ C)) := by
-  intro C;
-  induction C with
-  | box B ihB =>
-    intro hB;
-    obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
-    have h₂ : ∀ x : M.World,
-        (Forces (M := (M.graftChainOmega a).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
-      intro x;
-      constructor;
-      . intro h y Rxy;
-        exact ihB₂ y |>.mp (h (.inl y) Rxy);
-      . rintro h (y | i) Rxy;
-        . exact ihB₂ y |>.mpr (h y Rxy);
-        . have hx : x = M.root.1 := Rxy;
-          exact ihB₁ i |>.mpr (ihB₂ a |>.mpr (h a (by rw [hx]; exact Rra)));
-    refine ⟨?_, h₂⟩;
-    intro i;
-    constructor;
-    . rintro h (y | j) Ray;
-      . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray (graftChain.ne_root_of_rel Rra);
-    . intro h;
-      have haB : a ⊩ B := ha B hB (h₂ a |>.mp h);
-      rintro (y | j) Riy;
-      . rcases (show y = a ∨ a ≺ y from Riy) with hya | hay;
-        . subst hya; exact ihB₂ _ |>.mpr haB;
-        . exact h (.inl y) hay;
-      . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
-  | _ => grind;
-
-end Mainlemma
-
-end graftChainOmega
+end graft
 
 end RootedModel
 

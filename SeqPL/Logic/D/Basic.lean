@@ -336,6 +336,18 @@ theorem iff_provable_D_provable_GL [DecidableEq α] :
     A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
 
 /--
+  The existential, contrapositive form of `provability_TFAE`'s clause 2: a formula not
+  provable in `D` has a pseudo-tail model refuting it at the root.
+-/
+theorem exists_not_forces_toPseudoTail_of_not_mem [DecidableEq α] {A : Formula α}
+    (hA : A ∉ LogicD) :
+    ∃ (κ : Type u) (_ : Nonempty κ) (M : Model κ α), M.IsFiniteGL ∧ ∃ (r : M.World)
+      (o : α → Prop), ¬(M.toPseudoTail r o).root.1 ⊩ A := by
+  have h := provability_TFAE (A := A) |>.out 0 1 |>.not.mp hA;
+  push Not at h;
+  exact h;
+
+/--
   Non-provability in `D` transfers along the fresh-atom embedding, semantically via
   pseudo-tail models.
 -/

@@ -1,7 +1,7 @@
 module
 
 public import SeqPL.Kripke.RootedModel
-public import SeqPL.Kripke.GraftChain
+public import SeqPL.Kripke.Graft
 public import SeqPL.Logic.A.Basic
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.Classification.Trace
@@ -47,18 +47,18 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
   -- Both extra conditions (the reflexive node's unique predecessor being the root, and
   -- rank maximality) are achieved by grafting a chain of copies of `r` of length
-  -- `M.height + 2` between the root and `r` (`RootedModel.graftChain`), which is
+  -- `M.height + 2` between the root and `r` (`RootedModel.graft`), which is
   -- forcing-preserving because `r` is `A`-reflexive.
   have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩ ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
   set k := M.height + 2 with hk;
-  haveI hfgl' : (M.graftChain r k).IsFiniteGL := RootedModel.graftChain.isFiniteGL hr;
-  refine ⟨M.graftChain r k, ?_, Sum.inr ⟨M.height + 1, by omega⟩, ?_, ?_, ?_, ?_,
+  haveI hfgl' : (M.graft r k).IsFiniteGL := RootedModel.graft.isFiniteGL hr;
+  refine ⟨M.graft r k, ?_, Sum.inr ⟨M.height + 1, by omega⟩, ?_, ?_, ?_, ?_,
     Sum.inr ⟨M.height, by omega⟩, ?_, ?_⟩;
   . -- the root still refutes `A`.
-    exact (RootedModel.graftChain.mainlemma hr ha (by grind)).2 M.root.1 |>.not.mpr hnA;
+    exact (RootedModel.graft.mainlemma hr ha (by grind)).2 M.root.1 |>.not.mpr hnA;
   . -- the root sees the bottom of the grafted chain.
     show M.root.1 = M.root.1;
     rfl;
@@ -68,10 +68,10 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
     replace hB : (□B) ∈ A.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hB;
     have hB' : B ∈ A.subfmls := by grind;
-    have e₁ := (RootedModel.graftChain.mainlemma hr ha hB).1 (⟨M.height + 1, by omega⟩ : Fin k);
-    have e₂ := (RootedModel.graftChain.mainlemma (k := k) hr ha hB).2 r;
-    have e₃ := (RootedModel.graftChain.mainlemma hr ha hB').1 (⟨M.height + 1, by omega⟩ : Fin k);
-    have e₄ := (RootedModel.graftChain.mainlemma (k := k) hr ha hB').2 r;
+    have e₁ := (RootedModel.graft.mainlemma hr ha hB).1 (⟨M.height + 1, by omega⟩ : Fin k);
+    have e₂ := (RootedModel.graft.mainlemma (k := k) hr ha hB).2 r;
+    have e₃ := (RootedModel.graft.mainlemma hr ha hB').1 (⟨M.height + 1, by omega⟩ : Fin k);
+    have e₄ := (RootedModel.graft.mainlemma (k := k) hr ha hB').2 r;
     intro hbox;
     exact e₃.mpr (e₄.mpr ((ha B hB) (e₂.mp (e₁.mp hbox))));
   . -- the root is the only predecessor of the bottom of the grafted chain.
@@ -85,12 +85,12 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
   . -- rank maximality of the bottom of the grafted chain.
     rintro (y | i) hz hzr;
     . replace hz : y ≠ M.root.1 := by simpa using hz;
-      rw [RootedModel.graftChain.rank_inl hz, RootedModel.graftChain.rank_inr hr];
+      rw [RootedModel.graft.rank_inl hz, RootedModel.graft.rank_inr hr];
       have : Model.World.rank y < M.height := RootedModel.rank_lt_height (M.root.2 y hz);
       show Model.World.rank y < M.height + 1 + 1 + Model.World.rank r;
       omega;
     . replace hzr : (i : ℕ) ≠ M.height + 1 := by simpa [Fin.ext_iff] using hzr;
-      rw [RootedModel.graftChain.rank_inr hr, RootedModel.graftChain.rank_inr hr];
+      rw [RootedModel.graft.rank_inr hr, RootedModel.graft.rank_inr hr];
       have hik : (i : ℕ) < M.height + 2 := lt_of_lt_of_eq i.2 hk;
       show (i : ℕ) + 1 + Model.World.rank r < M.height + 1 + 1 + Model.World.rank r;
       omega;
@@ -99,8 +99,8 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     omega;
   . -- the next chain world forces exactly the same subformulas of `A`.
     intro B hB;
-    exact ((RootedModel.graftChain.mainlemma hr ha hB).1 _).trans
-      ((RootedModel.graftChain.mainlemma hr ha hB).1 _).symm;
+    exact ((RootedModel.graft.mainlemma hr ha hB).1 _).trans
+      ((RootedModel.graft.mainlemma hr ha hB).1 _).symm;
 
 /--
   The arithmetical fixed-point construction of the modified Solovay sentences: the
