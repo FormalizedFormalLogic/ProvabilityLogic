@@ -368,7 +368,7 @@ lemma rank_eq (x : (axiomDCountermodel n a).World) : x.rank = (n + 1) - x.down :
     ⟨(inferInstance : (axiomDCountermodel n a).IsGL).cwf⟩;
   obtain ⟨i, rfl⟩ := worldEquiv.surjective x;
   show cwfHeight (axiomDCountermodel n a).Rel (worldEquiv i) = (n + 1 - i);
-  rw [← cwfHeight_congr (r := (finiteLineModel (n + 1)).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
+  rw [← cwfHeight_congr (R := (finiteLineModel (n + 1)).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
   exact finiteLineModel.rank_eq i;
 
 lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
