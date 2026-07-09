@@ -59,6 +59,11 @@ public import SeqPL.Logic.SumQuasiNormal
 public import SeqPL.ProvabilityLogic.Classification.A_D
 public import SeqPL.ProvabilityLogic.Classification.D_S
 public import SeqPL.ProvabilityLogic.Classification.GeneralTrace
+public import SeqPL.ProvabilityLogic.Classification.HeightTrace
+public import SeqPL.ProvabilityLogic.Classification.HeightTrace2
+public import SeqPL.ProvabilityLogic.Classification.HeightTrace3
+public import SeqPL.ProvabilityLogic.Classification.HeightTrace4
+public import SeqPL.ProvabilityLogic.Classification.HeightTrace5
 public import SeqPL.ProvabilityLogic.Classification.LetterlessTrace
 public import SeqPL.ProvabilityLogic.Classification.Result
 public import SeqPL.ProvabilityLogic.D.Basic

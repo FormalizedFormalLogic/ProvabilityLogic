@@ -310,6 +310,33 @@ lemma LogicGLAlpha.eq_trace {Alpha : Set ℕ} : (@LogicGLAlpha α Alpha).trace =
   · intro hn;
     exact ⟨TBB n, ⟨TBB n, ⟨n, hn, rfl⟩, LetterlessFormula.eq_lift_TBB⟩, by rw [Formula.trace_TBB]; simp⟩;
 
+/-- The trace of a lifted letterless formula equals the trace of that letterless
+formula, computed directly from the `RootedModel`-existential descriptions of both traces. -/
+lemma Formula.trace_lift {B : LetterlessFormula} :
+    (LetterlessFormula.lift B : Formula α).trace = LetterlessFormula.trace B := by
+  ext n;
+  rw [Formula.iff_mem_trace, LetterlessFormula.iff_mem_trace_rootedModel];
+
+@[simp, grind =]
+lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {Beta : Set ℕ} (hCf : Betaᶜ.Finite) :
+    (LogicGLBetaMinus Beta hCf : Logic α).trace = Beta := by
+  have hclosure : ∀ A ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α), ∀ s,
+      A⟦s⟧ ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α) := by
+    rintro A hA s;
+    simp only [LetterlessFormulaSet.lift, Set.image_singleton, Set.mem_singleton_iff] at hA ⊢;
+    simp [hA];
+  apply Eq.trans (eq_LogicGL_quasiExtension_trace hclosure);
+  simp only [LetterlessFormulaSet.lift, Set.image_singleton, FormulaSet.trace_singleton,
+    Formula.trace_lift, LetterlessFormula.trace_TBBMinus hCf, compl_compl];
+
+/-- `LogicGLBetaMinus` only depends on `Beta` (the finiteness proof of `Betaᶜ` is
+irrelevant, by proof irrelevance). -/
+lemma LogicGLBetaMinus.congr [DecidableEq α] {Beta₁ Beta₂ : Set ℕ} (h : Beta₁ = Beta₂)
+    (hCf₁ : Beta₁ᶜ.Finite) (hCf₂ : Beta₂ᶜ.Finite) :
+    (LogicGLBetaMinus Beta₁ hCf₁ : Logic α) = LogicGLBetaMinus Beta₂ hCf₂ := by
+  subst h;
+  rfl;
+
 lemma subset_LogicGLAlpha_LogicS : LogicGLAlpha Alpha ⊆ @LogicS α := by
   intro C hC;
   induction hC with
@@ -398,6 +425,28 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
     exact Formula.iff_mem_not_trace.mp hnot κ inferInstance M inferInstance inferInstance rfl;
   apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL);
   exact Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hL, rfl, rfl⟩;
+
+/--
+  If `Beta` is the universal set, `LogicGLBetaMinus Beta hCf` proves `⊥`: once `Beta⁻`'s
+  cofiniteness assumption is instantiated at `Beta = Set.univ`, the `TBBMinus` axiom
+  ranges over the empty set and hence has empty spectrum, so it entails everything.
+  Extracted from the proof of `subset_LogicS_addTBB_compl_trace_of_subset_LogicS` in
+  Lemma 49 of [AB05].
+-/
+lemma LogicGLBetaMinus.bot_mem_of_eq_univ {hCf : (Set.univ : Set ℕ)ᶜ.Finite} :
+    (⊥ : Formula α) ∈ LogicGLBetaMinus Set.univ hCf := by
+  apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ?_)
+    (Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hCf, rfl, rfl⟩);
+  have hD : (((TBBMinus _ hCf : LetterlessFormula)) 🡒 ⊥) ∈ LogicGL := by
+    apply iff_GL_proves_imp_GL_subset_spectrum.mpr;
+    have hsp : LetterlessFormula.spectrum (TBBMinus _ hCf) = ∅ := by
+      have h := LetterlessFormula.trace_TBBMinus (s := (Set.univ : Set ℕ)ᶜ) hCf;
+      rw [LetterlessFormula.trace, compl_inj_iff] at h;
+      rw [h];
+      simp;
+    rw [hsp];
+    exact Set.empty_subset _;
+  exact ProvableHilbert.lift (α := α) hD;
 
 end
 
