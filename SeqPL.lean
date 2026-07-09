@@ -1,6 +1,5 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
-public import SeqPL.DFormula.Basic
 public import SeqPL.Formula.Basic
 public import SeqPL.Formula.Countable
 public import SeqPL.Formula.Letterless
@@ -71,7 +70,6 @@ public import SeqPL.ProvabilityLogic.Interpret
 public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.S.Basic
 public import SeqPL.ProvabilityLogic.SolovaySentences
-public import SeqPL.Tait.Basic
 public import SeqPL.Vorspiel.Arithmetic
 public import SeqPL.Vorspiel.CWF
 public import SeqPL.Vorspiel.Finset
