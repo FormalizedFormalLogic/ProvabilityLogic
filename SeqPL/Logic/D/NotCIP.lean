@@ -3,6 +3,7 @@ module
 public import SeqPL.Logic.D.Basic
 public import SeqPL.Logic.GL.Fixedpoint
 public import SeqPL.Logic.S.Basic
+meta import SeqPL.Logic.GL.Basic
 
 @[expose]
 public section
@@ -80,11 +81,16 @@ variable {a b c : Formula α}
 `A = □(□b ⋎ a) 🡒 □b` and `B = □(a 🡒 □c) 🡒 □c`. -/
 lemma provable_counterexample_imp :
     (∼(counterexampleCIP_A a b) 🡒 counterexampleCIP_B a c) ∈ LogicD := by
-  -- K-distribution over the two boxed premises, proved semantically in GL.
+  -- K-distribution over the two boxed premises, a GL tautology.
   have step2 : ((□(□b ⋎ a) ⋏ □(a 🡒 □c)) 🡒 □(□b ⋎ □c)) ∈ LogicGL := by
-    apply LogicGL.provable_of_valid;
-    intro κ _ M _ x;
-    grind;
+    suffices h : ((□(□#1 ⋎ #0) ⋏ □(#0 🡒 □#2)) 🡒 □(□#1 ⋎ □#2)) ∈ @LogicGL ℕ by
+      simpa using ProvableHilbert.subst (s := fun n =>
+        match n with
+        | 0 => a
+        | 1 => b
+        | _ => c
+      ) h;
+    native_decide;
   -- Chain the distribution with the instance of axiom D (`A := b`, `B := c`).
   have step4 : ((□(□b ⋎ a) ⋏ □(a 🡒 □c)) 🡒 (□b ⋎ □c)) ∈ LogicD :=
     provable_imp_trans (provable_of_provable_GL step2) provable_axiomD;
@@ -92,9 +98,16 @@ lemma provable_counterexample_imp :
   have taut :
       (((□(□b ⋎ a) ⋏ □(a 🡒 □c)) 🡒 (□b ⋎ □c)) 🡒
         (∼(counterexampleCIP_A a b) 🡒 counterexampleCIP_B a c)) ∈ LogicGL := by
-    apply LogicGL.provable_of_valid;
-    intro κ _ M _ x;
-    grind;
+    suffices h :
+        (((□(□#1 ⋎ #0) ⋏ □(#0 🡒 □#2)) 🡒 (□#1 ⋎ □#2)) 🡒
+          (∼(counterexampleCIP_A (#0) (#1)) 🡒 counterexampleCIP_B (#0) (#2))) ∈ @LogicGL ℕ by
+      simpa using ProvableHilbert.subst (s := fun n =>
+        match n with
+        | 0 => a
+        | 1 => b
+        | _ => c
+      ) h;
+    native_decide;
   exact provable_of_provable_GL_imp taut step4;
 
 end
@@ -440,9 +453,13 @@ lemma not_exists_modalized_equiv_atom [Nontrivial α] :
     exact h;
   -- `X 🡘 E` and `∼X 🡘 E` are jointly inconsistent, propositionally.
   have taut : (((C⟦a ↦ E⟧) 🡘 E) 🡒 (((∼(C⟦a ↦ E⟧)) 🡘 E) 🡒 ⊥)) ∈ @LogicGL α := by
-    apply LogicGL.provable_of_valid;
-    intro κ _ M _ x;
-    grind;
+    suffices h : ((#0 🡘 #1) 🡒 ((∼(#0) 🡘 #1) 🡒 ⊥)) ∈ @LogicGL ℕ by
+      simpa using ProvableHilbert.subst (s := fun n =>
+        match n with
+        | 0 => C⟦a ↦ E⟧
+        | _ => E
+      ) h;
+    native_decide;
   -- Hence `S ⊢ ⊥`, contradicting consistency.
   exact LogicS.consistent
     (Logic.sumQuasiNormal.mdp

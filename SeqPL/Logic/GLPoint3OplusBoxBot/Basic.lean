@@ -4,6 +4,7 @@ public import Mathlib.Data.ENat.Basic
 public import SeqPL.Logic.GL.Theorems
 public import SeqPL.Logic.GLPoint2.Basic
 public import SeqPL.Logic.GLPoint3.Basic
+meta import SeqPL.Logic.GL.Basic
 
 @[expose]
 public section
@@ -57,37 +58,38 @@ lemma provable_CD : (◇C 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 := by
   have c1 : (◇C 🡒 (◇C ⋏ □^[2]C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
     have t : (□^[2]C 🡒 ◇C 🡒 (◇C ⋏ □^[2]C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
       apply of_GL;
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
-      grind;
+      suffices h : (□^[2](#0) 🡒 ◇(#0) 🡒 (◇(#0) ⋏ □^[2](#0))) ∈ @LogicGL ℕ by
+        simpa using ProvableHilbert.subst (s := fun _ => C) h;
+      native_decide;
     exact Logic.sumNormal.mdp t axiomNVer;
   have c2 : ((◇C ⋏ □^[2]C) 🡒 ∼□(⊡C 🡒 ∼C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
     apply of_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    grind;
+    suffices h : ((◇(#0) ⋏ □^[2](#0)) 🡒 ∼□(⊡(#0) 🡒 ∼(#0))) ∈ @LogicGL ℕ by
+      simpa using ProvableHilbert.subst (s := fun _ => C) h;
+    native_decide;
   have c3 : (∼□(⊡C 🡒 ∼C) 🡒 □(⊡(∼C) 🡒 C)) ∈ LogicGLPoint3OplusBoxBot 2 := by
     have h3 : (□(⊡C 🡒 ∼C) ⋎ □(⊡(∼C) 🡒 C)) ∈ LogicGLPoint3OplusBoxBot 2 :=
       provable_of_provable_GLPoint3 (LogicGLPoint3.provable_axiomWeakPoint3 (A := C) (B := ∼C));
     have t : ((□(⊡C 🡒 ∼C) ⋎ □(⊡(∼C) 🡒 C)) 🡒 ∼□(⊡C 🡒 ∼C) 🡒 □(⊡(∼C) 🡒 C))
         ∈ LogicGLPoint3OplusBoxBot 2 := by
       apply of_GL;
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
-      grind;
+      suffices h : ((□(⊡(#0) 🡒 ∼(#0)) ⋎ □(⊡(∼(#0)) 🡒 #0)) 🡒 ∼□(⊡(#0) 🡒 ∼(#0)) 🡒 □(⊡(∼(#0)) 🡒 #0))
+          ∈ @LogicGL ℕ by
+        exact ProvableHilbert.subst (s := fun _ => C) h;
+      native_decide;
     exact Logic.sumNormal.mdp t h3;
   have c4 : (□(⊡(∼C) 🡒 C) 🡒 □^[2](∼C) 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 := by
     apply of_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    grind;
+    suffices h : (□(⊡(∼(#0)) 🡒 #0) 🡒 □^[2](∼(#0)) 🡒 □(#0)) ∈ @LogicGL ℕ by
+      exact ProvableHilbert.subst (s := fun _ => C) h;
+    native_decide;
   have chain : (◇C 🡒 □^[2](∼C) 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 :=
     imp_trans (imp_trans (imp_trans c1 c2) c3) c4;
   have t : ((◇C 🡒 □^[2](∼C) 🡒 □C) 🡒 □^[2](∼C) 🡒 ◇C 🡒 □C) ∈ LogicGLPoint3OplusBoxBot 2 := by
     apply of_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    grind;
+    suffices h : ((◇(#0) 🡒 □^[2](∼(#0)) 🡒 □(#0)) 🡒 □^[2](∼(#0)) 🡒 ◇(#0) 🡒 □(#0)) ∈ @LogicGL ℕ by
+      exact ProvableHilbert.subst (s := fun _ => C) h;
+    native_decide;
   exact Logic.sumNormal.mdp (Logic.sumNormal.mdp t chain) axiomNVer;
 
 /-- The convergence axiom `.2` (`WeakPoint2`) is provable in `GLPoint3OplusBoxBot 2`. -/
@@ -95,9 +97,13 @@ lemma provable_weakPoint2_in_2 : (◇(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ Logi
   have cdInst : (◇(□A ⋏ B) 🡒 □(□A ⋏ B)) ∈ LogicGLPoint3OplusBoxBot 2 := provable_CD;
   have w : (□(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ LogicGLPoint3OplusBoxBot 2 := by
     apply of_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    grind;
+    suffices h : (□(□(#0) ⋏ #1) 🡒 □(◇(#0) ⋎ #1)) ∈ @LogicGL ℕ by
+      simpa using ProvableHilbert.subst (s := fun n =>
+        match n with
+        | 0 => A
+        | _ => B
+      ) h;
+    native_decide;
   exact imp_trans cdInst w;
 
 end LogicGLPoint3OplusBoxBot
