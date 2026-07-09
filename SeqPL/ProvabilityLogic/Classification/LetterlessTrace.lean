@@ -568,7 +568,21 @@ variable
   {T₀ T : FirstOrder.ArithmeticTheory} [ℕ↓[ℒₒᵣ] ⊧* T] [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   {A B : LetterlessFormula}
 
-axiom letterless_arithmetical_completeness [𝗜𝚺₁ ⪯ T] : A ∈ LogicGL ↔ T ⊢ A.interpret T.standardProvability
+/-- **Letterless arithmetical completeness**: for a `Σ₁`-sound `Δ₁` extension `T` of
+`𝗜𝚺₁`, a letterless formula belongs to `GL` iff its interpretation under the standard
+provability predicate is provable in `T`. -/
+lemma letterless_arithmetical_completeness : A ∈ LogicGL ↔ T ⊢ A.interpret T.standardProvability := by
+  have hlift : (LetterlessFormula.lift A : Formula Empty) = A := by
+    induction A with
+    | atom a => exact a.elim
+    | _ => simp_all [LetterlessFormula.lift];
+  rw [LogicGL.arithmetical_completeness_iff_of_sigma1_sound (T := T)];
+  constructor;
+  . intro h;
+    have := h (⟨Empty.elim⟩ : StandardRealization Empty T);
+    rwa [← hlift, LetterlessFormula.interpret_lift] at this;
+  . intro h f;
+    rwa [← hlift, LetterlessFormula.interpret_lift];
 
 namespace LetterlessFormula
 
