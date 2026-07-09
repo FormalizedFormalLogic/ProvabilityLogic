@@ -110,13 +110,13 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
 theorem exists_modifiedSolovaySentences [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
     {A : Formula α} (X : StrongReflexiveCountermodel κ A)
     {σ : FirstOrder.Sentence ℒₒᵣ} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
-    Nonempty (T.standardProvability.ModifiedSolovaySentences X σ) := by
+    Nonempty (T.standardProvability.ModifiedSolovaySentences X σ) :=
   -- `h`'s limit climbs by refutation proofs but never enters `r`, and jumps from the
-  -- old root `b` to `r` as soon as a witness of `σ` is found. To be realized via the
-  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.SolovaySentences`;
+  -- old root `b` to `r` as soon as a witness of `σ` is found, realized via the
+  -- witness-comparison multi-fixed-point machinery of `SeqPL.ProvabilityLogic.Solovay`;
   -- the `𝚺₁`-ness of `σ` is needed for the provable `𝚺₁`-completeness arguments behind
   -- the conditions `SC3r`, `SC5` and `SC6`.
-  sorry
+  ⟨LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences T X hσ⟩
 
 /--
   **Theorem 2 in §6 of [Bek90]** (the arithmetical core of Lemma 51 in [AB05]): if

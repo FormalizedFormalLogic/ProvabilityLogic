@@ -72,6 +72,7 @@ public import SeqPL.ProvabilityLogic.ModifiedSolovaySentences
 public import SeqPL.ProvabilityLogic.S.Basic
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Tait.Basic
+public import SeqPL.Vorspiel.Arithmetic
 public import SeqPL.Vorspiel.CWF
 public import SeqPL.Vorspiel.Finset
 public import SeqPL.Vorspiel.List

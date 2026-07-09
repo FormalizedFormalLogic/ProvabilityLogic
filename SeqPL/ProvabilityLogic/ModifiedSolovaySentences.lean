@@ -3,6 +3,7 @@ module
 public import SeqPL.ProvabilityLogic.SolovaySentences
 public import SeqPL.Kripke.Graft
 public import SeqPL.Logic.S.Basic
+public import SeqPL.Vorspiel.Arithmetic
 
 /-!
 # Modified Solovay sentences (Theorem 2 in §6 of [Bek90])
@@ -414,5 +415,833 @@ theorem reflection (S : 𝔅.ModifiedSolovaySentences X σ) :
 end
 
 end LO.FirstOrder.ProvabilityAbstraction.Provability.ModifiedSolovaySentences
+
+
+noncomputable section
+
+namespace LO.FirstOrder.Arithmetic.Bootstrapping
+
+/-!
+### Arithmetical construction of the modified Solovay sentences (§6 Theorem 2 of [Bek90])
+
+Port of the construction in `SeqPL.ProvabilityLogic.SolovaySentences`
+(`LO.FirstOrder.Arithmetic.Bootstrapping.SolovaySentences`), extended so that the limit
+also jumps from the old root `b` to the reflexive point `r` as soon as a witness of a
+fixed `𝚺₁` sentence `σ` is found. This realizes
+`LO.FirstOrder.ProvabilityAbstraction.Provability.ModifiedSolovaySentences`.
+-/
+
+namespace ModifiedSolovaySentences
+
+open LO LO.Entailment
+open Model Model.World
+open SolovaySentences (NegativeSuccessor negativeSuccessor WChain twoPointAux θChainAux θAux)
+
+section model
+
+variable (T : ArithmeticTheory) [T.Δ₁] {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
+
+/--
+  The climb side wins (or ties) the witness race against `σ`: the negation of `φ` is
+  provable no later than `ψ` (intended to be `σ`) is. Kept `𝚺₁` (unlike raw `∼σ`, which
+  is `𝚷₁`) so that `modifiedTwoPointAux`/`modifiedθAux` below stay `𝚺₁` overall; the
+  raw truth of `σ` is only additionally required, as a separate `𝚺₁` conjunct, for the
+  jump itself (`jumpAux`), which is what SC6 needs.
+-/
+def ClimbBeatsSigma (φ ψ : V) : Prop := T.ProvabilityComparisonLE (neg ℒₒᵣ φ) ψ
+
+/--
+  `σ` (intended for `ψ`) strictly wins the witness race against the climb: `ψ`'s witness
+  is provable strictly before the negation of `φ`'s.
+-/
+def SigmaBeatsClimb (φ ψ : V) : Prop := T.ProvabilityComparisonLT ψ (neg ℒₒᵣ φ)
+
+section
+
+def climbBeatsSigma : 𝚺₁.Semisentence 2 := .mkSigma
+  “φ ψ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ !T.provabilityComparisonLE nφ ψ”
+
+instance climbBeatsSigma_defined : 𝚺₁-Relation[V] ClimbBeatsSigma T via (climbBeatsSigma T) := .mk fun v ↦ by
+  simp [climbBeatsSigma, ClimbBeatsSigma]
+
+instance climbBeatsSigma_definable : 𝚺₁-Relation (ClimbBeatsSigma T : V → V → Prop) :=
+  (climbBeatsSigma_defined T).to_definable
+
+/-- instance for definability tactic-/
+instance climbBeatsSigma_definable' : 𝚺-[0 + 1]-Relation (ClimbBeatsSigma T : V → V → Prop) :=
+  (climbBeatsSigma_defined T).to_definable
+
+def sigmaBeatsClimb : 𝚺₁.Semisentence 2 := .mkSigma
+  “φ ψ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ !T.provabilityComparisonLT ψ nφ”
+
+instance sigmaBeatsClimb_defined : 𝚺₁-Relation[V] SigmaBeatsClimb T via (sigmaBeatsClimb T) := .mk fun v ↦ by
+  simp [sigmaBeatsClimb, SigmaBeatsClimb]
+
+instance sigmaBeatsClimb_definable : 𝚺₁-Relation (SigmaBeatsClimb T : V → V → Prop) :=
+  (sigmaBeatsClimb_defined T).to_definable
+
+/-- instance for definability tactic-/
+instance sigmaBeatsClimb_definable' : 𝚺-[0 + 1]-Relation (SigmaBeatsClimb T : V → V → Prop) :=
+  (sigmaBeatsClimb_defined T).to_definable
+
+end
+
+/-- The climb side wins (or ties) the race against the witness of `θ`: some proof of the
+negation of `φ` appears no later than any witness of `θ` does. -/
+def ClimbBeatsWitness (θ : 𝚫₀.Semisentence 1) (φ : V) : Prop :=
+  ∃ p, Proof T p (neg ℒₒᵣ φ) ∧ ∀ w < p, ¬(V ⊧/![w] θ.val)
+
+/-- The witness side strictly wins the race against the climb: some witness of `θ` appears
+strictly before any proof of the negation of `φ` does. -/
+def WitnessBeatsClimb (θ : 𝚫₀.Semisentence 1) (φ : V) : Prop :=
+  ∃ w, (V ⊧/![w] θ.val) ∧ ∀ p ≤ w, ¬Proof T p (neg ℒₒᵣ φ)
+
+section
+
+def climbBeatsWitness (θ : 𝚫₀.Semisentence 1) : 𝚺₁.Semisentence 1 := .mkSigma
+  “φ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ ∃ p, !(proof T).sigma p nφ ∧ ∀ w < p, ¬!θ.val w”
+
+instance climbBeatsWitness_defined (θ : 𝚫₀.Semisentence 1) :
+    𝚺₁-Predicate[V] (ClimbBeatsWitness T θ) via (climbBeatsWitness T θ) := .mk fun v ↦ by
+  simp [climbBeatsWitness, ClimbBeatsWitness]
+
+instance climbBeatsWitness_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Predicate (ClimbBeatsWitness T θ : V → Prop) :=
+  (climbBeatsWitness_defined T θ).to_definable
+
+/-- instance for definability tactic-/
+instance climbBeatsWitness_definable' (θ : 𝚫₀.Semisentence 1) :
+    𝚺-[0 + 1]-Predicate (ClimbBeatsWitness T θ : V → Prop) :=
+  (climbBeatsWitness_defined T θ).to_definable
+
+def witnessBeatsClimb (θ : 𝚫₀.Semisentence 1) : 𝚺₁.Semisentence 1 := .mkSigma
+  “φ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ ∃ w, !θ.val w ∧ ∀ p <⁺ w, ¬!(proof T).pi p nφ”
+
+instance witnessBeatsClimb_defined (θ : 𝚫₀.Semisentence 1) :
+    𝚺₁-Predicate[V] (WitnessBeatsClimb T θ) via (witnessBeatsClimb T θ) := .mk fun v ↦ by
+  simp [witnessBeatsClimb, WitnessBeatsClimb]
+
+instance witnessBeatsClimb_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Predicate (WitnessBeatsClimb T θ : V → Prop) :=
+  (witnessBeatsClimb_defined T θ).to_definable
+
+/-- instance for definability tactic-/
+instance witnessBeatsClimb_definable' (θ : 𝚫₀.Semisentence 1) :
+    𝚺-[0 + 1]-Predicate (WitnessBeatsClimb T θ : V → Prop) :=
+  (witnessBeatsClimb_defined T θ).to_definable
+
+end
+
+/-- The two race outcomes are mutually exclusive. -/
+lemma ClimbBeatsWitness.not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V} :
+    ClimbBeatsWitness T θ φ → ¬WitnessBeatsClimb T θ φ := by
+  rintro ⟨p, hp, hpw⟩ ⟨w, hwθ, hwp⟩;
+  rcases lt_or_ge w p with hlt | hge;
+  · exact hpw w hlt hwθ;
+  · exact hwp p hge hp;
+
+/-- If `θ` has no witness at all, any provable refutation wins the race vacuously. -/
+lemma ClimbBeatsWitness.of_no_witness {θ : 𝚫₀.Semisentence 1} {φ : V} (hw : ¬∃ w, V ⊧/![w] θ.val)
+    (hp : Provable T (neg ℒₒᵣ φ)) : ClimbBeatsWitness T θ φ := by
+  obtain ⟨p, hp⟩ := hp;
+  exact ⟨p, hp, fun w _ hθw ↦ hw ⟨w, hθw⟩⟩;
+
+/-- Totality: a provable refutation that the witness does not strictly beat wins the race. -/
+lemma ClimbBeatsWitness.of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V}
+    (hp : Provable T (neg ℒₒᵣ φ)) (h : ¬WitnessBeatsClimb T θ φ) : ClimbBeatsWitness T θ φ := by
+  obtain ⟨d, hd⟩ := hp;
+  obtain ⟨p, hp, hpmin⟩ : ∃ p, Proof T p (neg ℒₒᵣ φ) ∧ ∀ z < p, ¬Proof T z (neg ℒₒᵣ φ) :=
+    InductionOnHierarchy.least_number_sigma 𝚺 1 (P := (Proof T · (neg ℒₒᵣ φ))) (by definability) hd;
+  refine ⟨p, hp, fun w hw hθw ↦ ?_⟩;
+  unfold WitnessBeatsClimb at h; push Not at h;
+  obtain ⟨p', hp'w, hp'proof⟩ := h w hθw;
+  exact hpmin p' (lt_of_le_of_lt hp'w hw) hp'proof;
+
+/-- The climb-beats-witness race outcome transfers along an earlier-refuted formula. -/
+lemma ClimbBeatsWitness.of_le {θ : 𝚫₀.Semisentence 1} {φ₁ φ₂ : V}
+    (hle : T.ProvabilityComparisonLE (neg ℒₒᵣ φ₁) (neg ℒₒᵣ φ₂))
+    (h : ClimbBeatsWitness T θ φ₂) : ClimbBeatsWitness T θ φ₁ := by
+  obtain ⟨b, hb, hbmin⟩ := hle;
+  obtain ⟨p₂, hp₂, hp₂w⟩ := h;
+  have hble : b ≤ p₂ := by
+    by_contra hc; push Not at hc; exact absurd hp₂ (hbmin p₂ hc);
+  exact ⟨b, hb, fun w hw ↦ hp₂w w (lt_of_lt_of_le hw hble)⟩;
+
+/-- If `θ` has a witness that does not strictly beat `φ`'s refutation in the race, that
+refutation is provable. -/
+lemma Provable.of_witness_of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V}
+    (hw : ∃ w, V ⊧/![w] θ.val) (h : ¬WitnessBeatsClimb T θ φ) : Provable T (neg ℒₒᵣ φ) := by
+  obtain ⟨w, hwθ⟩ := hw;
+  unfold WitnessBeatsClimb at h; push Not at h;
+  obtain ⟨p, hpw, hpProof⟩ := h w hwθ;
+  exact ⟨p, hpProof⟩;
+
+end model
+
+section stx
+
+variable (T : ArithmeticTheory) [T.Δ₁] (X : StrongReflexiveCountermodel κ A)
+         (σ : FirstOrder.Sentence ℒₒᵣ) (hσ : Hierarchy 𝚺 1 σ) (θ : 𝚫₀.Semisentence 1)
+
+/-- The ordinary-climb edge condition: every rival successor of `i` other than `r`
+loses the witness race against `j`. -/
+def climbAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) : Semisentence ℒₒᵣ N :=
+  ⩕ k ∈ { k : X.N.World | i ≺ k ∧ k ≠ X.rN }, (negativeSuccessor T)/[t j, t k]
+
+/-- `σ`, embedded (with no bound variables used) at an arbitrary arity. This is `𝚺₁`
+(unlike its negation), so it is safe to use directly inside `modifiedTwoPointAux`. -/
+def sigmaEmb : Semisentence ℒₒᵣ N := Rew.embSubsts ![] ▹ σ
+
+lemma rew_climbAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+    Rew.subst w ▹ climbAux T X t i j = climbAux T X (fun i ↦ Rew.subst w (t i)) i j := by
+  simp [climbAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
+    Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
+
+lemma rew_sigmaEmb (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') :
+    Rew.subst w ▹ sigmaEmb (N := N) σ = sigmaEmb σ := by
+  simp [sigmaEmb, ←TransitiveRewriting.comp_app, Rew.subst_comp_embSubsts, Matrix.empty_eq]
+
+/--
+  The jump edge condition (from `b` to `r`): `σ` holds outright (this is what makes
+  SC6 provable, unlike requiring merely `Provable T σ`), and `σ`'s witness additionally
+  strictly beats every rival climb-successor of `b` that does exist (needed to keep
+  the exclusivity argument at a mixed climb/jump branch point working, exactly as in
+  the ordinary climb-vs-climb case).
+-/
+def jumpAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) : Semisentence ℒₒᵣ N :=
+  sigmaEmb σ ⋏ ⩕ k ∈ { k : X.N.World | X.b ≺ k ∧ k ≠ X.rN }, (witnessBeatsClimb T θ)/[t k]
+
+lemma rew_jumpAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) :
+    Rew.subst w ▹ jumpAux T X σ θ t = jumpAux T X σ θ (fun i ↦ Rew.subst w (t i)) := by
+  simp [jumpAux, rew_sigmaEmb, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
+    Rew.subst_comp_subst, Matrix.constant_eq_singleton]
+
+/--
+  The single-step transition condition witnessing `j` as the successor of `i` in a
+  chain: a jump into `r` (only possible from `b`), or an ordinary climb into some
+  `j ≠ r`, additionally required to beat `σ` when climbing away from `b`.
+-/
+def modifiedTwoPointAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) : Semisentence ℒₒᵣ N :=
+  if j = X.rN then
+    (if i = X.b then jumpAux T X σ θ t else ⊥)
+  else
+    (climbAux T X t i j) ⋏ (if i = X.b then (climbBeatsWitness T θ)/[t j] else ⊤)
+
+lemma rew_modifiedTwoPointAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+    Rew.subst w ▹ modifiedTwoPointAux T X σ θ t i j = modifiedTwoPointAux T X σ θ (fun i ↦ Rew.subst w (t i)) i j := by
+  unfold modifiedTwoPointAux;
+  split_ifs with h1 h2 h2 <;>
+    simp [rew_climbAux, rew_jumpAux, Function.comp_def, ←TransitiveRewriting.comp_app,
+      Rew.subst_comp_subst, Matrix.constant_eq_singleton]
+
+private lemma sigmaEmb_sigma1 (hσ : Hierarchy 𝚺 1 σ) : Hierarchy 𝚺 1 (sigmaEmb (N := N) σ) := by
+  unfold sigmaEmb; exact hσ.rew _
+
+private lemma modifiedTwoPointAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
+    (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i j : X.N.World) :
+    Hierarchy 𝚺 1 (modifiedTwoPointAux T X σ θ t i j) := by
+  unfold modifiedTwoPointAux;
+  split_ifs <;> simp [climbAux, jumpAux, sigmaEmb_sigma1 σ hσ]
+
+/-- The chain condition along a `WChain`-style list of worlds, folding
+`modifiedTwoPointAux` along each consecutive pair. -/
+def modifiedθChainAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) : List X.N.World → Semisentence ℒₒᵣ N
+  |          [] => ⊥
+  |         [_] => ⊤
+  | j :: i :: ε => (modifiedθChainAux t (i :: ε)) ⋏ (modifiedTwoPointAux T X σ θ t i j)
+
+lemma rew_modifiedθChainAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (ε : List X.N.World) :
+    Rew.subst w ▹ modifiedθChainAux T X σ θ t ε = modifiedθChainAux T X σ θ (fun i ↦ Rew.subst w (t i)) ε := by
+  match ε with
+  |          [] => simp [modifiedθChainAux]
+  |         [_] => simp [modifiedθChainAux]
+  | j :: i :: ε => simp [modifiedθChainAux, rew_modifiedθChainAux w _ (i :: ε), rew_modifiedTwoPointAux]
+
+private lemma modifiedθChainAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
+    (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (ε : List X.N.World) :
+    Hierarchy 𝚺 1 (modifiedθChainAux T X σ θ t ε) := by
+  match ε with
+  |          [] => simp [modifiedθChainAux]
+  |         [_] => simp [modifiedθChainAux]
+  | j :: i :: ε =>
+    have h1 := modifiedθChainAux_sigma1 hσ t (i :: ε);
+    have h2 := modifiedTwoPointAux_sigma1 T X σ θ hσ t i j;
+    simp [modifiedθChainAux, h1, h2]
+
+/-- The disjunction, over all chains from the root of `X.N` to `i`, of `modifiedθChainAux`. -/
+def modifiedθAux (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) : Semisentence ℒₒᵣ N :=
+  haveI := X.isFiniteGL;
+  haveI : X.N.IsGL := (inferInstance : (X.extendRoot 1).IsGL);
+  haveI := Fintype.ofFinite (WChain X.N X.N.root.1 i);
+  ⩖ ε : WChain X.N X.N.root.1 i, modifiedθChainAux T X σ θ t ε
+
+lemma rew_modifiedθAux (w : Fin N → FirstOrder.Semiterm ℒₒᵣ Empty N') (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) :
+    Rew.subst w ▹ modifiedθAux T X σ θ t i = modifiedθAux T X σ θ (fun i ↦ Rew.subst w (t i)) i := by
+  simp [Finset.map_udisj, modifiedθAux, rew_modifiedθChainAux]
+
+lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstOrder.Semiterm ℒₒᵣ Empty N) (i : X.N.World) :
+    Hierarchy 𝚺 1 (modifiedθAux T X σ θ t i) := by
+  simp [modifiedθAux, modifiedθChainAux_sigma1 T X σ θ hσ]
+
+/--
+  The arithmetical fixed-point realizing the modified Solovay sentences of
+  Theorem 2 in §6 of [Bek90]. Besides the usual box-disjunction ingredients, the
+  fixed point at `b` also directly requires `σ` to stay unprovable: resting at `b`
+  forever means the jump to `r` (which unconditionally requires `Provable σ`,
+  regardless of whether `b` has any climb rival at all) never triggers.
+-/
+def _root_.LO.FirstOrder.Theory.modifiedSolovay (i : X.N.World) : Sentence ℒₒᵣ := exclusiveMultifixedpoint
+  (fun j ↦
+    let jj := (Fintype.equivFin X.N.World).symm j
+    (modifiedθAux T X σ θ (fun i ↦ #(Fintype.equivFin X.N.World i)) jj) ⋏
+      (⩕ k ∈ { k : X.N.World | jj ≺ k ∧ k ≠ X.rN }, T.consistentWith/[#(Fintype.equivFin X.N.World k)]) ⋏
+      (if jj = X.b then ∼(sigmaEmb σ) else ⊤))
+  (Fintype.equivFin X.N.World i)
+
+@[simp] lemma modifiedSolovay_exclusive {i j : X.N.World} :
+    T.modifiedSolovay X σ θ i = T.modifiedSolovay X σ θ j ↔ i = j := by
+  simp [Theory.modifiedSolovay]
+
+/-- The quoted counterpart of `modifiedTwoPointAux`. -/
+def modifiedTwoPoint (i j : X.N.World) : Sentence ℒₒᵣ := modifiedTwoPointAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i j
+
+/-- The quoted counterpart of `modifiedθChainAux`. -/
+def modifiedθChain (ε : List X.N.World) : Sentence ℒₒᵣ := modifiedθChainAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) ε
+
+/-- The quoted counterpart of `modifiedθAux`, with each bound variable specialized to
+the quoted code of the corresponding modified Solovay sentence. -/
+def modifiedθ (i : X.N.World) : Sentence ℒₒᵣ := modifiedθAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i
+
+/-- The diagonal fixed-point equation defining `T.modifiedSolovay`. -/
+lemma modifiedSolovay_diag (i : X.N.World) :
+    𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ i) 🡘
+      ((modifiedθ T X σ θ i) ⋏ (⩕ j ∈ { j : X.N.World | i ≺ j ∧ j ≠ X.rN }, T.consistentWith/[⌜T.modifiedSolovay X σ θ j⌝]) ⋏
+        (if i = X.b then ∼(sigmaEmb σ) else ⊤)) := by
+  have : 𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ i) 🡘
+      (Rew.subst fun j ↦ ⌜T.modifiedSolovay X σ θ ((Fintype.equivFin X.N.World).symm j)⌝) ▹
+        ((modifiedθAux T X σ θ (fun i ↦ #(Fintype.equivFin X.N.World i)) i) ⋏
+          (⩕ k ∈ { k : X.N.World | i ≺ k ∧ k ≠ X.rN }, T.consistentWith/[#(Fintype.equivFin X.N.World k)]) ⋏
+          (if i = X.b then ∼(sigmaEmb σ) else ⊤)) := by
+    simpa [Theory.modifiedSolovay, Matrix.comp_vecCons', Matrix.constant_eq_singleton] using!
+      exclusiveMultidiagonal (T := 𝗜𝚺₁) (i := Fintype.equivFin X.N.World i)
+        (fun j ↦
+          let jj := (Fintype.equivFin X.N.World).symm j
+          (modifiedθAux T X σ θ (fun i ↦ #(Fintype.equivFin X.N.World i)) jj) ⋏
+            (⩕ k ∈ { k : X.N.World | jj ≺ k ∧ k ≠ X.rN }, T.consistentWith/[#(Fintype.equivFin X.N.World k)]) ⋏
+            (if jj = X.b then ∼(sigmaEmb σ) else ⊤))
+  simpa [modifiedθ, Finset.map_conj', Function.comp_def, rew_modifiedθAux, rew_sigmaEmb, ←TransitiveRewriting.comp_app,
+    Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton, apply_ite] using! this
+
+end stx
+
+section model
+
+variable (T : ArithmeticTheory) [T.Δ₁] (X : StrongReflexiveCountermodel κ A) (σ : FirstOrder.Sentence ℒₒᵣ)
+         (θ : 𝚫₀.Semisentence 1)
+variable {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
+
+/--
+  The single-step transition relation between `i` and `j` mirroring `modifiedTwoPointAux`:
+  an ordinary climb into `j ≠ r` (with the extra `σ`-beating condition when leaving `b`),
+  or a jump from `b` into `r`.
+-/
+def ModifiedStep (i j : X.N.World) : Prop :=
+  if j = X.rN then
+    i = X.b ∧ (V ⊧/![] σ) ∧
+      ∀ k, X.b ≺ k → k ≠ X.rN → WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ k⌝
+  else
+    (∀ k, i ≺ k → k ≠ X.rN → NegativeSuccessor (V := V) T ⌜T.modifiedSolovay X σ θ j⌝ ⌜T.modifiedSolovay X σ θ k⌝) ∧
+      (i = X.b → ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j⌝)
+
+@[simp] lemma val_modifiedTwoPoint (i j : X.N.World) :
+    V ⊧/![] (modifiedTwoPoint T X σ θ i j) ↔ ModifiedStep T X σ θ (V := V) i j := by
+  unfold modifiedTwoPoint modifiedTwoPointAux ModifiedStep;
+  split_ifs <;> simp [climbAux, jumpAux, sigmaEmb] <;> tauto
+
+variable (V)
+
+inductive ModifiedΘChain : List X.N.World → Prop where
+  | singleton (i : X.N.World) : ModifiedΘChain [i]
+  | cons {i j : X.N.World} {ε} :
+      ModifiedStep T X σ θ (V := V) i j → ModifiedΘChain (i :: ε) → ModifiedΘChain (j :: i :: ε)
+
+def ModifiedΘ (i : X.N.World) : Prop :=
+  ∃ ε : List X.N.World, ε.ChainI (fun x y ↦ y ≺ x) i X.N.root.1 ∧ ModifiedΘChain T X σ θ V ε
+
+def _root_.LO.FirstOrder.Theory.ModifiedSolovay (i : X.N.World) : Prop :=
+  ModifiedΘ T X σ θ V i ∧
+    (∀ j, i ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V)) ∧
+    (i = X.b → ¬(V ⊧/![] σ))
+
+variable {T X σ θ V}
+
+attribute [simp] ModifiedΘChain.singleton
+
+@[simp] lemma ModifiedΘChain.not_nil : ¬ModifiedΘChain T X σ θ V ([] : List X.N.World) := by
+  rintro ⟨⟩
+
+lemma ModifiedΘChain.cons_cons_iff {i j : X.N.World} {ε : List X.N.World} :
+    ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V (i :: ε) ∧ ModifiedStep T X σ θ (V := V) i j := by
+  constructor
+  · rintro ⟨⟩; simp_all
+  · rintro ⟨ih, h⟩; exact .cons h ih
+
+lemma ModifiedΘChain.doubleton_iff {i j : X.N.World} :
+    ModifiedΘChain T X σ θ V [j, i] ↔ ModifiedStep T X σ θ (V := V) i j := by
+  constructor
+  · rintro ⟨⟩; simp_all
+  · rintro h; exact .cons h (by simp)
+
+lemma ModifiedΘChain.cons_cons_iff' {i j : X.N.World} {ε : List X.N.World} :
+    ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V [j, i] ∧ ModifiedΘChain T X σ θ V (i :: ε) := by
+  constructor
+  · rintro ⟨⟩; simp [ModifiedΘChain.doubleton_iff, *]
+  · rintro ⟨ih, h⟩; exact h.cons (by rcases ih; assumption)
+
+lemma ModifiedΘChain.cons_of {m i j : X.N.World} {ε : List X.N.World}
+    (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
+    (hΘ : ModifiedΘChain T X σ θ V ε)
+    (H : ModifiedStep T X σ θ (V := V) i j)
+    (hij : i ≺ j) :
+    ModifiedΘChain T X σ θ V (j :: ε) := by
+  rcases hc
+  case singleton => exact .cons H hΘ
+  case cons => exact .cons H hΘ
+
+lemma ModifiedΘChain.append_iff {ε₁ ε₂ : List X.N.World} {i : X.N.World} :
+    ModifiedΘChain T X σ θ V (ε₁ ++ i :: ε₂) ↔
+      ModifiedΘChain T X σ θ V (ε₁ ++ [i]) ∧ ModifiedΘChain T X σ θ V (i :: ε₂) := by
+  match ε₁ with
+  |           [] => simp
+  |          [x] => simp [ModifiedΘChain.cons_cons_iff' (ε := ε₂)]
+  | x :: y :: ε₁ =>
+    have : ModifiedΘChain T X σ θ V (y :: (ε₁ ++ i :: ε₂)) ↔
+        ModifiedΘChain T X σ θ V (y :: (ε₁ ++ [i])) ∧ ModifiedΘChain T X σ θ V (i :: ε₂) :=
+      append_iff (ε₁ := y :: ε₁) (ε₂ := ε₂) (i := i)
+    simp [cons_cons_iff' (ε := ε₁ ++ i :: ε₂), cons_cons_iff' (ε := ε₁ ++ [i]), and_assoc, this]
+
+@[simp] lemma val_modifiedθChain (ε : List X.N.World) :
+    V ⊧/![] (modifiedθChain T X σ θ ε) ↔ ModifiedΘChain T X σ θ V ε := by
+  unfold modifiedθChain modifiedθChainAux
+  match ε with
+  |          [] => simp
+  |         [i] => simp
+  | j :: i :: ε =>
+    suffices
+      V ⊧/![] (modifiedθChain T X σ θ (i :: ε)) ∧ V ⊧/![] (modifiedTwoPoint T X σ θ i j) ↔
+      ModifiedΘChain T X σ θ V (j :: i :: ε) by
+      simpa [-val_modifiedTwoPoint] using! this
+    simp [ModifiedΘChain.cons_cons_iff, val_modifiedθChain (i :: ε)]
+
+@[simp] lemma val_modifiedθ {i : X.N.World} :
+    V ⊧/![] (modifiedθ T X σ θ i) ↔ ModifiedΘ T X σ θ V i := by
+  suffices
+      (∃ ε, List.ChainI (fun x y ↦ y ≺ x) i X.N.root.1 ε ∧ V ⊧/![] (modifiedθChain T X σ θ ε)) ↔
+      ModifiedΘ T X σ θ V i by
+    simpa [-val_modifiedθChain, modifiedθ, modifiedθAux] using! this
+  simp [ModifiedΘ]
+
+@[simp] lemma val_modifiedSolovay {i : X.N.World} :
+    V ⊧/![] (T.modifiedSolovay X σ θ i) ↔ T.ModifiedSolovay X σ θ V i := by
+  unfold Theory.ModifiedSolovay;
+  by_cases hb : i = X.b <;>
+    simpa [models_iff, hb, sigmaEmb] using!
+      consequence_iff.mp (Theory.Proof.sound (modifiedSolovay_diag T X σ θ i)) V inferInstance
+
+/-- **Condition SC2.** -/
+lemma Modified.consistent {i j : X.N.World} (hij : i ≺ j) (hjr : j ≠ X.rN) :
+    T.ModifiedSolovay X σ θ V i → ¬Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := fun h ↦
+  (Theory.ConsistentWith.quote_iff T).mp (h.2.1 j hij hjr)
+
+/-- Resting at `b` forever means `σ` never actually holds: the jump to `r`
+(`ModifiedStep.models_sigma_of_jump`) would otherwise unconditionally trigger. -/
+lemma Modified.not_models_sigma_of_rest_at_b :
+    T.ModifiedSolovay X σ θ V X.b → ¬(V ⊧/![] σ) := fun h ↦ h.2.2 rfl
+
+/-- A jump step unconditionally requires `σ` to hold, regardless of whether `b`
+has any climb rival at all. -/
+lemma ModifiedStep.models_sigma_of_jump {i : X.N.World} (h : ModifiedStep T X σ θ (V := V) i X.rN) :
+    V ⊧/![] σ := by
+  simp [ModifiedStep] at h; exact h.2.1
+
+/--
+  Totality of the witness race between a provable `φ` and any `ψ`: if `ψ`'s witness
+  never comes strictly before `φ`'s, then `φ`'s witness comes no later than `ψ`'s.
+  (A general fact about `ProvabilityComparisonLE`/`LT`, independent of the modified
+  Solovay construction.)
+-/
+lemma ProvabilityComparison.le_of_not_lt {φ ψ : V} (hφ : Provable T (φ : V))
+    (h : ¬T.ProvabilityComparisonLT (V := V) φ ψ) : T.ProvabilityComparisonLE (V := V) ψ φ := by
+  obtain ⟨d, hd⟩ := hφ;
+  obtain ⟨d, hd, hmin⟩ : ∃ d, Proof T d φ ∧ ∀ z < d, ¬Proof T z φ :=
+    InductionOnHierarchy.least_number_sigma 𝚺 1 (P := (Proof T · φ)) (by definability) hd;
+  simp only [Theory.ProvabilityComparisonLT, not_exists, not_and, not_forall] at h;
+  obtain ⟨d', hd'd, hd'ψ⟩ := h d hd;
+  rw [not_not] at hd'ψ;
+  exact ⟨d', hd'ψ, fun z hz ↦ hmin z (lt_of_lt_of_le hz hd'd)⟩
+
+private lemma Modified.exclusive.comparable {i₁ i₂ : X.N.World} {ε₁ ε₂ : List X.N.World}
+    (ne : i₁ ≠ i₂)
+    (h : ε₁ <:+ ε₂)
+    (Hi₁ : ∀ j, i₁ ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V))
+    (Hb₁ : i₁ = X.b → ¬(V ⊧/![] σ))
+    (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ X.N.root.1 ε₁)
+    (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ X.N.root.1 ε₂)
+    (Θε₂ : ModifiedΘChain T X σ θ V ε₂) : False := by
+  have : ∃ a, a :: ε₁ <:+ ε₂ := by
+    rcases List.IsSuffix.eq_or_cons_suffix h with (e | h)
+    · have : ε₁ ≠ ε₂ := by
+        rintro rfl
+        have : i₁ = i₂ := (List.ChainI.eq_of cε₁ cε₂).1
+        contradiction
+      contradiction
+    · exact h
+  rcases this with ⟨j, hj⟩
+  have hji₁ε₂ : [j, i₁] <:+: ε₂ := by
+    rcases cε₁.tail_exists with ⟨ε₁', rfl⟩
+    exact List.infix_iff_prefix_suffix.mpr ⟨j :: i₁ :: ε₁', by simp, hj⟩
+  have hij₁ : i₁ ≺ j := cε₂.rel_of_infix j i₁ hji₁ε₂
+  have hstep : ModifiedStep T X σ θ (V := V) i₁ j := by
+    have hΘ : ModifiedΘChain T X σ θ V [j, i₁] := by
+      rcases hji₁ε₂ with ⟨η₁, η₂, rfl⟩
+      have Θε₂ : ModifiedΘChain T X σ θ V (η₁ ++ j :: i₁ :: η₂) := by simpa using! Θε₂
+      exact ModifiedΘChain.cons_cons_iff'.mp (ModifiedΘChain.append_iff.mp Θε₂).2 |>.1
+    exact ModifiedΘChain.doubleton_iff.mp hΘ
+  by_cases hjr : j = X.rN
+  · -- Jump case: `i₁ = X.b` and `σ` provable, contradicting `Hb₁`.
+    subst hjr
+    simp only [ModifiedStep] at hstep
+    exact Hb₁ hstep.1 hstep.2.1
+  · -- Climb case: `j` beats itself as a rival of `i₁`, the standard self-comparison trick.
+    have hne : ¬Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := by
+      simpa [Theory.ConsistentWith.quote_iff] using! Hi₁ j hij₁ hjr
+    have hpr : Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := by
+      simp only [ModifiedStep, if_neg hjr] at hstep
+      have hcomp : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j⌝ ⌜∼T.modifiedSolovay X σ θ j⌝ := by
+        simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep.1 j hij₁ hjr
+      exact (ProvabilityComparison.iff_le_refl_provable (L := ℒₒᵣ)).mp hcomp
+    contradiction
+
+/-- **Condition SC1.** -/
+lemma Modified.exclusive {i₁ i₂ : X.N.World} (ne : i₁ ≠ i₂) :
+    T.ModifiedSolovay X σ θ V i₁ → ¬T.ModifiedSolovay X σ θ V i₂ := by
+  intro S₁ S₂
+  obtain ⟨⟨ε₁, cε₁, Θε₁⟩, Hi₁, Hb₁⟩ := S₁
+  obtain ⟨⟨ε₂, cε₂, Θε₂⟩, Hi₂, Hb₂⟩ := S₂
+  by_cases hε₁₂ : ε₁ <:+ ε₂
+  · exact Modified.exclusive.comparable ne hε₁₂ Hi₁ Hb₁ cε₁ cε₂ Θε₂
+  by_cases hε₂₁ : ε₂ <:+ ε₁
+  · exact Modified.exclusive.comparable (Ne.symm ne) hε₂₁ Hi₂ Hb₂ cε₂ cε₁ Θε₁
+  have : ∃ ε k j₁ j₂, j₁ ≠ j₂ ∧ j₁ :: k :: ε <:+ ε₁ ∧ j₂ :: k :: ε <:+ ε₂ := by
+    rcases List.suffix_trichotomy hε₁₂ hε₂₁ with ⟨ε', j₁, j₂, nej, h₁, h₂⟩
+    match ε' with
+    |     [] =>
+      rcases show j₁ = X.N.root.1 from List.single_suffix_uniq h₁ cε₁.prefix_suffix.2
+      rcases show j₂ = X.N.root.1 from List.single_suffix_uniq h₂ cε₂.prefix_suffix.2
+      contradiction
+    | k :: ε =>
+      exact ⟨ε, k, j₁, j₂, nej, h₁, h₂⟩
+  obtain ⟨ε, k, j₁, j₂, nej, hj₁, hj₂⟩ := this
+  have C₁ : ModifiedΘChain T X σ θ V [j₁, k] := by
+    rcases hj₁ with ⟨_, rfl⟩
+    have : ModifiedΘChain T X σ θ V ([j₁] ++ k :: ε) := (ModifiedΘChain.append_iff.mp Θε₁).2
+    simpa using! (ModifiedΘChain.append_iff.mp this).1
+  have C₂ : ModifiedΘChain T X σ θ V [j₂, k] := by
+    rcases hj₂ with ⟨_, rfl⟩
+    have : ModifiedΘChain T X σ θ V ([j₂] ++ k :: ε) := (ModifiedΘChain.append_iff.mp Θε₂).2
+    simpa using! (ModifiedΘChain.append_iff.mp this).1
+  have hstep₁ : ModifiedStep T X σ θ (V := V) k j₁ := ModifiedΘChain.doubleton_iff.mp C₁
+  have hstep₂ : ModifiedStep T X σ θ (V := V) k j₂ := ModifiedΘChain.doubleton_iff.mp C₂
+  have hkj₁ : k ≺ j₁ :=
+    cε₁.rel_of_infix _ _ (List.infix_iff_prefix_suffix.mpr ⟨j₁ :: k :: ε, by simp, hj₁⟩)
+  have hkj₂ : k ≺ j₂ :=
+    cε₂.rel_of_infix _ _ (List.infix_iff_prefix_suffix.mpr ⟨j₂ :: k :: ε, by simp, hj₂⟩)
+  by_cases h1 : j₁ = X.rN
+  · by_cases h2 : j₂ = X.rN
+    · exact nej (h1.trans h2.symm)
+    · -- `j₁` is the jump target, `j₂` an ordinary climb rival of the same `k = b`.
+      subst h1
+      simp only [ModifiedStep] at hstep₁
+      obtain ⟨hkb, hprov, hbeat⟩ := hstep₁
+      subst hkb
+      have hWBC : WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ j₂⌝ := hbeat j₂ hkj₂ h2
+      have hCBW : ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j₂⌝ := by
+        simp only [ModifiedStep, if_neg h2] at hstep₂
+        exact hstep₂.2 trivial
+      exact ClimbBeatsWitness.not_witnessBeatsClimb (T := T) hCBW hWBC
+  · by_cases h2 : j₂ = X.rN
+    · -- Symmetric: `j₂` is the jump target, `j₁` an ordinary climb rival of `k = b`.
+      subst h2
+      simp only [ModifiedStep] at hstep₂
+      obtain ⟨hkb, hprov, hbeat⟩ := hstep₂
+      subst hkb
+      have hWBC : WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ j₁⌝ := hbeat j₁ hkj₁ h1
+      have hCBW : ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j₁⌝ := by
+        simp only [ModifiedStep, if_neg h1] at hstep₁
+        exact hstep₁.2 trivial
+      exact ClimbBeatsWitness.not_witnessBeatsClimb (T := T) hCBW hWBC
+    · -- Both `j₁` and `j₂` are ordinary climb rivals: the standard antisymmetry argument.
+      simp only [ModifiedStep, if_neg h1] at hstep₁
+      simp only [ModifiedStep, if_neg h2] at hstep₂
+      have P₁ : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j₁⌝ ⌜∼T.modifiedSolovay X σ θ j₂⌝ := by
+        simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep₁.1 j₂ hkj₂ h2
+      have P₂ : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j₂⌝ ⌜∼T.modifiedSolovay X σ θ j₁⌝ := by
+        simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep₂.1 j₁ hkj₁ h1
+      have : j₁ = j₂ := by simpa using! ProvabilityComparison.le_antisymm (V := V) P₁ P₂
+      contradiction
+
+/-- **Condition SC4**, first form: every reachable point either is itself stable, or
+sees a stable point. -/
+lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
+    (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
+    (i : X.N.World) : ModifiedΘ T X σ θ V i →
+    T.ModifiedSolovay X σ θ V i ∨ ∃ j, i ≺ j ∧ T.ModifiedSolovay X σ θ V j := by
+  haveI := X.isFiniteGL;
+  haveI hN : X.N.IsGL := (inferInstance : (X.extendRoot 1).IsGL);
+  haveI : IsTrans X.N.World X.N.Rel := hN.toIsTrans;
+  have hcwf : IsConverseWellFounded X.N.World X.N.Rel := hN.toIsConverseWellFounded;
+  apply WellFounded.induction hcwf.cwf i;
+  intro i ih hΘ;
+  by_cases hS : T.ModifiedSolovay X σ θ V i;
+  · left; exact hS;
+  · right;
+    have hstep : ∃ j, i ≺ j ∧ ModifiedStep T X σ θ (V := V) i j := by
+      by_cases hjump : i = X.b ∧ (V ⊧/![] σ) ∧
+          ∀ k, X.b ≺ k → k ≠ X.rN → WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ k⌝;
+      · -- The jump condition holds outright: `b` jumps to `r`.
+        obtain ⟨hib, hσV, hbeat⟩ := hjump;
+        refine ⟨X.rN, hib ▸ StrongReflexiveCountermodel.b_rel_rN, ?_⟩;
+        simp only [ModifiedStep];
+        exact ⟨hib, hσV, hbeat⟩;
+      · -- No outright jump: some climb rival `k₀ ≠ r` is refuted (possibly having
+        -- won a race against `θ`'s witness at `b`), so we may climb to the overall winner.
+        have hex : ∃ k₀ : X.N.World, i ≺ k₀ ∧ k₀ ≠ X.rN ∧
+            Provable T (⌜∼T.modifiedSolovay X σ θ k₀⌝ : V) ∧
+            (i = X.b → ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ k₀⌝) := by
+          by_cases hib : i = X.b;
+          · by_cases hσV : V ⊧/![] σ;
+            · obtain ⟨w₀, hw₀⟩ : ∃ w, V ⊧/![w] θ.val := hθσ.mp hσV;
+              have hnwin : ¬∀ k, X.b ≺ k → k ≠ X.rN →
+                  WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ k⌝ :=
+                fun h ↦ hjump ⟨hib, hσV, h⟩;
+              push Not at hnwin;
+              obtain ⟨k₀, hbk₀, hk₀r, hk₀nwin⟩ := hnwin;
+              have hk₀prov : Provable T (⌜∼T.modifiedSolovay X σ θ k₀⌝ : V) := by
+                have := Provable.of_witness_of_not_witnessBeatsClimb (T := T) (θ := θ) ⟨w₀, hw₀⟩ hk₀nwin;
+                simpa [Sentence.quote_def, Semiformula.quote_def] using! this;
+              refine ⟨k₀, hib ▸ hbk₀, hk₀r, hk₀prov, fun _ ↦ ?_⟩;
+              exact ClimbBeatsWitness.of_not_witnessBeatsClimb (T := T)
+                (by simpa [Sentence.quote_def, Semiformula.quote_def] using! hk₀prov) hk₀nwin;
+            · have hnc : ¬(∀ j, i ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V)) :=
+                fun h ↦ hS ⟨hΘ, h, fun _ ↦ hσV⟩;
+              push Not at hnc;
+              obtain ⟨k₀, hk₀, hk₀r, hk₀c⟩ := hnc;
+              have hk₀prov : Provable T (⌜∼T.modifiedSolovay X σ θ k₀⌝ : V) := by
+                simpa [Theory.ConsistentWith.quote_iff] using! hk₀c;
+              refine ⟨k₀, hk₀, hk₀r, hk₀prov, fun _ ↦ ?_⟩;
+              have hnw : ¬∃ w, V ⊧/![w] θ.val := fun ⟨w, hw⟩ ↦ hσV (hθσ.mpr ⟨w, hw⟩);
+              exact ClimbBeatsWitness.of_no_witness (T := T) hnw
+                (by simpa [Sentence.quote_def, Semiformula.quote_def] using! hk₀prov);
+          · have hnc : ¬(∀ j, i ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V)) :=
+              fun h ↦ hS ⟨hΘ, h, fun hc ↦ absurd hc hib⟩;
+            push Not at hnc;
+            obtain ⟨k₀, hk₀, hk₀r, hk₀c⟩ := hnc;
+            exact ⟨k₀, hk₀, hk₀r, by simpa [Theory.ConsistentWith.quote_iff] using! hk₀c,
+              fun hc ↦ absurd hc hib⟩;
+        obtain ⟨k₀, hik₀, hk₀r, hk₀prov, hk₀cbs⟩ := hex;
+        haveI hfin : Fintype X.N.World := inferInstance;
+        haveI hfinite : Finite X.N.World := Fintype.finite hfin;
+        haveI : Finite {k : X.N.World // i ≺ k ∧ k ≠ X.rN} := Subtype.finite;
+        haveI := Fintype.ofFinite {k : X.N.World // i ≺ k ∧ k ≠ X.rN};
+        obtain ⟨⟨j, hij, hjr⟩, hbest⟩ :=
+          ProvabilityComparison.find_minimal_proof_fintype (T := T) (V := V)
+            (ι := {k : X.N.World // i ≺ k ∧ k ≠ X.rN}) (i := ⟨k₀, hik₀, hk₀r⟩)
+            (fun k ↦ ⌜∼T.modifiedSolovay X σ θ k.val⌝) (by simpa using hk₀prov);
+        refine ⟨j, hij, ?_⟩;
+        simp only [ModifiedStep, if_neg hjr];
+        refine ⟨fun k hik hkr ↦ ?_, fun hib ↦ ?_⟩;
+        · simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hbest ⟨k, hik, hkr⟩;
+        · have hjk₀ : T.ProvabilityComparisonLE (V := V)
+              ⌜∼T.modifiedSolovay X σ θ j⌝ ⌜∼T.modifiedSolovay X σ θ k₀⌝ := hbest ⟨k₀, hik₀, hk₀r⟩;
+          have hle : T.ProvabilityComparisonLE (V := V)
+              (neg ℒₒᵣ (⌜T.modifiedSolovay X σ θ j⌝ : V)) (neg ℒₒᵣ (⌜T.modifiedSolovay X σ θ k₀⌝ : V)) := by
+            simpa [Sentence.quote_def, Semiformula.quote_def] using! hjk₀;
+          exact ClimbBeatsWitness.of_le (T := T) hle (hk₀cbs hib);
+    obtain ⟨j, hij, hstepij⟩ := hstep;
+    have hΘj : ModifiedΘ T X σ θ V j := by
+      obtain ⟨ε, hε, cε⟩ := hΘ;
+      exact ⟨j :: ε, hε.cons hij, cε.cons_of hε hstepij hij⟩;
+    rcases ih j hij hΘj with (hSj | ⟨k, hjk, hSk⟩);
+    · exact ⟨j, hij, hSj⟩;
+    · exact ⟨k, IsTrans.trans _ _ _ hij hjk, hSk⟩;
+
+/--
+  Any stable point other than the root and `r` is provably refuted by `T₀`: the
+  standard self-comparison trick, using that `i` is its own climb rival.
+-/
+lemma Modified.refute {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
+    T.ModifiedSolovay X σ θ V i → Provable T (⌜∼T.modifiedSolovay X σ θ i⌝ : V) := by
+  intro h
+  rcases show ModifiedΘ T X σ θ V i from h.1 with ⟨ε, hε, cε⟩
+  rcases List.ChainI.prec_exists_of_ne hε (Ne.symm ne) with ⟨ε', i', hii', rfl, hε'⟩
+  have hstep : ModifiedStep T X σ θ (V := V) i' i := (ModifiedΘChain.cons_cons_iff.mp cε).2
+  simp only [ModifiedStep, if_neg (Ne.symm ner)] at hstep
+  have : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ i⌝ ⌜∼T.modifiedSolovay X σ θ i⌝ := by
+    simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep.1 i hii' (Ne.symm ner)
+  exact (ProvabilityComparison.iff_le_refl_provable (T := T)).mp this
+
+/-- **Condition SC4.** -/
+lemma modified_disjunctive [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
+    (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
+    ∃ i : X.N.World, T.ModifiedSolovay X σ θ V i := by
+  rcases ModifiedΘ.disjunction (V := V) (T := T) hσ hθσ X.N.root.1 ⟨[X.N.root.1], by simp⟩ with (H | ⟨i, _, H⟩);
+  · exact ⟨X.N.root.1, H⟩;
+  · exact ⟨i, H⟩;
+
+/-- **Condition SC3.** -/
+lemma Modified.box_disjunction [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
+    (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
+    {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
+    T.ModifiedSolovay X σ θ V i →
+      Provable T (⌜⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j⌝ : V) := by
+  intro hS
+  have TP : T.internalize V ⊢
+      ⌜(modifiedθ T X σ θ i) 🡒
+        ((T.modifiedSolovay X σ θ i) ⋎ (⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j))⌝ :=
+    internal_provable_of_outer_provable <| by
+      have : 𝗜𝚺₁ ⊢ (modifiedθ T X σ θ i) 🡒
+          ((T.modifiedSolovay X σ θ i) ⋎ (⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j)) :=
+        complete _ _ fun (V : Type) _ _ ↦ by
+          simpa [models_iff] using! ModifiedΘ.disjunction hσ (hθσ V) i
+      exact Entailment.WeakerThan.pbl this
+  have Tθ : T.internalize V ⊢ ⌜modifiedθ T X σ θ i⌝ :=
+    Bootstrapping.Arithmetic.sigma_one_provable_of_models T
+      (modifiedθAux_sigma1 T X σ θ hσ _ i)
+      (by simpa [models_iff] using! hS.1)
+  have hP : T.internalize V ⊢
+      (⌜T.modifiedSolovay X σ θ i⌝ ⋎ ⌜⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j⌝ :
+        Arithmetic.Bootstrapping.Formula V ℒₒᵣ) := (by simpa using! TP) ⨀ Tθ
+  have hn : T.internalize V ⊢ (∼⌜T.modifiedSolovay X σ θ i⌝ : Arithmetic.Bootstrapping.Formula V ℒₒᵣ) := by
+    simpa using! (tprovable_tquote_iff_provable_quote (T := T)).mpr (Modified.refute ne ner hS)
+  have hd : T.internalize V ⊢ ⌜⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j⌝ :=
+    Entailment.of_a!_of_n! hP hn
+  exact (tprovable_tquote_iff_provable_quote (T := T)).mp hd
+
+/-- **Condition SC3r**: at `r`, the box-disjunction includes `r` itself, since the
+limit provably stays at or above `r` once it has jumped there. -/
+lemma Modified.box_disjunction_rN [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
+    (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
+    T.ModifiedSolovay X σ θ V X.rN → Provable T
+      (⌜(T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j)⌝ : V) := by
+  intro hS
+  have TP : T.internalize V ⊢
+      ⌜(modifiedθ T X σ θ X.rN) 🡒
+        ((T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j))⌝ :=
+    internal_provable_of_outer_provable <| by
+      have : 𝗜𝚺₁ ⊢ (modifiedθ T X σ θ X.rN) 🡒
+          ((T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j)) :=
+        complete _ _ fun (V : Type) _ _ ↦ by
+          simpa [models_iff] using! ModifiedΘ.disjunction hσ (hθσ V) X.rN
+      exact Entailment.WeakerThan.pbl this
+  have Tθ : T.internalize V ⊢ ⌜modifiedθ T X σ θ X.rN⌝ :=
+    Bootstrapping.Arithmetic.sigma_one_provable_of_models T
+      (modifiedθAux_sigma1 T X σ θ hσ _ X.rN)
+      (by simpa [models_iff] using! hS.1)
+  have hP : T.internalize V ⊢
+      (⌜T.modifiedSolovay X σ θ X.rN⌝ ⋎ ⌜⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j⌝ :
+        Arithmetic.Bootstrapping.Formula V ℒₒᵣ) := (by simpa using! TP) ⨀ Tθ
+  have hd : T.internalize V ⊢
+      ⌜(T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j)⌝ := by
+    simpa using! hP
+  exact (tprovable_tquote_iff_provable_quote (T := T)).mp hd
+
+/-- Resting at `X.rN` forever means `σ` holds: the step into `X.rN` that must have
+occurred just before (necessarily a jump from `X.b`) unconditionally requires `σ`. -/
+lemma Modified.models_sigma_of_rest_at_rN :
+    T.ModifiedSolovay X σ θ V X.rN → V ⊧/![] σ := by
+  intro h;
+  rcases show ModifiedΘ T X σ θ V X.rN from h.1 with ⟨ε, hε, cε⟩;
+  rcases List.ChainI.prec_exists_of_ne hε (Ne.symm StrongReflexiveCountermodel.rN_ne_root) with
+    ⟨ε', i', hii', rfl, hε'⟩;
+  have hstep : ModifiedStep T X σ θ (V := V) i' X.rN := (ModifiedΘChain.cons_cons_iff.mp cε).2;
+  exact ModifiedStep.models_sigma_of_jump hstep
+
+/-- **Condition SC6.** -/
+lemma Modified.not_sigma_imp_not_rN [𝗜𝚺₁ ⪯ T] :
+    𝗜𝚺₁ ⊢ ((∼σ : FirstOrder.Sentence ℒₒᵣ)) 🡒 ∼(T.modifiedSolovay X σ θ X.rN) :=
+  complete _ _ fun (V : Type) _ _ ↦ by
+    simpa [models_iff] using! (Modified.models_sigma_of_rest_at_rN (T := T) (X := X) (σ := σ) (θ := θ) (V := V)).mt
+
+/-- **Condition SC5.** -/
+lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
+    𝗜𝚺₁ ⊢ (T.standardProvability σ) 🡒 ∼(T.modifiedSolovay X σ θ X.N.root.1) := by
+  have hΛbσ : 𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ X.b) 🡒 ∼σ :=
+    complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff] using! Modified.not_models_sigma_of_rest_at_b (T := T) (X := X) (σ := σ) (θ := θ) (V := V);
+  have hσΛb : 𝗜𝚺₁ ⊢ σ 🡒 ∼(T.modifiedSolovay X σ θ X.b) := by cl_prover [hΛbσ];
+  have hD1 : 𝗜𝚺₁ ⊢ T.standardProvability (σ 🡒 ∼(T.modifiedSolovay X σ θ X.b)) :=
+    T.standardProvability.D1 (Entailment.WeakerThan.pbl hσΛb);
+  have hboxImp : 𝗜𝚺₁ ⊢ (T.standardProvability σ) 🡒 (T.standardProvability (∼(T.modifiedSolovay X σ θ X.b))) :=
+    T.standardProvability.D2 ⨀ hD1;
+  refine complete _ _ fun (V : Type) _ _ ↦ ?_;
+  have hcon :
+      V ⊧/![] (T.standardProvability σ) → V ⊧/![] (T.standardProvability (∼(T.modifiedSolovay X σ θ X.b))) := by
+    simpa [models_iff] using consequence_iff.mp (Theory.Proof.sound hboxImp) V inferInstance;
+  suffices hsuff :
+      Provable T (⌜σ⌝ : V) → ¬T.ModifiedSolovay X σ θ V X.N.root.1 by
+    simpa [models_iff, standardProvability_def] using! hsuff;
+  intro hp hroot;
+  have hpb : Provable T (⌜∼(T.modifiedSolovay X σ θ X.b)⌝ : V) := by
+    simpa [models_iff, standardProvability_def] using! hcon (by simpa [models_iff, standardProvability_def] using! hp);
+  have hbrel : X.N.root.1 ≺ X.b :=
+    X.N.root.2 X.b (Ne.symm StrongReflexiveCountermodel.b_ne_root);
+  exact (Modified.consistent hbrel StrongReflexiveCountermodel.b_ne_rN hroot) hpb;
+
+/--
+  The modified Solovay construction of Theorem 2 in §6 of [Bek90], realized for a
+  `𝚺₁` sentence `σ`: the witness formula `θ` is obtained from `exists_delta0_witness_form`
+  applied to `σ` (viewed as a `𝚺₁`-formula with no free variables), and the resulting
+  family of modified Solovay sentences `T.modifiedSolovay X σ θ` satisfies all the
+  conditions `SC1`–`SC6` by the lemmas above.
+-/
+noncomputable def _root_.LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences
+    (T : ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
+    (X : StrongReflexiveCountermodel κ A) {σ : FirstOrder.Sentence ℒₒᵣ}
+    (hσ : Hierarchy 𝚺 1 σ) :
+    T.standardProvability.ModifiedSolovaySentences X σ :=
+  have hex := exists_delta0_witness_form (n := 0) (φ := σ) hσ;
+  let θraw := hex.choose;
+  have hθraw : Hierarchy 𝚺 0 θraw := hex.choose_spec.1;
+  have hval := hex.choose_spec.2;
+  let θ : 𝚫₀.Semisentence 1 :=
+    HierarchySymbol.Semiformula.ofZero (HierarchySymbol.Semiformula.mkPolarity θraw 𝚺 hθraw) 𝚫₀;
+  have hθval : θ.val = θraw := by
+    show (HierarchySymbol.Semiformula.mkPolarity θraw 𝚺 hθraw).val = θraw;
+    exact HierarchySymbol.Semiformula.val_mkPolarity θraw hθraw;
+  have hθσ :
+      ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁],
+        V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val := fun V _ _ ↦ by
+    rw [hθval]; exact hval V ![];
+  { Λ := T.modifiedSolovay X σ θ
+    SC1 := fun _ _ ne ↦ complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff] using! Modified.exclusive (T := T) (X := X) (σ := σ) (θ := θ) ne
+    SC2 := fun _ _ hij hjr ↦ complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff, standardProvability_def] using!
+        Modified.consistent (T := T) (X := X) (σ := σ) (θ := θ) hij hjr
+    SC3 := fun _ ne ner ↦ complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff, standardProvability_def] using! Modified.box_disjunction hσ hθσ ne ner
+    SC3r := complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff, standardProvability_def] using! Modified.box_disjunction_rN hσ hθσ
+    SC4 := complete _ _ fun (V : Type) _ _ ↦ by
+      simpa [models_iff] using! modified_disjunctive hσ (hθσ V)
+    SC5 := Modified.provable_sigma_imp_not_root
+    SC6 := Modified.not_sigma_imp_not_rN }
+
+end model
+
+end ModifiedSolovaySentences
+
+end LO.FirstOrder.Arithmetic.Bootstrapping
+
+end
+
 
 end
