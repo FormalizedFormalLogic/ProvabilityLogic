@@ -1,1 +1,1 @@
-# SeqPL
+# ProvabilityLogic

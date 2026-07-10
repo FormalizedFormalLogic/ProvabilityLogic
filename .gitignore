@@ -7,6 +7,9 @@
 # VSCode
 .vscode/settings.json
 
+# Claude
+CLAUDE.local.md
+
 # Notes
 .notes
 
