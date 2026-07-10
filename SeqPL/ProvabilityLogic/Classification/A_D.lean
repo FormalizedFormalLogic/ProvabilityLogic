@@ -53,12 +53,13 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
+  let r' : M.ReflexiveWorldOf A.subfmls := ⟨r, fun {B} hB => ha B hB⟩;
   set k := M.height + 2 with hk;
   haveI hfgl' : (M.graft r k).IsFiniteGL := RootedModel.graft.isFiniteGL hr;
   refine ⟨M.graft r k, ?_, Sum.inr ⟨M.height + 1, by omega⟩, ?_, ?_, ?_, ?_,
     Sum.inr ⟨M.height, by omega⟩, ?_, ?_⟩;
   . -- the root still refutes `A`.
-    exact (RootedModel.graft.mainlemma hr ha (by grind)).2 M.root.1 |>.not.mpr hnA;
+    exact (RootedModel.graft.mainlemma r' hr (by grind)).2 M.root.1 |>.not.mpr hnA;
   . -- the root sees the bottom of the grafted chain.
     show M.root.1 = M.root.1;
     rfl;
@@ -68,10 +69,10 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
     replace hB : (□B) ∈ A.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hB;
     have hB' : B ∈ A.subfmls := by grind;
-    have e₁ := (RootedModel.graft.mainlemma hr ha hB).1 (⟨M.height + 1, by omega⟩ : Fin k);
-    have e₂ := (RootedModel.graft.mainlemma (k := k) hr ha hB).2 r;
-    have e₃ := (RootedModel.graft.mainlemma hr ha hB').1 (⟨M.height + 1, by omega⟩ : Fin k);
-    have e₄ := (RootedModel.graft.mainlemma (k := k) hr ha hB').2 r;
+    have e₁ := (RootedModel.graft.mainlemma r' hr hB).1 (⟨M.height + 1, by omega⟩ : Fin k);
+    have e₂ := (RootedModel.graft.mainlemma (k := k) r' hr hB).2 r;
+    have e₃ := (RootedModel.graft.mainlemma r' hr hB').1 (⟨M.height + 1, by omega⟩ : Fin k);
+    have e₄ := (RootedModel.graft.mainlemma (k := k) r' hr hB').2 r;
     intro hbox;
     exact e₃.mpr (e₄.mpr ((ha B hB) (e₂.mp (e₁.mp hbox))));
   . -- the root is the only predecessor of the bottom of the grafted chain.
@@ -99,8 +100,8 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     omega;
   . -- the next chain world forces exactly the same subformulas of `A`.
     intro B hB;
-    exact ((RootedModel.graft.mainlemma hr ha hB).1 _).trans
-      ((RootedModel.graft.mainlemma hr ha hB).1 _).symm;
+    exact ((RootedModel.graft.mainlemma r' hr hB).1 _).trans
+      ((RootedModel.graft.mainlemma r' hr hB).1 _).symm;
 
 /--
   **Theorem 2 in §6 of [Bek90]** (the arithmetical core of Lemma 51 in [AB05]): if
