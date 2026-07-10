@@ -47,6 +47,9 @@ jobs:
       - name: Build ProvabilityLogic
         run: lake build ProvabilityLogic
 
+      - name: Check environment with leanchecker
+        run: lake env leanchecker ProvabilityLogic
+
       - name: Pack project cache
         run: lake pack
       - name: Save project cache
