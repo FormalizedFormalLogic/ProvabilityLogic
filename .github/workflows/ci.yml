@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build project
+    runs-on: ubuntu-latest
+    needs: mk-all-check
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      # Restore project cache
+      - name: Get Mathlib cache
+        run: lake exe cache get
+      - name: Restore cache
+        id: cache-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
+          # NOTE: including github branch name and SHA for avoding cache key reserving problem
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.ref_name }}
+            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}
+      - name: Unpack project cache
+        if: hashFiles('.lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz') != ''
+        run: lake unpack
+
+      - name: Build ProvabilityLogic
+        run: lake build ProvabilityLogic
+
+      - name: Pack project cache
+        run: lake pack
+      - name: Save project cache
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        id: cache-save
+        uses: actions/cache/save@v6
+        with:
+          path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
+          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
+
+      - uses: ts-graphviz/setup-graphviz@v2
+      - uses: extractions/setup-just@v3
+      - name: Generate import graph
+        run: just import-graph
+
+      - name: Upload lean artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: lean-artifacts
+          path: |
+            import_graph.png
+            import_graph.pdf
+            import_graph.html
+          retention-days: 1
+          include-hidden-files: true
+
+  check-references:
+    name: Check references.bib format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: extractions/setup-just@v3
+      - name: Install bibtool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bibtool
+      - name: Check references.bib is formatted
+        run: |
+          just format-bib
+          if [ -n "$(git diff)" ]; then
+            echo "references.bib is not formatted. Please run 'just format-bib' and commit the changes."
+            exit 1
+          fi
+
+  mk-all-check:
+    name: Check mk_all executed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: extractions/setup-just@v3
+      - name: Setup elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Check mk_all executed
+        run: |
+          just mk-all
+          if [ -n "$(git diff)" ]; then
+            echo "Files were modified by mk_all. Please run 'just mk-all' and commit the changes."
+            exit 1
+          fi
+
+  deploy:
+    name: Generate page
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build
+      - check-references
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download lean artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: lean-artifacts
+      - name: Copy from artifacts to pages
+        run: |
+          mkdir -p pages
+          cp "$GITHUB_WORKSPACE/import_graph.png" \
+             "$GITHUB_WORKSPACE/import_graph.pdf" \
+             "$GITHUB_WORKSPACE/import_graph.html" \
+             pages/
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: pages
+      - uses: actions/deploy-pages@v5
+        id: deployment
