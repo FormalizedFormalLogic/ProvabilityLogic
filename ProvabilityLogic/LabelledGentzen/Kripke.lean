@@ -17,7 +17,7 @@ formula holds.
 open LabelledGentzen
 
 variable {κ : Type u} [Nonempty κ]
-         {α : Type v} [DecidableEq α]
+         {α : Type v}
          {M : Model κ α}
 
 
@@ -26,22 +26,18 @@ namespace LabelledGentzen.LabelledSequent
 variable {S : LabelledSequent α} {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)}
          {lf : LabelledFormula α} {p : LabelRel}
 
-omit [DecidableEq α] in
 @[grind =>]
 lemma label_mem_labels_of_mem_ant (h : lf ∈ S.ant) : lf.label ∈ S.labels :=
   Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_image_of_mem _ h
 
-omit [DecidableEq α] in
 @[grind =>]
 lemma label_mem_labels_of_mem_suc (h : lf ∈ S.suc) : lf.label ∈ S.labels :=
   Finset.mem_union_left _ $ Finset.mem_union_left _ $ Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
 
-omit [DecidableEq α] in
 @[grind =>]
 lemma mem_labels_of_mem_rel_fst (h : p ∈ S.rel) : p.1 ∈ S.labels :=
   Finset.mem_union_left _ $ Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
 
-omit [DecidableEq α] in
 @[grind =>]
 lemma mem_labels_of_mem_rel_snd (h : p ∈ S.rel) : p.2 ∈ S.labels :=
   Finset.mem_union_right _ $ Finset.mem_image_of_mem _ h
@@ -68,32 +64,31 @@ notation:50 M " ⊧ˡ[" L "] " S:51 => Model.ValidateLabelled M L S
 variable {L : M.LabelMap} {R R' : Finset LabelRel} {Γ Γ' Δ Δ' : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
-omit [DecidableEq α] in
 lemma validate_labelled_axm : M ⊧ˡ[L] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := by
   intro _ h;
   exact ⟨x ∶ A, by grind, h _ (by grind)⟩;
 
-omit [DecidableEq α] in
 lemma validate_labelled_botL : M ⊧ˡ[L] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := by
   intro _ h;
   have := h (x ∶ (⊥ : Formula α)) (by grind);
   grind;
 
-omit [DecidableEq α] in
 lemma validate_labelled_wkRel (h : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ)) (hR : R ⊆ R') : M ⊧ˡ[L] (R' ⸴ Γ ⟹ˡ Δ) := by
   intro hrel hant;
   exact h (λ p hp => hrel p (hR hp)) hant;
 
-omit [DecidableEq α] in
 lemma validate_labelled_wkAnt (h : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ)) (hΓ : Γ ⊆ Γ') : M ⊧ˡ[L] (R ⸴ Γ' ⟹ˡ Δ) := by
   intro hrel hant;
   exact h hrel (λ lf hlf => hant lf (hΓ hlf));
 
-omit [DecidableEq α] in
 lemma validate_labelled_wkSuc (h : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ)) (hΔ : Δ ⊆ Δ') : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ') := by
   intro hrel hant;
   obtain ⟨lf, hlf, h⟩ := h hrel hant;
   exact ⟨lf, hΔ hlf, h⟩;
+
+section WithDecidableEq
+
+variable [DecidableEq α]
 
 lemma validate_labelled_impL
   (h₁ : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ))
@@ -127,22 +122,11 @@ lemma validate_labelled_boxL
   . exact hant (x ∶ □A) hxA (L y) (hrel (x, y) hxy);
   . exact hant lf hlf;
 
-omit [DecidableEq α] in
-lemma validate_labelled_irref [Std.Irrefl M.Rel] (hxx : (x, x) ∈ R) : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
-  intro hrel _;
-  exact absurd (hrel (x, x) hxx) (Std.Irrefl.irrefl _);
+end WithDecidableEq
 
-omit [DecidableEq α] in
-lemma validate_labelled_trans [IsTrans _ M.Rel]
-  (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R)
-  (h : M ⊧ˡ[L] (insert (x, z) R ⸴ Γ ⟹ˡ Δ))
-  : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
-  intro hrel hant;
-  apply h ?_ hant;
-  intro p hp;
-  rcases Finset.mem_insert.mp hp with rfl | hp;
-  . exact _root_.trans (hrel (x, y) hxy) (hrel (y, z) hyz);
-  . exact hrel p hp;
+section WithDecidableEqBoxRLob
+
+variable [DecidableEq α]
 
 open LabelledGentzen.LabelledSequent in
 lemma validate_labelled_boxRLob [M.IsGL]
@@ -205,6 +189,23 @@ lemma validate_labelled_boxRLob [M.IsGL]
     apply hC lf (by grind);
     rwa [Function.update_of_ne hly] at hf;
 
+end WithDecidableEqBoxRLob
+
+lemma validate_labelled_irref [Std.Irrefl M.Rel] (hxx : (x, x) ∈ R) : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel _;
+  exact absurd (hrel (x, x) hxx) (Std.Irrefl.irrefl _);
+
+lemma validate_labelled_trans [IsTrans _ M.Rel]
+  (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R)
+  (h : M ⊧ˡ[L] (insert (x, z) R ⸴ Γ ⟹ˡ Δ))
+  : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
+  intro hrel hant;
+  apply h ?_ hant;
+  intro p hp;
+  rcases Finset.mem_insert.mp hp with rfl | hp;
+  . exact _root_.trans (hrel (x, y) hxy) (hrel (y, z) hyz);
+  . exact hrel p hp;
+
 end Model
 
 
@@ -218,7 +219,7 @@ Soundness of `G3KGL` with respect to Kripke semantics on `GL` models.
 
 - [Neg14, Theorem 5.4]
 -/
-theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
+theorem soundness [DecidableEq α] {S : LabelledSequent α} (h : ⊢ˡ S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → ∀ L : M.LabelMap, M ⊧ˡ[L] S := by
   intro κ _ M _;
   induction h with
@@ -235,7 +236,7 @@ theorem soundness {S : LabelledSequent α} (h : ⊢ˡ S) :
   | trans hxy hyz _ ih => exact λ L => validate_labelled_trans hxy hyz (ih L);
 
 /-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `GL` model. -/
-theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
+theorem soundness_formula [DecidableEq α] {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M.Validate A := by
   intro κ _ M _ w;
   obtain ⟨lf, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);

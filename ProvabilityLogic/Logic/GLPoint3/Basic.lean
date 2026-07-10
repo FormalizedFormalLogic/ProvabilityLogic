@@ -191,28 +191,27 @@ namespace ProvableHilbert
 
 public section diamondCombinators
 
-variable {α : Type u} [DecidableEq α] {A : Formula α}
+variable {α : Type u} {A : Formula α}
 
-omit [DecidableEq α] in
 /-- Right-conjunction congruence, at the plain `⊢ʰ` level: from `B 🡒 C` derive
 `(A ⋏ B) 🡒 (A ⋏ C)`. -/
 lemma and_congr_right {B C : Formula α} (h : ⊢ʰ B 🡒 C) : ⊢ʰ (A ⋏ B) 🡒 (A ⋏ C) :=
   ctxAndIntroRule andL (impTrans andR h)
 
-omit [DecidableEq α] in
 /-- `◇∼A` derives `∼□A` (the direct half of the `◇`/`□` De Morgan bridge). -/
 lemma dia_neg_imp_not_box : ⊢ʰ ◇(∼A) 🡒 ∼□A := contra (boxImp dni)
 
-omit [DecidableEq α] in
 /-- `∼□A` derives `◇∼A` (the converse half of the `◇`/`□` De Morgan bridge). -/
 lemma not_box_imp_dia_neg : ⊢ʰ ∼□A 🡒 ◇(∼A) := contra (boxImp dne)
 
-omit [DecidableEq α] in
 /-- Transporting `∼□A` one `◇`-step deeper still derives `∼□A`: this is the
 Hilbert-level fact used to push the complement conjuncts of `θ'` through the extra
 `◇` introduced by `weakPoint3_dichotomy`'s linearity witness. -/
 lemma dia_of_not_box_imp_not_box : ⊢ʰ ◇(∼□A) 🡒 ∼□A :=
   impTrans (diaImp not_box_imp_dia_neg) (impTrans dia4 dia_neg_imp_not_box)
+
+section
+variable [DecidableEq α]
 
 /-- `theta S (insert D T)` (`D ∉ T`) is derivable from `theta S T ⋏ ∼□D`: joining `D` to
 the "postponed" side `T` of the witness formula. -/
@@ -233,17 +232,18 @@ lemma theta_join_S {S T : FormulaFinset α} {D : Formula α} :
     (impTrans (ctxAndIntroRule andR (impTrans andL andL)) imp_fconj_insert)
     (impTrans andL andR);
 
+end
+
 end diamondCombinators
 
 end ProvableHilbert
 
 namespace LogicGLPoint3
 
-variable {α : Type u} [DecidableEq α]
+variable {α : Type u}
 
 public section combinators3
 
-omit [DecidableEq α] in
 /-- Implicational disjunction elimination for `LogicGLPoint3`: from `(X 🡒 Z) ∈ L` and
 `(Y 🡒 Z) ∈ L` derive `((X ⋎ Y) 🡒 Z) ∈ L`, without needing `(X ⋎ Y) ∈ L` itself
 (unlike `orElim'`, which discharges the disjunction as a hypothesis). -/
@@ -251,6 +251,22 @@ lemma orElim_imp' {X Y Z : Formula α}
     (hXZ : (X 🡒 Z) ∈ LogicGLPoint3) (hYZ : (Y 🡒 Z) ∈ LogicGLPoint3) :
     ((X ⋎ Y) 🡒 Z) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.orElim hXZ) hYZ
+
+/-- Membership in the disjunction, at the `LogicGLPoint3` level: from `A ∈ Q`, `A 🡒 ⋁Q`
+holds in `LogicGLPoint3` (lifted from the `⊢ʰ`-level `imp_mem_fdisj`). -/
+lemma mem_imp_fdisj' {Q : FormulaFinset α} {A : Formula α} (h : A ∈ Q) :
+    (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
+  of_GL (ProvableHilbert.imp_mem_fdisj h)
+
+/-- Implicational conjunction introduction for `LogicGLPoint3`: from `(Z 🡒 X) ∈ L` and
+`(Z 🡒 Y) ∈ L` derive `(Z 🡒 (X ⋏ Y)) ∈ L`. -/
+lemma imp_and_intro' {X Y Z : Formula α}
+    (hZX : (Z 🡒 X) ∈ LogicGLPoint3) (hZY : (Z 🡒 Y) ∈ LogicGLPoint3) :
+    (Z 🡒 (X ⋏ Y)) ∈ LogicGLPoint3 :=
+  Logic.sumNormal.mdp (mdp' ProvableHilbert.ctxAndIntro hZX) hZY
+
+section
+variable [DecidableEq α]
 
 /-- Disjunction elimination for `LogicGLPoint3`, generalized from a single disjunction to a
 finset of disjuncts: if every member of `Q` implies `C`, so does `⋁Q`. -/
@@ -266,27 +282,16 @@ lemma imp_fdisj_elim' {Q : FormulaFinset α} {C : Formula α}
       of_GL ProvableHilbert.imp_fdisj_insert
     exact impTrans hins (orElim_imp' h1 h2)
 
-omit [DecidableEq α] in
-/-- Membership in the disjunction, at the `LogicGLPoint3` level: from `A ∈ Q`, `A 🡒 ⋁Q`
-holds in `LogicGLPoint3` (lifted from the `⊢ʰ`-level `imp_mem_fdisj`). -/
-lemma mem_imp_fdisj' {Q : FormulaFinset α} {A : Formula α} (h : A ∈ Q) :
-    (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
-  of_GL (ProvableHilbert.imp_mem_fdisj h)
+end
 
-omit [DecidableEq α] in
-/-- Implicational conjunction introduction for `LogicGLPoint3`: from `(Z 🡒 X) ∈ L` and
-`(Z 🡒 Y) ∈ L` derive `(Z 🡒 (X ⋏ Y)) ∈ L`. -/
-lemma imp_and_intro' {X Y Z : Formula α}
-    (hZX : (Z 🡒 X) ∈ LogicGLPoint3) (hZY : (Z 🡒 Y) ∈ LogicGLPoint3) :
-    (Z 🡒 (X ⋏ Y)) ∈ LogicGLPoint3 :=
-  Logic.sumNormal.mdp (mdp' ProvableHilbert.ctxAndIntro hZX) hZY
-
-omit [DecidableEq α] in
 /-- Conjunction congruence in the right slot: from `(P 🡒 Q) ∈ L` derive
 `((X ⋏ P) 🡒 (X ⋏ Q)) ∈ L`. -/
 lemma imp_and_congr_right' {X P Q : Formula α} (h : (P 🡒 Q) ∈ LogicGLPoint3) :
     ((X ⋏ P) 🡒 (X ⋏ Q)) ∈ LogicGLPoint3 :=
   imp_and_intro' (of_GL ProvableHilbert.andL) (impTrans (of_GL ProvableHilbert.andR) h)
+
+section
+variable [DecidableEq α]
 
 /-- Distributing a fixed conjunct `X` over a finset disjunction: if `(X ⋏ B) 🡒 C` holds in
 `LogicGLPoint3` for every `B ∈ Q`, so does `(X ⋏ ⋁Q) 🡒 C`. -/
@@ -306,7 +311,12 @@ lemma imp_and_fdisj_elim' {Q : FormulaFinset α} {X C : Formula α}
         ProvableHilbert.distrib_and_or)
     exact impTrans hins (orElim_imp' h1 h2)
 
+end
+
 end combinators3
+
+section
+variable [DecidableEq α]
 
 /-- Raw `⊢ʰ`-level version of `mem_imp_witnessDisj`: `S ⊆ Δ` nonempty puts
 `◇θ(S, Δ \ S)` among the disjuncts of `witnessDisj Δ`, at the plain `GL` level. -/
@@ -542,6 +552,8 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
       grind;
     exact ProvableHilbert.impTrans ProvableHilbert.dia_boxRefuter (ProvableHilbert.diaImp hcore);
 
+end
+
 end LogicGLPoint3
 
 /-!
@@ -556,9 +568,10 @@ derive the rule's conclusion inside `LogicGLPoint3`.
 namespace ProvableHilbert
 
 universe u
-variable {α : Type u} [DecidableEq α]
+variable {α : Type u}
 
 section boxUnionToolbox
+variable [DecidableEq α]
 
 /-- `⋀Γ.box` derives `⋀Γ.box.box` (each `□B ∈ Γ.box` derives `□□B` via axiom `4`). -/
 lemma imp_fconj_box_box {Γ : FormulaFinset α} : ⊢ʰ ⋀Γ.box 🡒 ⋀Γ.box.box := by
@@ -583,11 +596,13 @@ end boxUnionToolbox
 
 section notDisjToolbox
 
-omit [DecidableEq α] in
 /-- From `B 🡒 ∼A` for every `A ∈ Q`, derive `B 🡒 ∼⋁Q`. -/
 lemma imp_not_fdisj_of_forall {Q : FormulaFinset α} {B : Formula α}
     (h : ∀ A ∈ Q, ⊢ʰ B 🡒 ∼A) : ⊢ʰ B 🡒 ∼(⋁ Q) :=
   impTrans dni (contra (imp_fdisj_elim (fun A hA => impTrans dni (contra (h A hA)))))
+
+section
+variable [DecidableEq α]
 
 /-- De Morgan for finset disjunctions: `∼⋁Q` derives `⋀(Q.image (fun A => ∼A))`. -/
 lemma imp_not_fdisj_fconj_not {Q : FormulaFinset α} :
@@ -597,6 +612,8 @@ lemma imp_not_fdisj_fconj_not {Q : FormulaFinset α} :
   obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hC;
   exact contra (imp_mem_fdisj hA);
 
+end
+
 end notDisjToolbox
 
 end ProvableHilbert
@@ -604,23 +621,20 @@ end ProvableHilbert
 namespace LogicGLPoint3
 
 universe u
-variable {α : Type u} [DecidableEq α]
+variable {α : Type u}
 
 public section combinators2
 
-omit [DecidableEq α] in
 /-- Contraposition for members of `LogicGLPoint3`: from `(X 🡒 Y) ∈ L` derive
 `(∼Y 🡒 ∼X) ∈ L`. -/
 lemma contra' {X Y : Formula α} (h : (X 🡒 Y) ∈ LogicGLPoint3) : (∼Y 🡒 ∼X) ∈ LogicGLPoint3 :=
   mdp' (ProvableHilbert.elimContra (A := ∼X) (B := ∼Y))
     (impTrans (of_GL ProvableHilbert.dne) (impTrans h (of_GL ProvableHilbert.dni)))
 
-omit [DecidableEq α] in
 /-- Monotonicity of `◇` for members of `LogicGLPoint3`. -/
 lemma diaImp' {X Y : Formula α} (h : (X 🡒 Y) ∈ LogicGLPoint3) : (◇X 🡒 ◇Y) ∈ LogicGLPoint3 :=
   contra' (box' (contra' h))
 
-omit [DecidableEq α] in
 /-- From `(P 🡒 Q) ∈ L` derive `((P ⋏ ∼Q) 🡒 ⊥) ∈ L`: the propositional core used to
 turn a `boxGLPoint3` premise `h S` into a contradiction against `∼Q`. -/
 lemma imp_and_not_bot' {P Q : Formula α} (h : (P 🡒 Q) ∈ LogicGLPoint3) :
