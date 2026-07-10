@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Logic.GLPoint3.Basic
+public import SeqPL.Logic.GLPoint3.Completeness
 public import SeqPL.ProvabilityLogic.Classification.LetterlessTrace
 
 @[expose]

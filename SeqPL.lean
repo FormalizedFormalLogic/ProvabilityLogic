@@ -13,6 +13,7 @@ public import SeqPL.Gentzen.S.Basic
 public import SeqPL.Gentzen.S.Kripke
 public import SeqPL.Gentzen.WithCut
 public import SeqPL.Hilbert.Basic
+public import SeqPL.Hilbert.Diamond
 public import SeqPL.Kripke.AlmostDefiningFormula
 public import SeqPL.Kripke.Basic
 public import SeqPL.Kripke.Cone
@@ -30,6 +31,7 @@ public import SeqPL.Kripke.RootExtension
 public import SeqPL.Kripke.RootedModel
 public import SeqPL.Kripke.Simplification
 public import SeqPL.Kripke.Tail
+public import SeqPL.Kripke.ULift
 public import SeqPL.Kripke.Unravelling
 public import SeqPL.LabelledGentzen.Basic
 public import SeqPL.LabelledGentzen.Completeness

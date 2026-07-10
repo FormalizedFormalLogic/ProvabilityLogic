@@ -1,6 +1,7 @@
 module
 
 public import SeqPL.Kripke.Basic
+public import SeqPL.Kripke.Cone
 
 @[expose]
 public section
@@ -27,6 +28,16 @@ instance [M.IsFiniteGLPoint3] : M.IsGLPoint3 where
 lemma linear [M.IsGLPoint3] {x y z : M.World} :
     x ≺ y → x ≺ z → y ≺ z ∨ y = z ∨ z ≺ y :=
   IsGLPoint3.linear
+
+instance [M.IsFiniteGLPoint3] {r : M.World} :
+    (toRootedModel M r).toModel.IsFiniteGLPoint3 where
+  linear := by
+    rintro ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩ Rxy Rxz;
+    simp_all only [Model.Rel, toRootedModel];
+    rcases Model.linear Rxy Rxz with (Ryz | rfl | Rzy);
+    . exact Or.inl Ryz;
+    . exact Or.inr (Or.inl rfl);
+    . exact Or.inr (Or.inr Rzy);
 
 namespace World
 

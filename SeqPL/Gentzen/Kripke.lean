@@ -97,6 +97,11 @@ infix:50 " ⊧ " => ValidateSequent
 
 variable {M : Model κ α} {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α}
 
+omit [DecidableEq α] in
+/-- Validity of the singleton sequent `∅ ⟹ {A}` is exactly validity of `A`. -/
+lemma validateSequent_singleton_iff : M ⊧ (∅ ⟹ {A}) ↔ M.Validate A :=
+  forall_congr' fun _ => World.forces_singleton_sequent
+
 lemma validate_gentzen_axm : M ⊧ ({A} ⟹ {A}) := by
   intro x h;
   use A;
