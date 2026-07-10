@@ -1,5 +1,6 @@
 module
 
+public import SeqPL.Gentzen.S.Kripke
 public import SeqPL.Kripke.Graft
 
 /-!
@@ -246,12 +247,12 @@ variable [DecidableEq α] {A : Formula α}
   chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
   original model. The ω-analogue of `graft.mainlemma`.
 -/
-lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
-    (ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ □B 🡒 B) :
-    ∀ {C : Formula α}, C ∈ A.subfmls →
-    (∀ i : ℕ, (Forces (M := (M.graftOmega a).toModel) (.inr i) C ↔
-      Forces (M := (M.graftOmega a).toModel) (.inl a) C)) ∧
-    (∀ x : M.World, (Forces (M := (M.graftOmega a).toModel) (.inl x) C ↔ x ⊩ C)) := by
+lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
+  (Rra : M.root.1 ≺ a) :
+  ∀ {C : Formula α}, C ∈ A.subfmls →
+  (∀ i : ℕ, (Forces (M := (M.graftOmega a).toModel) (.inr i) C ↔
+    Forces (M := (M.graftOmega a).toModel) (.inl a) C)) ∧
+  (∀ x : M.World, (Forces (M := (M.graftOmega a).toModel) (.inl x) C ↔ x ⊩ C)) := by
   intro C;
   induction C with
   | box B ihB =>
@@ -274,9 +275,9 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a)
       . exact h (.inl y) (Or.inr Ray);
       . exact absurd Ray (graft.ne_root_of_rel Rra);
     . intro h;
-      have haB : a ⊩ B := ha B hB (h₂ a |>.mp h);
+      have haB : a.1 ⊩ B := a.2 hB (h₂ a |>.mp h);
       rintro (y | j) Riy;
-      . rcases (show y = a ∨ a ≺ y from Riy) with hya | hay;
+      . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
         . subst hya; exact ihB₂ _ |>.mpr haB;
         . exact h (.inl y) hay;
       . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);

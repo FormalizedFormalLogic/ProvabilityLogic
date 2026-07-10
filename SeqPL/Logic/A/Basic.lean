@@ -301,7 +301,7 @@ theorem provability_TFAE : [
       exact Model.World.forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
     apply hroot;
-    exact RootedModel.graftOmega.mainlemma Rrr ha Formula.mem_subfmls_self
+    exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
   tfae_finish;
 
