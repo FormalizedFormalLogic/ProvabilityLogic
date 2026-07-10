@@ -41,7 +41,6 @@ public import ProvabilityLogic.LabelledGentzen.Gentzen
 public import ProvabilityLogic.LabelledGentzen.Kripke
 public import ProvabilityLogic.LabelledGentzen.Loop
 public import ProvabilityLogic.LabelledGentzen.Search
-public import ProvabilityLogic.LabelledGentzen.ToString
 public import ProvabilityLogic.Logic.A.Basic
 public import ProvabilityLogic.Logic.Basic
 public import ProvabilityLogic.Logic.D.Basic

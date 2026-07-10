@@ -5,6 +5,9 @@ defaultTargets = ["ProvabilityLogic"]
 [[lean_lib]]
 name = "ProvabilityLogic"
 
+[[lean_lib]]
+name = "ProvabilityLogicPlayground"
+
 [[require]]
 name = "Foundation"
 git = "https://github.com/FormalizedFormalLogic/Foundation"
