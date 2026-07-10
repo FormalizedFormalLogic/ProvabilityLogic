@@ -19,8 +19,12 @@ Hilbert-level witness lemma `LogicGLPoint3.witness` (Step K), the Hilbert-calcul
 (both in `SeqPL/Gentzen/GLPoint3/Kripke.lean`).
 -/
 
-/-- `GLPoint3` (also known as `GLLin` or `K4.3W` in Sambin & Valentini): the normal
-extension of `GL` by the weak linearity axiom `.3`, i.e. `□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)`. -/
+/--
+The normal extension of `GL` by the weak linearity axiom `.3`, i.e. `□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)`.
+Also known as `GLLin` or `K4.3W`.
+
+- [SV82]
+-/
 abbrev LogicGLPoint3 {α} : Logic α := LogicGL ⊕ᴸ { (□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A)) | (A) (B) }
 
 namespace LogicGLPoint3

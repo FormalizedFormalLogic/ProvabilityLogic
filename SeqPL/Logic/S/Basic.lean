@@ -222,7 +222,9 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
 /--
   GL-characterization of `LogicS`: `S ⊢ A` iff `GL ⊢ ⋀{□B 🡒 B | □B ∈ Sub(A)} 🡒 A`. Also
   characterized by `LogicS.ProofGentzen`-provability of the level-`1` sequent `∅ ⟹[1] {A}`,
-  the two-level sequent calculus for `S` of Kashima–Kato 2023.
+  the two-level sequent calculus for `S`.
+
+  - [KK23]
 -/
 theorem provability_TFAE [DecidableEq α] : [
     A ∈ LogicS,
@@ -244,8 +246,12 @@ theorem provability_TFAE [DecidableEq α] : [
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
 
-/-- `S ⊢ A` iff the level-`1` sequent `∅ ⟹[1] {A}` is provable in `LogicS.ProofGentzen`
-(Kashima–Kato 2023's cut-free sequent calculus for `S`). -/
+/--
+  `S ⊢ A` iff the level-`1` sequent `∅ ⟹[1] {A}` is provable in `LogicS.ProofGentzen`,
+  the cut-free sequent calculus for `S`.
+
+  - [KK23]
+-/
 theorem iff_provable_provableGentzen [DecidableEq α] :
     A ∈ LogicS ↔ ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
   provability_TFAE.out 0 4

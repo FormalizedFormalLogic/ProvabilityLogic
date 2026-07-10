@@ -100,11 +100,10 @@ section
 variable [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
 
 /--
-  In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
-  forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ` (the semantic core of Lemma 26
-  in [AB05]). Induction on `Γ.card`: take a successor `z` of rank exactly `Γ.card`;
-  if some `□B₀ 🡒 B₀` fails at `z` then `z ⊩ □B₀`, hence `□B₀ 🡒 B₀` holds automatically
-  at every successor of `z`, and the induction hypothesis applies to `Γ.erase B₀`.
+In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
+forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
+
+- [AB05, Lemma 26]
 -/
 lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
     ∀ {n : ℕ} {Γ : FormulaFinset α}, Γ.card = n → ∀ {x : M.World}, n < x.rank →
@@ -135,10 +134,10 @@ lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
       . exact hz' B (Finset.mem_erase.mpr ⟨hBB₀, hB⟩);
 
 /--
-  **Chain lemma** (corresponding to Lemma 26 in [AB05], instantiated to the boxed
-  subformulas of `A`): `GL ⊢ ∼□^[m+1]⊥ 🡒 ◇⋀{□B 🡒 B | □B ∈ Sub(A)}` where `m` is the
-  number of boxed subformulas. An actual proof of what Foundation assumes as the axiom
-  `GL.formalized_validates_axiomT_set_in_irrefl_trans_chain`.
+The chain lemma: `GL ⊢ ∼□^[m+1]⊥ 🡒 ◇⋀{□B 🡒 B | □B ∈ Sub(A)}` where `m` is the
+number of boxed subformulas of `A`, instantiated for use in GL soundness proofs.
+
+- [AB05, Lemma 26]
 -/
 lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : Formula α} :
     ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
@@ -159,10 +158,9 @@ lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : For
 end
 
 /--
-  **Finiteness or cofiniteness of traces** (Lemma 12 in [AB05]): the trace of any formula
-  is either finite or cofinite. If the trace is infinite, take a countermodel whose height
-  exceeds the number of boxed subformulas; the chain lemma yields a world `a` forcing all
-  axiom T instances, and `graft` then produces countermodels of every height `≥ M.height`.
+The trace of any formula is either finite or cofinite.
+
+- [AB05, Lemma 12]
 -/
 lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     A.trace.Finite ∨ A.traceᶜ.Finite := by
@@ -311,8 +309,9 @@ lemma LogicGLAlpha.eq_trace {Alpha : Set ℕ} : (@LogicGLAlpha α Alpha).trace =
   · intro hn;
     exact ⟨TBB n, ⟨TBB n, ⟨n, hn, rfl⟩, LetterlessFormula.eq_lift_TBB⟩, by rw [Formula.trace_TBB]; simp⟩;
 
-/-- The trace of a lifted letterless formula equals the trace of that letterless
-formula, computed directly from the `RootedModel`-existential descriptions of both traces. -/
+/--
+The trace of a lifted letterless formula equals the trace of that letterless formula.
+-/
 lemma Formula.trace_lift {B : LetterlessFormula} :
     (LetterlessFormula.lift B : Formula α).trace = LetterlessFormula.trace B := by
   ext n;
@@ -374,8 +373,9 @@ lemma Logic.trace_subset_of_mem {L : Logic α} {A : Formula α} (h : A ∈ L) : 
 variable [DecidableEq α] {L : Logic α} {A : Formula α}
 
 /--
-  If `L.trace` is coinfinite then `L ⊆ GLα (L.trace)`.
-  First half of Lemma 45 in [AB05].
+If `L.trace` is coinfinite then `L ⊆ LogicGLAlpha L.trace`.
+
+- [AB05, Lemma 45]
 -/
 lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
     L ⊆ LogicGLAlpha L.trace := by
@@ -403,8 +403,9 @@ lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
   exact ⟨TBB n, ⟨n, hsub (hfin.mem_toFinset.mp hn), rfl⟩, LetterlessFormula.eq_lift_TBB⟩;
 
 /--
-  If `L.trace` is cofinite then `L ⊆ GLβ⁻ (L.trace)`.
-  Second half of Lemma 45 in [AB05].
+If `L.trace` is cofinite then `L ⊆ LogicGLBetaMinus L.trace hL`.
+
+- [AB05, Lemma 45]
 -/
 lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
     L ⊆ LogicGLBetaMinus L.trace hL := by
@@ -428,11 +429,9 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
   exact Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hL, rfl, rfl⟩;
 
 /--
-  If `Beta` is the universal set, `LogicGLBetaMinus Beta hCf` proves `⊥`: once `Beta⁻`'s
-  cofiniteness assumption is instantiated at `Beta = Set.univ`, the `TBBMinus` axiom
-  ranges over the empty set and hence has empty spectrum, so it entails everything.
-  Extracted from the proof of `subset_LogicS_addTBB_compl_trace_of_subset_LogicS` in
-  Lemma 49 of [AB05].
+If `Beta` is the universal set, `LogicGLBetaMinus Beta hCf` proves `⊥`.
+
+- [AB05, Lemma 49]
 -/
 lemma LogicGLBetaMinus.bot_mem_of_eq_univ {hCf : (Set.univ : Set ℕ)ᶜ.Finite} :
     (⊥ : Formula α) ∈ LogicGLBetaMinus Set.univ hCf := by
@@ -459,9 +458,9 @@ open Model Model.World
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 /--
-  If `n` is in the trace of the provability logic of `T` relative to `U`, then `TBB n`
-  is a theorem of it. Lemma 46 and Corollary 47 in [AB05], stated directly for
-  `provabilityLogicRelativeTo` via the Solovay construction.
+If `n` is in the trace of the provability logic of `T` relative to `U`, then `TBB n` is a theorem of it.
+
+- [AB05, Lemma 46, Corollary 47]
 -/
 theorem provable_TBB_of_mem_trace {n : ℕ}
     (h : n ∈ (T.provabilityLogicRelativeTo U : Logic α).trace) :
@@ -522,8 +521,10 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
   exact h₃;
 
 /--
-  If the trace of the provability logic of `T` relative to `U` is coinfinite, then it
-  equals `GLα` of its trace. Corollary 48 in [AB05].
+If the trace of the provability logic of `T` relative to `U` is coinfinite, then it
+equals `LogicGLAlpha` of its trace.
+
+- [AB05, Corollary 48]
 -/
 theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
     (hCi : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Infinite) :
@@ -549,8 +550,10 @@ theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
       exact ihA _;
 
 /--
-  If the provability logic of `T` relative to `U` is not contained in `S`,
-  then its trace is cofinite (the first half of the proof of Lemma 49 in [AB05]).
+If the provability logic of `T` relative to `U` is not contained in `S`,
+then its trace is cofinite.
+
+- [AB05, Lemma 49]
 -/
 lemma cofinite_trace_of_not_subset_LogicS [DecidableEq α]
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
@@ -603,9 +606,10 @@ section
 variable [DecidableEq α]
 
 /--
-  If the provability logic `L` of `T` relative to `U` is not contained in `S`, then it
-  proves the lifted `TBBMinus` axiom of its trace (the key step of Lemma 49 in [AB05],
-  via the Solovay construction and the reflexive main lemma).
+If the provability logic `L` of `T` relative to `U` is not contained in `S`, then it
+proves the lifted `TBBMinus` axiom of its trace.
+
+- [AB05, Lemma 49]
 -/
 theorem provable_TBBMinus_of_not_subset_LogicS
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
@@ -698,8 +702,10 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   exact h₃;
 
 /--
-  **Lemma 49 in [AB05]**: if the provability logic `L` of `T` relative to `U` is not
-  contained in `S`, then `L.trace` is cofinite and `L = GLβ⁻ (L.trace)`.
+If the provability logic `L` of `T` relative to `U` is not contained in `S`,
+then `L.trace` is cofinite and `L = LogicGLBetaMinus (L.trace) _`.
+
+- [AB05, Lemma 49]
 -/
 theorem eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
@@ -728,15 +734,19 @@ end
 end
 
 
-/-- `n ∈ L.trace` whenever `TBB n ∈ L`. -/
+/--
+If `TBB n ∈ L` then `n ∈ L.trace`.
+-/
 lemma mem_trace_of_provable_TBB {L : Logic α} {n : ℕ} (h : (TBB n : Formula α) ∈ L) :
     n ∈ L.trace := by
   apply Set.mem_iUnion₂.mpr;
   exact ⟨TBB n, h, by rw [Formula.trace_TBB]; simp⟩;
 
 /--
-  If the trace of the provability logic of `T` relative to `U` is `ω` (i.e. all of `ℕ`),
-  then it contains `GLαω`. Corollary 50 (half) in [AB05].
+If the trace of the provability logic of `T` relative to `U` is all of `ℕ`,
+then it contains `LogicA`.
+
+- [AB05, Corollary 50]
 -/
 theorem subset_LogicA_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;

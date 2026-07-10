@@ -228,7 +228,7 @@ lemma root_forces_neg_boxItr_bot_imp
   omega;
 
 /--
-  Deduction-theorem-style GL-characterization of `LogicA` (Artemov's logic `A`, `GLαω`):
+  Deduction-theorem-style GL-characterization of `LogicA`:
   `A ∈ LogicA` iff `GL ⊢ ∼□^[n]⊥ 🡒 A` for some `n`. Proved purely from the rank semantics
   of `Kripke.Rank`, without `graftOmega` or `Trace`.
 -/
@@ -242,9 +242,10 @@ theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
     exact provable_of_provable_GL_neg_boxItr_bot_imp h;
 
 /--
-  If `A ∉ GLαω`, then `GL ⊬ ◇(⋀A.subfmlsS) 🡒 A`. This is the modal input of Lemma 51
-  in [AB05], obtained from the chain lemma
+  If `A ∉ LogicA`, then `GL ⊬ ◇(⋀A.subfmlsS) 🡒 A`. Obtained from the chain lemma
   `LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS` and `LogicA.provable_neg_boxItr_bot`.
+
+  - [AB05, Lemma 51]
 -/
 lemma not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA (h : A ∉ LogicA) :
   ((◇(⋀A.subfmlsS)) 🡒 A) ∉ LogicGL := by
@@ -256,8 +257,10 @@ lemma not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA (h : A ∉ LogicA) :
   exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ h) h₂;
 
 /--
-  A formula outside `GLαω` has a finite rooted `GL` countermodel whose root refutes `A`
-  and sees an `A`-reflexive node (the model `K₀` in the proof of Lemma 51 in [AB05]).
+  A formula outside `LogicA` has a finite rooted `GL` countermodel whose root refutes `A`
+  and sees an `A`-reflexive node.
+
+  - [AB05, Lemma 51]
 -/
 lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
   ∃ (κ : Type u) (_ : Nonempty κ) (M : RootedModel κ α) (_ : M.IsFiniteGL),
@@ -271,10 +274,11 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
   exact ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩;
 
 /--
-  **ω-model completeness of `GLαω`** (Lemma 5 in §3 of [Bek90], "On the classification
-  of propositional provability logics"). The ω-models are realized as `M.graftOmega a`
+  ω-model completeness of `LogicA`. The ω-models are realized as `M.graftOmega a`
   for finite rooted GL models `M` and points `a` above the root. The middle item is the
-  deduction-theorem form used in the paper's proof.
+  deduction-theorem form.
+
+  - [Bek90, Lemma 5]
 -/
 theorem provability_TFAE : [
   A ∈ LogicA,
@@ -306,8 +310,9 @@ theorem provability_TFAE : [
   tfae_finish;
 
 /--
-  A formula is a `GLαω` theorem iff it is forced at the root of every ω-model
-  (Lemma 5 in §3 of [Bek90]).
+  A formula is a `LogicA` theorem iff it is forced at the root of every ω-model.
+
+  - [Bek90, Lemma 5]
 -/
 theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
@@ -417,8 +422,7 @@ end axiomDCountermodel
 /--
   Axiom `D` (`□(□A ⋎ □B) 🡒 (□A ⋎ □B)`), specialized to `A = B = #a`, is not a theorem of
   `LogicA`: for every `n`, `axiomDCountermodel n a` refutes `(∼□^[n]⊥) 🡒 axiomD(a, a)` at
-  its root, so by `LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp` axiom `D` is not
-  provable in `GLαω`.
+  its root.
 -/
 theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
     ((□((□(#a) : Formula α) ⋎ □(#a))) 🡒 ((□(#a) : Formula α) ⋎ □(#a))) ∉ (LogicA : Logic α) := by

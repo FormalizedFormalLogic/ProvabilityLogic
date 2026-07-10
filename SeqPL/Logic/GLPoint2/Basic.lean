@@ -9,7 +9,7 @@ public import SeqPL.Kripke.Convergence
 @[expose]
 public section
 
-/-- `GLPoint2`: the normal extension of `GL` by the weak convergence axiom `.2`,
+/-- `LogicGLPoint2`: the normal extension of `GL` by the weak convergence axiom `.2`,
 i.e. `◇(□A ⋏ B) 🡒 □(◇A ⋎ B)`. -/
 abbrev LogicGLPoint2 {α} : Logic α := LogicGL ⊕ᴸ { (◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B) | (A) (B) }
 
@@ -89,7 +89,7 @@ variable {α : Type u}
 
 open Model Model.World
 
-/-- Soundness of `GLPoint2` over piecewise convergent GL models. -/
+/-- Soundness of `LogicGLPoint2` over piecewise convergent GL models. -/
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
     [M.IsFiniteGLPoint2] {A : Formula α} (h : A ∈ LogicGLPoint2) : M ⊧ A := by
   induction h using LogicGLPoint2.substlessInduction with
@@ -105,7 +105,7 @@ lemma imp_trans (hAB : (A 🡒 B) ∈ @LogicGLPoint2 α) (hBC : (B 🡒 C) ∈ L
     (A 🡒 C) ∈ LogicGLPoint2 :=
   Logic.sumNormal.imp_trans LogicGL.imp_trans hAB hBC
 
-/-- `□^[2]⊥` is provable in `GLPoint2`. -/
+/-- `□^[2]⊥` is provable in `LogicGLPoint2`. -/
 lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
   show (□□⊥) ∈ @LogicGLPoint2 α;
   -- `∼□⊥ = □⊥ 🡒 ⊥` definitionally, so the Löb axiom gives `□(∼□⊥) 🡒 □⊥`.
@@ -148,7 +148,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     grind;
   exact Logic.sumNormal.mdp (Logic.sumNormal.mdp (Logic.sumNormal.mdp T h₁) h₂) bridge;
 
-/-- `◇(C ⋏ □C) 🡒 □C` is a `GLPoint2` theorem. -/
+/-- `◇(C ⋏ □C) 🡒 □C` is a `LogicGLPoint2` theorem. -/
 lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
   have hLöb : (□(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) 🡒 □(∼(C ⋏ □C))) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.modalL (A := ∼(C ⋏ □C)));
@@ -202,7 +202,7 @@ lemma weakPoint3_bridge : (∼□(⊡A 🡒 B) 🡒 ◇(⊡B 🡒 A ⋏ □(⊡B
   intro z hyz;
   exact fun _ => hyA₂ z hyz;
 
-/-- The weak linearity axiom `.3` is provable in `GLPoint2`. -/
+/-- The weak linearity axiom `.3` is provable in `LogicGLPoint2`. -/
 lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ LogicGLPoint2 := by
   have h : (∼□(⊡A 🡒 B) 🡒 □(⊡B 🡒 A)) ∈ LogicGLPoint2 :=
     imp_trans weakPoint3_bridge (core_diamond (C := ⊡B 🡒 A));
@@ -216,7 +216,7 @@ lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ Log
 end LogicGLPoint2
 
 
-/-- `GLPoint3 ⪯ GLPoint2`: every `GLPoint3` theorem is a `GLPoint2` theorem. -/
+/-- `LogicGLPoint3 ⪯ LogicGLPoint2`: every `LogicGLPoint3` theorem is a `LogicGLPoint2` theorem. -/
 lemma LogicGLPoint3_subset_LogicGLPoint2 [DecidableEq α] :
     LogicGLPoint3 ⊆ (LogicGLPoint2 : Logic α) := by
   intro A h

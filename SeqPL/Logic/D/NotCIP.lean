@@ -10,8 +10,7 @@ public section
 /-!
 # Dzhaparidze's logic `D` does not possess Craig's interpolation property
 
-Formalization of Beklemishev 1989, "Provability Logic Without Craig's Interpolation
-Property", Section 8.
+Formalization of [Bek89], Section 8.
 
 The counterexample uses the two formulas
 * `A = □(□b ⋎ a) 🡒 □b`
@@ -32,14 +31,20 @@ Write `C = f(□C₁, …, □Cₙ, p₁, …, pₘ)`, where `f` uses only `→`
 maximal boxed subformulas and the `pⱼ` are the remaining (non-modalized, top-level)
 atoms.  The *modalization* `C.modalize = f(□C₁, …, □Cₙ, ⊥, …, ⊥)` replaces every
 non-modalized atom by `⊥`; the result is a `Modalized` formula (every atom lies inside a
-`□`).  These utilities underpin Beklemishev 1989, Section 8, Lemmas 11 and 12.
+`□`).  These utilities underpin the modalization argument.
+
+- [Bek89, Lemma 11, Lemma 12]
 -/
 
 variable {A : Formula α}
 
-/-- Replace every non-modalized (top-level, unboxed) atom of `A` by `⊥`, keeping the
+/--
+Replace every non-modalized (top-level, unboxed) atom of `A` by `⊥`, keeping the
 maximal boxed subformulas.  Turns `f(□C₁, …, □Cₙ, p₁, …, pₘ)` into
-`f(□C₁, …, □Cₙ, ⊥, …, ⊥)` (Beklemishev 1989, Section 8, Lemma 11). -/
+`f(□C₁, …, □Cₙ, ⊥, …, ⊥)`.
+
+- [Bek89, Lemma 11]
+-/
 @[grind]
 def modalize : Formula α → Formula α
   | #_    => ⊥
@@ -76,8 +81,11 @@ section
 
 variable {a b c : Formula α}
 
-/-- Beklemishev 1989, Section 8, Lemma 9: `D ⊢ ∼A 🡒 B`, where
-`A = □(□b ⋎ a) 🡒 □b` and `B = □(a 🡒 □c) 🡒 □c`. -/
+/--
+`D ⊢ ∼A 🡒 B`, where `A = □(□b ⋎ a) 🡒 □b` and `B = □(a 🡒 □c) 🡒 □c`.
+
+- [Bek89, Lemma 9]
+-/
 lemma provable_counterexample_imp :
     (∼(counterexampleCIP_A a b) 🡒 counterexampleCIP_B a c) ∈ LogicD := by
   -- K-distribution over the two boxed premises, proved semantically in GL.
@@ -107,8 +115,6 @@ section
 /-!
 ### Lemma 10
 
-Beklemishev 1989, Section 8, Lemma 10.
-
 The paper works with abstract D-models `𝒳 = (K, ≺, ⊩)` having a distinguished lower
 element, limit element and tail element.  In SeqPL a D-model is realized concretely as
 the pseudo-tail `M.toPseudoTail r o` of a *rooted* finite GL model `M` with base point
@@ -133,6 +139,8 @@ shared atom `a` is true at the limit element", becomes: for every rooted finite 
 `M` and lower valuation `o`, `C` is forced at the pseudo-tail root iff `M.Val M.root a`.
 In particular the root-forcing of `C` is independent of `o` — the content fed into
 Lemma 11.
+
+- [Bek89, Lemma 10]
 -/
 
 variable {κ : Type u} [Nonempty κ] {M₁ M₂ : Model κ α} {a b c : α} {C : Formula α}
@@ -193,11 +201,14 @@ lemma val_toPseudoTail_flipModel {M : RootedModel κ α}
     (M.toModel.toPseudoTail M.root.1 o).Val' x a ↔ ((flipModel M d).toPseudoTail M.root.1 o).Val' x a := by
   grind;
 
-/-- Beklemishev 1989, Section 8, Lemma 10: if `C` is an interpolant for `∼A 🡒 B` in
-`D` (so `D ⊢ ∼A 🡒 C`, `D ⊢ C 🡒 B`, and `C` contains only the atom `a`), then in every
-pseudo-tail D-model `M.toPseudoTail M.root o` of a rooted finite GL model `M`, `C` is
-forced at the root (`ω`, the lower element) iff the atom `a` holds on the tail scale
-(`M.Val M.root a`, its value at the limit element). -/
+/--
+If `C` is an interpolant for `∼A 🡒 B` in `D` (so `D ⊢ ∼A 🡒 C`, `D ⊢ C 🡒 B`, and `C`
+contains only the atom `a`), then in every pseudo-tail D-model `M.toPseudoTail M.root o`
+of a rooted finite GL model `M`, `C` is forced at the root (`ω`, the lower element) iff
+the atom `a` holds on the tail scale (`M.Val M.root a`, its value at the limit element).
+
+- [Bek89, Lemma 10]
+-/
 lemma interpolant_root_forces_iff
     (hab : a ≠ b) (hac : a ≠ c)
     (hCant : (∼(counterexampleCIP_A (#a) (#b)) 🡒 C) ∈ LogicD)
@@ -306,8 +317,10 @@ section
 ### Modalization (utilities for Lemmas 11 and 12)
 
 The syntactic modalization `Formula.modalize` and predicate `Formula.Modalized`
-(defined above) underpin Beklemishev 1989, Section 8, Lemmas 11 and 12.  The lemmas
-below relate them to forcing in pseudo-tail D-models.
+(defined above) underpin the modalization argument.  The lemmas below relate them to
+forcing in pseudo-tail D-models.
+
+- [Bek89, Lemma 11, Lemma 12]
 -/
 
 variable {A : Formula α}
@@ -382,9 +395,13 @@ lemma forces_root_modalized_o_indep {A : Formula α} (hA : A.Modalized) :
     . intro h y hy;
       exact (forces_pseudoTail_ne_root_o_indep (o := o) (o' := o') A y (hsucc y hy)).mpr (h y hy);
 
-/-- Beklemishev 1989, Section 8, Lemma 11: if the root-forcing of `C` in the pseudo-tail
-D-models is independent of the lower valuation `o`, then there is a modalized formula `C'`
-(concretely `C.modalize`) with `D ⊢ C 🡘 C'` and `C'.atoms ⊆ C.atoms`. -/
+/--
+If the root-forcing of `C` in the pseudo-tail D-models is independent of the lower
+valuation `o`, then there is a modalized formula `C'` (concretely `C.modalize`) with
+`D ⊢ C 🡘 C'` and `C'.atoms ⊆ C.atoms`.
+
+- [Bek89, Lemma 11]
+-/
 lemma exists_modalized_equiv_of_indep
     (hindep : ∀ {κ : Type u} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL]
         (r : M.World) (o o' : α → Prop),
@@ -411,11 +428,11 @@ lemma exists_modalized_equiv_of_indep
       (forces_root_modalized_o_indep Formula.modalized_modalize));
   exact Model.World.forces_iff.mpr key;
 
-/-- Beklemishev 1989, Section 8, Lemma 12: there is no modalized single-variable formula
-`C(a)` with `S ⊢ C(a) 🡘 a`.  If there were, the de Jongh–Sambin fixed point of `∼C(a)`
-(via `LogicGL.fixpointTheorem`) would give `E` with `GL ⊢ ∼C(E) 🡘 E`; substituting `a ↦ E`
-into `S ⊢ C(a) 🡘 a` yields `S ⊢ C(E) 🡘 E`, whence `S ⊢ E 🡘 ∼E`, contradicting the
-consistency of `S` (`LogicS.consistent`). -/
+/--
+There is no modalized single-variable formula `C(a)` with `S ⊢ C(a) 🡘 a`.
+
+- [Bek89, Lemma 12]
+-/
 lemma not_exists_modalized_equiv_atom [Nontrivial α] :
     ¬ ∃ (C : Formula α) (a : α), C.Modalized ∧ C.atoms ⊆ {a} ∧ (C 🡘 #a) ∈ LogicS := by
   rintro ⟨C, a, hMod, hAtoms, hCp⟩;
@@ -450,13 +467,13 @@ lemma not_exists_modalized_equiv_atom [Nontrivial α] :
 
 end
 
-/-- Beklemishev 1989, Section 8, Theorem 2: Dzhaparidze's logic `D` does not have Craig's
-interpolation property.  The implication `∼A 🡒 B` with `A = □(□b ⋎ a) 🡒 □b` and
-`B = □(a 🡒 □c) 🡒 □c` is provable in `D` (Lemma 9), but no interpolant `C` in the sole
-common atom `a` exists: by Lemma 10 the root-forcing of `C` in the pseudo-tail D-models is
-independent of the lower valuation, so the modalization `C' = C.modalize` satisfies
-`S ⊢ C' 🡘 a` (via the tail lemma and the GL-characterization of `S`), contradicting
-Lemma 12. -/
+/--
+Dzhaparidze's logic `D` does not have Craig's interpolation property.  Witnessed by
+`∼A 🡒 B` with `A = □(□b ⋎ a) 🡒 □b` and `B = □(a 🡒 □c) 🡒 □c`: this implication is
+provable in `D`, but no formula `C` in the sole common atom `a` is an interpolant for it.
+
+- [Bek89, Theorem 2]
+-/
 theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
     ∃ A B : Formula α, (A 🡒 B) ∈ LogicD ∧
       ¬ ∃ C : Formula α, (A 🡒 C) ∈ LogicD ∧ (C 🡒 B) ∈ LogicD ∧

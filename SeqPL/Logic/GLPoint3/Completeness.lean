@@ -148,7 +148,7 @@ namespace LogicGLPoint3
 
 open Model Model.World
 
-/-- Soundness of `GLPoint3` over finite linear GL models. -/
+/-- Soundness of `LogicGLPoint3` over finite linear GL models. -/
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
     [M.IsFiniteGLPoint3] {A : Formula α} (h : A ∈ LogicGLPoint3) : M ⊧ A := by
   induction h using LogicGLPoint3.substlessInduction with
@@ -158,15 +158,10 @@ lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
   | nec ih => exact fun x y _ => ih y;
 
 /--
-  **Kripke completeness of `GLPoint3`**, packaged as a `List.TFAE` of the four equivalent
-  characterizations of `LogicGLPoint3`-provability: membership in the Hilbert-style closure,
-  provability in the `GL.3` sequent calculus `⊢ᵍ³`, validity over all finite `GL.3` models, and
-  forcing at the root of all finite rooted `GL.3` models.
+Kripke completeness: a formula is provable in `LogicGLPoint3` iff it is valid over all finite `GL.3` models
+iff it is provable in the `GL.3` sequent calculus `⊢ᵍ³` iff it is forced at the root of all finite rooted `GL.3` models.
 
-  The soundness direction (1 → 3) is `LogicGLPoint3.sound`. The completeness direction
-  (3 → 2 → 1) corresponds to Theorem 10 (completeness of the sequent calculus `LS`) and
-  Theorem 11 (b), (c) (finite model property and completeness with respect to `(ω, >)`) of
-  Valentini & Solitro 1983.
+- [VS83, Theorem 10, Theorem 11(b), Theorem 11(c)]
 -/
 theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   A ∈ LogicGLPoint3,
@@ -188,8 +183,8 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   tfae_finish;
 
 /--
-  A formula is a theorem of `GLPoint3` (`GLLin`) iff it is forced at the root of every
-  finite rooted linear GL model.
+A formula is a theorem of `LogicGLPoint3` iff it is forced at the root of every
+finite rooted linear GL model.
 -/
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔

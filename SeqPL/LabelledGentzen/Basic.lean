@@ -7,9 +7,8 @@ public section
 
 /-!
 Labelled sequent calculus `G3KGL` for `GL`, following Negri's labelled
-sequent calculus for provability logic as presented in `[MPB23]`
-(Maggesi & Perini Brogi, *Mechanising Gödel–Löb Provability Logic in HOL
-Light*, JAR 2023), §2.2 (calculus `G3K`) and §6 (Fig. 2/3, calculus
+sequent calculus for provability logic as presented in `[MPB23]`,
+§2.2 (calculus `G3K`) and §6 (Fig. 2/3, calculus
 `G3KGL`). World-labels are drawn from `ℕ`.
 -/
 
@@ -147,14 +146,21 @@ def orR : ⊢ˡ! (R ⸴ Γ ⟹ˡ (insert (x ∶ A) $ insert (x ∶ B) Δ)) → �
   apply negL;
   simpa;
 
-/-- `[Neg14]` Lemma 5.2: a *looping* sequent, where the same boxed formula `□A` is attached
+/--
+A *looping* sequent, where the same boxed formula `□A` is attached
 to the antecedent side of `x` and the succedent side of `y` for an accessibility atom
-`x R y`, is derivable outright (root-first: `R□^Löb` with a fresh label `z`, `Trans`, `L□`). -/
+`x R y`, is derivable outright.
+
+- [Neg14, Lemma 5.2]
+-/
 def loop (x y z : Label) (A : Formula α)
   (hz : z ∉ (R ⸴ Γ ⟹ˡ Δ).labels)
   (hR : (x, y) ∈ R := by grind)
   (hx : (x ∶ □A) ∈ Γ := by grind)
   (hy : (y ∶ □A) ∈ Δ := by grind) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
+  -- Root-first: `R□^Löb` introduces a fresh successor `z` of `y` (assuming `z : □A`),
+  -- `Trans` derives `x R z` from `x R y` and `y R z`, then `L□` unfolds `x : □A` via `z`,
+  -- closing with an axiom on `z : A`.
   have h : Δ = insert (y ∶ □A) (Δ.erase (y ∶ □A)) := by grind;
   rw [h];
   apply boxRLob y z A (hfresh := by rw [← h]; exact hz);

@@ -10,13 +10,13 @@ open Classical
 open LO
 open LO.FirstOrder.ProvabilityAbstraction
 
-/-- `GLPlusBoxBot n`: the quasi-normal extension of `GL` by the boxbot axiom `□^[n]⊥`
+/-- `LogicGLPlusBoxBot n`: the quasi-normal extension of `GL` by the boxbot axiom `□^[n]⊥`
 for a finite `n`, and `GL` itself for `n = ∞`. -/
 def LogicGLPlusBoxBot {α} : ℕ∞ → Logic α
   | .some n => LogicGL +ᴸ □^[n]⊥
   | .none   => LogicGL
 
-/-- `A` is a `GLPlusBoxBot n` theorem iff `□^[n]⊥ 🡒 A` is a `GL` theorem. -/
+/-- `A` is a `LogicGLPlusBoxBot n` theorem iff `□^[n]⊥ 🡒 A` is a `GL` theorem. -/
 @[grind =]
 lemma LogicGLPlusBoxBot.iff_provable_provable_GL {n : ℕ} :
     A ∈ LogicGLPlusBoxBot n ↔ (□^[n]⊥ 🡒 A) ∈ LogicGL := by

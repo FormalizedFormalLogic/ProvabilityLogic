@@ -27,7 +27,7 @@ lemma validate_labelled_relabel_of_eq {S : LabelledGentzen.LabelledSequent α} (
   simp only [Model.ValidateLabelled, LabelledGentzen.LabelledSequent.relabel,
     LabelledGentzen.LabelledFormula.relabel, Finset.forall_mem_image, Finset.exists_mem_image, hL];
 
-/-- Soundness of the `Lin` rule: on a linear (`GLPoint3`) frame, any two successors `y`, `z`
+/-- Soundness of the `Lin` rule: on a linear frame, any two successors `y`, `z`
 of a common world `x` are related by `y ≺ z`, `y = z`, or `z ≺ y`, and the corresponding
 premise closes the sequent in each case. -/
 lemma validate_labelled_lin [M.IsGLPoint3]
@@ -51,7 +51,7 @@ namespace Kripke
 
 open Model in
 /-- Soundness of the labelled calculus for `LogicGLPoint3` with respect to Kripke semantics on
-`GLPoint3` (linear `GL`) models. -/
+linear `GL` models. -/
 theorem soundness {S : LabelledGentzen.LabelledSequent α} (h : ⊢ˡ³ S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGLPoint3] → ∀ L : M.LabelMap, M ⊧ˡ[L] S := by
   obtain ⟨p⟩ := h;
@@ -70,7 +70,7 @@ theorem soundness {S : LabelledGentzen.LabelledSequent α} (h : ⊢ˡ³ S) :
   | trans x y z hxy hyz _ ih => exact λ L => validate_labelled_trans hxy hyz (ih L);
   | lin x y z hxy hxz _ _ _ ih₁ ih₂ ih₃ => exact λ L => validate_labelled_lin hxy hxz (ih₁ L) (ih₂ L) (ih₃ L);
 
-/-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `GLPoint3` model. -/
+/-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `LogicGLPoint3` model. -/
 theorem soundness_formula {x : LabelledGentzen.Label} {A : Formula α} (h : ⊢ˡ³ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGLPoint3] → M.Validate A := by
   intro κ _ M _ w;

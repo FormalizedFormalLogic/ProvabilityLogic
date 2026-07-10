@@ -107,9 +107,9 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
 
 omit [Nonempty κ] [M.IsGL] in
 /--
-  KK23 Theorem 3.1, `2 ⇒ 3`, case split over the finite witness `X`: if there is a finite set
-  `X` witnessing forcing at every `X`-reflexive world of every `GL`-model, then forcing holds
-  eventually along every infinitely descending sequence.
+  KK23 Theorem 3.1, `2 ⇒ 3`: if there is a finite set `X` witnessing forcing at every
+  `X`-reflexive world of every `GL`-model, then forcing holds eventually along every infinitely
+  descending sequence.
 -/
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
@@ -683,11 +683,13 @@ theorem soundness (h : ⊢ᴳᶜ (Γ ⟹[1] Δ)) :
 end GentzenWithCutProvable
 
 /--
-  KK23 (Kashima–Kato 2023) Theorem 3.1: the six equivalent characterizations of `Γ ⟹ Δ`
-  being a theorem of the sequent calculus `LogicS.ProofGentzen` for `S` at level `1` —
-  uniform, model-wise and pointwise finite-set reflexivity witnesses on `GL`-models
-  (conditions `1`–`4`), cut-free `LogicS.ProofGentzen`-provability (condition `5`), and
-  `LogicS.GentzenWithCutProof`-provability (condition `6`).
+  The six equivalent characterizations of `Γ ⟹ Δ` being a theorem of the sequent calculus
+  `LogicS.ProofGentzen` for `S` at level `1` — uniform, model-wise and pointwise finite-set
+  reflexivity witnesses on `GL`-models (conditions `1`–`4`), cut-free
+  `LogicS.ProofGentzen`-provability (condition `5`), and `LogicS.GentzenWithCutProof`-provability
+  (condition `6`).
+
+  - [KK23, Theorem 3.1]
 -/
 theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1

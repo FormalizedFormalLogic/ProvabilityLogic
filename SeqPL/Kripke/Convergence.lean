@@ -9,13 +9,13 @@ variable [Nonempty κ]
 
 namespace Model
 
-/-- `GLPoint2` frame class: transitive, converse well-founded, and piecewise
+/-- `LogicGLPoint2` frame class: transitive, converse well-founded, and piecewise
 convergent (weakly confluent), i.e. any two distinct successors of a common world
 have a common successor. -/
 class IsGLPoint2 (M : Model κ α) extends Model.IsGL M where
   p_convergent : ∀ {x y z : M.World}, x ≺ y → x ≺ z → y ≠ z → ∃ u, y ≺ u ∧ z ≺ u
 
-/-- Finite `GLPoint2` frame class: finite, transitive, irreflexive, and piecewise
+/-- Finite `LogicGLPoint2` frame class: finite, transitive, irreflexive, and piecewise
 convergent (weakly confluent), i.e. any two distinct successors of a common world
 have a common successor. -/
 class IsFiniteGLPoint2 (M : Model κ α) extends Model.IsFiniteGL M where

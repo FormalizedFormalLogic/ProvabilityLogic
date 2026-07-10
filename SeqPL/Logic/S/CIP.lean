@@ -49,7 +49,8 @@ lemma provable_reassoc_of_provable_imp (h : (A 🡒 B) ∈ LogicS) :
   **The interpolant of Logic S's Craig interpolation theorem**: if `A 🡒 B ∈ LogicS`, there is a
   formula `C` whose atoms are contained in `A.atoms ∩ B.atoms`, such that `A 🡒 C ∈ LogicS` and
   `C 🡒 B ∈ LogicS`.
-  Formalizes `Beklemishev1987` Theorem 2.
+
+  - [Bek87, Theorem 2]
 -/
 noncomputable def interpolant (h : (A 🡒 B) ∈ LogicS) : Formula α :=
   LogicGL.interpolant (provable_reassoc_of_provable_imp h)
@@ -77,8 +78,9 @@ lemma interpolant_atoms (h : (A 🡒 B) ∈ LogicS) : (interpolant h).atoms ⊆ 
     exact ⟨atoms_fconj_subfmlsS_subset B, subset_refl _⟩
 
 /--
-  **Craig interpolation property** (`Beklemishev1987`, Theorem 2): `Logic S` has the Craig
-  interpolation property.
+  **Craig interpolation property**: `Logic S` has the Craig interpolation property.
+
+  - [Bek87, Theorem 2]
 -/
 theorem CIP (h : (A 🡒 B) ∈ LogicS) :
     ∃ C : Formula α, (A 🡒 C) ∈ LogicS ∧ (C 🡒 B) ∈ LogicS ∧ C.atoms ⊆ A.atoms ∩ B.atoms :=

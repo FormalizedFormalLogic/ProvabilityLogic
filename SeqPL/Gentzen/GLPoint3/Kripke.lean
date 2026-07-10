@@ -10,9 +10,9 @@ public import SeqPL.Kripke.ULift
 public section
 
 /-!
-Kripke semantics for `GL.3`: soundness of `boxGLPoint3` (`Model.validate_gentzen_boxGLPoint3`)
+Kripke semantics for `LogicGLPoint3`: soundness of `boxGLPoint3` (`Model.validate_gentzen_boxGLPoint3`)
 and Gentzen completeness (`ProvableGentzen.Kripke.completeness`), obtained by building a finite
-rooted countermodel from a `GLPoint3.Chain` of `GL.3` expanded sequents.
+rooted countermodel from a `GLPoint3.Chain` of `LogicGLPoint3` expanded sequents.
 
 The overall structure mirrors the `GL` development in `SeqPL.Gentzen.Kripke`:
 * `GLPoint3.ExpandedSequent`/`GLPoint3.ExpandedSequent.lindenbaum` saturate an unprovable sequent,
@@ -23,7 +23,7 @@ The overall structure mirrors the `GL` development in `SeqPL.Gentzen.Kripke`:
   along such splits (`GLPoint3.exists_chain`), replacing the single fresh world used by the `GL`
   countermodel: `boxGL` only ever needs one witness, `boxGLPoint3` needs a whole chain because of
   linearity.
-* `GLPoint3.Chain.chainModel` turns a chain into a genuinely linear finite `GL.3` model, and
+* `GLPoint3.Chain.chainModel` turns a chain into a genuinely linear finite `LogicGLPoint3` model, and
   `GLPoint3.Chain.truthLemma` is the truth lemma for it.
 * `ProvableGentzen.Kripke.completeness` assembles all of the above into Gentzen completeness.
 -/
@@ -36,7 +36,7 @@ namespace Model
 
 variable {x : M.World} {D : Formula α}
 
-/-- On a linear (`GLPoint3`) frame, if `x` refutes `□A` for every `A ∈ Δ`, some successor `w`
+/-- On a linear (`LogicGLPoint3`) frame, if `x` refutes `□A` for every `A ∈ Δ`, some successor `w`
 of `x` refutes exactly a nonempty `S ⊆ Δ`, while forcing `□A` for every `A ∈ S` and refuting
 `□A` for every `A ∈ Δ \ S`. This is the witness driving the soundness of `boxGLPoint3`: at `w`
 the premise sequent for `S` is falsified. -/
@@ -113,7 +113,7 @@ lemma exists_linear_witness [M.IsGLPoint3] :
 variable {Γ Δ : FormulaFinset α} {A : Formula α}
 
 open Model.World in
-/-- Soundness of `boxGLPoint3`: on a linear (`GLPoint3`) model, if every premise sequent
+/-- Soundness of `boxGLPoint3`: on a linear (`LogicGLPoint3`) model, if every premise sequent
 `□Γ, Γ, □S ⟹ S, □(Δ \ S)` (`S ⊆ Δ` nonempty) is valid, so is the conclusion `□Γ ⟹ □Δ`. -/
 lemma validate_gentzen_boxGLPoint3 [M.IsGLPoint3] (hΔ : Δ.Nonempty)
   (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty → M ⊧ ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
@@ -145,7 +145,7 @@ namespace GLPoint3
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : Sequent α} :
     (⊬ᵍ³ S) ↔ (IsEmpty (⊢ᵍ³! S)) := by simp [ProvableGentzen]
 
-/-- A `GL.3`-unprovable, saturated, `BS.subfmls`-bounded sequent. This is the `GL.3` analogue of
+/-- A `LogicGLPoint3`-unprovable, saturated, `BS.subfmls`-bounded sequent. This is the `LogicGLPoint3` analogue of
 `SeqPL.Gentzen.ExpandedSequent`, built from `⊢ᵍ³` instead of `⊢ᵍ`. `Sequent.Saturated` itself is
 shared with the `GL` development. -/
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
@@ -196,7 +196,7 @@ section
 variable {BS : Sequent α}
 
 open Classical in
-/-- `GL.3` analogue of `SeqPL.Gentzen.ExpandedSequent.lindenbaum_indexed`, expanding `S₀` one
+/-- `LogicGLPoint3` analogue of `SeqPL.Gentzen.ExpandedSequent.lindenbaum_indexed`, expanding `S₀` one
 formula at a time (following the list `Γ`) while keeping it `⊢ᵍ³`-unprovable. -/
 @[grind]
 noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ³ BS)
@@ -339,7 +339,7 @@ lemma lindenbaum_indexed_saturated_impR
     exact List.sortedLE_insertionSort (l := Γ.map (·.complexity))
   · apply List.mem_insertionSort _ |>.mpr h
 
-/-- `GL.3` analogue of `SeqPL.Gentzen.ExpandedSequent.lindenbaum`: saturate `S₀` into a full
+/-- `LogicGLPoint3` analogue of `SeqPL.Gentzen.ExpandedSequent.lindenbaum`: saturate `S₀` into a full
 `ExpandedSequent BS`, listing `BS.subfmls` in increasing complexity order. -/
 noncomputable def lindenbaum
     {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ³ BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ³ S₀)
@@ -386,7 +386,7 @@ instance [Fact (⊬ᵍ³ BS)] : Nonempty (ExpandedSequent BS) :=
 
 end ExpandedSequent
 
-/-! ### Chains of `GL.3` expanded sequents
+/-! ### Chains of `LogicGLPoint3` expanded sequents
 
 This file fixes the *interface* only: the data structure `GLPoint3.Chain` recording a finite
 chain `x₀, …, x_n : ExpandedSequent BS` together with the witnesses `S₀, …, S_{n-1}` and the
@@ -407,8 +407,8 @@ noncomputable def Θ (x : ExpandedSequent BS) : FormulaFinset α := x.toSequent.
 
 end ExpandedSequent
 
-/-- A finite chain of `GL.3` expanded sequents witnessing the unprovability of `S₀` relative to
-`BS`, as constructed in the `GL.3` completeness plan.
+/-- A finite chain of `LogicGLPoint3` expanded sequents witnessing the unprovability of `S₀` relative to
+`BS`, as constructed in the `LogicGLPoint3` completeness plan.
 
 The chain has `n + 1` worlds `seq 0, …, seq n`, connected by `n` steps. Step `i : Fin n` moves
 from `seq i.castSucc` to `seq i.succ` using the nonempty split `S i ⊆ (seq i.castSucc).Θ` supplied
@@ -636,7 +636,7 @@ namespace Chain
 
 variable {BS S₀ : Sequent α}
 
-/-- The Kripke model built from a `GL.3` chain: the worlds are the chain's indices
+/-- The Kripke model built from a `LogicGLPoint3` chain: the worlds are the chain's indices
 `Fin (c.n + 1)`, related by the strict order `<`, and an atom is forced at `i` iff it
 belongs to the antecedent of the `i`-th expanded sequent of the chain. -/
 def chainModel (c : Chain BS S₀) : Model (Fin (c.n + 1)) α where
@@ -783,8 +783,8 @@ namespace ProvableGentzen
 
 namespace Kripke
 
-/-- The rooted, finite version of `GL.3` Gentzen completeness: any `⊢ᵍ³`-unprovable sequent `S`
-has a finite rooted `GL.3` countermodel, refuting `S` right at the root. This is the essential
+/-- The rooted, finite version of `LogicGLPoint3` Gentzen completeness: any `⊢ᵍ³`-unprovable sequent `S`
+has a finite rooted `LogicGLPoint3` countermodel, refuting `S` right at the root. This is the essential
 statement, since `GLPoint3.iff_forces_root` only ever assumes forcing at the root of a model. -/
 theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ³ S) :
     ∃ (n : ℕ) (M : RootedModel (Fin (n + 1)) α) (_ : M.toModel.IsFiniteGLPoint3),
@@ -796,7 +796,7 @@ theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ³ S) :
   · intro A hA
     exact (c.truthLemma A 0).2 (c.subset_head.suc_subset hA)
 
-/-- Gentzen completeness for `GL.3`: a sequent valid in every finite `GL.3` model is provable.
+/-- Gentzen completeness for `LogicGLPoint3`: a sequent valid in every finite `LogicGLPoint3` model is provable.
 Proved by contraposition, from the rooted finite countermodel of `exists_finite_countermodel`. -/
 theorem completeness {S : Sequent α}
     (h : ∀ {κ : Type}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ S) :
@@ -807,7 +807,7 @@ theorem completeness {S : Sequent α}
   obtain ⟨D, hD, hDforces⟩ := h M.toModel M.root.1 hant
   exact hsuc D hD hDforces
 
-/-- `completeness`, generalized to `GL.3` models whose world type lives in an arbitrary
+/-- `completeness`, generalized to `LogicGLPoint3` models whose world type lives in an arbitrary
 universe `w`, not just `Type 0`. Obtained from `completeness` by `ULift`-lifting the
 `Fin (n + 1)` countermodel it produces into `Type w` via `Model.uLift`. -/
 theorem completeness_universe {S : Sequent α}

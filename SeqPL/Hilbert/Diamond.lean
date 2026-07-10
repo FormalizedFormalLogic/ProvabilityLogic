@@ -10,12 +10,12 @@ public section
 
 This file collects `◇`- and `⊡`-related modal lemmas at the level of the pure `GL`
 Hilbert calculus `⊢ʰ` (`ProvableHilbert`), without introducing any new proof system.
-These are the "Step J" lemmas of the `GL.3` completeness plan:
+These are the "Step J" lemmas of the `LogicGLPoint3` completeness plan:
 
 - `dia_boxRefuter` (J1): a Hilbert-level version of the terminal-box-refuter fact.
 - The `J2` toolbox: monotonicity of `◇`, `K`/`4`-style diamond lemmas, and a diamond
   case split.
-- `weakPoint3_dichotomy` (J3): the conditional `GL.3` dichotomy, from which the `.3`
+- `weakPoint3_dichotomy` (J3): the conditional `LogicGLPoint3` dichotomy, from which the `LogicGLPoint3`
   axiom's consequence for `◇A ⋏ ◇B` follows by instantiating the axiom itself.
 -/
 
@@ -247,18 +247,18 @@ lemma or_imp_left {C : Formula α} (h : ⊢ʰ A 🡒 B) : ⊢ʰ (A ⋎ C) 🡒 (
 lemma or_insert_middle {C : Formula α} : ⊢ʰ (A ⋎ C) 🡒 ((A ⋎ B) ⋎ C) :=
   orElim' (impTrans orL orL) orR
 
-/-! ### J3: the conditional `GL.3` dichotomy -/
+/-! ### J3: the conditional `LogicGLPoint3` dichotomy -/
 
 /-- `((⊡∼A) 🡒 ∼B) 🡒 (A ⋎ ◇A)`, obtained by unfolding `⊡∼A = ∼A ⋏ □∼A` and taking
 the De Morgan dual. -/
 lemma notBoxdot_imp_dia : ⊢ʰ ∼(⊡(∼A)) 🡒 (A ⋎ ◇A) :=
   impTrans not_or_of_not_and (or_imp_left dne)
 
-/-- The propositional core of the `.3` dichotomy: `((⊡∼A) 🡒 ∼B) 🡒 (B 🡒 (A ⋎ ◇A))`. -/
+/-- The propositional core of the `LogicGLPoint3` dichotomy: `((⊡∼A) 🡒 ∼B) 🡒 (B 🡒 (A ⋎ ◇A))`. -/
 lemma boxdotNeg_imp : ⊢ʰ ((⊡(∼A)) 🡒 ∼B) 🡒 (B 🡒 (A ⋎ ◇A)) :=
   imp_postcompose imp_contra notBoxdot_imp_dia
 
-/-- The diamond half of the `.3` dichotomy, boxed and combined with `◇B`. -/
+/-- The diamond half of the `LogicGLPoint3` dichotomy, boxed and combined with `◇B`. -/
 lemma dia_disj_split :
     ⊢ʰ (□(B 🡒 (A ⋎ ◇A)) ⋏ ◇B) 🡒 ((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A)) := by
   have h1 : ⊢ʰ (□(B 🡒 (A ⋎ ◇A)) ⋏ ◇B) 🡒 ◇(B ⋏ (A ⋎ ◇A)) := dia_box_imp;
@@ -270,7 +270,7 @@ lemma dia_disj_split :
     or_insert_middle;
   exact impTrans (impTrans (impTrans h1 h2) h3) h4;
 
-/-- One half of **(J3)**: `□((⊡∼A) 🡒 ∼B)` derives the `.3` dichotomy conclusion. -/
+/-- One half of **(J3)**: `□((⊡∼A) 🡒 ∼B)` derives the `LogicGLPoint3` dichotomy conclusion. -/
 lemma weakPoint3_dichotomy_onesided :
     ⊢ʰ □((⊡(∼A)) 🡒 ∼B) 🡒 ((◇A ⋏ ◇B) 🡒 ((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A))) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
@@ -287,7 +287,7 @@ lemma weakPoint3_dichotomy_onesided :
     DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andIntro) hBox2) hDiaB;
   exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dia_disj_split) hAnd;
 
-/-- Permuting the three disjuncts of the `.3` dichotomy conclusion after swapping
+/-- Permuting the three disjuncts of the `LogicGLPoint3` dichotomy conclusion after swapping
 `A` and `B`. -/
 lemma dichotomy_disj_permute :
     ⊢ʰ ((◇(B ⋏ A) ⋎ ◇(B ⋏ ◇A)) ⋎ ◇(A ⋏ ◇B)) 🡒
@@ -299,7 +299,7 @@ lemma dichotomy_disj_permute :
     impTrans orR orL;
   exact orElim' (orElim' case1 case2) case3;
 
-/-- The other half of **(J3)**: `□((⊡∼B) 🡒 ∼A)` derives the same `.3` dichotomy
+/-- The other half of **(J3)**: `□((⊡∼B) 🡒 ∼A)` derives the same `LogicGLPoint3` dichotomy
 conclusion (obtained from `weakPoint3_dichotomy_onesided` by swapping `A` and `B`,
 then permuting the resulting disjuncts back into place). -/
 lemma weakPoint3_dichotomy_onesided' :
@@ -325,8 +325,8 @@ lemma weakPoint3_dichotomy_onesided' :
     DeducibleHilbert.mdp hinner hBA;
   exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dichotomy_disj_permute) hres;
 
-/-- **(J3)** The conditional `GL.3` dichotomy: from `□((⊡∼A) 🡒 ∼B) ⋎ □((⊡∼B) 🡒 ∼A)`
-(the `.3` axiom, with `A` and `B` substituted for its negations), derive that
+/-- **(J3)** The conditional `LogicGLPoint3` dichotomy: from `□((⊡∼A) 🡒 ∼B) ⋎ □((⊡∼B) 🡒 ∼A)`
+(the `LogicGLPoint3` axiom, with `A` and `B` substituted for its negations), derive that
 `◇A ⋏ ◇B` implies one of `◇(A ⋏ B)`, `◇(A ⋏ ◇B)`, or `◇(B ⋏ ◇A)`. -/
 lemma weakPoint3_dichotomy :
     ⊢ʰ ((□((⊡(∼A)) 🡒 ∼B)) ⋎ (□((⊡(∼B)) 🡒 ∼A))) 🡒
