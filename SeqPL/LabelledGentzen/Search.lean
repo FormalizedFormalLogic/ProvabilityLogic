@@ -344,9 +344,13 @@ most `boxSf.card`) new pending boxes it brings.
 /-- The boxed formulas in the subformula closure of `S`. -/
 def boxSf (S : LabelledSequent α) : FormulaFinset α := S.sf.filter Formula.IsBox
 
-/-- The boxed subformulas that can no longer become `R□^Löb` targets at the label `x`:
+/--
+The boxed subformulas that can no longer become `R□^Löb` targets at the label `x`:
 those in the antecedent at `x` itself (the sequent closes by `axm`) or at a direct
-`R`-predecessor of `x` (the sequent closes by `loop`, cf. `[Neg14]` Lemma 5.2). -/
+`R`-predecessor of `x` (the sequent closes by `loop`).
+
+- [Neg14, Lemma 5.2]
+-/
 def blockedBoxes (S : LabelledSequent α) (x : Label) : FormulaFinset α :=
   S.boxSf.filter (fun B => (x ∶ B) ∈ S.ant ∨ ∃ p ∈ S.rel, p.2 = x ∧ (p.1 ∶ B) ∈ S.ant)
 
@@ -382,12 +386,12 @@ lemma blockedBoxes_mono (hsf : S.sf = S'.sf) (hrel : S.rel ⊆ S'.rel) (hant : S
   · exact Or.inl (hant h);
   · exact Or.inr ⟨p, hrel hp, h1, hant h2⟩;
 
-/-- `lobMeasure` does not increase along saturation: saturation keeps `labels` and `sf`
-and only adds relational atoms and antecedent formulas, so every `blockedBoxes x` grows
-and every summand of `lobMeasure` shrinks. -/
+/-- `lobMeasure` does not increase along a step that keeps `labels` and `sf` and only
+adds relational atoms and antecedent formulas (as every saturation step does). -/
 lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
   (hrel : S.rel ⊆ S'.rel) (hant : S.ant ⊆ S'.ant) :
   S'.lobMeasure P ≤ S.lobMeasure P := by
+  -- Every `blockedBoxes x` grows and every summand of `lobMeasure` shrinks.
   rw [lobMeasure, lobMeasure, hlab];
   apply Finset.sum_le_sum;
   intro z _;
@@ -401,10 +405,14 @@ lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
   · rw [lobWeight, lobWeight, hbox];
     exact Nat.pow_le_pow_right (by omega) (Nat.sub_le_sub_left (Finset.card_le_card hbl) _);
 
-/-- Key decrease lemma for the termination of `search`/`searchLeaves` (`[Neg14]`, Thm 5.5):
+/--
+Key decrease lemma for the termination of `search`/`searchLeaves`:
 applying `R□^Löb` at an unblocked, unprocessed target `x ∶ □A` with a fresh label `y` —
 adding, besides `(x, y)`, the relational atoms `(w, y)` for every direct predecessor `w`
-of `x` (which `Trans`-saturation would add anyway) — strictly decreases `lobMeasure`. -/
+of `x` (which `Trans`-saturation would add anyway) — strictly decreases `lobMeasure`.
+
+- [Neg14, Theorem 5.5]
+-/
 lemma lobMeasure_lob_lt
   (hΔ : (x ∶ □A) ∈ Δf) (hP : (x ∶ □A) ∉ P) (hΓ : (x ∶ □A) ∉ Γf)
   (hpred : ∀ w, (w, x) ∈ Rf → (w ∶ □A) ∉ Γf)
@@ -891,8 +899,12 @@ section finders
 
 variable (processed : Finset (LabelledFormula α)) (R : List LabelRel) (Γ Δ : List (LabelledFormula α))
 
-/-- Finds a *looping* boxed formula (cf. `[Neg14]` Lemma 5.2): some `x ∶ □A` in the
-succedent together with a predecessor `w` of `x` carrying `w ∶ □A` in the antecedent. -/
+/--
+Finds a *looping* boxed formula: some `x ∶ □A` in the
+succedent together with a predecessor `w` of `x` carrying `w ∶ □A` in the antecedent.
+
+- [Neg14, Lemma 5.2]
+-/
 def loopTarget? : Option (Label × Label × Formula α) :=
   Δ.findSome? fun lf =>
     match lf with
@@ -963,15 +975,19 @@ def consAllMem {β : Type v} [DecidableEq β] {f : β → Type w} {b : β} {l : 
 
 mutual
 
-/-- Proof search for `ProvableLabelledGentzen`, following the termination argument of `[Neg14]`, Theorem 5.5:
+/--
+Proof search for `ProvableLabelledGentzen`:
 saturate, then solve every stuck leaf (`searchLeaves`).  The parameter `processed` records,
-*per label*, the boxed formulas already treated by `R□^Löb` on the current branch; the
-search terminates because every `R□^Löb` step strictly decreases the weighted measure
-`LabelledSequent.lobMeasure` (`lobMeasure_lob_lt`), which saturation never increases
-(`lobMeasure_le`). -/
+*per label*, the boxed formulas already treated by `R□^Löb` on the current branch.
+
+- [Neg14, Theorem 5.5]
+-/
 def search (processed : Finset (LabelledFormula α)) (R : List LabelRel)
   (Γ Δ : List (LabelledFormula α)) :
   Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
+  -- Termination: every `R□^Löb` step strictly decreases the weighted measure
+  -- `LabelledSequent.lobMeasure` (`lobMeasure_lob_lt`), which saturation never
+  -- increases (`lobMeasure_le`).
   match saturate R Γ Δ with
   | .closed π => some π
   | .stuck leaves _ hlab hsf hmono k =>
@@ -986,15 +1002,20 @@ decreasing_by
   apply Prod.Lex.right;
   exact Prod.Lex.left _ _ Nat.zero_lt_one;
 
-/-- Solves every stuck leaf produced by `saturate`: a leaf is closed either by a looping
-sequent (`[Neg14]` Lemma 5.2, via `ProofLabelledGentzen.loop`), or by applying `R□^Löb`
+/--
+Solves every stuck leaf produced by `saturate`: a leaf is closed either by a looping
+sequent (via `ProofLabelledGentzen.loop`), or by applying `R□^Löb`
 (keeping the principal formula) to a boxed succedent formula not yet processed at its
 label and recursing with `search`.  The parameter `m` bounds the `lobMeasure` of every
-leaf (`hbound`) and drives the lexicographic termination measure. -/
+leaf (`hbound`).
+
+- [Neg14, Lemma 5.2]
+-/
 def searchLeaves (processed : Finset (LabelledFormula α)) (m : ℕ)
   (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
   (hbound : ∀ L ∈ leaves, (LabelledSequent.ofLists L).lobMeasure processed ≤ m) :
   Option (∀ L ∈ leaves, ⊢ˡ! (LabelledSequent.ofLists L)) :=
+  -- `m` together with `leaves.length` drives the lexicographic termination measure.
   match leaves, hbound with
   | [], _ => some (fun _ hL => nomatch hL)
   | ⟨Rl, Γl, Δl⟩ :: rest, hbound =>
@@ -1163,11 +1184,12 @@ section incompleteness
 `processed` bookkeeping rejected (see the section documentation): `□□⊥ 🡒 (∼□a 🡒 □□a)`. -/
 def lobProcessedCounterexample : Formula ℕ := □□⊥ 🡒 (∼□#0 🡒 □□#0)
 
-/-- `lobProcessedCounterexample` is provable as `ProvableLabelledGentzen`: after two `impR`s and `R□^Löb`
-at `0 ∶ □□a` (fresh label `1`), the antecedent `□□⊥` yields `1 ∶ □⊥` by `L□`, so a second
-`R□^Löb` at `1 ∶ □a` (fresh label `2`) closes by `L□` (giving `2 ∶ ⊥`) and `botL`. -/
+/-- `lobProcessedCounterexample` is provable as `ProvableLabelledGentzen`. -/
 lemma provable_lobProcessedCounterexample :
   ⊢ˡ ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
+  -- Two `impR`s and `R□^Löb` at `0 ∶ □□a` (fresh label `1`), the antecedent `□□⊥` yields
+  -- `1 ∶ □⊥` by `L□`, so a second `R□^Löb` at `1 ∶ □a` (fresh label `2`) closes by `L□`
+  -- (giving `2 ∶ ⊥`) and `botL`.
   rw [show ({0 ∶ lobProcessedCounterexample} : Finset (LabelledFormula ℕ)) =
     insert (0 ∶ (□□⊥ 🡒 (∼□#0 🡒 □□#0))) ∅ by rfl];
   apply ProvableLabelledGentzen.impR (x := 0);

@@ -85,7 +85,7 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α}
 
-/-- Semantical cut-elimination -/
+/-- Cut-elimination: any sequent provable with the cut rule (`⊢ᵍᶜ`) is also provable without it (`⊢ᵍ`). -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ S → ⊢ᵍ S := by
   intro h;
   induction h using GentzenWithCutProvable.rec with
@@ -97,6 +97,8 @@ theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ S → ⊢ᵍ S := by
   | impR _ ih => exact ProvableGentzen.impR ih
   | boxGL _ ih => exact ProvableGentzen.boxGL ih
   | cut _ _ ih₁ ih₂ =>
+    -- The cut rule has no direct syntactic elimination here; instead we argue
+    -- semantically via completeness, using soundness of both cut premises.
     apply Kripke.completeness;
     rintro κ _ M _ x;
     have := Kripke.finite_soundness ih₁ M x;

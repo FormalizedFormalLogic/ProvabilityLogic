@@ -169,11 +169,13 @@ variable [DecidableEq α]
 
 /--
   A bisimulation-under-`P`: a bisimulation that is only required to match the
-  valuation on atoms in `P`. Used to formalize the notion of "cones `𝒳_a`, `𝒳_y` are
-  `p̄`-isomorphic" from [Bek90] §4 (item 3, "Removal of a redundant cone"): rather than
-  requiring a literal frame isomorphism, we ask for bisimilarity-under-`P`, the modally
-  correct and more flexible notion that suffices for (and is used directly in) the
-  forcing-preservation argument of Lemma 6/8.
+  valuation on atoms in `P`. Formalizes the notion of "cones `𝒳_a`, `𝒳_y` are
+  `p̄`-isomorphic" ("Removal of a redundant cone"): rather than requiring a literal
+  frame isomorphism, we ask for bisimilarity-under-`P`, the modally correct and more
+  flexible notion that suffices for (and is used directly in) the forcing-preservation
+  argument.
+
+  - [Bek90, §4, item 3, Lemma 6, Lemma 8]
 -/
 structure BisimulationUnder (P : Finset α) (M₁ : Model κ₁ α) (M₂ : Model κ₂ α) where
   toRel : M₁.World → M₂.World → Prop

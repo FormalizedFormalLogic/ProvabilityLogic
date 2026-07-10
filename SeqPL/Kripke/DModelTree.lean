@@ -166,8 +166,12 @@ lemma tailPoint_covers_root :
   . exact absurd rfl hne;
   . exact hR.elim;
 
-/-- The D-model tree has no lateral cones: every point above the root lies in the
-tail point's cone. This is [Bek90]'s "D-model" condition (`n = 0` in Lemma 9). -/
+/--
+The D-model tree has no lateral cones: every point above the root lies in the
+tail point's cone. This is the "D-model" condition (`n = 0`).
+
+- [Bek90, Lemma 9]
+-/
 lemma isInConeOf_tailPoint_of_root_rel :
   ∀ x : (M.dModelTree r o).World, (M.dModelTree r o).root.1 ≺ x →
   IsInConeOf (M := (M.dModelTree r o).toModel) x tailPoint := by
@@ -283,8 +287,12 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     . show M.Val r q ↔ if (((i : ℕ) + 1 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;
       rw [if_neg (by exact_mod_cast WithTop.coe_ne_top)];
 
-/-- Root forcing transfers between the ω-model grafted on the D-model tree and the
-pseudo-tail model (Lemma 3 of [Bek90] §4, model-theoretic core). -/
+/--
+Root forcing transfers between the ω-model grafted on the D-model tree and the
+pseudo-tail model (model-theoretic core).
+
+- [Bek90, Lemma 3]
+-/
 lemma graftOmega_root_forces_iff {C : Formula α} :
   ((M.dModelTree r o).graftOmega tailPoint).root.1 ⊩ C ↔
   (M.toPseudoTail r o).root.1 ⊩ C :=

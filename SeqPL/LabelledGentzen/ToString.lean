@@ -22,16 +22,16 @@ variable {α : Type u} [DecidableEq α]
 namespace LabelledSequent
 
 /-- Typst math-mode source for a labelled sequent given as list-representations of its
-components (as with `LabelledSequent.ofLists`). Computable and thus usable with `#eval`.
-The relation atoms and antecedent formulas are joined into a single comma-separated list
-(rather than each being joined separately and then concatenated with a hardcoded comma), so
-an empty relation or antecedent contributes no stray `, ` — likewise an empty succedent
-just renders as nothing after `=>`. -/
+components (as with `LabelledSequent.ofLists`). Computable and thus usable with `#eval`. -/
 def toStringOfLists [ToString α]
   (L : List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)) : String :=
   let relParts := L.1.map (fun p => s!"{p.1} R {p.2}")
   let antParts := L.2.1.map LabelledFormula.toString
   let sucStr := String.intercalate ", " (L.2.2.map LabelledFormula.toString)
+  -- Join the relation atoms and antecedent formulas into a single comma-separated list
+  -- (rather than each being joined separately and then concatenated with a hardcoded comma),
+  -- so an empty relation or antecedent contributes no stray `, ` — likewise an empty succedent
+  -- just renders as nothing after `=>`.
   s!"{String.intercalate ", " (relParts ++ antParts)} => {sucStr}"
 
 end LabelledSequent
@@ -108,11 +108,12 @@ partial def searchTraceAux [ToString α] (processed : Finset (LabelledFormula α
 
 /-- Typst source rendering the proof-search trace for `search0 R Γ Δ` as a standalone
 `curryst` proof tree document (self-contained, including the `#import` `rule`/`prooftree`
-need to compile). Draws the tree's bars via `#context .. stroke: text.fill` so they follow
-the infoview's current theme color instead of a fixed black that can be hard to see against
-a dark background. Computable and thus `#eval`/`#eval-typst`-friendly, and shows the full
+needed to compile). Computable and thus `#eval`/`#eval-typst`-friendly, and shows the full
 sequent at every node. -/
 def searchTrace0 [ToString α] (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) : String :=
+  -- Draw the tree's bars via `#context .. stroke: text.fill` so they follow the infoview's
+  -- current theme color instead of a fixed black that can be hard to see against a dark
+  -- background.
   s!"#import \"@preview/curryst:0.6.0\": rule, prooftree\n\n\
     #context prooftree(\n  {searchTraceAux ∅ R Γ Δ},\n  stroke: text.fill + 0.05em\n)"
 

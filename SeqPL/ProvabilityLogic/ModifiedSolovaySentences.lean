@@ -6,34 +6,33 @@ public import SeqPL.Logic.S.Basic
 public import SeqPL.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
 
 /-!
-# Modified Solovay sentences (Theorem 2 in §6 of [Bek90])
+# Modified Solovay sentences
 
-The abstract interface of the modified Solovay construction used in the proof of
-Theorem 2 in §6 of [Bek90] (the arithmetical core of Lemma 51 in [AB05], "refugees
-jump to a reflexive node").
+The abstract interface of the modified Solovay construction used in the proof of the
+arithmetical core of the classification theorem, "refugees jump to a reflexive node".
 
 Given a `StrongReflexiveCountermodel` `X` of a formula `A ∉ GLαω` and a sentence `σ`,
 a family of sentences `Λ i` indexed by the worlds of `X.extendRoot 1` is a
-`ModifiedSolovaySentences` when it satisfies the properties of Lemma 1 in §6 of
-[Bek90] (stated over the base theory `T₀`):
+`ModifiedSolovaySentences` when it satisfies the following properties (stated over the
+base theory `T₀`):
 
 - `SC1`, `SC4`: the usual exclusive/exhaustive Solovay conditions;
 - `SC2`: `Λ i 🡒 ◇Λ j` for `i ≺ j`, but only for `j ≠ r` (the reflexive point `r`
   is reachable only by the special jump, never by a refutation proof);
 - `SC3`: the usual box-disjunction condition, but only away from the root and `r`;
-- `SC3r`: at `r`, the box-disjunction includes `r` itself (Lemma 1.4a in [Bek90],
-  reflecting that the limit provably stays at or above `r` once it jumped there);
-- `SC5`: `Pr(σ) 🡒 ∼Λ 0` — if `σ` is provable, the limit provably left the root
-  (Lemma 1.5 in [Bek90]);
-- `SC6`: `∼σ 🡒 ∼Λ r` — if `σ` is false, the limit never jumped to `r`
-  (Lemma 1.6 in [Bek90]).
+- `SC3r`: at `r`, the box-disjunction includes `r` itself, reflecting that the limit
+  provably stays at or above `r` once it jumped there;
+- `SC5`: `Pr(σ) 🡒 ∼Λ 0` — if `σ` is provable, the limit provably left the root;
+- `SC6`: `∼σ 🡒 ∼Λ r` — if `σ` is false, the limit never jumped to `r`.
 
-From these, Lemma 2 of [Bek90] (`mainlemma`), the depth-induction property
-(Lemma 1.7, `provable_boxItr_bot`), the limit-location property (Lemma 1.8,
-`provable_root_orig`) and the resulting reflection principle (`reflection`) are
-derived. The arithmetical construction of such a family is the remaining input
-(`exists_realization_sigma1_reflection_of_not_mem_LogicA` in
+From these, Lemma 2 (`mainlemma`), the depth-induction property (`provable_boxItr_bot`),
+the limit-location property (`provable_root_orig`) and the resulting reflection
+principle (`reflection`) are derived. The arithmetical construction of such a family is
+the remaining input (`exists_realization_sigma1_reflection_of_not_mem_LogicA` in
 `SeqPL.ProvabilityLogic.Classification.A_D`).
+
+- [Bek90, Theorem 2 (§6), Lemma 1 (§6), Lemma 1.4a, Lemma 1.5, Lemma 1.6, Lemma 2 (§6)]
+- [AB05, Lemma 51]
 -/
 
 @[expose] public section
@@ -70,7 +69,7 @@ noncomputable local instance : Fintype κ := Fintype.ofFinite κ
 
 /--
   A finite rooted GL countermodel of `A` with an `A`-reflexive point `r` above the root
-  satisfying the two extra conditions of the corollary to Lemma 5 in §4 of [Bek90]:
+  satisfying two extra conditions:
 
   1. the rank of `r` is strictly greater than the rank of every world other than the
      root and `r` itself (Bek90's condition that the depth of `r` exceeds the depth of
@@ -79,8 +78,9 @@ noncomputable local instance : Fintype κ := Fintype.ofFinite κ
      unique covering condition),
 
   together with the structural condition that the root is the only predecessor of `r`
-  (in [Bek90], `r` covers the root). This is the modal input of the modified Solovay
-  construction of Theorem 2 in §6 of [Bek90].
+  (`r` covers the root). This is the modal input of the modified Solovay construction.
+
+  - [Bek90, Corollary to Lemma 5 (§4), Theorem 2 (§6)]
 -/
 structure StrongReflexiveCountermodel extends RootedModel κ α where
   [isFiniteGL : toModel.IsFiniteGL]
@@ -101,10 +101,18 @@ namespace StrongReflexiveCountermodel
 
 variable {κ} {A} (X : StrongReflexiveCountermodel κ A)
 
-/-- The extended model `𝒦⁰` of [Bek90] §6: the root is expanded to length 1. -/
+/--
+The extended model `𝒦⁰`: the root is expanded to length 1.
+
+- [Bek90, §6]
+-/
 abbrev N : RootedModel (κ ⊕ Fin 1) α := X.extendRoot 1
 
-/-- The old root `b` of [Bek90] §6, viewed inside `X.N`. -/
+/--
+The old root `b`, viewed inside `X.N`.
+
+- [Bek90, §6]
+-/
 abbrev b : X.N.World := embed X.root.1
 
 /-- The reflexive point `r`, viewed inside `X.N`. -/
@@ -150,10 +158,12 @@ end StrongReflexiveCountermodel
 variable {κ} {A}
 
 /--
-  The interface of the modified Solovay construction (Lemma 1 in §6 of [Bek90]):
-  sentences indexed by the worlds of `X.extendRoot 1` satisfying the exclusivity and
-  provable-accessibility conditions of the construction whose limit jumps from the old
-  root to `r` as soon as a witness of `σ` is found.
+  The interface of the modified Solovay construction: sentences indexed by the worlds
+  of `X.extendRoot 1` satisfying the exclusivity and provable-accessibility conditions
+  of the construction whose limit jumps from the old root to `r` as soon as a witness
+  of `σ` is found.
+
+  - [Bek90, Lemma 1 (§6)]
 -/
 structure LO.FirstOrder.ProvabilityAbstraction.Provability.ModifiedSolovaySentences
     {L : FirstOrder.Language} [L.ReferenceableBy L]
@@ -184,10 +194,11 @@ noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realiza
   ⟨fun a ↦ ⩖ i ∈ { i : X.N.World | i ⊩ (.atom a) }, S.Λ i⟩
 
 /--
-  **Lemma 2 in §6 of [Bek90]**: for every world `i` other than the root of the extended
-  model and every subformula `B` of `A`, the sentence `Λ i` decides the realization of
-  `B` according to the forcing at `i`. The box cases at `b` and `r` use the reflexivity
-  of `r`, the twin `r₁` and the special conditions `SC2`/`SC3r`.
+  For every world `i` other than the root of the extended model and every subformula
+  `B` of `A`, the sentence `Λ i` decides the realization of `B` according to the
+  forcing at `i`.
+
+  - [Bek90, Lemma 2 (§6)]
 -/
 private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
     ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
@@ -325,15 +336,17 @@ private lemma provable_boxItr_bot_mono {n m : ℕ} (h : n ≤ m) : T₀ ⊢ 𝔅
     . cl_prover;
 
 /--
-  **Lemma 1.7 in §6 of [Bek90]**: for every world `z` of `X.M` other than the old root
-  and `r`, the sentence `Λ (embed z)` implies the `rank z + 1`-times iterated
-  inconsistency of `T`, provably in `T₀`. By induction along the converse well-founded
-  relation, using `SC3` (such a `z` is never the root of `X.N` nor `r`, and its
-  successors are again such worlds).
+  For every world `z` of `X.World` other than the old root and `r`, the sentence
+  `Λ (embed z)` implies the `rank z + 1`-times iterated inconsistency of `T`, provably
+  in `T₀`.
+
+  - [Bek90, Lemma 1.7 (§6)]
 -/
 lemma provable_boxItr_bot_of_ne (S : 𝔅.ModifiedSolovaySentences X σ) :
     ∀ z : X.World, z ≠ X.root.1 → z ≠ X.r →
       T₀ ⊢ S.Λ (embed z) 🡒 𝔅^[Model.World.rank z + 1] ⊥ := by
+  -- By induction along the converse well-founded relation, using `SC3` (such a `z` is
+  -- never the root of `X.N` nor `r`, and its successors are again such worlds).
   haveI := X.isFiniteGL;
   haveI hGL : X.IsGL := inferInstance;
   haveI : IsConverseWellFounded X.World X.Rel := hGL.toIsConverseWellFounded;
@@ -361,14 +374,16 @@ lemma provable_boxItr_bot_of_ne (S : 𝔅.ModifiedSolovaySentences X σ) :
   simpa only [Function.iterate_succ_apply'] using C!_trans h₁ (𝔅.mono' h₂);
 
 /--
-  **Lemma 1.8 in §6 of [Bek90]**: provably in `T₀`, if `T` is `rank r`-times
-  consistent while `σ` is provable but false, then the Solovay limit sits at the old
-  root `b`. Combines `SC4` with `SC5` (excluding the new root), `SC6` (excluding `r`)
-  and Lemma 1.7 (excluding every other world except `b`).
+  Provably in `T₀`, if `T` is `rank r`-times consistent while `σ` is provable but
+  false, then the Solovay limit sits at the old root `b`.
+
+  - [Bek90, Lemma 1.8 (§6)]
 -/
 lemma provable_b (S : 𝔅.ModifiedSolovaySentences X σ) :
     T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒 (𝔅 σ) 🡒
       ((∼σ : FirstOrder.Sentence L)) 🡒 S.Λ (embed X.root.1) := by
+  -- Combines `SC4` with `SC5` (excluding the new root), `SC6` (excluding `r`) and
+  -- Lemma 1.7 (excluding every other world except `b`).
   haveI := X.isFiniteGL;
   have hall : ∀ j : X.N.World,
       T₀ ⊢ S.Λ j 🡒 (((∼(𝔅^[Model.World.rank X.r] ⊥)) : FirstOrder.Sentence L) 🡒 (𝔅 σ) 🡒
@@ -397,14 +412,16 @@ lemma provable_b (S : 𝔅.ModifiedSolovaySentences X σ) :
   exact hdisj ⨀ S.SC4;
 
 /--
-  **Theorem 2 in §6 of [Bek90]**, given the modified Solovay sentences: provably in
-  `T₀`, iterated consistency of `T` together with the Solovay realization of `A`
-  implies the reflection instance `𝔅 σ 🡒 σ`. Combines Lemma 1.8 with Lemma 2 at the
-  old root (which refutes `A`).
+  Given the modified Solovay sentences, provably in `T₀`, iterated consistency of `T`
+  together with the Solovay realization of `A` implies the reflection instance
+  `𝔅 σ 🡒 σ`.
+
+  - [Bek90, Theorem 2 (§6)]
 -/
 theorem reflection (S : 𝔅.ModifiedSolovaySentences X σ) :
     T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒
       (A.interpret S.realization) 🡒 ((𝔅 σ) 🡒 σ) := by
+  -- Combines Lemma 1.8 with Lemma 2 at the old root (which refutes `A`).
   haveI := X.isFiniteGL;
   have h₁ := S.provable_b;
   have h₂ : T₀ ⊢ S.Λ (embed X.root.1) 🡒 ∼(A.interpret S.realization) :=
@@ -422,13 +439,15 @@ noncomputable section
 namespace LO.FirstOrder.Arithmetic.Bootstrapping
 
 /-!
-### Arithmetical construction of the modified Solovay sentences (§6 Theorem 2 of [Bek90])
+### Arithmetical construction of the modified Solovay sentences
 
 Port of the construction in `SeqPL.ProvabilityLogic.SolovaySentences`
 (`LO.FirstOrder.Arithmetic.Bootstrapping.SolovaySentences`), extended so that the limit
 also jumps from the old root `b` to the reflexive point `r` as soon as a witness of a
 fixed `𝚺₁` sentence `σ` is found. This realizes
 `LO.FirstOrder.ProvabilityAbstraction.Provability.ModifiedSolovaySentences`.
+
+- [Bek90, Theorem 2 (§6)]
 -/
 
 namespace ModifiedSolovaySentences
@@ -682,11 +701,13 @@ lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstO
   simp [modifiedθAux, modifiedθChainAux_sigma1 T X σ θ hσ]
 
 /--
-  The arithmetical fixed-point realizing the modified Solovay sentences of
-  Theorem 2 in §6 of [Bek90]. Besides the usual box-disjunction ingredients, the
-  fixed point at `b` also directly requires `σ` to stay unprovable: resting at `b`
-  forever means the jump to `r` (which unconditionally requires `Provable σ`,
-  regardless of whether `b` has any climb rival at all) never triggers.
+  The arithmetical fixed-point realizing the modified Solovay sentences. Besides the
+  usual box-disjunction ingredients, the fixed point at `b` also directly requires `σ`
+  to stay unprovable: resting at `b` forever means the jump to `r` (which
+  unconditionally requires `Provable σ`, regardless of whether `b` has any climb rival
+  at all) never triggers.
+
+  - [Bek90, Theorem 2 (§6)]
 -/
 def _root_.LO.FirstOrder.Theory.modifiedSolovay (i : X.N.World) : ArithmeticSentence := exclusiveMultifixedpoint
   (fun j ↦
@@ -1073,12 +1094,10 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
     · exact ⟨j, hij, hSj⟩;
     · exact ⟨k, IsTrans.trans _ _ _ hij hjk, hSk⟩;
 
-/--
-  Any stable point other than the root and `r` is provably refuted by `T₀`: the
-  standard self-comparison trick, using that `i` is its own climb rival.
--/
+/-- Any stable point other than the root and `r` is provably refuted by `T₀`. -/
 lemma Modified.refute {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
     T.ModifiedSolovay X σ θ V i → Provable T (⌜∼T.modifiedSolovay X σ θ i⌝ : V) := by
+  -- The standard self-comparison trick, using that `i` is its own climb rival.
   intro h
   rcases show ModifiedΘ T X σ θ V i from h.1 with ⟨ε, hε, cε⟩
   rcases List.ChainI.prec_exists_of_ne hε (Ne.symm ne) with ⟨ε', i', hii', rfl, hε'⟩
@@ -1196,11 +1215,13 @@ lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
   exact (Modified.consistent hbrel StrongReflexiveCountermodel.b_ne_rN hroot) hpb;
 
 /--
-  The modified Solovay construction of Theorem 2 in §6 of [Bek90], realized for a
-  `𝚺₁` sentence `σ`: the witness formula `θ` is obtained from `exists_delta0_witness_form`
-  applied to `σ` (viewed as a `𝚺₁`-formula with no free variables), and the resulting
-  family of modified Solovay sentences `T.modifiedSolovay X σ θ` satisfies all the
-  conditions `SC1`–`SC6` by the lemmas above.
+  The modified Solovay construction, realized for a `𝚺₁` sentence `σ`: the witness
+  formula `θ` is obtained from `exists_delta0_witness_form` applied to `σ` (viewed as a
+  `𝚺₁`-formula with no free variables), and the resulting family of modified Solovay
+  sentences `T.modifiedSolovay X σ θ` satisfies all the conditions `SC1`–`SC6` by the
+  lemmas above.
+
+  - [Bek90, Theorem 2 (§6)]
 -/
 noncomputable def _root_.LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences
     (T : ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]

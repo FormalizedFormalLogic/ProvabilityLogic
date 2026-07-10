@@ -227,12 +227,14 @@ theorem ProvableGentzen.toLabelled (z : Label) {S : Sequent α} (h : ⊢ᵍ S) :
   ProvableGentzen.toLabelledGentzen z h
 
 
-/-- Converse embedding, via Kripke semantics: soundness of `ProvableLabelledGentzen`
-on `GL` models (`LabelledGentzen.ProvableLabelledGentzen.Kripke.soundness_formula`)
-specialized to finite `GL` models, composed with completeness of `ProvableGentzen`
-for finite `GL` models (`ProvableGentzen.Kripke.completeness`). -/
+/-- Converse embedding: a proof of `A` at label `x` in `ProvableLabelledGentzen`
+yields a proof of `A` in `ProvableGentzen`. -/
 theorem ProvableLabelledGentzen.toGentzen {x : Label} {A : Formula α}
   (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) : ⊢ᵍ (∅ ⟹ {A}) := by
+  -- via Kripke semantics: soundness of `ProvableLabelledGentzen` on `GL` models
+  -- (`LabelledGentzen.ProvableLabelledGentzen.Kripke.soundness_formula`) specialized to finite
+  -- `GL` models, composed with completeness of `ProvableGentzen` for finite `GL` models
+  -- (`ProvableGentzen.Kripke.completeness`)
   apply ProvableGentzen.Kripke.completeness;
   intro κ _ M _ w;
   exact Model.World.forces_singleton_sequent.mpr

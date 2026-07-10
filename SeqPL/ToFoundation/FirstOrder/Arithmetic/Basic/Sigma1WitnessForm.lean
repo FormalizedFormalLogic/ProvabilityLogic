@@ -70,7 +70,7 @@ lemma base_case' {n : ℕ} {φ : ArithmeticSemiformula Empty n} (hφ : Hierarchy
   exact ⟨θ, hθ, fun V _ _ e => hiff V e⟩;
 
 /-- Combine two `𝚫₀`-witnessed forms of `φ₁`, `φ₂` into a `𝚫₀`-witnessed form of
-`φ₁ ⋏ φ₂`, using a single witness bounding both original witnesses. -/
+`φ₁ ⋏ φ₂`. -/
 lemma and_case {n : ℕ} {φ₁ φ₂ : ArithmeticSemiformula Empty n}
   {θ₁ θ₂ : ArithmeticSemiformula Empty (n + 1)} (hθ₁ : Hierarchy 𝚺 0 θ₁) (hθ₂ : Hierarchy 𝚺 0 θ₂)
   (h₁ :
@@ -84,6 +84,7 @@ lemma and_case {n : ℕ} {φ₁ φ₂ : ArithmeticSemiformula Empty n}
   : ∃ θ : ArithmeticSemiformula Empty (n + 1), Hierarchy 𝚺 0 θ ∧
     ∀ (V : Type u) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] (e : Fin n → V),
       V ⊧/e (φ₁ ⋏ φ₂) ↔ ∃ w, V ⊧/(w :> e) θ := by
+  -- use a single witness bounding both original witnesses
   use (Rew.bShift.q ▹ θ₁).bexsLTSucc (#0 : ArithmeticSemiterm Empty (n + 1)) ⋏
     (Rew.bShift.q ▹ θ₂).bexsLTSucc (#0 : ArithmeticSemiterm Empty (n + 1));
   refine ⟨by simp [hθ₁, hθ₂], ?_⟩;
@@ -98,7 +99,7 @@ lemma and_case {n : ℕ} {φ₁ φ₂ : ArithmeticSemiformula Empty n}
     exact ⟨⟨w₁, hw₁⟩, ⟨w₂, hw₂⟩⟩;
 
 /-- Combine two `𝚫₀`-witnessed forms of `φ₁`, `φ₂` into a `𝚫₀`-witnessed form of
-`φ₁ ⋎ φ₂`, reusing the same witness for whichever disjunct holds. -/
+`φ₁ ⋎ φ₂`. -/
 lemma or_case {n : ℕ} {φ₁ φ₂ : ArithmeticSemiformula Empty n}
   {θ₁ θ₂ : ArithmeticSemiformula Empty (n + 1)} (hθ₁ : Hierarchy 𝚺 0 θ₁) (hθ₂ : Hierarchy 𝚺 0 θ₂)
   (h₁ :
@@ -112,6 +113,7 @@ lemma or_case {n : ℕ} {φ₁ φ₂ : ArithmeticSemiformula Empty n}
   : ∃ θ : ArithmeticSemiformula Empty (n + 1), Hierarchy 𝚺 0 θ ∧
     ∀ (V : Type u) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] (e : Fin n → V),
       V ⊧/e (φ₁ ⋎ φ₂) ↔ ∃ w, V ⊧/(w :> e) θ := by
+  -- reuse the same witness for whichever disjunct holds
   use θ₁ ⋎ θ₂;
   refine ⟨by simp [hθ₁, hθ₂], ?_⟩;
   intro V _ _ e;
@@ -181,11 +183,11 @@ private lemma collectionMotive_definable {n : ℕ} {θ : ArithmeticSemiformula E
     (fun v => (eval_collectionMotive e a v).symm)
 
 /-- Bounded collection for `𝚺₀`-defined predicates: if a `𝚺₀` formula `θ` has a witness for
-every `x` below `a`, a single bound `w` majorizes all of these witnesses. This is provable
-in `𝗜𝚺₁` via `𝚺₁`-induction on the collecting bound. -/
+every `x` below `a`, a single bound `w` majorizes all of these witnesses. -/
 lemma exists_bound_witness {n : ℕ} {θ : ArithmeticSemiformula Empty (n + 2)} (hθ : Hierarchy 𝚺 0 θ)
   (e : Fin n → V) (a : V) (h : ∀ x < a, ∃ u, V ⊧/(u :> x :> e) θ) :
   ∃ w, ∀ x < a, ∃ u ≤ w, V ⊧/(u :> x :> e) θ := by
+  -- this is provable in `𝗜𝚺₁` via `𝚺₁`-induction on the collecting bound
   have key : ∀ y : V, ∃ w, ∀ x < y, x < a → ∃ u ≤ w, V ⊧/(u :> x :> e) θ := by
     apply InductionOnHierarchy.succ_induction_sigma 𝚺 1
       (P := fun y => ∃ w, ∀ x < y, x < a → ∃ u ≤ w, V ⊧/(u :> x :> e) θ)
@@ -209,8 +211,7 @@ lemma exists_bound_witness {n : ℕ} {θ : ArithmeticSemiformula Empty (n + 2)} 
 end Collection
 
 /-- Combine a `𝚫₀`-witnessed form of `φ` (with one extra bound variable `x`) into a
-`𝚫₀`-witnessed form of `∃⁰ φ`, using a single witness bounding both the existential
-witness of `φ` and its own `𝚫₀`-witness. -/
+`𝚫₀`-witnessed form of `∃⁰ φ`. -/
 private lemma exs_case {n : ℕ} {φ : ArithmeticSemiformula Empty (n + 1)}
   {θ' : ArithmeticSemiformula Empty (n + 2)} (hθ' : Hierarchy 𝚺 0 θ')
   (h :
@@ -220,6 +221,7 @@ private lemma exs_case {n : ℕ} {φ : ArithmeticSemiformula Empty (n + 1)}
   : ∃ θ : ArithmeticSemiformula Empty (n + 1), Hierarchy 𝚺 0 θ ∧
     ∀ (V : Type u) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] (e : Fin n → V),
       V ⊧/e (∃⁰ φ) ↔ ∃ w, V ⊧/(w :> e) θ := by
+  -- use a single witness bounding both the existential witness of `φ` and its own `𝚫₀`-witness
   use ((Rew.bShift.q.q ▹ θ').bexsLTSucc (#1 : ArithmeticSemiterm Empty (n + 2))).bexsLTSucc
     (#0 : ArithmeticSemiterm Empty (n + 1));
   refine ⟨by simp [hθ'], ?_⟩;
@@ -233,8 +235,7 @@ private lemma exs_case {n : ℕ} {φ : ArithmeticSemiformula Empty (n + 1)}
     exact ⟨x, (h V (x :> e)).mpr ⟨w', hw'⟩⟩;
 
 /-- Combine a `𝚫₀`-witnessed form of `φ` (with one extra bound variable `x`) into a
-`𝚫₀`-witnessed form of `∀ x < t, φ`, using the collection principle to find a single
-witness bounding the whole bounded family of witnesses. -/
+`𝚫₀`-witnessed form of `∀ x < t, φ`. -/
 private lemma ball_case {n : ℕ} {t : ArithmeticSemiterm Empty n} {φ : ArithmeticSemiformula Empty (n + 1)}
   {θ' : ArithmeticSemiformula Empty (n + 2)} (hθ' : Hierarchy 𝚺 0 θ')
   (h :
@@ -244,6 +245,8 @@ private lemma ball_case {n : ℕ} {t : ArithmeticSemiterm Empty n} {φ : Arithme
   : ∃ θ : ArithmeticSemiformula Empty (n + 1), Hierarchy 𝚺 0 θ ∧
     ∀ (V : Type u) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] (e : Fin n → V),
       V ⊧/e (φ.ballLT t) ↔ ∃ w, V ⊧/(w :> e) θ := by
+  -- use the collection principle (`exists_bound_witness`) to find a single witness bounding
+  -- the whole bounded family of witnesses
   use ((Rew.bShift.q.q ▹ θ').bexsLTSucc (#1 : ArithmeticSemiterm Empty (n + 2))).ballLT
     (Rew.bShift t : ArithmeticSemiterm Empty (n + 1));
   refine ⟨by simp [hθ'], ?_⟩;
