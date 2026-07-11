@@ -13,7 +13,6 @@ public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
 public import ProvabilityLogic.Gentzen.WithCut
 public import ProvabilityLogic.Hilbert.Basic
-public import ProvabilityLogic.Hilbert.Diamond
 public import ProvabilityLogic.Kripke.AlmostDefiningFormula
 public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Kripke.Cone

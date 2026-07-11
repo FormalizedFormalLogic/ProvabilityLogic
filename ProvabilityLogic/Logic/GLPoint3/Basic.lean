@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Hilbert.Diamond
+public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.SumNormal
 public import ProvabilityLogic.Logic.GL.Basic
 public import ProvabilityLogic.Kripke.Linearity
@@ -199,16 +199,16 @@ lemma and_congr_right {B C : Formula α} (h : ⊢ʰ B 🡒 C) : ⊢ʰ (A ⋏ B) 
   ctxAndIntroRule andL (impTrans andR h)
 
 /-- `◇∼A` derives `∼□A` (the direct half of the `◇`/`□` De Morgan bridge). -/
-lemma dia_neg_imp_not_box : ⊢ʰ ◇(∼A) 🡒 ∼□A := contra (boxImp dni)
+lemma dia_neg_imp_not_box : ⊢ʰ ◇(∼A) 🡒 ∼□A := LogicGL.contra (boxImp dni)
 
 /-- `∼□A` derives `◇∼A` (the converse half of the `◇`/`□` De Morgan bridge). -/
-lemma not_box_imp_dia_neg : ⊢ʰ ∼□A 🡒 ◇(∼A) := contra (boxImp dne)
+lemma not_box_imp_dia_neg : ⊢ʰ ∼□A 🡒 ◇(∼A) := LogicGL.contra (boxImp dne)
 
 /-- Transporting `∼□A` one `◇`-step deeper still derives `∼□A`: this is the
 Hilbert-level fact used to push the complement conjuncts of `θ'` through the extra
 `◇` introduced by `weakPoint3_dichotomy`'s linearity witness. -/
 lemma dia_of_not_box_imp_not_box : ⊢ʰ ◇(∼□A) 🡒 ∼□A :=
-  impTrans (diaImp not_box_imp_dia_neg) (impTrans dia4 dia_neg_imp_not_box)
+  impTrans (LogicGL.diaImp not_box_imp_dia_neg) (impTrans LogicGL.dia4 dia_neg_imp_not_box)
 
 section
 variable [DecidableEq α]
@@ -308,7 +308,7 @@ lemma imp_and_fdisj_elim' {Q : FormulaFinset α} {X C : Formula α}
       ih (fun B hB => h B (Finset.mem_insert_of_mem hB))
     have hins : ((X ⋏ (⋁ (insert a s))) 🡒 ((X ⋏ a) ⋎ (X ⋏ (⋁ s)))) ∈ LogicGLPoint3 :=
       of_GL (ProvableHilbert.impTrans (ProvableHilbert.and_congr_right ProvableHilbert.imp_fdisj_insert)
-        ProvableHilbert.distrib_and_or)
+        LogicGL.distrib_and_or)
     exact impTrans hins (orElim_imp' h1 h2)
 
 end
@@ -342,14 +342,14 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
   set Y : Formula α := θ' ⋏ ⊡D with hYdef;
   -- `∼□D` derives `◇X`, and the branch content derives `◇Y`.
   have hX : ⊢ʰ (∼□D : Formula α) 🡒 ◇X :=
-    ProvableHilbert.impTrans ProvableHilbert.dia_boxRefuter
-      (ProvableHilbert.diaImp ProvableHilbert.conj_comm);
+    ProvableHilbert.impTrans LogicGL.dia_boxRefuter
+      (LogicGL.diaImp LogicGL.conj_comm);
   have hreorder : ⊢ʰ ((θ' ⋏ □D) ⋏ D) 🡒 Y := by
     apply ProvableHilbert.ctxAndIntroRule;
     · exact ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.andL;
     · exact ProvableHilbert.ctxAndIntroRule ProvableHilbert.andR
         (ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.andR);
-  have hY : ⊢ʰ (◇ ((θ' ⋏ □D) ⋏ D)) 🡒 ◇Y := ProvableHilbert.diaImp hreorder;
+  have hY : ⊢ʰ (◇ ((θ' ⋏ □D) ⋏ D)) 🡒 ◇Y := LogicGL.diaImp hreorder;
   have hXandY : ⊢ʰ (∼□D ⋏ ◇ ((θ' ⋏ □D) ⋏ D)) 🡒 (◇X ⋏ ◇Y) :=
     ProvableHilbert.ctxAndIntroRule
       (ProvableHilbert.impTrans ProvableHilbert.andL hX)
@@ -357,7 +357,7 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
   -- The `.3` dichotomy, instantiated at `X, Y`.
   have hdich :
       ((◇X ⋏ ◇Y) 🡒 ((◇(X ⋏ Y) ⋎ ◇(X ⋏ ◇Y)) ⋎ ◇(Y ⋏ ◇X))) ∈ LogicGLPoint3 :=
-    mdp' (ProvableHilbert.weakPoint3_dichotomy (A := X) (B := Y))
+    mdp' (LogicGL.weakPoint3_dichotomy (A := X) (B := Y))
       (provable_axiomWeakPoint3 (A := ∼X) (B := ∼Y));
   have hmain :
       ((∼□D ⋏ ◇ ((θ' ⋏ □D) ⋏ D)) 🡒 ((◇(X ⋏ Y) ⋎ ◇(X ⋏ ◇Y)) ⋎ ◇(Y ⋏ ◇X))) ∈
@@ -376,15 +376,15 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
       ProvableHilbert.impTrans ProvableHilbert.andL
         (ProvableHilbert.impTrans ProvableHilbert.andR ProvableHilbert.andR);
     have hdianD : ⊢ʰ (Y ⋏ ◇X) 🡒 ◇(∼D) :=
-      ProvableHilbert.impTrans ProvableHilbert.andR (ProvableHilbert.diaImp ProvableHilbert.andL);
+      ProvableHilbert.impTrans ProvableHilbert.andR (LogicGL.diaImp ProvableHilbert.andL);
     have hdiaDD : ⊢ʰ (Y ⋏ ◇X) 🡒 ◇(D ⋏ ∼D) :=
       ProvableHilbert.impTrans (ProvableHilbert.ctxAndIntroRule hboxD hdianD)
-        ProvableHilbert.imp_dia_and;
+        LogicGL.imp_dia_and;
     have hDD_bot : ⊢ʰ (D ⋏ ∼D) 🡒 (⊥ : Formula α) :=
       ProvableHilbert.mdp (ProvableHilbert.mdp ProvableHilbert.implyS ProvableHilbert.andR)
         ProvableHilbert.andL;
     exact ProvableHilbert.impTrans hdiaDD
-      (ProvableHilbert.impTrans (ProvableHilbert.diaImp hDD_bot) ProvableHilbert.dia_bot);
+      (ProvableHilbert.impTrans (LogicGL.diaImp hDD_bot) LogicGL.dia_bot);
   -- The surviving disjunct assembles `theta {D} Δ'`.
   have hSpart : ∀ A ∈ S', ⊢ʰ ◇Y 🡒 ∼□A := by
     intro A hA;
@@ -393,14 +393,14 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
         (ProvableHilbert.impTrans ProvableHilbert.andL
           (ProvableHilbert.impTrans (ProvableHilbert.imp_fconj_of_mem (Finset.mem_image_of_mem _ hA))
             ProvableHilbert.andL));
-    exact ProvableHilbert.impTrans (ProvableHilbert.diaImp hYA) ProvableHilbert.dia_neg_imp_not_box;
+    exact ProvableHilbert.impTrans (LogicGL.diaImp hYA) ProvableHilbert.dia_neg_imp_not_box;
   have hTpart : ∀ A ∈ Δ' \ S', ⊢ʰ ◇Y 🡒 ∼□A := by
     intro A hA;
     have hYA : ⊢ʰ Y 🡒 ∼□A :=
       ProvableHilbert.impTrans ProvableHilbert.andL
         (ProvableHilbert.impTrans ProvableHilbert.andR
           (ProvableHilbert.imp_fconj_of_mem (Finset.mem_image_of_mem _ hA)));
-    exact ProvableHilbert.impTrans (ProvableHilbert.diaImp hYA)
+    exact ProvableHilbert.impTrans (LogicGL.diaImp hYA)
       ProvableHilbert.dia_of_not_box_imp_not_box;
   have hall : ∀ A ∈ Δ', ⊢ʰ ◇Y 🡒 ∼□A := by
     intro A hA;
@@ -422,11 +422,11 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
       ⊢ʰ ((◇(X ⋏ Y) ⋎ ◇(X ⋏ ◇Y)) ⋎ ◇(Y ⋏ ◇X)) 🡒 ◇ (theta {D} Δ') := by
     apply ProvableHilbert.orElim';
     · apply ProvableHilbert.orElim';
-      · exact ProvableHilbert.impTrans (ProvableHilbert.impTrans (ProvableHilbert.diaImp hXY_bot)
-          ProvableHilbert.dia_bot) ProvableHilbert.efq;
-      · exact ProvableHilbert.diaImp hfinal;
-    · exact ProvableHilbert.impTrans (ProvableHilbert.impTrans (ProvableHilbert.diaImp hYdiaX_bot)
-        ProvableHilbert.dia_bot) ProvableHilbert.efq;
+      · exact ProvableHilbert.impTrans (ProvableHilbert.impTrans (LogicGL.diaImp hXY_bot)
+          LogicGL.dia_bot) ProvableHilbert.efq;
+      · exact LogicGL.diaImp hfinal;
+    · exact ProvableHilbert.impTrans (ProvableHilbert.impTrans (LogicGL.diaImp hYdiaX_bot)
+        LogicGL.dia_bot) ProvableHilbert.efq;
   exact impTrans hmain (of_GL hcases);
 
 /-- **(W)**, the Hilbert-level witness lemma: for nonempty `Δ`, `LogicGLPoint3` proves
@@ -472,9 +472,9 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
           ⊢ʰ ◇ (theta S' (Δ' \ S')) 🡒
             ((◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D) ⋎ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ ∼D)) ⋎
               ◇ (theta S' (Δ' \ S') ⋏ ∼□D)) :=
-        ProvableHilbert.impTrans (ProvableHilbert.dia_cases (A := theta S' (Δ' \ S')) (B := □D))
-          (ProvableHilbert.or_imp_left
-            (ProvableHilbert.dia_cases (A := theta S' (Δ' \ S') ⋏ □D) (B := D)));
+        ProvableHilbert.impTrans (LogicGL.dia_cases (A := theta S' (Δ' \ S')) (B := □D))
+          (LogicGL.or_imp_left
+            (LogicGL.dia_cases (A := theta S' (Δ' \ S') ⋏ □D) (B := D)));
       -- Deep branch: needs the `.3` axiom, via `witness_deep_step`.
       have hDeep :
           ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D)) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
@@ -497,7 +497,7 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
             (ProvableHilbert.ctxAndIntroRule ProvableHilbert.andR
               (ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.andR));
         refine ProvableHilbert.impTrans
-          (ProvableHilbert.diaImp (ProvableHilbert.impTrans hreorder ProvableHilbert.theta_join_S)) ?_;
+          (LogicGL.diaImp (ProvableHilbert.impTrans hreorder ProvableHilbert.theta_join_S)) ?_;
         have heqS : Δ \ (insert D S') = Δ' \ S' := by
           rw [← hΔins, Finset.insert_sdiff_insert, Finset.sdiff_insert,
             Finset.erase_eq_of_notMem (fun h => hDnotΔ' (Finset.mem_sdiff.mp h).1)];
@@ -510,7 +510,7 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
         apply of_GL;
         refine ProvableHilbert.impTrans ProvableHilbert.andR ?_;
         refine ProvableHilbert.impTrans
-          (ProvableHilbert.diaImp ProvableHilbert.theta_join_complement) ?_;
+          (LogicGL.diaImp ProvableHilbert.theta_join_complement) ?_;
         have heqC : Δ \ S' = insert D (Δ' \ S') := by
           rw [← hΔins, Finset.insert_sdiff_of_notMem _ hDnotS'];
         rw [← heqC];
@@ -521,8 +521,8 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
                 (∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ ∼D))) ⋎
               (∼□D ⋏ ◇ (theta S' (Δ' \ S') ⋏ ∼□D))) :=
         ProvableHilbert.impTrans (ProvableHilbert.and_congr_right hsplit)
-          (ProvableHilbert.impTrans ProvableHilbert.distrib_and_or
-            (ProvableHilbert.or_imp_left ProvableHilbert.distrib_and_or));
+          (ProvableHilbert.impTrans LogicGL.distrib_and_or
+            (LogicGL.or_imp_left LogicGL.distrib_and_or));
       exact impTrans (of_GL hsplit2) (orElim_imp' (orElim_imp' hDeep hJoinS) hComplement);
     exact impTrans hstep1 (impTrans hstep2 hstep3);
   · -- Base case: `Δ = {D}`.
@@ -550,7 +550,7 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
       apply ProvableHilbert.Kripke.completeness;
       intro κ _ M _ x;
       grind;
-    exact ProvableHilbert.impTrans ProvableHilbert.dia_boxRefuter (ProvableHilbert.diaImp hcore);
+    exact ProvableHilbert.impTrans LogicGL.dia_boxRefuter (LogicGL.diaImp hcore);
 
 end
 
@@ -599,7 +599,7 @@ section notDisjToolbox
 /-- From `B 🡒 ∼A` for every `A ∈ Q`, derive `B 🡒 ∼⋁Q`. -/
 lemma imp_not_fdisj_of_forall {Q : FormulaFinset α} {B : Formula α}
     (h : ∀ A ∈ Q, ⊢ʰ B 🡒 ∼A) : ⊢ʰ B 🡒 ∼(⋁ Q) :=
-  impTrans dni (contra (imp_fdisj_elim (fun A hA => impTrans dni (contra (h A hA)))))
+  impTrans dni (LogicGL.contra (imp_fdisj_elim (fun A hA => impTrans dni (LogicGL.contra (h A hA)))))
 
 section
 variable [DecidableEq α]
@@ -610,7 +610,7 @@ lemma imp_not_fdisj_fconj_not {Q : FormulaFinset α} :
   apply imp_fconj_of_forall;
   intro C hC;
   obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hC;
-  exact contra (imp_mem_fdisj hA);
+  exact LogicGL.contra (imp_mem_fdisj hA);
 
 end
 
@@ -715,14 +715,14 @@ private lemma boxGLPoint3_step {Γ Δ S : FormulaFinset α}
     impTrans (of_GL hglue) hbotProp
   -- Push the contradiction inside the `◇`, using `dia_bot`.
   have hdiabot : ((◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 :=
-    impTrans (diaImp' hpropbot) (of_GL ProvableHilbert.dia_bot)
+    impTrans (diaImp' hpropbot) (of_GL LogicGL.dia_bot)
   -- Transport `□(⋀(Γ.box ∪ Γ))` (from `⋀Γ.box`) into the `◇θ(S, T)` witness.
   have hcombine : ⊢ʰ (⋀Γ.box ⋏ ◇ (theta S T)) 🡒 ◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T) :=
     ProvableHilbert.impTrans
       (ProvableHilbert.ctxAndIntroRule
         (ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.imp_box_union)
         ProvableHilbert.andR)
-      ProvableHilbert.imp_dia_and
+      LogicGL.imp_dia_and
   exact impTrans (of_GL hcombine) hdiabot
 
 /-- **Step L**, the Hilbert soundness of the `boxGLPoint3` rule: from the Step K witness
@@ -754,7 +754,7 @@ theorem boxGLPoint3 {Γ Δ : FormulaFinset α} (hΔ : Δ.Nonempty)
   have hstep : ((⋀Γ.box) ⋏ ∼(⋁ Δ.box)) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
     impTrans (imp_and_congr_right' (of_GL hdemorgan)) hantecedent
   -- The classical propositional wrap-up: `∼(A ⋏ ∼B) 🡒 (A 🡒 B)`.
-  exact mdp' ProvableHilbert.imp_of_not_and_not hstep
+  exact mdp' LogicGL.imp_of_not_and_not hstep
 
 end LogicGLPoint3
 
