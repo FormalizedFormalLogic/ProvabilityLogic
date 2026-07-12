@@ -16,6 +16,8 @@ Main definitions and results:
   `Rfn_Γₙ(T) = { Pr_T(σ) 🡒 σ | σ a Γₙ-sentence }`.
 - `LogicD.arithmetical_soundness` (the `⊇` half): if `A ∈ LogicD` then
   `(T ∪ T.localReflection 𝚺 1) ⊢ f A` for every standard realization `f` for `T`.
+- `LogicD.arithmetical_completeness` (the `⊆` half): if `(T ∪ T.localReflection 𝚺 1) ⊢ f A`
+  for every standard realization `f` for `T`, then `A ∈ LogicD`; `sorry` for now.
 - `LO.FirstOrder.ArithmeticTheory.unbounded_localReflection`: the instance of the
   unboundedness theorem ([AB05] Theorem 23) needed for the `⊆` half; `sorry` for now.
 - `LogicD.eq_provabilityLogicRelativeTo_localReflection`: the resulting equality
@@ -29,6 +31,7 @@ Main definitions and results:
 open LO
 open LO.Entailment
 open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
+open Model Model.World
 
 namespace LogicD
 
@@ -70,6 +73,33 @@ theorem arithmetical_soundness_PA (h : A ∈ LogicD) (f : StandardRealization α
 section completeness
 
 variable [DecidableEq α]
+
+/--
+**Arithmetical completeness of `D`**: if `A` is provable, under every standard
+realization for `T`, in `T` extended by the local `𝚺₁`-reflection schema for `T`, then
+`A ∈ D`.
+
+The arithmetical construction (a `D`-analogue of the Solovay sentences used for
+`LogicS.arithmetical_completeness`) is not yet formalized.
+
+- [AB05, Example 60 (completeness half)]
+-/
+theorem arithmetical_completeness
+    (H : ∀ f : StandardRealization α T, T ∪ T.localReflection 𝚺 1 ⊢ f A) : A ∈ LogicD := by
+  -- If `A ∉ LogicD` then by `iff_provable_D_provable_GL` the formula `⋀A.subfmlsD 🡒 A`
+  -- is not provable in `GL`, so there is a finite rooted GL countermodel whose root
+  -- forces all axiom `D` instances built from subformulas of `A` but refutes `A`.
+  contrapose! H;
+  replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_D_provable_GL.not.mp H;
+  push Not at H;
+  obtain ⟨κ, _, M, _, hA⟩ := H;
+  haveI : Fintype M.World := Fintype.ofFinite _;
+  obtain ⟨hA₁, hA₂⟩ := not_forces_imp.mp hA;
+  have ha : ∀ Γ ⊆ A.subfmls.prebox, M.root.1 ⊩ (Formula.box (⋁Γ.box) 🡒 ⋁Γ.box) := by
+    intro Γ hΓ;
+    exact forces_fconj.mp hA₁ _
+      (by simp only [Formula.subfmlsD, Finset.mem_image, Finset.mem_powerset]; exact ⟨Γ, hΓ, rfl⟩);
+  sorry;
 
 /-- The provability logic of `T` relative to `T + Rfn_Σ₁(T)` has trace `ω`. -/
 lemma trace_univ_provabilityLogicRelativeTo_localReflection :
