@@ -1,6 +1,7 @@
 module
 
 public import Foundation.FirstOrder.Incompleteness.StandardProvability
+public import Foundation.FirstOrder.Incompleteness.Löb
 
 @[expose] public section
 
@@ -54,15 +55,24 @@ theorem unbounded_localReflection
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   [Entailment.Consistent (T ∪ T.localReflection 𝚺 1)] :
   ¬∀ σ : FirstOrder.ArithmeticSentence, (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
-  -- The proof for a *finite* extension `T + π` (`π ∈ Π₂`) is a three-line Löb argument:
-  -- `T + π ⊢ Pr_T(¬π) 🡒 ¬π` (the instance at the `Σ₂`-sentence `¬π`) gives
-  -- `T ⊢ Pr_T(¬π) 🡒 ¬π` by deduction, hence `T ⊢ ¬π` by Löb's theorem, contradicting
-  -- the consistency of `T + π`. The reduction of the schema case to the finite case is
-  -- the "trick, akin to Rosser's" omitted in [AB05]; it requires an arithmetized
-  -- deduction theorem and a partial truth predicate for `Σ₁`-sentences, neither of which
-  -- is currently available in Foundation. See `.claude/directions/d-completeness.md` for
-  -- the detailed analysis.
-  sorry
+  intro h
+  -- It suffices to reduce the schema `T + Rfn_Σ₁(T)` to a *finite* extension `T + π`
+  -- (`π ∈ Π₂`): every reflection instance provable from the schema is already provable
+  -- from finitely many of its instances, and finitely many `Σ₂`-instances (in particular
+  -- the one at `∼π` for a suitable `Π₂`-sentence `π`) can be packaged into a single
+  -- `Π₂`-sentence `π` by conjunction. This is the "trick, akin to Rosser's" omitted in
+  -- [AB05]; it requires an arithmetized deduction theorem and a partial truth predicate
+  -- for `Σ₁`-sentences, neither of which is currently available in Foundation. See
+  -- `.claude/directions/d-completeness.md` for the detailed analysis.
+  suffices key : ∀ π : FirstOrder.ArithmeticSentence,
+      T ⊢ (T.standardProvability (∼π)) 🡒 ∼π →
+      Entailment.Inconsistent (insert π T : FirstOrder.ArithmeticTheory) by
+    sorry
+  intro π h1
+  have h2 : T ⊢ (∼π) := LO.FirstOrder.Arithmetic.löb_theorem h1
+  have h3 : (insert π T : FirstOrder.ArithmeticTheory) ⊢ π := Entailment.by_axm (Set.mem_insert π T)
+  have h4 : (insert π T : FirstOrder.ArithmeticTheory) ⊢ (∼π) := Entailment.wk! (Set.subset_insert π T) h2
+  exact Entailment.inconsistent_of_provable (by cl_prover [h3, h4])
 
 end
 
