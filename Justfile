@@ -14,3 +14,7 @@ cloc:
 # Regenerate ProvabilityLogic.lean to include all modules (run after adding/removing files)
 mk-all:
     lake exe mk_all --module
+
+# Remove unused imports/variables and drop unnecessary `public` (run before merging any work)
+shake:
+    lake shake --keep-public --fix
