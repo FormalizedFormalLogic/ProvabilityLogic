@@ -14,11 +14,15 @@ structure Model (κ : Type u) [Nonempty κ] (α : Type v) where
   Rel' : κ → κ → Prop
   Val' : κ → α → Prop
 
+instance [Nonempty κ] : CoeFun (Model κ α) (fun _ => κ → α → Prop) := ⟨Model.Val'⟩
+
 namespace Model
 
 variable [Nonempty κ] {M : Model κ α}
 
 abbrev World (_ : Model κ α) := κ
+
+abbrev Val {M : Model κ α} : M.World → α → Prop := M.Val'
 
 abbrev worlds : Set M.World := Set.univ
 @[simp] lemma worlds_nonempty : Set.Nonempty M.worlds := by simp;
@@ -108,9 +112,6 @@ lemma relItr_reduce_trans_pos (hn : 0 < n) (hm : 0 < m) [IsTrans _ M.Rel] (h : m
 
 end
 
-abbrev Val {M : Model κ α} : M.World → α → Prop := M.Val'
-
-
 class IsGL (M : Model κ α) extends IsTrans _ M.Rel, IsConverseWellFounded _ M.Rel
 
 class IsFiniteGL (M : Model κ α) extends IsTrans _ M.Rel, Std.Irrefl M.Rel where
@@ -146,7 +147,7 @@ variable {M : Model κ α} {x : M.World} {A B : Formula α} {n : ℕ}
 
 @[grind]
 def Forces (x : M.World) : Formula α → Prop
-| #a    => M.Val x a
+| #a    => M x a
 | ⊥     => False
 | A 🡒 B => Forces x A → Forces x B
 | □A    => ∀ y, x ≺ y → Forces y A

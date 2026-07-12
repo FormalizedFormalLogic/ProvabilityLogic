@@ -24,8 +24,8 @@ abbrev toTail (M : Model κ α) (tail : M.World) : RootedModel (toTail.World M) 
     | .inr i, .inr j => j < i
   Val' x a :=
     match x with
-    | .inl x => M.Val x a
-    | .inr _ => M.Val tail a
+    | .inl x => M x a
+    | .inr _ => M tail a
   root := ⟨.inr ⊤, by
     intro x hx;
     match x with

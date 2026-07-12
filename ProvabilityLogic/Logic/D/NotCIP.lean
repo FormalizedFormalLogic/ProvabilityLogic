@@ -331,7 +331,7 @@ variable {κ : Type u} [Nonempty κ] {C : Formula α} {M : Model κ α}
 /-- If every atom of `A` is false at the world `x`, then modalization does not change the
 forcing of `A` at `x` (the replaced atoms were false, i.e. equivalent to `⊥`). -/
 lemma forces_modalize {x : κ}
-  (h : ∀ a ∈ A.atoms, ¬M.Val x a) :
+  (h : ∀ a ∈ A.atoms, ¬M x a) :
   Forces (M := M) x A.modalize ↔ Forces (M := M) x A := by
   induction A <;> grind;
 
@@ -418,7 +418,7 @@ lemma exists_modalized_equiv_of_indep
   -- Every atom of `C` is false at the root of the `o₀`-pseudo-tail.
   have h0 : ∀ a ∈ C.atoms, ¬(M.toPseudoTail r o₀).toModel.Val (toPseudoTail.chainPoint ⊤) a := by
     intro a _;
-    show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M.Val r a);
+    show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M r a);
     rw [if_pos rfl];
     exact not_false;
   -- Chain: `𝒳_o ⊩ C ↔ 𝒳_{o₀} ⊩ C ↔ 𝒳_{o₀} ⊩ C.modalize ↔ 𝒳_o ⊩ C.modalize`.

@@ -19,7 +19,7 @@ abbrev toPseudoTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
   The pseudo-tail model (an ω-extension of `M`): rooted at ω (`chainPoint ⊤`), with an
   infinite descending chain `chainPoint n` (`n : ℕ`) attached below it, connecting to the
   whole of the original model `M`. Chain points (`chainPoint n`) take the valuation
-  `M.Val tail`, while ω takes the valuation `o`.
+  `M tail`, while ω takes the valuation `o`.
 -/
 abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) :
     RootedModel (toPseudoTail.World M) α where
@@ -31,8 +31,8 @@ abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) :
     | .inr i, .inr j => j < i
   Val' x a :=
     match x with
-    | .inl x => M.Val x a
-    | .inr i => if i = (⊤ : ℕ∞) then o a else M.Val tail a
+    | .inl x => M x a
+    | .inr i => if i = (⊤ : ℕ∞) then o a else M tail a
   root := ⟨.inr ⊤, by
     intro x hx;
     match x with
