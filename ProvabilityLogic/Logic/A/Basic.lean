@@ -1,13 +1,5 @@
 module
 
-public import ProvabilityLogic.Logic.SumQuasiNormal
-public import ProvabilityLogic.Logic.GL.Basic
-public import ProvabilityLogic.Logic.S.Basic
-public import ProvabilityLogic.Logic.D.Basic
-public import ProvabilityLogic.Kripke.RootedModel
-public import ProvabilityLogic.Kripke.Rank
-public import ProvabilityLogic.Kripke.GraftOmega
-public import ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose]
@@ -284,15 +276,15 @@ theorem provability_TFAE : [
   A ∈ LogicA,
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-    ∀ a : M.World, M.root.1 ≺ a →
-    (M.graftOmega a).root.1 ⊩ A
+    ∀ (a : M.World) (Rra : M.root.1 ≺ a),
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ A
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
     rintro ⟨n, hGL⟩ κ _ M _ a Rra;
-    haveI := RootedModel.graftOmega.isGL (M := M) (a := a) Rra;
-    exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega a).toModel)
-      (M.graftOmega a).root.1
+    haveI := RootedModel.graftOmega.isGL (M := M) (a := ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩) Rra;
+    exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel)
+      (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
       (Model.World.forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
   tfae_have 3 → 1 := by
     intro h;
@@ -317,8 +309,8 @@ theorem provability_TFAE : [
 theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-    ∀ a : M.World, M.root.1 ≺ a →
-    (M.graftOmega a).root.1 ⊩ A) :=
+    ∀ (a : M.World) (Rra : M.root.1 ≺ a),
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ A) :=
   LogicA.provability_TFAE.out 0 2
 
 end LogicA

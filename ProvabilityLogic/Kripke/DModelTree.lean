@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Kripke.Simplification
-public import Foundation.Vorspiel.List.Chain
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import Mathlib.Data.Fintype.Option
 
@@ -104,7 +103,7 @@ namespace dModelTree
 variable {M} {r : M.World} {o : α → Prop}
 
 /-- The tail point `a★` of the D-model tree. -/
-abbrev tailPoint : (M.dModelTree r o).World := some none
+abbrev tailPoint : (M.dModelTree r o).NonRoot := ⟨some none, by simp [dModelTree]⟩
 
 /-- The embedding of a chain into the D-model tree. -/
 abbrev embed (c : chainForest.World M) : (M.dModelTree r o).World := some (some c)
@@ -153,13 +152,13 @@ instance : (M.dModelTree r o).IsTree := by
          . exact Or.inl (congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl).symm)));
 
 /-- The tail point lies above the root. -/
-lemma root_rel_tailPoint : (M.dModelTree r o).root.1 ≺ (tailPoint : (M.dModelTree r o).World) :=
+lemma root_rel_tailPoint : (M.dModelTree r o).root.1 ≺ (tailPoint : (M.dModelTree r o).NonRoot).1 :=
   trivial
 
 /-- The tail point covers the root: its only proper predecessor is the root. -/
 lemma tailPoint_covers_root :
   ∀ x : (M.dModelTree r o).World,
-  IsProperPredecessorOf (M := (M.dModelTree r o).toModel) x tailPoint →
+  IsProperPredecessorOf (M := (M.dModelTree r o).toModel) x tailPoint.1 →
   x = (M.dModelTree r o).root.1 := by
   rintro (_ | _ | c) ⟨hne, hR⟩;
   . rfl;
@@ -174,7 +173,7 @@ tail point's cone. This is the "D-model" condition (`n = 0`).
 -/
 lemma isInConeOf_tailPoint_of_root_rel :
   ∀ x : (M.dModelTree r o).World, (M.dModelTree r o).root.1 ≺ x →
-  IsInConeOf (M := (M.dModelTree r o).toModel) x tailPoint := by
+  IsInConeOf (M := (M.dModelTree r o).toModel) x tailPoint.1 := by
   rintro (_ | _ | c) hR;
   . exact hR.elim;
   . exact Or.inl rfl;
@@ -248,7 +247,7 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     . have hj : j ≠ (⊤ : ℕ∞) := ne_top_of_lt (show j < (⊤ : ℕ∞) from h);
       obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp hj;
       match m with
-      | 0 => exact ⟨.inl tailPoint, rfl, trivial⟩;
+      | 0 => exact ⟨.inl tailPoint.1, rfl, trivial⟩;
       | m + 1 => exact ⟨.inr m, rfl, rfl⟩;
     -- from the tail point `a★` (chainPoint 0) to an embedded world
     . exact ⟨.inl (embed (singletonChain x)), rfl, trivial⟩;
@@ -270,7 +269,7 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     . have hj : j ≠ (⊤ : ℕ∞) := ne_top_of_lt (show j < (((i : ℕ) + 1 : ℕ) : ℕ∞) from h);
       obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp hj;
       match m with
-      | 0 => exact ⟨.inl tailPoint, rfl, Or.inl rfl⟩;
+      | 0 => exact ⟨.inl tailPoint.1, rfl, Or.inl rfl⟩;
       | m + 1 =>
         refine ⟨.inr m, rfl, ?_⟩;
         show m < i;

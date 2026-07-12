@@ -1,8 +1,6 @@
 module
 
-public import ProvabilityLogic.Kripke.Preservation
 public import ProvabilityLogic.Kripke.Simplification
-public import Foundation.Vorspiel.List.Chain
 
 /-!
 # Tree unravelling of GL-models
@@ -169,24 +167,27 @@ open Model.World (IsProperPredecessorOf)
 
 /-- The unravelling world `[root, a]`, for `a` a successor of the root: the canonical
 point of the tree unravelling covering its root and projecting onto `a`. -/
-def coverPoint {a : M.World} (Rra : M.root.1 ≺ a) : (M.unravelling).World :=
-  ⟨[M.root.1, a], ⟨[a], rfl⟩, by simpa using Rra⟩
+def coverPoint {a : M.World} (Rra : M.root.1 ≺ a) : (M.unravelling).NonRoot :=
+  ⟨⟨[M.root.1, a], ⟨[a], rfl⟩, by simpa using Rra⟩, by
+    intro h;
+    have h' := congrArg Subtype.val h;
+    simp at h';⟩
 
 @[simp]
 lemma coverPoint_last {a : M.World} (Rra : M.root.1 ≺ a) :
-  World.last (coverPoint Rra) = a := by
+  World.last (coverPoint Rra).1 = a := by
   simp [coverPoint, World.last];
 
 /-- `coverPoint Rra` lies above the unravelling's root. -/
 lemma root_rel_coverPoint {a : M.World} (Rra : M.root.1 ≺ a) :
-  (M.unravelling).root.1 ≺ coverPoint Rra :=
+  (M.unravelling).root.1 ≺ (coverPoint Rra).1 :=
   ⟨⟨[a], rfl⟩, by simp [coverPoint]⟩
 
 /-- `coverPoint Rra` covers the unravelling's root: its only proper predecessor is the
 root itself. -/
 lemma coverPoint_covers_root {a : M.World} (Rra : M.root.1 ≺ a) :
   ∀ x : (M.unravelling).World,
-  IsProperPredecessorOf (M := (M.unravelling).toModel) x (coverPoint Rra) →
+  IsProperPredecessorOf (M := (M.unravelling).toModel) x (coverPoint Rra).1 →
   x = (M.unravelling).root.1 := by
   rintro ⟨l, hpre, hchain⟩ ⟨-, hl₁, hl₂⟩;
   apply Subtype.ext;
@@ -233,7 +234,7 @@ lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
 def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
   (Rra : M.root.1 ≺ a) :
   ((M.unravelling).graftOmega (coverPoint Rra)).toModel →ₚ
-  (M.graftOmega a).toModel where
+  (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel where
   toFun := fun
     | .inl t => .inl (World.last t)
     | .inr i => .inr i
@@ -255,9 +256,9 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
     . have ht : t = (M.unravelling).root.1 := eq_root_of_last_eq_root h;
       exact ⟨.inr j, rfl, ht⟩;
     . rcases (show w = a ∨ M.Rel a w from h) with rfl | hR;
-      . exact ⟨.inl (coverPoint Rra), congrArg Sum.inl (coverPoint_last Rra), Or.inl rfl⟩;
-      . have hR' : (pMorphism (M := M)).toFun (coverPoint Rra) ≺ w := by
-          rw [show (pMorphism (M := M)).toFun (coverPoint Rra) = a from coverPoint_last Rra];
+      . exact ⟨.inl (coverPoint Rra).1, congrArg Sum.inl (coverPoint_last Rra), Or.inl rfl⟩;
+      . have hR' : (pMorphism (M := M)).toFun (coverPoint Rra).1 ≺ w := by
+          rw [show (pMorphism (M := M)).toFun (coverPoint Rra).1 = a from coverPoint_last Rra];
           exact hR;
         obtain ⟨s, hs, hts⟩ := (pMorphism (M := M)).back hR';
         exact ⟨.inl s, congrArg Sum.inl hs, Or.inr hts⟩;
@@ -265,7 +266,7 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
   atomic := by
     rintro (t | i) q;
     . exact Iff.rfl;
-    . show M.Val (World.last (coverPoint Rra)) q ↔ M.Val a q;
+    . show M.Val (World.last (coverPoint Rra).1) q ↔ M.Val a q;
       rw [coverPoint_last Rra];
 
 /-- Root forcing transfers from an arbitrary `graftOmega`-shaped ω-model to its
@@ -273,12 +274,13 @@ tree unravelling counterpart. -/
 lemma graftOmega_root_forces_iff [M.IsGL] {a : M.World} (Rra : M.root.1 ≺ a)
   {C : Formula α} :
   ((M.unravelling).graftOmega (coverPoint Rra)).root.1 ⊩ C ↔
-  (M.graftOmega a).root.1 ⊩ C := by
+  (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C := by
   have h := (graftOmegaPseudoEpimorphism M Rra).modal_equivalence
     ((M.unravelling).graftOmega (coverPoint Rra)).root.1 (A := C);
   rwa [show (graftOmegaPseudoEpimorphism M Rra).toFun
       ((M.unravelling).graftOmega (coverPoint Rra)).root.1
-    = (M.graftOmega a).root.1 from congrArg Sum.inl root_last] at h;
+    = (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+    from congrArg Sum.inl root_last] at h;
 
 end GraftOmega
 

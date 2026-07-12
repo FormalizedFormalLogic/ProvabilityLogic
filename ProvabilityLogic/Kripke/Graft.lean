@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Kripke.Rank
-public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Gentzen.S.Kripke
 
 @[expose]
@@ -30,17 +29,17 @@ abbrev graft.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin
 
   - [AB05, Lemma 12]
 -/
-abbrev graft (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graft.World M k) α where
+abbrev graft (M : RootedModel κ α) (a : M.NonRoot) (k : ℕ) : RootedModel (graft.World M k) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
     | .inl x, .inr _ => x = M.root.1
-    | .inr _, .inl y => y = a ∨ M.Rel a y
+    | .inr _, .inl y => y = a.1 ∨ M.Rel a.1 y
     | .inr i, .inr j => j < i
   Val' x p :=
     match x with
     | .inl x => M.Val x p
-    | .inr _ => M.Val a p
+    | .inr _ => M.Val a.1 p
   root := ⟨.inl M.root.1, by
     rintro (x | i) hx;
     . exact M.root.2 x (by simpa using hx);
@@ -48,15 +47,15 @@ abbrev graft (M : RootedModel κ α) (a : M.World) (k : ℕ) : RootedModel (graf
 
 namespace graft
 
-variable {a : M.World} {k : ℕ}
+variable {a : M.NonRoot} {k : ℕ}
 
-lemma ne_root_of_rel [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (Rra : M.root.1 ≺ a) : a ≠ M.root.1 :=
-  fun h => Std.Irrefl.irrefl _ (h ▸ Rra)
+lemma ne_root_of_rel [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (_Rra : M.root.1 ≺ a.1) : a.1 ≠ M.root.1 :=
+  a.2
 
 @[reducible]
-def isFiniteGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graft a k).IsFiniteGL where
+def isFiniteGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graft a k).IsFiniteGL where
   trans := by
-    have hne : a ≠ M.root.1 := ne_root_of_rel Rra;
+    have hne : a.1 ≠ M.root.1 := a.2;
     have hnr : ∀ x : M.World, ¬x ≺ M.root.1 := fun _ => not_rel_root;
     have htr : ∀ x y z : M.World, x ≺ y → y ≺ z → x ≺ z := fun _ _ _ h h' => IsTrans.trans _ _ _ h h';
     rintro (x | i) (y | j) (z | l) Rxy Ryz <;> simp_all only [Model.Rel] <;> grind;
@@ -99,9 +98,9 @@ lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graft a k).World}
       exact ⟨z, rfl, ⟨y, Rxy, hyz⟩, hz⟩;
 
 /-- The length of a chain starting from a grafted world is bounded by `i + 1 + a.rank`. -/
-lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.graft a k).World}
+lemma relItr_from_inr_le (_Rra : M.root.1 ≺ a.1) {i : Fin k} {n : ℕ} {w : (M.graft a k).World}
     (h : Model.RelItr (M := (M.graft a k).toModel) n (.inr i) w) :
-    n ≤ i + 1 + Model.World.rank a := by
+    n ≤ i + 1 + Model.World.rank a.1 := by
   induction n generalizing i w with
   | zero => omega;
   | succ n ih =>
@@ -112,14 +111,14 @@ lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.gr
       have := ih hv;
       omega;
     | .inl y =>
-      have hya : y = a ∨ a ≺ y := Riv;
+      have hya : y = a.1 ∨ a.1 ≺ y := Riv;
       have hy : y ≠ M.root.1 := by
         rcases hya with rfl | hay;
-        . exact ne_root_of_rel Rra;
+        . exact a.2;
         . exact fun h => not_rel_root (h ▸ hay);
       obtain ⟨z, rfl, hyz, _⟩ := relItr_from_inl hy hv;
       have hn : n ≤ Model.World.rank (M := M.toModel) y := Model.iff_le_rank.mpr ⟨z, hyz⟩;
-      have : Model.World.rank (M := M.toModel) y ≤ Model.World.rank a := by
+      have : Model.World.rank (M := M.toModel) y ≤ Model.World.rank a.1 := by
         rcases hya with rfl | hay;
         . rfl;
         . exact le_of_lt (Model.rank_lt_of_rel hay);
@@ -128,15 +127,15 @@ lemma relItr_from_inr_le (Rra : M.root.1 ≺ a) {i : Fin k} {n : ℕ} {w : (M.gr
 omit [Fintype M.World] [M.IsGL] in
 /-- There is a chain of length `i + 1` from the grafted world `inr i` down to `inl a`. -/
 lemma inr_relItr_inl_a {i : Fin k} :
-    Model.RelItr (M := (M.graft a k).toModel) ((i : ℕ) + 1) (.inr i) (.inl a) := by
+    Model.RelItr (M := (M.graft a k).toModel) ((i : ℕ) + 1) (.inr i) (.inl a.1) := by
   suffices ∀ (m : ℕ) (i : Fin k), (i : ℕ) = m →
-      Model.RelItr (M := (M.graft a k).toModel) (m + 1) (.inr i) (.inl a) by
+      Model.RelItr (M := (M.graft a k).toModel) (m + 1) (.inr i) (.inl a.1) by
     exact this i i rfl;
   intro m;
   induction m with
   | zero =>
     intro i _;
-    exact ⟨.inl a, Or.inl rfl, by simp⟩;
+    exact ⟨.inl a.1, Or.inl rfl, by simp⟩;
   | succ m ih =>
     intro i hi;
     have hm : m < k := by omega;
@@ -144,9 +143,9 @@ lemma inr_relItr_inl_a {i : Fin k} :
     exact ⟨show m < (i : ℕ) by omega, ih ⟨m, hm⟩ rfl⟩;
 
 /-- The length of a chain starting from the root is bounded by `max M.height (a.rank + k + 1)`. -/
-lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graft a k).World}
+lemma relItr_from_root_le (Rra : M.root.1 ≺ a.1) {n : ℕ} {w : (M.graft a k).World}
     (h : Model.RelItr (M := (M.graft a k).toModel) n (.inl M.root.1) w) :
-    n ≤ max M.height (Model.World.rank a + k + 1) := by
+    n ≤ max M.height (Model.World.rank a.1 + k + 1) := by
   match n with
   | 0 => omega;
   | n + 1 =>
@@ -159,7 +158,7 @@ lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graft a k).Wo
       have h₂ : Model.World.rank y < M.height := rank_lt_height Rry;
       omega;
     | .inr i =>
-      have h₁ : n ≤ (i : ℕ) + 1 + Model.World.rank a := relItr_from_inr_le Rra hv;
+      have h₁ : n ≤ (i : ℕ) + 1 + Model.World.rank a.1 := relItr_from_inr_le Rra hv;
       have h₂ : (i : ℕ) < k := i.2;
       omega;
 
@@ -170,9 +169,9 @@ lemma relItr_from_root_le (Rra : M.root.1 ≺ a) {n : ℕ} {w : (M.graft a k).Wo
 
   - [AB05, Lemma 12]
 -/
-lemma height_eq (Rra : M.root.1 ≺ a)
+lemma height_eq (Rra : M.root.1 ≺ a.1)
     [Fintype (M.graft a k).World] [(M.graft a k).IsGL] :
-    (M.graft a k).height = max M.height (Model.World.rank a + k + 1) := by
+    (M.graft a k).height = max M.height (Model.World.rank a.1 + k + 1) := by
   apply le_antisymm;
   . -- Upper bound: from the bound on chain lengths
     apply Nat.lt_succ_iff.mp;
@@ -188,15 +187,15 @@ lemma height_eq (Rra : M.root.1 ≺ a)
       exact ⟨.inl t, relItr_inl ht⟩;
     . -- root ≺ (grafted chain) ≺ a ≺ (a chain of length a.rank)
       apply Model.iff_le_rank.mpr;
-      obtain ⟨t, ht⟩ := Model.exists_rank_terminal (M := M.toModel) a;
+      obtain ⟨t, ht⟩ := Model.exists_rank_terminal (M := M.toModel) a.1;
       match k with
       | 0 =>
         use .inl t;
-        rw [show Model.World.rank a + 0 + 1 = 1 + Model.World.rank a by omega];
-        exact Model.relItr_comp ⟨.inl a, Rra, by simp⟩ (relItr_inl ht);
+        rw [show Model.World.rank a.1 + 0 + 1 = 1 + Model.World.rank a.1 by omega];
+        exact Model.relItr_comp ⟨.inl a.1, Rra, by simp⟩ (relItr_inl ht);
       | k + 1 =>
         use .inl t;
-        rw [show Model.World.rank a + (k + 1) + 1 = ((k + 1) + Model.World.rank a) + 1 by omega];
+        rw [show Model.World.rank a.1 + (k + 1) + 1 = ((k + 1) + Model.World.rank a.1) + 1 by omega];
         refine ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1) ?_ (relItr_inl ht)⟩;
         simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
 
@@ -216,9 +215,9 @@ lemma rank_inl [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
 
 /-- The rank of the grafted world `inr i` is exactly `i + 1 + a.rank`. -/
 lemma rank_inr [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
-    (Rra : M.root.1 ≺ a) {i : Fin k} :
+    (Rra : M.root.1 ≺ a.1) {i : Fin k} :
     Model.World.rank (M := (M.graft a k).toModel) (.inr i)
-      = (i : ℕ) + 1 + Model.World.rank a := by
+      = (i : ℕ) + 1 + Model.World.rank a.1 := by
   apply le_antisymm;
   . apply Nat.lt_succ_iff.mp;
     apply Model.iff_rank_lt.mpr;
@@ -226,7 +225,7 @@ lemma rank_inr [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     have := relItr_from_inr_le Rra hw;
     omega;
   . apply Model.iff_le_rank.mpr;
-    obtain ⟨t, ht⟩ := Model.exists_rank_terminal a;
+    obtain ⟨t, ht⟩ := Model.exists_rank_terminal a.1;
     exact ⟨.inl t, Model.relItr_comp inr_relItr_inl_a (relItr_inl ht)⟩;
 
 end Rank
@@ -245,11 +244,12 @@ variable [DecidableEq α] {A : Formula α}
   - [AB05, Lemma 12]
 -/
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
-  (Rra : M.root.1 ≺ a) :
+  (Rra : M.root.1 ≺ (a : M.World)) :
   ∀ {C : Formula α}, C ∈ A.subfmls →
-  (∀ i : Fin k, (Forces (M := (M.graft a k).toModel) (.inr i) C ↔
-    Forces (M := (M.graft a k).toModel) (.inl a) C)) ∧
-  (∀ x : M.World, (Forces (M := (M.graft a k).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  (∀ i : Fin k, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inr i) C ↔
+    Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl a) C)) ∧
+  (∀ x : M.World, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  have hane : (a : M.World) ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
   intro C;
   induction C with
   | atom p => intro _; exact ⟨fun i => Iff.rfl, fun x => Iff.rfl⟩;
@@ -268,7 +268,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
   | box B ihB =>
     intro hB;
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
-    have h₂ : ∀ x : M.World, (Forces (M := (M.graft a k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
+    have h₂ : ∀ x : M.World, (Forces (M := (M.graft ⟨a, hane⟩ k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
       intro x;
       constructor;
       . intro h y Rxy;
@@ -282,7 +282,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
     constructor;
     . rintro h (y | j) Ray;
       . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray (ne_root_of_rel Rra);
+      . exact absurd Ray hane;
     . intro h;
       have haB : a.1 ⊩ B := a.2 hB (h₂ a |>.mp h);
       rintro (y | j) Riy;

@@ -1,11 +1,8 @@
 module
 
-public import ProvabilityLogic.Logic.D.Basic
-public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 public import ProvabilityLogic.Kripke.AlmostDefiningFormula
 public import ProvabilityLogic.Logic.A.Basic
 public import ProvabilityLogic.Kripke.DModelTree
-public import ProvabilityLogic.Kripke.Unravelling
 
 @[expose] public section
 
@@ -175,7 +172,7 @@ open RootedModel
 theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicD) :
     ∃ (κ : Type u) (_ : Nonempty κ)
-      (M : RootedModel κ α) (a : M.World),
+      (M : RootedModel κ α) (a : M.NonRoot),
       M.IsFiniteGL ∧
       M.IsTree ∧
       M.root.1 ≺ a ∧
@@ -202,7 +199,7 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
   - [Bek90, Lemma 4]
 -/
 lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
-    {κ : Type u} [Nonempty κ] {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
+    {κ : Type u} [Nonempty κ] {M : RootedModel κ α} [M.IsFiniteGL] {a : M.NonRoot}
     (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
     {C : Formula α} (hmod : C.Modalized) (hC : (M.graftOmega a).root.1 ⊩ C) :
     (∼C) ∉ LogicS := by

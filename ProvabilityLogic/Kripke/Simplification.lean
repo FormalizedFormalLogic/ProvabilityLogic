@@ -1,9 +1,7 @@
 module
 
-public import ProvabilityLogic.Kripke.Preservation
 public import ProvabilityLogic.Kripke.Cone
 public import ProvabilityLogic.Kripke.GraftOmega
-public import ProvabilityLogic.Kripke.Rank
 
 /-!
 # `P`-simplification of GL-models (Bek90 §4, item 3 + Lemmas 6, 8)
@@ -293,13 +291,13 @@ section OmegaSimplification
 
   - [Bek90, condition 6/7]
 -/
-lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : M.World}
-  (_Rra : M.root.1 ≺ a)
-  (hcov : ∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1) :
+lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : M.NonRoot}
+  (_Rra : M.root.1 ≺ a.1)
+  (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1) :
   (M.graftOmega a).IsTree := by
-  have hcov' : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a := by
+  have hcov' : ∀ x : M.World, M.root.1 ≺ x → ¬ x ≺ a.1 := by
     intro x Rrx Rxa;
-    exact not_rel_root (hcov x ⟨fun h => Std.Irrefl.irrefl a (h ▸ Rxa), Rxa⟩ ▸ Rrx);
+    exact not_rel_root (hcov x ⟨fun h => Std.Irrefl.irrefl a.1 (h ▸ Rxa), Rxa⟩ ▸ Rrx);
   constructor;
   rintro (x₀ | i) (y₀ | j) (z₀ | k) hxz hyz;
   . grind [hTree.tree];
@@ -317,7 +315,7 @@ lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : 
 - [Bek90, Lemma 8, §4]
 -/
 lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
-  (a : M.World) (P : Finset α) (i : ℕ) :
+  (a : M.NonRoot) (P : Finset α) (i : ℕ) :
   ¬ (M.graftOmega a).Redundant P (Sum.inr i : (M.graftOmega a).World) := by
   rintro ⟨-, hred⟩;
   -- `chainPoint (i + 1)` is the unique point covering `chainPoint i` (its immediate
@@ -331,7 +329,7 @@ lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
   obtain ⟨u, Bi, hxu, hune, hnau, hyne, hBiua⟩ := hred (Sum.inr (i + 1)) hwa;
   apply hnau;
   rcases u with z | j;
-  . show z = a ∨ M.Rel a z;
+  . show z = a.1 ∨ M.Rel a.1 z;
     exact hxu;
   . have hj : j < i + 1 := hxu;
     have hji : j ≠ i := fun h => hyne (by rw [h]);
@@ -344,18 +342,18 @@ lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
 - [Bek90, Lemma 8, §4]
 -/
 lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
-  (a : M.World) (P : Finset α) :
-  ¬ (M.graftOmega a).Redundant P (Sum.inl a : (M.graftOmega a).World) := by
+  (a : M.NonRoot) (P : Finset α) :
+  ¬ (M.graftOmega a).Redundant P (Sum.inl a.1 : (M.graftOmega a).World) := by
   rintro ⟨-, hred⟩;
   -- `chainPoint 0` is the unique point covering `embed a`, and every other successor of
   -- `chainPoint 0` (a proper descendant of `a`) is already comparable to `a`.
-  have hwa : (M.graftOmega a).Rel (Sum.inr 0) (Sum.inl a) := by
-    show a = a ∨ M.Rel a a;
+  have hwa : (M.graftOmega a).Rel (Sum.inr 0) (Sum.inl a.1) := by
+    show a.1 = a.1 ∨ M.Rel a.1 a.1;
     exact Or.inl rfl;
   obtain ⟨u, Bi, hxu, hune, hnau, hyne, hBiua⟩ := hred (Sum.inr 0) hwa;
   apply hnau;
   rcases u with z | j;
-  . have hz : z = a ∨ M.Rel a z := hxu;
+  . have hz : z = a.1 ∨ M.Rel a.1 z := hxu;
     rcases hz with rfl | hMaz;
     . exact absurd rfl hyne;
     . exact hMaz;
@@ -363,32 +361,32 @@ lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
 
 /-- Any `P`-redundant point of `M.graftOmega a` is embedded and distinct from `a`
 (an immediate corollary of `not_redundant_chainPoint` and `not_redundant_embed_a`). -/
-lemma graftOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL] {a : M.World}
+lemma graftOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL] {a : M.NonRoot}
   {P : Finset α} {a' : (M.graftOmega a).World} (hred : (M.graftOmega a).Redundant P a') :
-  ∃ m : M.World, m ≠ a ∧ a' = Sum.inl m := by
+  ∃ m : M.World, m ≠ a.1 ∧ a' = Sum.inl m := by
   rcases a' with m | i;
   . exact ⟨m, fun h => not_redundant_embed_a a P (h ▸ hred), rfl⟩;
   . exact absurd hred (not_redundant_chainPoint a P i);
 
 /-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftOmega a`. -/
 lemma graftOmega.not_isInConeOf_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
-  {a : M.World} (_Rra : M.root.1 ≺ a)
-  (hcov : ∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1)
+  {a : M.NonRoot} (_Rra : M.root.1 ≺ a.1)
+  (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1)
   {P : Finset α} {m : M.World} (hm : m ≠ M.root.1)
   (hred : (M.graftOmega a).Redundant P (Sum.inl m)) :
-  ¬ a.IsInConeOf m := by
+  ¬ a.1.IsInConeOf m := by
   rintro (rfl | ham);
   . exact not_redundant_embed_a a P hred;
-  . exact hm (hcov m ⟨fun h => Std.Irrefl.irrefl a (h ▸ ham), ham⟩);
+  . exact hm (hcov m ⟨fun h => Std.Irrefl.irrefl a.1 (h ▸ ham), ham⟩);
 
 /-- The embedded copy of a non-root point is not the root of `M.graftOmega a`. -/
-lemma graftOmega.inl_ne_root {M : RootedModel κ α} {a m : M.World} (hm : m ≠ M.root.1) :
+lemma graftOmega.inl_ne_root {M : RootedModel κ α} {a : M.NonRoot} {m : M.World} (hm : m ≠ M.root.1) :
   (Sum.inl m : (M.graftOmega a).World) ≠ (M.graftOmega a).root.1 :=
   fun h => hm (Sum.inl.inj h)
 
 /-- An embedded point of `M.graftOmega a` is a successor of the embedded `m` iff it
 is a successor of `m` in `M`. -/
-lemma graftOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a m x : M.World} :
+lemma graftOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a : M.NonRoot} {m x : M.World} :
   IsInConeOf (M := (M.graftOmega a).toModel) (Sum.inl x) (Sum.inl m) ↔
   x.IsInConeOf m := by
   constructor;
@@ -401,7 +399,7 @@ lemma graftOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a m x : M.World
 
 /-- Chain points of `M.graftOmega a` are never successors of an embedded non-root
 point, so they all survive removal of its cone. -/
-lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a m : M.World}
+lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a : M.NonRoot} {m : M.World}
   (hm : m ≠ M.root.1) (i : ℕ) :
   ¬ IsInConeOf (M := (M.graftOmega a).toModel) (Sum.inr i) (Sum.inl m) := by
   rintro (h | h);
@@ -414,10 +412,11 @@ lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a m : M.World}
   `(M.removeCone m).graftOmega a` is a pseudo-epimorphism (in fact an isomorphism).
 -/
 def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
-  {a m : M.World} [(M.graftOmega a).IsGL]
-  (hm : m ≠ M.root.1) (hma : ¬ a.IsInConeOf m) :
+  {a : M.NonRoot} {m : M.World} [(M.graftOmega a).IsGL]
+  (hm : m ≠ M.root.1) (hma : ¬ a.1.IsInConeOf m) :
   ((M.graftOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).toModel →ₚ
-  ((M.removeCone ⟨m, hm⟩).graftOmega ⟨a, hma⟩).toModel where
+  ((M.removeCone ⟨m, hm⟩).graftOmega
+    ⟨⟨a.1, hma⟩, fun h => a.2 (congrArg Subtype.val h)⟩).toModel where
   toFun := fun
     | ⟨.inl x, hx⟩ => .inl ⟨x, fun h => hx (inl_isInConeOf_inl_iff.mpr h)⟩
     | ⟨.inr i, _⟩ => .inr i
@@ -446,10 +445,11 @@ def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
 /-- Root forcing transfers between `(M.graftOmega a).removeCone (Sum.inl m)` and
 `(M.removeCone m).graftOmega a`. -/
 lemma graftOmega.removeCone_root_forces_iff {M : RootedModel κ α} [M.IsGL]
-  {a m : M.World} [(M.graftOmega a).IsGL]
-  (hm : m ≠ M.root.1) (hma : ¬ a.IsInConeOf m) {C : Formula α} :
+  {a : M.NonRoot} {m : M.World} [(M.graftOmega a).IsGL]
+  (hm : m ≠ M.root.1) (hma : ¬ a.1.IsInConeOf m) {C : Formula α} :
   ((M.graftOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).root.1 ⊩ C ↔
-  ((M.removeCone ⟨m, hm⟩).graftOmega ⟨a, hma⟩).root.1 ⊩ C :=
+  ((M.removeCone ⟨m, hm⟩).graftOmega
+    ⟨⟨a.1, hma⟩, fun h => a.2 (congrArg Subtype.val h)⟩).root.1 ⊩ C :=
   (removeConePseudoEpimorphism hm hma).modal_equivalence _ (A := C)
 
 open Classical in
@@ -465,27 +465,29 @@ neither has `M'` at `a'`.
 -/
 theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
   ∀ (n : ℕ) {κ : Type u} [Nonempty κ] (M : RootedModel κ α) [Fintype M.World] [M.IsFiniteGLTree]
-    (a : M.World), M.root.1 ≺ a →
+    (a : M.World) (Rra : M.root.1 ≺ a),
   (∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1) →
   Fintype.card M.World = n →
   ∃ (κ' : Type u) (_ : Nonempty κ') (M' : RootedModel κ' α) (_ : M'.IsFiniteGL)
-    (_ : M'.IsTree) (a' : M'.World),
-  M'.root.1 ≺ a' ∧
-  (∀ x : M'.World, x.IsProperPredecessorOf a' → x = M'.root.1) ∧
+    (_ : M'.IsTree) (a' : M'.NonRoot),
+  M'.root.1 ≺ a'.1 ∧
+  (∀ x : M'.World, x.IsProperPredecessorOf a'.1 → x = M'.root.1) ∧
   ((∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a) →
-    ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a') ∧
+    ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a'.1) ∧
   IsSimpleUnder (M'.graftOmega a') P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega a).root.1 ⊩ C ↔ ((M'.graftOmega a')).root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔
+    (M'.graftOmega a').root.1 ⊩ C) := by
   intro n;
   -- Strong induction on the cardinality of the underlying finite tree `M`: `M'` is
   -- obtained from `M` by finitely many `removeCone` steps.
   induction n using Nat.strong_induction_on with
   | _ n ih =>
     intro κ _ M _ _ a Rra hcov hcard;
-    haveI : (M.graftOmega a).IsGL := graftOmega.isGL Rra;
-    haveI : (M.graftOmega a).IsTree := graftOmega.isTree Rra hcov;
-    by_cases hex : ∃ w, (M.graftOmega a).Redundant P w;
+    have hane : a ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
+    haveI : (M.graftOmega ⟨a, hane⟩).IsGL := graftOmega.isGL Rra;
+    haveI : (M.graftOmega ⟨a, hane⟩).IsTree := graftOmega.isTree Rra hcov;
+    by_cases hex : ∃ w, (M.graftOmega ⟨a, hane⟩).Redundant P w;
     . obtain ⟨w, hred⟩ := hex;
       obtain ⟨m, -, rfl⟩ := graftOmega.exists_of_redundant hred;
       have hm : m ≠ M.root.1 := fun h => hred.ne_root (congrArg Sum.inl h);
@@ -513,7 +515,7 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
         fun h => hlat'' (hlat' h), hSimple', fun C hC => ?_⟩;
       exact (removeCone.forces_iff (a := ⟨Sum.inl m, graftOmega.inl_ne_root hm⟩) hred hC _).symm.trans
         ((graftOmega.removeCone_root_forces_iff hm hma).trans (hEq' C hC));
-    . exact ⟨κ, ‹Nonempty κ›, M, inferInstance, inferInstance, a, Rra, hcov,
+    . exact ⟨κ, ‹Nonempty κ›, M, inferInstance, inferInstance, ⟨a, hane⟩, Rra, hcov,
         fun h => h, fun w hw => hex ⟨w, hw⟩, fun C _ => Iff.rfl⟩;
 
 /--
@@ -529,14 +531,15 @@ theorem exists_simplificationUnder_omega' [DecidableEq α] {κ : Type u} [Nonemp
   (hcov : ∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1)
   (P : Finset α) :
   ∃ (κ' : Type u) (_ : Nonempty κ') (M' : RootedModel κ' α) (_ : M'.IsFiniteGL)
-    (_ : M'.IsTree) (a' : M'.World),
-  M'.root.1 ≺ a' ∧
-  (∀ x : M'.World, x.IsProperPredecessorOf a' → x = M'.root.1) ∧
+    (_ : M'.IsTree) (a' : M'.NonRoot),
+  M'.root.1 ≺ a'.1 ∧
+  (∀ x : M'.World, x.IsProperPredecessorOf a'.1 → x = M'.root.1) ∧
   ((∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a) →
-    ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a') ∧
+    ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a'.1) ∧
   IsSimpleUnder (M'.graftOmega a') P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega a).root.1 ⊩ C ↔ ((M'.graftOmega a')).root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔
+    (M'.graftOmega a').root.1 ⊩ C) := by
   haveI : Fintype M.World := Fintype.ofFinite _;
   exact exists_simplificationUnder_omega_aux (Fintype.card M.World) M a Rra hcov rfl;
 
@@ -553,7 +556,7 @@ theorem exists_simplificationUnder_omega [DecidableEq α] {κ : Type u} [Nonempt
   ∃ (κ' : Type u) (_ : Nonempty κ') (M' : RootedModel κ' α) (_ : M'.IsGL),
   M'.IsTree ∧ IsSimpleUnder M' P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega a).root.1 ⊩ C ↔ M'.root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔ M'.root.1 ⊩ C) := by
   obtain ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov', -, hSimple', hEq'⟩ :=
     exists_simplificationUnder_omega' Rra hcov P;
   haveI := hNe'; haveI := hGL'; haveI := hTree';

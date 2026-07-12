@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Gentzen.S.Kripke
 public import ProvabilityLogic.Kripke.Graft
 
 /-!
@@ -36,17 +35,17 @@ abbrev graftOmega.World (M : RootedModel κ α) : Type _ := M.World ⊕ ℕ
 
   - [Bek90, Lemma 5]
 -/
-abbrev graftOmega (M : RootedModel κ α) (a : M.World) : RootedModel (graftOmega.World M) α where
+abbrev graftOmega (M : RootedModel κ α) (a : M.NonRoot) : RootedModel (graftOmega.World M) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => M.Rel x y
     | .inl x, .inr _ => x = M.root.1
-    | .inr _, .inl y => y = a ∨ M.Rel a y
+    | .inr _, .inl y => y = a.1 ∨ M.Rel a.1 y
     | .inr i, .inr j => j < i
   Val' x p :=
     match x with
     | .inl x => M.Val x p
-    | .inr _ => M.Val a p
+    | .inr _ => M.Val a.1 p
   root := ⟨.inl M.root.1, by
     rintro (x | i) hx;
     . exact M.root.2 x (by simpa using hx);
@@ -57,19 +56,19 @@ namespace graftOmega
 open Model Model.World
 open Model.World (Forces)
 
-variable {a : M.World}
+variable {a : M.NonRoot}
 
 /-- `M.graftOmega a` is a (necessarily infinite) GL model whenever `M` is a finite
 GL model and `a` lies strictly above the root. -/
 @[reducible]
-def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftOmega a).IsGL where
+def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graftOmega a).IsGL where
   trans := by
-    have hne : a ≠ M.root.1 := graft.ne_root_of_rel Rra;
+    have hne : a.1 ≠ M.root.1 := a.2;
     have hnr : ∀ x : M.World, ¬x ≺ M.root.1 := fun _ => not_rel_root;
     have htr : ∀ x y z : M.World, x ≺ y → y ≺ z → x ≺ z := fun _ _ _ h h' => IsTrans.trans _ _ _ h h';
     rintro (x | i) (y | j) (z | l) Rxy Ryz <;> simp_all only [Model.Rel] <;> grind;
   cwf := by
-    have hne : a ≠ M.root.1 := graft.ne_root_of_rel Rra;
+    have hne : a.1 ≠ M.root.1 := a.2;
     apply ConverseWellFounded.iff_has_max.mpr;
     intro s hs;
     by_cases hs₁ : {x : M.World | Sum.inl x ∈ s ∧ x ≠ M.root.1}.Nonempty;
@@ -88,7 +87,7 @@ def isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a) : (M.graftOmega a).IsGL where
         use .inr i₀, hi₀;
         rintro (y | j) hy;
         . rintro (rfl | R);
-          . exact hs₁ ⟨y, hy, hne⟩;
+          . exact hs₁ ⟨a.1, hy, hne⟩;
           . exact hs₁ ⟨y, hy, fun h => not_rel_root (h ▸ R)⟩;
         . exact fun R => hmin j hy R;
       . -- Otherwise `s` can only contain the (embedded) root.
@@ -180,7 +179,7 @@ lemma not_isBranchPoint_chainPoint (i : ℕ) :
   -- `hne`.
   suffices h : ∀ y : (M.graftOmega a).World,
       Sum.inr i ≺ y → (∀ w, Sum.inr i ≺ w → w ≺ y → False) →
-      y = (if h : i = 0 then Sum.inl a else Sum.inr (i - 1)) by
+      y = (if h : i = 0 then Sum.inl a.1 else Sum.inr (i - 1)) by
     exact hne (h y₁ h1 hcov1 |>.trans (h y₂ h2 hcov2).symm);
   intro y hiy hcov;
   rcases i with _ | i;
@@ -188,10 +187,10 @@ lemma not_isBranchPoint_chainPoint (i : ℕ) :
     rcases y with z | j;
     · -- `y = .inl z` with `z ∈ cone(a)`; if `z ≠ a` then `.inl a` lies strictly
       -- between `chainPoint 0` and `y`, contradicting `hcov`.
-      have hz : z = a ∨ M.Rel a z := hiy;
+      have hz : z = a.1 ∨ M.Rel a.1 z := hiy;
       rcases hz with rfl | haz;
       · rfl;
-      · exact absurd haz (fun h => hcov (.inl a) (Or.inl rfl) h);
+      · exact absurd haz (fun h => hcov (.inl a.1) (Or.inl rfl) h);
     · exact absurd hiy (by omega);
   · rcases y with z | j;
     · -- `y = .inl z`; `chainPoint i` lies strictly between `chainPoint (i + 1)` and
@@ -255,18 +254,19 @@ variable [DecidableEq α] {A : Formula α}
   - [Bek90, Lemma 5]
 -/
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
-  (Rra : M.root.1 ≺ a) :
+  (Rra : M.root.1 ≺ (a : M.World)) :
   ∀ {C : Formula α}, C ∈ A.subfmls →
-  (∀ i : ℕ, (Forces (M := (M.graftOmega a).toModel) (.inr i) C ↔
-    Forces (M := (M.graftOmega a).toModel) (.inl a) C)) ∧
-  (∀ x : M.World, (Forces (M := (M.graftOmega a).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  (∀ i : ℕ, (Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inr i) C ↔
+    Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inl a) C)) ∧
+  (∀ x : M.World, (Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  have hane : (a : M.World) ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
   intro C;
   induction C with
   | box B ihB =>
     intro hB;
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
     have h₂ : ∀ x : M.World,
-        (Forces (M := (M.graftOmega a).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
+        (Forces (M := (M.graftOmega ⟨a, hane⟩).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
       intro x;
       constructor;
       . intro h y Rxy;
@@ -280,7 +280,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
     constructor;
     . rintro h (y | j) Ray;
       . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray (graft.ne_root_of_rel Rra);
+      . exact absurd Ray hane;
     . intro h;
       have haB : a.1 ⊩ B := a.2 hB (h₂ a |>.mp h);
       rintro (y | j) Riy;

@@ -1,12 +1,7 @@
 module
 
 public import ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace
-public import ProvabilityLogic.Logic.S.Basic
 public import ProvabilityLogic.Logic.D.Basic
-public import ProvabilityLogic.Kripke.RootedModel
-public import ProvabilityLogic.Kripke.Graft
-public import ProvabilityLogic.Formula.Substitution
-public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
 
 @[expose]
 public section
@@ -193,11 +188,14 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
   apply hn;
   replace hge : M.height ≤ n := by simpa using hge;
   have hra : Model.World.rank a < M.height := RootedModel.rank_lt_height Rra;
-  haveI := RootedModel.graft.isFiniteGL (M := M) (a := a) (k := n - Model.World.rank a - 1) Rra;
+  have hane : a ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
+  haveI := RootedModel.graft.isFiniteGL (M := M) (a := ⟨a, hane⟩)
+    (k := n - Model.World.rank a - 1) Rra;
   apply Formula.iff_mem_trace.mpr;
   refine ⟨κ ⊕ Fin (n - Model.World.rank a - 1), inferInstance,
-    M.graft a (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
+    M.graft ⟨a, hane⟩ (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
   . rw [RootedModel.graft.height_eq Rra];
+    dsimp only;
     omega;
   . intro hc;
     apply hr;

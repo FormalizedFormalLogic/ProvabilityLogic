@@ -1,10 +1,7 @@
 module
 
-public import ProvabilityLogic.Kripke.RootedModel
-public import ProvabilityLogic.Kripke.Graft
 public import ProvabilityLogic.Logic.A.Basic
 public import ProvabilityLogic.ProvabilityLogic.ModifiedSolovaySentences
-public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose] public section
 
@@ -55,9 +52,11 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     exact Model.World.forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
   let r' : M.ReflexiveWorldOf A.subfmls := ⟨r, fun {B} hB => ha B hB⟩;
+  have hrne : r ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ hr);
+  let r'' : M.NonRoot := ⟨r, hrne⟩;
   set k := M.height + 2 with hk;
-  haveI hfgl' : (M.graft r k).IsFiniteGL := RootedModel.graft.isFiniteGL hr;
-  refine ⟨M.graft r k, ?_, Sum.inr ⟨M.height + 1, by omega⟩, ?_, ?_, ?_, ?_,
+  haveI hfgl' : (M.graft r'' k).IsFiniteGL := RootedModel.graft.isFiniteGL hr;
+  refine ⟨M.graft r'' k, ?_, Sum.inr ⟨M.height + 1, by omega⟩, ?_, ?_, ?_, ?_,
     Sum.inr ⟨M.height, by omega⟩, ?_, ?_⟩;
   . -- the root still refutes `A`.
     exact (RootedModel.graft.mainlemma r' hr (by grind)).2 M.root.1 |>.not.mpr hnA;
