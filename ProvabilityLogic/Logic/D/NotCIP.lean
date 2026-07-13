@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.Logic.GL.Fixedpoint
-public import ProvabilityLogic.Logic.S.Basic
 
 @[expose]
 public section

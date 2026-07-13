@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.Kripke
-public import Mathlib.Tactic.TFAE
 
 @[expose]
 public section

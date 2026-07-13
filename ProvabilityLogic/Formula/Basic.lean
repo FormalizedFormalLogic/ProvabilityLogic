@@ -1,8 +1,5 @@
 module
 
-public import Mathlib.Data.Finset.Image
-public import Mathlib.Data.Finset.Basic
-public import Mathlib.Data.Finset.Union
 public import Mathlib.Data.Finset.Preimage
 
 @[expose]

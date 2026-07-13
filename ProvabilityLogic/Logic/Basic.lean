@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Hilbert.Basic
 public import ProvabilityLogic.Kripke.Cone
-public import Mathlib.Tactic.TFAE
 
 @[expose]
 public section

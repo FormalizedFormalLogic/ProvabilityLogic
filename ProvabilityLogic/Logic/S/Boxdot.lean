@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Logic.S.Basic
-public import ProvabilityLogic.Kripke.RootExtension
 
 @[expose]
 public section

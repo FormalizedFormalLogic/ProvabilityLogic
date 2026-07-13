@@ -2,7 +2,6 @@ module
 
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
 public import ProvabilityLogic.Logic.GL.Basic
-public import ProvabilityLogic.Logic.SumQuasiNormal
 
 @[expose] public section
 

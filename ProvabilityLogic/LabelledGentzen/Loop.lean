@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.LabelledGentzen.Basic
-public import Mathlib.Logic.Relation
 public import Mathlib.Combinatorics.Pigeonhole
 
 @[expose]

@@ -1,11 +1,7 @@
 module
 
-public import ProvabilityLogic.Formula.Basic
 public import ProvabilityLogic.Formula.Substitution
-public import Foundation.Vorspiel.Rel.CWF
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF
-public import Mathlib.Data.PNat.Defs
-public import Mathlib.Data.PNat.Basic
 
 @[expose]
 public section

@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Logic.Basic
 public import ProvabilityLogic.Formula.Letterless
-public import ProvabilityLogic.Formula.Substitution
 
 @[expose]
 public section

@@ -1,9 +1,8 @@
 module
 
 public import ProvabilityLogic.LabelledGentzen.Basic
-public import Mathlib.Data.Finset.Prod
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-meta import ProvabilityLogic.LabelledGentzen.Basic
+meta import ProvabilityLogic.LabelledGentzen.Basic -- shake: keep
 
 @[expose]
 public section

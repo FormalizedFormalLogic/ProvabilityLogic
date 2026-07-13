@@ -1,13 +1,9 @@
 module
 
 public import ProvabilityLogic.Logic.SumQuasiNormal
-public import ProvabilityLogic.Hilbert.Basic
-public import ProvabilityLogic.Kripke.RootedModel
-public import ProvabilityLogic.Kripke.Cone
 public import ProvabilityLogic.Kripke.Unravelling
 public import ProvabilityLogic.LabelledGentzen.Gentzen
 public import ProvabilityLogic.LabelledGentzen.Completeness
-public import Mathlib.Tactic.TFAE
 
 @[expose]
 public section

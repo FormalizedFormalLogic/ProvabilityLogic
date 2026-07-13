@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Formula.Basic
 public import Mathlib.Logic.Encodable.Basic
-public import Mathlib.Data.Nat.Pairing
 
 @[expose]
 public section

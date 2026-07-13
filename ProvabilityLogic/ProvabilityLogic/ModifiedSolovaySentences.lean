@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
-public import ProvabilityLogic.Kripke.Graft
 public import ProvabilityLogic.Logic.S.Basic
 public import ProvabilityLogic.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
 

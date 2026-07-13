@@ -1,7 +1,5 @@
 module
 
-public import ProvabilityLogic.Logic.D.Basic
-public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.D_S
 public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 

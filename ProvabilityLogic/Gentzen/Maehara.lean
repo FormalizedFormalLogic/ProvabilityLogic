@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Gentzen.Basic
 public import ProvabilityLogic.Logic.GL.Basic
 
 @[expose]

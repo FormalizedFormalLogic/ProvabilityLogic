@@ -1,19 +1,9 @@
 module
 
-public import ProvabilityLogic.Kripke.Rank
-public import ProvabilityLogic.Kripke.RootedModel
-public import Foundation.Vorspiel.Rel.CWF
 public import ProvabilityLogic.Logic.GL.Letterless
-public import ProvabilityLogic.Logic.SumQuasiNormal
-public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.ToFoundation.Vorspiel.Set.Basic
-public import Foundation.Vorspiel.Finset.Basic
 public import ProvabilityLogic.Formula.Countable
-public import ProvabilityLogic.ProvabilityLogic.Interpret
 public import ProvabilityLogic.ProvabilityLogic.GL.Uniform
-public import Mathlib.Tactic.TautoSet
-public import Mathlib.Order.Minimal
-public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
 
 @[expose]
 public section

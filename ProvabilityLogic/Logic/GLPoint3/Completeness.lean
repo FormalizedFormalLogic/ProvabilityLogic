@@ -1,10 +1,7 @@
 module
 
 public import ProvabilityLogic.Logic.GLPoint3.Basic
-public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
-public import ProvabilityLogic.Kripke.RootedModel
-public import Mathlib.Tactic.TFAE
 
 @[expose]
 public section

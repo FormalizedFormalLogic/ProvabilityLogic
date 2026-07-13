@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.Logic.GL.Basic
-meta import ProvabilityLogic.Logic.GL.Basic
+meta import ProvabilityLogic.Logic.GL.Basic -- shake: keep
 
 @[expose]
 public section

@@ -2,10 +2,8 @@ module
 
 public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Gentzen.Basic
-public import Mathlib.Data.Finset.Preimage
 public import Mathlib.Data.Finset.Powerset
 public import Mathlib.Data.Finite.Prod
-public import Mathlib.Data.List.Sort
 
 @[expose]
 public section

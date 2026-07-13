@@ -1,10 +1,5 @@
 module
 
-public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
-public import ProvabilityLogic.Kripke.RootedModel
-public import ProvabilityLogic.Logic.GL.Basic
-public import ProvabilityLogic.Logic.SumQuasiNormal
-public import ProvabilityLogic.ProvabilityLogic.Interpret
 public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
 
 @[expose] public section

@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Kripke.Cone
 
 @[expose]

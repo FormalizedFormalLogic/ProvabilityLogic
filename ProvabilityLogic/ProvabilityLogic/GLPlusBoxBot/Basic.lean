@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 public import ProvabilityLogic.Logic.GLPlusBoxBot.Basic
 

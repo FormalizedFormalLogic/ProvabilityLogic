@@ -1,7 +1,5 @@
 module
 
-public import ProvabilityLogic.Gentzen.Basic
-public import ProvabilityLogic.LabelledGentzen.Basic
 public import ProvabilityLogic.Gentzen.Kripke
 public import ProvabilityLogic.LabelledGentzen.Kripke
 

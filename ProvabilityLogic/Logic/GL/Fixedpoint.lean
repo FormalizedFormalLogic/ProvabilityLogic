@@ -1,9 +1,6 @@
 module
 
 public import ProvabilityLogic.Gentzen.Maehara
-public import ProvabilityLogic.Gentzen.WithCut
-public import ProvabilityLogic.Formula.Letterless
-public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.Kripke.Overwrite
 
 /-!

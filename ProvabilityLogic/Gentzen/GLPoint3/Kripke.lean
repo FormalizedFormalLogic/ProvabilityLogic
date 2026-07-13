@@ -2,8 +2,6 @@ module
 
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.Kripke
-public import ProvabilityLogic.Kripke.Linearity
-public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.ULift
 
 @[expose]

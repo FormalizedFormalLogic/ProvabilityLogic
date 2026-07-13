@@ -1,6 +1,5 @@
 module
 
-public import Foundation.FirstOrder.Incompleteness.StandardProvability
 public import Foundation.FirstOrder.Incompleteness.Löb
 
 @[expose] public section

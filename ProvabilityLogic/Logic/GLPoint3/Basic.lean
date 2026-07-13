@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.SumNormal
-public import ProvabilityLogic.Logic.GL.Basic
 public import ProvabilityLogic.Kripke.Linearity
 
 @[expose]

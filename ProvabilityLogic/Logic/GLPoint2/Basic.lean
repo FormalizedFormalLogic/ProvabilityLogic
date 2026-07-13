@@ -1,8 +1,5 @@
 module
 
-public import ProvabilityLogic.Logic.SumNormal
-public import ProvabilityLogic.Logic.GL.Basic
-public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.GLPoint3.Basic
 public import ProvabilityLogic.Kripke.Convergence
 

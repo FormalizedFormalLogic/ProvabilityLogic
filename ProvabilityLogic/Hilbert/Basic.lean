@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Gentzen.WithCut
-public import ProvabilityLogic.Formula.Substitution
 
 @[expose]
 public section

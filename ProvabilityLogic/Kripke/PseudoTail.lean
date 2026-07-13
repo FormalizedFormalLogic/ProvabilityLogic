@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Kripke.Preservation
-public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.RootExtension
 public import Mathlib.Data.ENat.Basic
 

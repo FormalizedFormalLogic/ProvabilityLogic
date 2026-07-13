@@ -1,9 +1,7 @@
 module
 
 public import Mathlib.Data.ENat.Basic
-public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.GLPoint2.Basic
-public import ProvabilityLogic.Logic.GLPoint3.Basic
 
 @[expose]
 public section

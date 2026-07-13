@@ -1,8 +1,6 @@
 module
 
 public import ProvabilityLogic.Logic.GLPoint3.Letterless
-public import ProvabilityLogic.Logic.GLPoint3.Completeness
-public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose] public section

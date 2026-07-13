@@ -1,15 +1,8 @@
 module
 
-public import ProvabilityLogic.Kripke.Rank
-public import ProvabilityLogic.Kripke.RootedModel
 public import Foundation.Vorspiel.List.ChainI
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
-public import ProvabilityLogic.Logic.GL.Basic
-public import ProvabilityLogic.Logic.SumQuasiNormal
 public import ProvabilityLogic.ProvabilityLogic.Interpret
-public import Foundation.FirstOrder.Bootstrapping.FixedPoint
-public import Foundation.FirstOrder.Incompleteness.WitnessComparison
-public import Foundation.FirstOrder.Incompleteness.Consistency
 
 @[expose] public section
 

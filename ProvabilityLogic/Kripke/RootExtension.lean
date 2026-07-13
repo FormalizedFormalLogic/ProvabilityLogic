@@ -1,15 +1,9 @@
 module
 
-public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Kripke.RootedModel
 public import Foundation.Vorspiel.Finset.Card
 public import Foundation.Vorspiel.List.Chain
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 public import Mathlib.Data.Finite.Sum
-public import Mathlib.Data.Finset.Union
-public import Mathlib.Data.Fintype.Sum
-public import Mathlib.Data.List.Chain
-public import Mathlib.Data.PNat.Basic
 
 @[expose]
 public section

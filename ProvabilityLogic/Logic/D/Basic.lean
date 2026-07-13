@@ -1,10 +1,7 @@
 module
 
-public import ProvabilityLogic.Logic.SumQuasiNormal
 public import ProvabilityLogic.Logic.S.Basic
-public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.PseudoTail
-public import ProvabilityLogic.Kripke.Rank
 
 @[expose]
 public section

@@ -1,8 +1,6 @@
 module
 
 public import Foundation.FirstOrder.Incompleteness.StandardProvability
-public import ProvabilityLogic.Formula.Letterless
-public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.Logic.GL.Basic
 
 @[expose] public section
