@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace
-public import ProvabilityLogic.Logic.D.Basic
+public import ProvabilityLogic.Logic.S.Basic
 
 @[expose]
 public section

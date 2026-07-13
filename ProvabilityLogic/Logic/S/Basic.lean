@@ -12,11 +12,6 @@ abbrev LogicS {α} : Logic α := (LogicGL) +ᴸ ({ □A 🡒 A | A })
 universe u v
 variable {α : Type u}
 
-/-- Instances of the T axiom `□B 🡒 B` built from the subformulas of `A`. -/
-noncomputable def Formula.subfmlsS [DecidableEq α] (A : Formula α) : FormulaFinset α :=
-  (A.subfmls.prebox).image (λ B => □B 🡒 B)
-
-
 namespace LogicS
 
 @[grind →]

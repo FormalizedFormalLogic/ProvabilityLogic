@@ -71,6 +71,15 @@ lemma diaItr_one : (◇^[1]A) = ◇A := by grind;
 lemma diaItr_comp {n m : ℕ} : (◇^[n + m]A) = ◇^[n](◇^[m]A) := by
   induction n generalizing A <;> grind;
 
+end Formula
+
+/-- The formula `□^[n+1]⊥ 🡒 □^[n]⊥`, asserting (informally) that the accessibility relation
+has no chain of length `n + 1` from the current point. -/
+@[grind]
+def TBB (n : ℕ) : Formula α := (□^[(n + 1)]⊥) 🡒 (□^[n]⊥)
+
+namespace Formula
+
 abbrev boxdot (A : Formula α) : Formula α := A ⋏ □A
 prefix:95 "⊡" => boxdot
 
@@ -404,6 +413,10 @@ omit [DecidableEq α] in
 lemma iff_mem_prebox_mem : A ∈ Γ.prebox ↔ □A ∈ Γ := by simp [FormulaFinset.prebox];
 
 end FormulaFinset
+
+/-- Instances of the T axiom `□B 🡒 B` built from the subformulas of `A`. -/
+noncomputable def Formula.subfmlsS [DecidableEq α] (A : Formula α) : FormulaFinset α :=
+  (A.subfmls.prebox).image (λ B => □B 🡒 B)
 
 
 abbrev FormulaSet (α) := Set (Formula α)

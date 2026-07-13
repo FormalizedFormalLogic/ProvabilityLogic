@@ -11,9 +11,6 @@ open Classical
 variable [Nonempty κ]
 
 
-@[grind] def TBB (n : ℕ) : Formula α := (□^[(n + 1)]⊥) 🡒 (□^[n]⊥)
-
-
 namespace Model
 
 variable {M : Model κ α} [Fintype M.World] [M.IsGL] {x y : M.World} {n : ℕ}
