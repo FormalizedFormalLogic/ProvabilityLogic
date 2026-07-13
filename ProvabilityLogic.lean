@@ -14,12 +14,14 @@ public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
 public import ProvabilityLogic.Gentzen.WithCut
 public import ProvabilityLogic.Hilbert.Basic
+public import ProvabilityLogic.Hilbert.Letterless
 public import ProvabilityLogic.Kripke.AlmostDefiningFormula
 public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Kripke.Cone
 public import ProvabilityLogic.Kripke.Convergence
 public import ProvabilityLogic.Kripke.DModelTree
 public import ProvabilityLogic.Kripke.DefiningFormula
+public import ProvabilityLogic.Kripke.FiniteLineModel
 public import ProvabilityLogic.Kripke.Graft
 public import ProvabilityLogic.Kripke.GraftOmega
 public import ProvabilityLogic.Kripke.Linearity
