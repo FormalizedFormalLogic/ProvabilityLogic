@@ -111,7 +111,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
       ProvableHilbert.impTrans (ProvableHilbert.modalL (A := ⊥)) ProvableHilbert.modal4;
   have s1 : (◇□⊥ 🡒 ◇(□(∼□⊥) ⋏ □⊥)) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
+    apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x;
     apply Model.World.forces_imp.mpr;
     by_cases h : x ⊩ ◇□⊥;
@@ -128,8 +128,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     provable_axiomWeakPoint2;
   have s3 : (□(◇(∼□⊥) ⋎ □⊥) 🡒 □(□□⊥ 🡒 □⊥)) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
+    apply LogicGL.iff_forces.mpr;
     grind;
   have s4 : (□(□□⊥ 🡒 □⊥) 🡒 □□⊥) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.modalL (A := □⊥));
@@ -140,8 +139,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     provable_of_provable_GL (ProvableHilbert.dne (A := □(∼□⊥)));
   have T : ((□(∼□⊥) 🡒 □□⊥) 🡒 (◇□⊥ 🡒 □□⊥) 🡒 (∼◇□⊥ 🡒 □(∼□⊥)) 🡒 □□⊥) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
+    apply LogicGL.iff_forces.mpr;
     grind;
   exact Logic.sumNormal.mdp (Logic.sumNormal.mdp (Logic.sumNormal.mdp T h₁) h₂) bridge;
 
@@ -152,14 +150,13 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
   have hFour : (□(□C 🡒 □□C)) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.nec ProvableHilbert.modal4);
   -- A K-valid meta-implication absorbing converse well-foundedness into its two GL premises.
-  have hMeta : ((□(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) 🡒 □(∼(C ⋏ □C))) 🡒
-      □(□C 🡒 □□C) 🡒 ◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α := by
+  have hMeta : ((□(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) 🡒 □(∼(C ⋏ □C))) 🡒 □(□C 🡒 □□C) 🡒 ◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
+    apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x hL h4 hdia;
     obtain ⟨y, hxy, hyD⟩ := Model.World.forces_dia.mp hdia;
     by_cases hbox : x ⊩ □(∼(C ⋏ □C));
-    . exact absurd hyD (Model.World.forces_neg.mp (Model.World.forces_box.mp hbox y hxy));
+    . grind;
     . have hx : x ⊮ □(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) := fun h => hbox (hL h);
       obtain ⟨w, hxw, hw⟩ := Model.World.not_forces_box.mp hx;
       obtain ⟨hw₁, hw₂⟩ := Model.World.not_forces_imp.mp hw;
@@ -175,29 +172,18 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
       exact absurd hzD (Model.World.forces_neg.mp (Model.World.forces_box.mp hw₁ z hwz));
   have h₁ : (◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α :=
     Logic.sumNormal.mdp (Logic.sumNormal.mdp hMeta hLöb) hFour;
-  have h₂ : (◇(□⊥ ⋏ C) 🡒 □(◇⊥ ⋎ C)) ∈ @LogicGLPoint2 α :=
-    provable_axiomWeakPoint2 (A := ⊥) (B := C);
+  have h₂ : (◇(□⊥ ⋏ C) 🡒 □(◇⊥ ⋎ C)) ∈ @LogicGLPoint2 α := provable_axiomWeakPoint2;
   have h₃ : (□(◇⊥ ⋎ C) 🡒 □C) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
+    apply LogicGL.iff_forces.mpr;
     grind;
   exact imp_trans (imp_trans h₁ h₂) h₃;
 
 /-- `∼□(⊡A 🡒 B) 🡒 ◇((⊡B 🡒 A) ⋏ □(⊡B 🡒 A))` is valid on all GL models. -/
 lemma weakPoint3_bridge : (∼□(⊡A 🡒 B) 🡒 ◇(⊡B 🡒 A ⋏ □(⊡B 🡒 A))) ∈ @LogicGLPoint2 α := by
   apply provable_of_provable_GL;
-  apply ProvableHilbert.Kripke.completeness;
-  intro κ _ M _ x hn;
-  obtain ⟨y, hxy, hy⟩ := Model.World.not_forces_box.mp (Model.World.forces_neg.mp hn);
-  obtain ⟨hyA, _⟩ := Model.World.not_forces_imp.mp hy;
-  obtain ⟨hyA₁, hyA₂⟩ := Model.World.forces_boxdot.mp hyA;
-  apply Model.World.forces_dia.mpr;
-  use y, hxy;
-  refine Model.World.forces_and.mpr ⟨fun _ => hyA₁, ?_⟩
-  apply Model.World.forces_box.mpr;
-  intro z hyz;
-  exact fun _ => hyA₂ z hyz;
+  apply LogicGL.iff_forces.mpr;
+  grind;
 
 /-- The weak linearity axiom `.3` is provable in `LogicGLPoint2`. -/
 lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ LogicGLPoint2 := by
@@ -205,8 +191,7 @@ lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ Log
     imp_trans weakPoint3_bridge (core_diamond (C := ⊡B 🡒 A));
   have T : ((∼□(⊡A 🡒 B) 🡒 □(⊡B 🡒 A)) 🡒 (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A))) ∈ LogicGLPoint2 := by
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
+    apply LogicGL.iff_forces.mpr;
     grind;
   exact Logic.sumNormal.mdp T h;
 

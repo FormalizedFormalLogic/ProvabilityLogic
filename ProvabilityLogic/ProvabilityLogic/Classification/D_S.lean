@@ -437,10 +437,8 @@ theorem provable_reflection_of_mem_not_LogicD :
     have hdn : ((LetterlessFormula.lift (⋀(pf.toFinset.image TBB)) : Formula (Option α))
         🡒 (∼(LetterlessFormula.lift (TBBMinus _ pf)) : Formula (Option α)))
         ∈ LogicGL := by
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
-      simp only [Model.World.forces_imp];
-      tauto;
+      apply LogicGL.iff_forces.mpr;
+      grind;
     exact provabilityLogic_mdp (provabilityLogic_of_GL hdn)
       (provabilityLogic_mdp (provabilityLogic_of_GL hbr) hconj);
   -- Combine everything at the arithmetical level.

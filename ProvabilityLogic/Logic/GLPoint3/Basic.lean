@@ -546,8 +546,7 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
     have hcore : ⊢ʰ ((□D ⋏ ∼D) 🡒 theta {D} (∅ : FormulaFinset α)) := by
       simp only [theta, Finset.image_singleton, FormulaFinset.conj_singleton,
         Finset.image_empty, FormulaFinset.conj_empty];
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
+      apply LogicGL.iff_forces.mpr;
       grind;
     exact ProvableHilbert.impTrans LogicGL.dia_boxRefuter (LogicGL.diaImp hcore);
 

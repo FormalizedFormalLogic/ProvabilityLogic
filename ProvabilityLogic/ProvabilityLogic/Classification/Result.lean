@@ -229,19 +229,8 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
         🡒 (LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α))) := by
       have : (⊢ʰ ((⋀(NBeta.image TBB) : LetterlessFormula)
           🡒 (⋀(F.image TBB)) 🡒 (⋀((NBeta.image TBB) ∪ (F.image TBB))))) := by
-        apply ProvableHilbert.Kripke.completeness;
-        intro κ _ M _ x;
-        simp only [Model.World.forces_imp];
-        by_cases hx : x ⊩ (⋀(NBeta.image TBB) : LetterlessFormula);
-        . by_cases hy : x ⊩ (⋀(F.image TBB) : LetterlessFormula);
-          . right; right;
-            apply Model.World.forces_fconj.mpr;
-            intro C hC;
-            rcases Finset.mem_union.mp hC with hC | hC;
-            . exact Model.World.forces_fconj.mp hx C hC;
-            . exact Model.World.forces_fconj.mp hy C hC;
-          . right; left; exact hy;
-        . left; exact hx;
+        apply LogicGL.iff_forces.mpr;
+        grind;
       simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α) this;
     -- Compose: `⊢ʰ ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 A`.
     have c₂ : (⊢ʰ ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
@@ -252,10 +241,8 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
           🡒 ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α) 🡒 A)
           🡒 ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
             🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A))) := by
-        apply ProvableHilbert.Kripke.completeness;
-        intro κ _ M _ x;
-        simp only [Model.World.forces_imp];
-        tauto;
+        apply LogicGL.iff_forces.mpr;
+        grind;
       exact ProvableHilbert.mdp (ProvableHilbert.mdp t merge) s₁;
     -- The `GLβ⁻` axiom gives `⊢ʰ ∼⋀TBB(F) 🡒 A`.
     have c₃ : (⊢ʰ ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)) := by
@@ -273,10 +260,8 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)
           🡒 ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)
           🡒 ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A))) := by
-        apply ProvableHilbert.Kripke.completeness;
-        intro κ _ M _ x;
-        simp only [Model.World.forces_imp, Model.World.not_forces_imp];
-        tauto;
+        apply LogicGL.iff_forces.mpr;
+        grind;
       exact ProvableHilbert.mdp (ProvableHilbert.mdp t₂ c₂) c₃;
     exact GL_sumQuasiNormal_of_finite_provable
       (fun C hC => by
@@ -411,10 +396,8 @@ lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
     have lem : (((LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α) 🡒 A)
         🡒 ((∼(LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α)) 🡒 A) 🡒 A)
         ∈ LogicGL := by
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
-      simp only [Model.World.forces_imp, Model.World.not_forces_imp];
-      tauto;
+      apply LogicGL.iff_forces.mpr;
+      grind;
     exact provabilityLogic_mdp (provabilityLogic_mdp (provabilityLogic_of_GL lem) d₁)
       (provabilityLogic_of_GL d₂);
 
@@ -943,10 +926,8 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
       have h1 : (∼(TBB n) : Formula α) ∈ LogicS := hSub hnTBB;
       have h2 : (TBB n : Formula α) ∈ LogicS := LogicS.provable_TBB;
       have htaut : (((∼(TBB n)) : Formula α) 🡒 (TBB n) 🡒 ⊥) ∈ LogicGL := by
-        apply ProvableHilbert.Kripke.completeness;
-        intro κ _ M _ x;
-        simp only [Model.World.forces_imp, Model.World.not_forces_imp];
-        tauto;
+        apply LogicGL.iff_forces.mpr;
+        grind;
       exact LogicS.consistent
         (Logic.sumQuasiNormal.mdp
           (Logic.sumQuasiNormal.mdp (LogicS.provable_of_provable_GL htaut) h1) h2);

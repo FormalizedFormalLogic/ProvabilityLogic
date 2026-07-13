@@ -86,22 +86,14 @@ lemma provable_neg_boxItr_bot : ∼□^[n]⊥ ∈ @LogicA α := by
   induction n with
   | zero =>
     apply provable_of_provable_GL;
-    apply ProvableHilbert.Kripke.completeness;
-    intro κ _ M _ x;
-    simp only [Formula.boxItr, Model.World.forces_neg];
-    exact fun h => h;
+    exact LogicGL.iff_forces.mpr (by grind);
   | succ n ih =>
-    have hTBB : (TBB n : Formula α) ∈ LogicA := provable_axiomTBB n;
-    have hK : (TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥ : Formula α) ∈ LogicGL := by
-      apply ProvableHilbert.Kripke.completeness;
-      intro κ _ M _ x;
-      simp only [TBB, Model.World.forces_imp];
-      tauto;
+    have hTBB : TBB n ∈ @LogicA α := provable_axiomTBB n;
+    have hK : TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥  ∈ @LogicGL α := LogicGL.iff_forces.mpr (by grind);
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL hK) hTBB) ih;
 
 /-- The deduction-theorem direction: if `GL ⊢ ∼□^[n]⊥ 🡒 A` for some `n`, then `A ∈ LogicA`. -/
-lemma provable_of_provable_GL_neg_boxItr_bot_imp (h : ((∼□^[n]⊥) 🡒 A) ∈ LogicGL) :
-    A ∈ LogicA :=
+lemma provable_of_provable_GL_neg_boxItr_bot_imp (h : (∼□^[n]⊥) 🡒 A ∈ LogicGL) : A ∈ LogicA :=
   Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_neg_boxItr_bot
 
 
@@ -115,8 +107,7 @@ section
 protected inductive substlessGP : Logic α
   | GL {C : Formula α} : C ∈ LogicGL → LogicA.substlessGP C
   | GP (m : ℕ) : LogicA.substlessGP (∼□^[m]⊥)
-  | mdp {C D : Formula α} : LogicA.substlessGP (C 🡒 D) → LogicA.substlessGP C →
-      LogicA.substlessGP D
+  | mdp {C D : Formula α} : LogicA.substlessGP (C 🡒 D) → LogicA.substlessGP C → LogicA.substlessGP D
 
 private lemma substlessGP.eq_LogicA : LogicA.substlessGP (α := α) = LogicA := by
   ext A;
@@ -134,18 +125,15 @@ private lemma substlessGP.eq_LogicA : LogicA.substlessGP (α := α) = LogicA := 
         LogicA.substlessGP.GP (n + 1);
       have h₂ : LogicA.substlessGP ((∼□^[n + 1]⊥) 🡒 TBB n : Formula α) := by
         apply LogicA.substlessGP.GL;
-        apply ProvableHilbert.Kripke.completeness;
-        intro κ _ M _ x;
-        simp only [TBB, Model.World.forces_imp];
-        tauto;
+        exact LogicGL.iff_forces.mpr (by grind);
       exact LogicA.substlessGP.mdp h₂ h₁;
     | mdp ihAB ihA => exact LogicA.substlessGP.mdp ihAB ihA;
 
-private lemma substlessGP.toLogicA (h : LogicA.substlessGP A) : A ∈ LogicA := by
-  rw [← LogicA.substlessGP.eq_LogicA]; exact h
+private lemma substlessGP.toLogicA (h : A ∈ LogicA.substlessGP) : A ∈ LogicA := by
+  rwa [←LogicA.substlessGP.eq_LogicA];
 
-private lemma substlessGP.ofLogicA (h : A ∈ LogicA) : LogicA.substlessGP A := by
-  rw [LogicA.substlessGP.eq_LogicA]; exact h
+private lemma substlessGP.ofLogicA (h : A ∈ LogicA) : A ∈ LogicA.substlessGP := by
+  rwa [LogicA.substlessGP.eq_LogicA];
 
 /--
   Alternative induction principle for `LogicA`, taking `∼□^[n]⊥` (for every `n`) as the
@@ -164,7 +152,9 @@ protected lemma substlessInductionGP
   | GL hg => exact GL hg;
   | GP n => exact GP n;
   | mdp hAB hA ihAB ihA =>
-    exact mdp (hAB := LogicA.substlessGP.toLogicA hAB) (hA := LogicA.substlessGP.toLogicA hA)
+    exact mdp
+      (hAB := LogicA.substlessGP.toLogicA hAB)
+      (hA := LogicA.substlessGP.toLogicA hA)
       (ihAB _) (ihA _);
 
 end
@@ -226,7 +216,7 @@ lemma root_forces_neg_boxItr_bot_imp
   of `Kripke.Rank`, without `graftOmega` or `Trace`.
 -/
 theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
-  A ∈ LogicA ↔ ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL := by
+  A ∈ LogicA ↔ ∃ n : ℕ, (∼□^[n]⊥) 🡒 A ∈ LogicGL := by
   constructor;
   . intro h;
     obtain ⟨N, hN⟩ := root_forces_neg_boxItr_bot_imp (exists_forces_of_forces_instancesBelow_of_provable h);
@@ -417,8 +407,7 @@ end axiomDCountermodel
   `LogicA`: for every `n`, `axiomDCountermodel n a` refutes `(∼□^[n]⊥) 🡒 axiomD(a, a)` at
   its root.
 -/
-theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
-    ((□((□(#a) : Formula α) ⋎ □(#a))) 🡒 ((□(#a) : Formula α) ⋎ □(#a))) ∉ (LogicA : Logic α) := by
+theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} : ((□((□#a) ⋎ □#a)) 🡒 ((□#a) ⋎ □#a)) ∉ @LogicA α := by
   rw [LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp];
   rintro ⟨n, hGL⟩;
   have hant : (axiomDCountermodel n a).root.1 ⊩ (∼(□^[n]⊥ : Formula α)) := by
@@ -434,7 +423,7 @@ theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
 
 /-- `LogicD`, which proves axiom `D`, is not contained in `LogicA` (Artemov's `GLαω`),
 since `LogicA.not_provable_axiomD` shows axiom `D` is not a theorem of `LogicA`. -/
-theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬((LogicD : Logic α) ⊆ LogicA) := by
+theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ LogicA) := by
   intro h;
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
 
