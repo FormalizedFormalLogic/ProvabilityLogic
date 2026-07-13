@@ -2,6 +2,7 @@ module
 
 public import ProvabilityLogic.Logic.GL.Basic
 public import ProvabilityLogic.Kripke.Tail
+public import ProvabilityLogic.Gentzen.S.Kripke
 
 @[expose]
 public section

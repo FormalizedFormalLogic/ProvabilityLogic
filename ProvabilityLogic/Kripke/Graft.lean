@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.Kripke.Rank
-public import ProvabilityLogic.Gentzen.S.Kripke
+public import ProvabilityLogic.Kripke.ReflexiveWorld
 
 @[expose]
 public section
