@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
 @[expose]

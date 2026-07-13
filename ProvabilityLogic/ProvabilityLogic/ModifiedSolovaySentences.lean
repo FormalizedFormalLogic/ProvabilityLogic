@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
-public import ProvabilityLogic.Logic.GL.Basic
 public import ProvabilityLogic.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
 
 /-!
