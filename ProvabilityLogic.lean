@@ -3,6 +3,7 @@ module  -- shake: keep-all --deprecated_module: ignore
 public import ProvabilityLogic.Formula.Basic
 public import ProvabilityLogic.Formula.Countable
 public import ProvabilityLogic.Formula.Letterless
+public import ProvabilityLogic.Formula.Modalized
 public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.Gentzen.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic

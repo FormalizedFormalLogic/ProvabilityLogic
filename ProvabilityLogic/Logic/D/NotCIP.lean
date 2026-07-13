@@ -21,51 +21,6 @@ and shows that `∼A 🡒 B` is provable in `D` (Lemma 9) while no interpolant e
 universe u
 variable {α : Type u}
 
-namespace Formula
-
-/-!
-### Modalization
-
-Write `C = f(□C₁, …, □Cₙ, p₁, …, pₘ)`, where `f` uses only `→`, `⊥`, the `□Cᵢ` are the
-maximal boxed subformulas and the `pⱼ` are the remaining (non-modalized, top-level)
-atoms.  The *modalization* `C.modalize = f(□C₁, …, □Cₙ, ⊥, …, ⊥)` replaces every
-non-modalized atom by `⊥`; the result is a `Modalized` formula (every atom lies inside a
-`□`).  These utilities underpin the modalization argument.
-
-- [Bek89, Lemma 11, Lemma 12]
--/
-
-variable {A : Formula α}
-
-/--
-Replace every non-modalized (top-level, unboxed) atom of `A` by `⊥`, keeping the
-maximal boxed subformulas.  Turns `f(□C₁, …, □Cₙ, p₁, …, pₘ)` into
-`f(□C₁, …, □Cₙ, ⊥, …, ⊥)`.
-
-- [Bek89, Lemma 11]
--/
-@[grind]
-def modalize : Formula α → Formula α
-  | #_    => ⊥
-  | ⊥     => ⊥
-  | A 🡒 B => A.modalize 🡒 B.modalize
-  | □A    => □A
-
-/-- `A` is modalized: every atom of `A` occurs within the scope of a `□`. -/
-abbrev Modalized (A : Formula α) : Prop := ∀ a, A.ModalizedIn a
-
-/-- The modalization of any formula is `Modalized`. -/
-@[simp, grind .]
-lemma modalized_modalize : A.modalize.Modalized := by
-  intro a; induction A <;> grind;
-
-/-- Modalization only removes atoms. -/
-@[simp, grind .]
-lemma atoms_modalize_subset [DecidableEq α] : A.modalize.atoms ⊆ A.atoms := by
-  induction A <;> grind;
-
-end Formula
-
 namespace LogicD
 
 variable [DecidableEq α]

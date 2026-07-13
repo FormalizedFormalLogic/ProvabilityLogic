@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Formula.Modalized
 public import ProvabilityLogic.Gentzen.Maehara
 public import ProvabilityLogic.Kripke.Overwrite
 
@@ -29,32 +30,6 @@ Main ingredients:
 public section
 
 variable {α : Type u} [DecidableEq α]
-
-namespace Formula
-
-variable {p q : α} {A B C : Formula α}
-
-/-- `p` occurs only in the scope of `□` in `A` ([SV82]: "`p` is modalized in `A`"). -/
-@[grind]
-def ModalizedIn (p : α) : Formula α → Prop
-  | #a    => a ≠ p
-  | ⊥     => True
-  | A 🡒 B => A.ModalizedIn p ∧ B.ModalizedIn p
-  | □_    => True
-
-lemma ModalizedIn.of_not_mem_atoms (h : p ∉ A.atoms) : A.ModalizedIn p := by
-  induction A <;> grind [atoms]
-
-omit [DecidableEq α] in
-@[simp] lemma ModalizedIn.box : (□A).ModalizedIn p := by simp [ModalizedIn]
-
-/-- Substituting fresh `q` for a modalized `p` yields a formula in which `q` is modalized. -/
-lemma ModalizedIn.subst_single (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
-    (A⟦p ↦ #q⟧).ModalizedIn q := by
-  induction A <;> grind [atoms, ModalizedIn]
-
-end Formula
-
 
 namespace Model
 

@@ -1,7 +1,8 @@
 module
 
+public import ProvabilityLogic.Formula.Modalized
 public import ProvabilityLogic.Kripke.DefiningFormula
-public import ProvabilityLogic.Logic.D.NotCIP
+public import ProvabilityLogic.Kripke.Tail
 
 /-!
 # Almost defining formulas for D-models (Bek90 §4, Lemma 9)
