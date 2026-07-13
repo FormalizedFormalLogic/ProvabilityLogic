@@ -58,21 +58,20 @@ open Model (BisimulationUnder World.forces_iff_of_pbisimilar)
 open Model.World (IsInConeOf IsProperPredecessorOf)
 
 /--
-  A point `a` is `P`-redundant ("Removal of a redundant cone") if it
-  is not the minimum point, and every ancestor `x ≺ a` has an alternative successor
-  `y` -- incomparable with `a` (so that its cone is disjoint from `a`'s) -- whose cone
-  is `P`-bisimilar to the cone above `a`.
+  A non-root point `a` is `P`-redundant ("Removal of a redundant cone") if every
+  ancestor `x ≺ a` has an alternative successor `y` -- incomparable with `a` (so that
+  its cone is disjoint from `a`'s) -- whose cone is `P`-bisimilar to the cone above `a`.
 
   - [Bek90, §4, item 3]
 -/
-structure Redundant (M : RootedModel κ α) (P : Finset α) (a : M.World) : Prop where
-  ne_root : a ≠ M.root.1
-  exists_alt : ∀ x : M.World, x ≺ a →
+def Redundant (M : RootedModel κ α) (P : Finset α) (a : M.NonRoot) : Prop :=
+  ∀ x : M.World, x ≺ a.1 →
     ∃ (y : M.World) (Bi : BisimulationUnder P M.toModel M.toModel),
-      x ≺ y ∧ ¬ y ≺ a ∧ ¬ a ≺ y ∧ y ≠ a ∧ Bi y a
+      x ≺ y ∧ ¬ y ≺ a.1 ∧ ¬ a.1 ≺ y ∧ y ≠ a.1 ∧ Bi y a.1
 
 /-- `M` is simple-under-`P` if it has no `P`-redundant point. -/
-def IsSimpleUnder (M : RootedModel κ α) (P : Finset α) : Prop := ∀ a : M.World, ¬ Redundant M P a
+def IsSimpleUnder (M : RootedModel κ α) (P : Finset α) : Prop :=
+  ∀ a : M.NonRoot, ¬ Redundant M P a
 
 /--
 A `P`-redundant point is also `(P ∪ {p})`-redundant when `□p` is forced at the root.
@@ -82,35 +81,33 @@ This is the "every `(q̄,p)`-redundant point is also `q̄`-redundant" step of th
 - [Bek90, Lemma 1, §5]
 -/
 lemma Redundant.insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ α}
-  [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α} {w : M.World}
+  [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α} {w : M.NonRoot}
   (hred : Redundant M P w) (hbox : M.root.1 ⊩ (□(#p))) :
   Redundant M (insert p P) w := by
   -- Every point above the root forces `p` (by `hbox`), so the atomic clause for `p` is
   -- free on every pair of non-root points, and all points involved in a redundancy
   -- certificate are above the root.
-  constructor;
-  . exact hred.ne_root;
-  . intro x Rxw;
-    obtain ⟨y, Bi, hxy, hynw, hnwy, hyne, hBiyw⟩ := hred.exists_alt x Rxw;
-    let Bi' : BisimulationUnder (insert p P) M.toModel M.toModel :=
-      { toRel := fun u v => Bi u v ∧ u ≠ M.root.1 ∧ v ≠ M.root.1
-        atomic := by
-          rintro u v q hq ⟨hBi, hu, hv⟩;
-          rcases Finset.mem_insert.mp hq with rfl | hqP;
-          . have h₁ : M.Val u q := hbox u (M.root.2 u hu);
-            have h₂ : M.Val v q := hbox v (M.root.2 v hv);
-            tauto;
-          . exact Bi.atomic hqP hBi;
-        forth := by
-          rintro u u₁ v ⟨hBi, hu, hv⟩ Ruu₁;
-          obtain ⟨v₁, hBi₁, Rvv₁⟩ := Bi.forth hBi Ruu₁;
-          exact ⟨v₁, ⟨hBi₁, fun h => not_rel_root (h ▸ Ruu₁), fun h => not_rel_root (h ▸ Rvv₁)⟩, Rvv₁⟩;
-        back := by
-          rintro u v v₁ ⟨hBi, hu, hv⟩ Rvv₁;
-          obtain ⟨u₁, hBi₁, Ruu₁⟩ := Bi.back hBi Rvv₁;
-          exact ⟨u₁, ⟨hBi₁, fun h => not_rel_root (h ▸ Ruu₁), fun h => not_rel_root (h ▸ Rvv₁)⟩, Ruu₁⟩ };
-    exact ⟨y, Bi', hxy, hynw, hnwy, hyne,
-      hBiyw, fun h => not_rel_root (h ▸ hxy), hred.ne_root⟩;
+  intro x Rxw;
+  obtain ⟨y, Bi, hxy, hynw, hnwy, hyne, hBiyw⟩ := hred x Rxw;
+  let Bi' : BisimulationUnder (insert p P) M.toModel M.toModel :=
+    { toRel := fun u v => Bi u v ∧ u ≠ M.root.1 ∧ v ≠ M.root.1
+      atomic := by
+        rintro u v q hq ⟨hBi, hu, hv⟩;
+        rcases Finset.mem_insert.mp hq with rfl | hqP;
+        . have h₁ : M.Val u q := hbox u (M.root.2 u hu);
+          have h₂ : M.Val v q := hbox v (M.root.2 v hv);
+          tauto;
+        . exact Bi.atomic hqP hBi;
+      forth := by
+        rintro u u₁ v ⟨hBi, hu, hv⟩ Ruu₁;
+        obtain ⟨v₁, hBi₁, Rvv₁⟩ := Bi.forth hBi Ruu₁;
+        exact ⟨v₁, ⟨hBi₁, fun h => not_rel_root (h ▸ Ruu₁), fun h => not_rel_root (h ▸ Rvv₁)⟩, Rvv₁⟩;
+      back := by
+        rintro u v v₁ ⟨hBi, hu, hv⟩ Rvv₁;
+        obtain ⟨u₁, hBi₁, Ruu₁⟩ := Bi.back hBi Rvv₁;
+        exact ⟨u₁, ⟨hBi₁, fun h => not_rel_root (h ▸ Ruu₁), fun h => not_rel_root (h ▸ Rvv₁)⟩, Ruu₁⟩ };
+  exact ⟨y, Bi', hxy, hynw, hnwy, hyne,
+    hBiyw, fun h => not_rel_root (h ▸ hxy), w.2⟩;
 
 /--
 If `□p` is forced at the root, `(P ∪ {p})`-simplicity already implies `P`-simplicity.
@@ -195,7 +192,7 @@ end Finite
 
   - [Bek90, Lemma 6, §4]
 -/
-theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : Redundant M P a.1) :
+theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : Redundant M P a) :
   ∀ {C : Formula α}, C.atoms ⊆ P →
   ∀ x : (M.removeCone a).World,
   x ⊩ C ↔ x.1 ⊩ C := by
@@ -218,7 +215,7 @@ theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : R
             . exact absurd (Or.inl rfl) hx;
             . exact hxa;
             . exact absurd (Or.inr hax) hx;
-        obtain ⟨y, Bi, hxy, hyna, hnay, hyne, hBiya⟩ := hred.exists_alt x hxa;
+        obtain ⟨y, Bi, hxy, hyna, hnay, hyne, hBiya⟩ := hred x hxa;
         have hynS : ¬ y.IsInConeOf a.1 := by rintro (rfl | h); exacts [hyne rfl, hnay h];
         have hyB : y ⊩ B := (ihB hC ⟨y, hynS⟩).mp (h ⟨y, hynS⟩ hxy);
         have haB : a.1 ⊩ B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
@@ -265,16 +262,15 @@ theorem exists_simplificationUnder :
   induction n using Nat.strong_induction_on with
   | _ n ih =>
     intro κ _ M _ _ hcard;
-    by_cases hex : ∃ a, Redundant M P a;
+    by_cases hex : ∃ a : M.NonRoot, Redundant M P a;
     . obtain ⟨a, hred⟩ := hex;
-      let a' : M.NonRoot := ⟨a, hred.ne_root⟩;
-      haveI hfin : Fintype (M.removeCone a').World := Fintype.ofFinite _;
-      haveI : (M.removeCone a').IsTree := removeCone.isTree;
+      haveI hfin : Fintype (M.removeCone a).World := Fintype.ofFinite _;
+      haveI : (M.removeCone a).IsTree := removeCone.isTree;
       obtain ⟨κ', hNe', M', hFin', hGL', hTree', hSimple', hEq'⟩ :=
-        ih (Fintype.card (M.removeCone a').World) (by rw [← hcard]; exact removeCone.card_lt a')
-          (M.removeCone a') rfl;
+        ih (Fintype.card (M.removeCone a).World) (by rw [← hcard]; exact removeCone.card_lt a)
+          (M.removeCone a) rfl;
       exact ⟨κ', hNe', M', hFin', hGL', hTree', hSimple', fun C hC =>
-        (removeCone.forces_iff hred hC (M.removeCone a').root.1).symm.trans (hEq' C hC)⟩;
+        (removeCone.forces_iff hred hC (M.removeCone a).root.1).symm.trans (hEq' C hC)⟩;
     . exact ⟨κ, ‹Nonempty κ›, M, ‹Fintype M.World›, inferInstance, inferInstance,
         fun a hA => hex ⟨a, hA⟩, fun C _ => Iff.rfl⟩;
 
@@ -309,6 +305,11 @@ lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : 
   . grind;
   . grind;
 
+/-- The embedded copy of a non-root point is not the root of `M.graftOmega a`. -/
+lemma graftOmega.inl_ne_root {M : RootedModel κ α} {a : M.NonRoot} {m : M.World} (hm : m ≠ M.root.1) :
+  (Sum.inl m : (M.graftOmega a).World) ≠ (M.graftOmega a).root.1 :=
+  fun h => hm (Sum.inl.inj h)
+
 /--
 **Chain points of an ω-model are never `P`-redundant**.
 
@@ -316,8 +317,8 @@ lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : 
 -/
 lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
   (a : M.NonRoot) (P : Finset α) (i : ℕ) :
-  ¬ (M.graftOmega a).Redundant P (Sum.inr i : (M.graftOmega a).World) := by
-  rintro ⟨-, hred⟩;
+  ¬ (M.graftOmega a).Redundant P ⟨Sum.inr i, inr_ne_root⟩ := by
+  intro hred;
   -- `chainPoint (i + 1)` is the unique point covering `chainPoint i` (its immediate
   -- `≺`-predecessor), and every other successor of `chainPoint (i + 1)` already lies
   -- inside `chainPoint i`'s own cone. So testing `Redundant` at `chainPoint (i + 1)`,
@@ -343,8 +344,8 @@ lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
 -/
 lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
   (a : M.NonRoot) (P : Finset α) :
-  ¬ (M.graftOmega a).Redundant P (Sum.inl a.1 : (M.graftOmega a).World) := by
-  rintro ⟨-, hred⟩;
+  ¬ (M.graftOmega a).Redundant P ⟨Sum.inl a.1, inl_ne_root a.2⟩ := by
+  intro hred;
   -- `chainPoint 0` is the unique point covering `embed a`, and every other successor of
   -- `chainPoint 0` (a proper descendant of `a`) is already comparable to `a`.
   have hwa : (M.graftOmega a).Rel (Sum.inr 0) (Sum.inl a.1) := by
@@ -362,10 +363,12 @@ lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
 /-- Any `P`-redundant point of `M.graftOmega a` is embedded and distinct from `a`
 (an immediate corollary of `not_redundant_chainPoint` and `not_redundant_embed_a`). -/
 lemma graftOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL] {a : M.NonRoot}
-  {P : Finset α} {a' : (M.graftOmega a).World} (hred : (M.graftOmega a).Redundant P a') :
-  ∃ m : M.World, m ≠ a.1 ∧ a' = Sum.inl m := by
-  rcases a' with m | i;
-  . exact ⟨m, fun h => not_redundant_embed_a a P (h ▸ hred), rfl⟩;
+  {P : Finset α} {a' : (M.graftOmega a).NonRoot} (hred : (M.graftOmega a).Redundant P a') :
+  ∃ (m : M.World) (hm : m ≠ M.root.1), m ≠ a.1 ∧ a' = ⟨Sum.inl m, inl_ne_root hm⟩ := by
+  obtain ⟨a1, hane'⟩ := a';
+  rcases a1 with m | i;
+  . exact ⟨m, fun h => hane' (congrArg Sum.inl h),
+      fun h => not_redundant_embed_a a P (h ▸ hred), rfl⟩;
   . exact absurd hred (not_redundant_chainPoint a P i);
 
 /-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftOmega a`. -/
@@ -373,16 +376,11 @@ lemma graftOmega.not_isInConeOf_of_redundant {M : RootedModel κ α} [M.IsFinite
   {a : M.NonRoot} (_Rra : M.root.1 ≺ a.1)
   (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1)
   {P : Finset α} {m : M.World} (hm : m ≠ M.root.1)
-  (hred : (M.graftOmega a).Redundant P (Sum.inl m)) :
+  (hred : (M.graftOmega a).Redundant P ⟨Sum.inl m, inl_ne_root hm⟩) :
   ¬ a.1.IsInConeOf m := by
   rintro (rfl | ham);
   . exact not_redundant_embed_a a P hred;
   . exact hm (hcov m ⟨fun h => Std.Irrefl.irrefl a.1 (h ▸ ham), ham⟩);
-
-/-- The embedded copy of a non-root point is not the root of `M.graftOmega a`. -/
-lemma graftOmega.inl_ne_root {M : RootedModel κ α} {a : M.NonRoot} {m : M.World} (hm : m ≠ M.root.1) :
-  (Sum.inl m : (M.graftOmega a).World) ≠ (M.graftOmega a).root.1 :=
-  fun h => hm (Sum.inl.inj h)
 
 /-- An embedded point of `M.graftOmega a` is a successor of the embedded `m` iff it
 is a successor of `m` in `M`. -/
@@ -487,10 +485,9 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
     have hane : a ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
     haveI : (M.graftOmega ⟨a, hane⟩).IsGL := graftOmega.isGL Rra;
     haveI : (M.graftOmega ⟨a, hane⟩).IsTree := graftOmega.isTree Rra hcov;
-    by_cases hex : ∃ w, (M.graftOmega ⟨a, hane⟩).Redundant P w;
+    by_cases hex : ∃ w : (M.graftOmega ⟨a, hane⟩).NonRoot, (M.graftOmega ⟨a, hane⟩).Redundant P w;
     . obtain ⟨w, hred⟩ := hex;
-      obtain ⟨m, -, rfl⟩ := graftOmega.exists_of_redundant hred;
-      have hm : m ≠ M.root.1 := fun h => hred.ne_root (congrArg Sum.inl h);
+      obtain ⟨m, hm, -, rfl⟩ := graftOmega.exists_of_redundant hred;
       have hma : ¬ a.IsInConeOf m :=
         graftOmega.not_isInConeOf_of_redundant Rra hcov hm hred;
       haveI : Fintype (M.removeCone ⟨m, hm⟩).World := Fintype.ofFinite _;
