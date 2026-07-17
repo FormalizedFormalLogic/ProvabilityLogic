@@ -14,6 +14,7 @@ CLAUDE.local.md
 .notes
 
 # Import graph
+import_graph.dot
 import_graph.png
 import_graph.pdf
 import_graph.html
