@@ -38,13 +38,15 @@ def sf (S : LabelledSequent α) : FormulaFinset α := (S.ant ∪ S.suc).biUnion 
 
 @[grind =>]
 lemma mem_sf_of_mem_ant (h : lf ∈ S.ant) : lf.formula ∈ S.sf := by
-  simp only [sf, Finset.mem_biUnion];
-  exact ⟨lf, by grind, Formula.mem_subfmls_self⟩;
+  apply Finset.mem_biUnion.mpr;
+  use lf;
+  and_intros <;> grind;
 
 @[grind =>]
 lemma mem_sf_of_mem_suc (h : lf ∈ S.suc) : lf.formula ∈ S.sf := by
-  simp only [sf, Finset.mem_biUnion];
-  exact ⟨lf, by grind, Formula.mem_subfmls_self⟩;
+  apply Finset.mem_biUnion.mpr;
+  use lf;
+  and_intros <;> grind;
 
 @[grind =>]
 lemma subfmls_subset_sf (h : A ∈ S.sf) : A.subfmls ⊆ S.sf := by

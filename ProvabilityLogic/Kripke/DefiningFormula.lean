@@ -117,7 +117,8 @@ lemma World.atoms_charFormulaUnder : (x.charFormulaUnder P).atoms ⊆ P := by
     rintro x rfl;
     rw [World.charFormulaUnder_def];
     simp only [Formula.atoms_and, Finset.union_subset_iff];
-    refine ⟨⟨World.atoms_valuationConj, ?_⟩, ?_⟩;
+    and_intros;
+    . exact World.atoms_valuationConj;
     · apply subset_trans (FormulaFinset.atoms_conj_subset _);
       intro a ha;
       simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_image] at ha;
@@ -144,7 +145,8 @@ lemma World.forces_charFormulaUnder_iff {w : N.World} :
   rw [World.charFormulaUnder_def, World.forces_and, World.forces_and];
   constructor;
   · rintro ⟨⟨h1, h2⟩, h3⟩;
-    refine ⟨World.forces_valuationConj.mp h1, ?_, ?_⟩;
+    and_intros;
+    . exact World.forces_valuationConj.mp h1;
     · intro y Rxy;
       have := World.forces_fconj.mp h2 (◇(y.charFormulaUnder P)) $
         Finset.mem_image_of_mem _ (Finset.mem_univ (⟨y, Rxy⟩ : x.Successors));
@@ -154,7 +156,8 @@ lemma World.forces_charFormulaUnder_iff {w : N.World} :
       obtain ⟨y, -, rfl⟩ := Finset.mem_image.mp hA;
       exact ⟨y.1, y.2, hvA⟩;
   · rintro ⟨h1, h2, h3⟩;
-    refine ⟨⟨World.forces_valuationConj.mpr h1, ?_⟩, ?_⟩;
+    and_intros;
+    . exact World.forces_valuationConj.mpr h1;
     · apply World.forces_fconj.mpr;
       rintro A hA;
       obtain ⟨y, -, rfl⟩ := Finset.mem_image.mp hA;

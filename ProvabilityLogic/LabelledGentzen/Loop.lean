@@ -29,13 +29,13 @@ lemma of_transGen_insert (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
   : ⊢ˡ (insert (x, y) R ⸴ Γ ⟹ˡ Δ) → ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
   induction h with
   | single hxy =>
-    intro π;
-    rwa [Finset.insert_eq_self.mpr hxy] at π;
+    simp [Finset.insert_eq_self.mpr hxy];
   | @tail b c _ hbc ih =>
     intro π;
     apply ih;
-    apply trans (x := x) (y := b) (z := c) (by grind) (by grind);
-    exact wkRel π (by grind);
+    apply trans (x := x) (y := b) (z := c);
+    apply wkRel π;
+    grind;
 
 /--
 Chain form of the looping lemma: a looping sequent is provable. If there is a nonempty
@@ -49,7 +49,7 @@ lemma loopChain (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
   (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind)
   : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
   apply of_transGen_insert h;
-  exact loop x y A (by grind) hx hy;
+  exact loop x y A;
 
 /-- `ReflTransGen` variant of `loopChain`, additionally covering the degenerate case `x = y`. -/
 lemma loopChain' (h : Relation.ReflTransGen (λ a b => (a, b) ∈ R) x y)
@@ -94,21 +94,15 @@ variable {n : ℕ} {xs : Fin (n + 1) → Label}
 
 omit [DecidableEq α] in
 /-- Any segment of a chain `xs 0 R xs 1 R … R xs n` yields a `ReflTransGen` step. -/
-lemma reflTransGen_of_chain (hchain : ∀ i : Fin n, (xs i.castSucc, xs i.succ) ∈ R)
-  {a b : Fin (n + 1)} (hab : a ≤ b)
+lemma reflTransGen_of_chain (hchain : ∀ i : Fin n, (xs i.castSucc, xs i.succ) ∈ R) (hab : a ≤ b)
   : Relation.ReflTransGen (λ u w => (u, w) ∈ R) (xs a) (xs b) := by
-  revert hab;
   induction b using Fin.induction with
   | zero =>
-    intro hab;
-    rw [Fin.le_zero_iff.mp hab];
+    grind;
   | succ i ih =>
-    intro hab;
     rcases eq_or_lt_of_le hab with rfl | hlt;
     . exact Relation.ReflTransGen.refl;
-    . apply Relation.ReflTransGen.tail (ih ?_) (hchain i);
-      simp only [Fin.le_def, Fin.lt_def, Fin.val_succ, Fin.val_castSucc] at hlt ⊢;
-      omega;
+    . exact Relation.ReflTransGen.tail (ih (by grind)) (hchain i);
 
 /--
 Pigeonhole core of the termination argument: suppose that along a chain
@@ -130,13 +124,10 @@ theorem provable_of_long_chain {X : Finset (Formula α)} (hX : X.card < n)
   -- whichever of `i.succ`, `j.succ` comes first, `loopChain'` closes the sequent via the repeat
   obtain ⟨i, -, j, -, hne, heq⟩ := Finset.exists_ne_map_eq_of_card_lt_of_maps_to
     (s := (Finset.univ : Finset (Fin n))) (t := X) (by simpa using hX) (λ i _ => hf i);
-  rcases lt_or_gt_of_ne hne with hij | hij;
-  . apply loopChain' (A := f i) (reflTransGen_of_chain hchain ?_) (hant i) (by rw [heq]; exact hsuc j);
-    simp only [Fin.le_def, Fin.lt_def, Fin.val_succ, Fin.val_castSucc] at hij ⊢;
-    omega;
-  . apply loopChain' (A := f j) (reflTransGen_of_chain hchain ?_) (hant j) (by rw [←heq]; exact hsuc i);
-    simp only [Fin.le_def, Fin.lt_def, Fin.val_succ, Fin.val_castSucc] at hij ⊢;
-    omega;
+  wlog hij : i < j;
+  . exact this (i := j) (j := i) ‹_› ‹_› ‹_› ‹_› ‹_› (by grind) (by grind) (by omega);
+  apply loopChain' (A := f i) (reflTransGen_of_chain hchain ?_) (hant i) (by rw [heq]; exact hsuc j);
+  grind;
 
 end Pigeonhole
 

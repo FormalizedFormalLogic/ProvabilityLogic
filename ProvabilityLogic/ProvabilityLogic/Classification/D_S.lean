@@ -14,6 +14,7 @@ open Model Model.World
 universe u
 variable {α : Type u}
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
+variable {A B : Formula α}
 
 /--
   The `p ↔ q` substitution used in the proof of Lemma 1: for a finite set of atoms
@@ -25,16 +26,10 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
 noncomputable def Formula.Substitution.pIffOn (p : α) (S : Finset α) : Formula.Substitution α α :=
   fun q => if q ∈ S then (#p 🡘 #q) else #q
 
-@[simp]
-lemma Formula.atoms_pIffOn [DecidableEq α] (p a : α) (S : Finset α) :
-    (Formula.Substitution.pIffOn p S a).atoms ⊆ insert p {a} := by
+@[simp, grind .]
+lemma Formula.atoms_pIffOn [DecidableEq α] {p q : α} {S : Finset α} : (Formula.Substitution.pIffOn p S q).atoms ⊆ insert p {q} := by
   unfold Formula.Substitution.pIffOn;
-  split;
-  . intro x hx;
-    simp only [Formula.atoms, Finset.mem_union] at hx;
-    simp only [Finset.mem_insert, Finset.mem_singleton];
-    grind;
-  . simp [Formula.atoms];
+  grind;
 
 /--
   The conjunction `Δ` of Lemma 1: over all `2^n` subsets `S` of `A`'s atoms, the
@@ -103,7 +98,7 @@ theorem RootedModel.StabilizedBisimulationUnder.forces_iff_subst_pIffOn [Decidab
           fun hne => hqγ ((hγ_root q hq).mpr hne);
         exact not_not.mp hnn;
       . exact Bi.atomic hq Bx₁x₂ hxroot;
-  | bot => intro _; exact Iff.rfl;
+  | bot => grind;
   | imp A B ihA ihB =>
     intro hAB;
     simp only [Formula.atoms, Finset.union_subset_iff] at hAB;
@@ -147,8 +142,7 @@ private lemma provable_fconj_LogicA_add [DecidableEq α] {A₀ : Formula α} {Γ
 
 /-- Every substitution instance of `A` -- in particular every conjunct of `A.deltaPIff p`
 -- lies in the quasi-normal extension `LogicA +ᴸ A`. -/
-lemma provable_deltaPIff [DecidableEq α] {A : Formula α} {p : α} :
-    A.deltaPIff p ∈ (LogicA +ᴸ A) := by
+lemma provable_deltaPIff [DecidableEq α] {A : Formula α} {p : α} : A.deltaPIff p ∈ (LogicA +ᴸ A) := by
   -- `A` itself lies in `LogicA +ᴸ A` (`mem₂`), and quasi-normal extensions are closed
   -- under substitution, so every conjunct of `A.deltaPIff p` does too.
   apply provable_fconj_LogicA_add;
@@ -169,8 +163,7 @@ open RootedModel
 
   - [Bek90, Lemma 3]
 -/
-theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
-    {A : Formula α} (hA : A ∉ LogicD) :
+theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α] (hA : A ∉ LogicD) :
     ∃ (κ : Type u) (_ : Nonempty κ)
       (M : RootedModel κ α) (a : M.NonRoot),
       M.IsFiniteGL ∧
@@ -183,7 +176,7 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α]
   -- with the D-model tree realization (`Model.dModelTree`).
   obtain ⟨κ, hne, M, hgl, r, o, hno⟩ := LogicD.exists_not_forces_toPseudoTail_of_not_mem hA;
   use (Model.dModelTree.World M), inferInstance, M.dModelTree r o, Model.dModelTree.tailPoint;
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩;
+  and_intros;
   . infer_instance;
   . infer_instance;
   . exact Model.dModelTree.root_rel_tailPoint;
@@ -209,23 +202,21 @@ lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
   -- tail-model semantics of `S` (`LogicS.provability_TFAE`) refutes the negation.
   intro hS;
   have hall := LogicS.provability_TFAE (A := ∼C) |>.out 0 1 |>.mp hS;
-  obtain ⟨k₀, h₀⟩ :=
-    hall (Model.toRootedModel M.toModel a).toModel (Model.toRootedModel M.toModel a).root.1;
-  obtain ⟨k₁, h₁⟩ :=
-    graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized Rra hlat hmod;
-  have h₂ := (h₁ (max k₀ k₁) (le_max_right _ _)).mpr hC;
-  have h₃ := h₀ (max k₀ k₁) (le_max_left _ _);
+  obtain ⟨k₀, h₀⟩ := hall (Model.toRootedModel M.toModel a).toModel (Model.toRootedModel M.toModel a).root.1;
+  obtain ⟨k₁, h₁⟩ := graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized Rra hlat hmod;
+  have h₂ := h₁ (max k₀ k₁) (by omega) |>.mpr hC;
+  have h₃ := h₀ (max k₀ k₁) (by omega);
   exact (forces_neg.mp h₃) h₂;
 
 /-- The atoms of `A.deltaPIff p` are contained in `A.atoms ∪ {p}`. -/
 lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} :
-    (A.deltaPIff p).atoms ⊆ insert p A.atoms := by
+  (A.deltaPIff p).atoms ⊆ insert p A.atoms := by
   intro q hq;
   have h₁ := FormulaFinset.atoms_conj_subset _ hq;
   simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_image] at h₁;
   obtain ⟨B, ⟨S, -, rfl⟩, hqB⟩ := h₁;
   obtain ⟨b, hb, hqb⟩ := Finset.mem_biUnion.mp (Formula.atoms_subst_subset hqB);
-  rcases Finset.mem_insert.mp (Formula.atoms_pIffOn p b S hqb) with rfl | h₂;
+  rcases Finset.mem_insert.mp (Formula.atoms_pIffOn hqb) with rfl | h₂;
   . exact Finset.mem_insert_self _ _;
   . exact Finset.mem_insert_of_mem (Finset.mem_singleton.mp h₂ ▸ hb);
 
@@ -236,9 +227,8 @@ lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} 
   - [Bek90, Lemma 1, Lemma 3, Lemma 4, Lemma 7, Lemma 8, Lemma 9]
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
-    {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
-    ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧
-      (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
+  (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
+  ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧ (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
   classical
   -- **Lemma 3**: a D-model countermodel to `A`, realized as a tree-shaped ω-model.
   obtain ⟨κ₁, hne₁, M₁, hgl₁, htree₁, a₁, Rra₁, hcov₁, hlat₁, hnA₁⟩ :=
@@ -318,21 +308,14 @@ end
   - [AB05, Lemma 56]
   - [Bek90, Lemma 1]
 -/
-theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α]
-    {A : Formula α} {p : α} (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
-    ∃ B : Formula α, B ∉ LogicS ∧ B.atoms ⊆ A.atoms ∧
-      (B ⋎ ((□(#p)) 🡒 (#p))) ∈ (LogicA +ᴸ A) := by
-  -- The semantic content (Kripke-model analysis of `D` via `q`-simplification and
-  -- almost defining formulas, [Bek90] §4) is isolated in
-  -- `exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD` above; this
-  -- is the elementary propositional assembly on top of it: `A.deltaPIff p` is a finite
-  -- conjunction of substitution instances of `A`, hence provable in `LogicA +ᴸ A` by
-  -- the substitution rule, so modus ponens with the semantic core's implication gives
-  -- the result directly.
-  obtain ⟨B, hBatoms, hBS, hImp⟩ :=
-    exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hp hA;
-  exact ⟨B, hBS, hBatoms,
-    Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hImp) provable_deltaPIff⟩;
+theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α] (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
+  ∃ B, B ∉ LogicS ∧ B.atoms ⊆ A.atoms ∧ (B ⋎ ((□(#p)) 🡒 (#p))) ∈ (LogicA +ᴸ A) := by
+  obtain ⟨B, hBatoms, hBS, hImp⟩ := exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hp hA;
+  use B;
+  and_intros;
+  . exact hBS;
+  . exact hBatoms;
+  . exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hImp) provable_deltaPIff;
 
 /--
   If the provability logic of `T` relative to `U` has trace `ω` and contains some
@@ -481,14 +464,12 @@ theorem subset_LogicS_of_ssubset_LogicD_of_univ_trace :
   intro hT h;
   obtain ⟨A, hAL, hAD⟩ := Set.exists_of_ssubset h;
   intro B hB;
-  induction hB with
-  | mem₁ hB => exact provabilityLogic_of_GL hB;
-  | mem₂ hB =>
-    obtain ⟨C, rfl⟩ := hB;
+  induction hB using LogicS.substlessInduction with
+  | provable_GL hB => exact provabilityLogic_of_GL hB;
+  | axiomT =>
     intro f;
-    exact provable_reflection_of_mem_not_LogicD hT hAL hAD (Formula.interpret f C);
-  | mdp _ _ ih₁ ih₂ => exact provabilityLogic_mdp ih₁ ih₂;
-  | subst _ ih => intro f; rw [Formula.interpret_subst]; exact ih _;
+    exact provable_reflection_of_mem_not_LogicD hT hAL hAD _;
+  | mdp ih₁ ih₂ => exact provabilityLogic_mdp ih₁ ih₂;
 
 /--
   No provability logic lies strictly between `D` and `S`.

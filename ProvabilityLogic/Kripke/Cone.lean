@@ -77,8 +77,6 @@ open Model.World (Forces)
 lemma forces_same_of_isInConeOf (hx : x.IsInConeOf r) : Forces (M := toRootedModel M r |>.toModel) ⟨x, hx⟩ A ↔ x ⊩ A := by
   induction A generalizing x with
   | atom a => simp [Forces, toRootedModel];
-  | bot => simp [Forces];
-  | imp A B ihA ihB => grind;
   | box A ihA =>
     constructor;
     . intro h y Rxy;
@@ -89,6 +87,7 @@ lemma forces_same_of_isInConeOf (hx : x.IsInConeOf r) : Forces (M := toRootedMod
       apply ihA (Model.World.isInConeOf_of_isInConeOf hx Rxy) |>.mpr;
       apply h;
       grind;
+  | _ => grind;
 
 lemma forces_same_at_cone_point {x : (toRootedModel M r).World} : Forces x A ↔ Forces (M := M) x A :=
   forces_same_of_isInConeOf x.property

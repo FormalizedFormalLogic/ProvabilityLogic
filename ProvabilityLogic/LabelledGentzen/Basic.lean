@@ -161,12 +161,11 @@ def loop (x y z : Label) (A : Formula α)
   -- Root-first: `R□^Löb` introduces a fresh successor `z` of `y` (assuming `z : □A`),
   -- `Trans` derives `x R z` from `x R y` and `y R z`, then `L□` unfolds `x : □A` via `z`,
   -- closing with an axiom on `z : A`.
-  have h : Δ = insert (y ∶ □A) (Δ.erase (y ∶ □A)) := by grind;
-  rw [h];
-  apply boxRLob y z A (hfresh := by rw [← h]; exact hz);
-  apply trans x y z (hxy := by grind) (hyz := by grind);
-  apply boxL x z A (hxy := by grind) (hxA := by grind);
-  exact union z A (by grind) (by grind);
+  rw [(show Δ = insert (y ∶ □A) (Δ.erase (y ∶ □A)) by grind)];
+  apply boxRLob y z A;
+  apply trans x y z;
+  apply boxL x z A;
+  exact union z A;
 
 end ProofLabelledGentzen
 

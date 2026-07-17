@@ -244,29 +244,15 @@ variable [DecidableEq α] {A : Formula α}
   - [AB05, Lemma 12]
 -/
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
-  (Rra : M.root.1 ≺ (a : M.World)) :
-  ∀ {C : Formula α}, C ∈ A.subfmls →
+  (Rra : M.root.1 ≺ (a : M.World))
+  {C : Formula α} (hC : C ∈ A.subfmls)
+  :
   (∀ i : Fin k, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inr i) C ↔
     Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl a) C)) ∧
   (∀ x : M.World, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl x) C ↔ x ⊩ C)) := by
   have hane : (a : M.World) ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
-  intro C;
   induction C with
-  | atom p => intro _; exact ⟨fun i => Iff.rfl, fun x => Iff.rfl⟩;
-  | bot => intro _; exact ⟨fun i => Iff.rfl, fun x => Iff.rfl⟩;
-  | imp B C ihB ihC =>
-    intro hBC;
-    obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
-    obtain ⟨ihC₁, ihC₂⟩ := ihC (by grind);
-    constructor;
-    . intro i;
-      show (_ → _) ↔ (_ → _);
-      rw [ihB₁ i, ihC₁ i];
-    . intro x;
-      show (_ → _) ↔ (_ → _);
-      rw [ihB₂ x, ihC₂ x];
   | box B ihB =>
-    intro hB;
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
     have h₂ : ∀ x : M.World, (Forces (M := (M.graft ⟨a, hane⟩ k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
       intro x;
@@ -284,12 +270,13 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
       . exact h (.inl y) (Or.inr Ray);
       . exact absurd Ray hane;
     . intro h;
-      have haB : a.1 ⊩ B := a.2 hB (h₂ a |>.mp h);
+      have haB : a.1 ⊩ B := a.2 (by grind) (h₂ a |>.mp h);
       rintro (y | j) Riy;
-      . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
-        . subst hya; exact ihB₂ _ |>.mpr haB;
+      . rcases Riy with rfl | hay;
+        . exact ihB₂ _ |>.mpr haB;
         . exact h (.inl y) hay;
       . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+  | _ => grind;
 
 end Mainlemma
 
