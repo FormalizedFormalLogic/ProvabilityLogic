@@ -16,10 +16,67 @@ permissions:
   contents: read
 
 jobs:
+  # ── Hydrate + cleanse the dependency layer ─────────────────────────────────────
+  # Absorb ALL the dependency-build noise here, in its own job, so the build job is clean.
+  #   • mathlib comes from `lake exe cache get` (downloaded oleans carry no per-module log → silent).
+  #   • Foundation is a git dependency with NO public olean cache, so it compiles from source and
+  #     emits many lint/deprecation warnings that are upstream's, not ours. We build it once here,
+  #     then CLEAR its cached build logs so they don't `Replayed`-spam the build job.
+  # The built+cleansed Foundation is handed to the build job via a manifest-keyed cache — we
+  # deliberately do NOT cache mathlib's oleans here, since `cache get` re-hydrates those fast.
+  # Keyed on toolchain+manifest, so Foundation only recompiles when its pinned rev bumps.
+  deps:
+    name: Build Foundation (cached)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Probe the Foundation cache FIRST. On a hit every step below is skipped and the post-job
+      # save re-affirms the existing entry — no wasted elan setup, mathlib `cache get`, or
+      # Foundation build. Only on a MISS do we build from source.
+      - name: Cache Foundation build (keyed on toolchain + manifest)
+        id: foundation-cache
+        uses: actions/cache@v6
+        with:
+          path: .lake/packages/Foundation/.lake/build
+          key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+      - name: Setup elan
+        if: steps.foundation-cache.outputs.cache-hit != 'true'
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Get Mathlib cache
+        if: steps.foundation-cache.outputs.cache-hit != 'true'
+        run: lake exe cache get
+      - name: Build Foundation from source (cache miss only)
+        if: steps.foundation-cache.outputs.cache-hit != 'true'
+        run: lake build Foundation
+      # Modern Lake stores each module's build diagnostics in its `.trace` file's `"log"` array and
+      # RE-EMITS them (`⚠ Replayed`) on every downstream build. Emptying `"log"` drops the replay
+      # WITHOUT touching the `.olean` (no recompile, diagnostics vanish, build stays green).
+      # Runs on a cache miss only: a hit's saved cache is already cleared.
+      - name: Clear Foundation's replayed-warning cache
+        if: steps.foundation-cache.outputs.cache-hit != 'true'
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          root = pathlib.Path('.lake/packages/Foundation/.lake/build')
+          cleared = 0
+          for t in root.rglob('*.trace'):
+              try:
+                  d = json.loads(t.read_text())
+              except (ValueError, OSError):
+                  continue
+              if d.get('log'):
+                  d['log'] = []
+                  t.write_text(json.dumps(d))
+                  cleared += 1
+          print(f'cleared warning cache in {cleared} Foundation trace(s)')
+          PY
+
   build:
     name: Build project
+    needs: deps
     runs-on: ubuntu-latest
-    needs: mk-all-check
     steps:
       - uses: actions/checkout@v7
       - name: Setup elan
@@ -27,19 +84,29 @@ jobs:
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      # Restore project cache
       - name: Get Mathlib cache
         run: lake exe cache get
-      - name: Restore cache
+      # Restore the Foundation build cleansed by `deps` (guaranteed present via `needs: deps`).
+      - name: Restore Foundation build (warnings cleared)
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages/Foundation/.lake/build
+          key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          fail-on-cache-miss: true
+
+      # Incremental cache of the project's own build (`lake pack` archives only the root package's
+      # buildDir, ~tens of MB). Cache entries are immutable, so the primary key includes the commit
+      # SHA to always save a fresh entry; restore falls back to the newest same-manifest entry.
+      # No branch name in the key: GitHub's cache branch scoping already isolates PR caches and
+      # lets them read main's entries via the restore-keys prefix.
+      - name: Restore project cache
         id: cache-restore
         uses: actions/cache/restore@v6
         with:
           path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
-          # NOTE: including github branch name and SHA for avoding cache key reserving problem
-          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.ref_name }}-${{ github.sha }}
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
           restore-keys: |
-            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.ref_name }}
-            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}
+            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
       - name: Unpack project cache
         if: hashFiles('.lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz') != ''
         run: lake unpack
@@ -139,7 +206,6 @@ jobs:
              "$GITHUB_WORKSPACE/import_graph.pdf" \
              "$GITHUB_WORKSPACE/import_graph.html" \
              pages/
-
       - uses: actions/upload-pages-artifact@v5
         with:
           path: pages
