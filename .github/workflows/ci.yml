@@ -16,24 +16,12 @@ permissions:
   contents: read
 
 jobs:
-  # ── Hydrate + cleanse the dependency layer ─────────────────────────────────────
-  # Absorb ALL the dependency-build noise here, in its own job, so the build job is clean.
-  #   • mathlib comes from `lake exe cache get` (downloaded oleans carry no per-module log → silent).
-  #   • Foundation is a git dependency with NO public olean cache, so it compiles from source and
-  #     emits many lint/deprecation warnings that are upstream's, not ours. We build it once here,
-  #     then CLEAR its cached build logs so they don't `Replayed`-spam the build job.
-  # The built+cleansed Foundation is handed to the build job via a manifest-keyed cache — we
-  # deliberately do NOT cache mathlib's oleans here, since `cache get` re-hydrates those fast.
-  # Keyed on toolchain+manifest, so Foundation only recompiles when its pinned rev bumps.
   deps:
     name: Build Foundation (cached)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # Probe the Foundation cache FIRST. On a hit every step below is skipped and the post-job
-      # save re-affirms the existing entry — no wasted elan setup, mathlib `cache get`, or
-      # Foundation build. Only on a MISS do we build from source.
-      - name: Cache Foundation build (keyed on toolchain + manifest)
+      - name: Cache Foundation build
         id: foundation-cache
         uses: actions/cache@v6
         with:
@@ -47,13 +35,10 @@ jobs:
       - name: Get Mathlib cache
         if: steps.foundation-cache.outputs.cache-hit != 'true'
         run: lake exe cache get
-      - name: Build Foundation from source (cache miss only)
+      - name: Build Foundation
         if: steps.foundation-cache.outputs.cache-hit != 'true'
         run: lake build Foundation
-      # Modern Lake stores each module's build diagnostics in its `.trace` file's `"log"` array and
-      # RE-EMITS them (`⚠ Replayed`) on every downstream build. Emptying `"log"` drops the replay
-      # WITHOUT touching the `.olean` (no recompile, diagnostics vanish, build stays green).
-      # Runs on a cache miss only: a hit's saved cache is already cleared.
+      # Empty each module's `.trace` log so Foundation's warnings are not replayed downstream.
       - name: Clear Foundation's replayed-warning cache
         if: steps.foundation-cache.outputs.cache-hit != 'true'
         run: |
@@ -86,19 +71,14 @@ jobs:
 
       - name: Get Mathlib cache
         run: lake exe cache get
-      # Restore the Foundation build cleansed by `deps` (guaranteed present via `needs: deps`).
-      - name: Restore Foundation build (warnings cleared)
+      - name: Restore Foundation build
         uses: actions/cache/restore@v6
         with:
           path: .lake/packages/Foundation/.lake/build
           key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
           fail-on-cache-miss: true
 
-      # Incremental cache of the project's own build (`lake pack` archives only the root package's
-      # buildDir, ~tens of MB). Cache entries are immutable, so the primary key includes the commit
-      # SHA to always save a fresh entry; restore falls back to the newest same-manifest entry.
-      # No branch name in the key: GitHub's cache branch scoping already isolates PR caches and
-      # lets them read main's entries via the restore-keys prefix.
+      # Cache entries are immutable, so the key includes the commit SHA to always save fresh.
       - name: Restore project cache
         id: cache-restore
         uses: actions/cache/restore@v6
