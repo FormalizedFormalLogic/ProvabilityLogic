@@ -94,6 +94,9 @@ jobs:
       - name: Build ProvabilityLogic
         run: lake build ProvabilityLogic
 
+      - name: Build docs
+        run: lake build ProvabilityLogic:docs
+
       - name: Check environment with leanchecker
         run: lake env leanchecker ProvabilityLogic
 
@@ -117,6 +120,7 @@ jobs:
         with:
           name: lean-artifacts
           path: |
+            .lake/build/doc
             import_graph.png
             import_graph.pdf
             import_graph.html
@@ -182,6 +186,7 @@ jobs:
       - name: Copy from artifacts to pages
         run: |
           mkdir -p pages
+          cp -r "$GITHUB_WORKSPACE/.lake/build/doc" pages/docs
           cp "$GITHUB_WORKSPACE/import_graph.png" \
              "$GITHUB_WORKSPACE/import_graph.pdf" \
              "$GITHUB_WORKSPACE/import_graph.html" \
