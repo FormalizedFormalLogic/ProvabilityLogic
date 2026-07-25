@@ -103,7 +103,7 @@ instance : DecidablePred (Formula.IsBox (α := α)) := λ A => by
   case atom | bot | imp => exact isFalse $ by grind;
 
 /-- Typst math-mode source for this formula, using `curryst`'s `class("unary", ·)` idiom
-for the modalities (see the `.notes/unpublished/*.typ` project notes). Always parenthesizes
+for the modalities. Always parenthesizes
 a `→`, since as a subformula its scope would otherwise be ambiguous; used for every
 subformula occurrence. `Formula.toString` (below) is the top-level entry point, which omits
 these parentheses around the formula's own outermost `→`, since nothing there needs

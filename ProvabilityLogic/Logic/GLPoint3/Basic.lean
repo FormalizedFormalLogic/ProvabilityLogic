@@ -412,7 +412,6 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
     obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hB;
     exact hall A hA;
   have hfinal : ⊢ʰ (X ⋏ ◇Y) 🡒 theta {D} Δ' := by
-    show ⊢ʰ (X ⋏ ◇Y) 🡒 _;
     unfold theta;
     simp only [Finset.image_singleton, FormulaFinset.conj_singleton];
     exact ProvableHilbert.ctxAndIntroRule ProvableHilbert.andL
