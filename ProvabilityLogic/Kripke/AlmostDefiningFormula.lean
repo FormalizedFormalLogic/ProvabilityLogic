@@ -245,10 +245,11 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
     refine ⟨.inl a.1, Rra, fun j _ => Or.inl rfl, ?_, ?_⟩ <;>
       rw [inl_forces_boxItr_bot_iff hane] <;>
       omega;
-  . refine ⟨.inr (m - a.1.rank - 1), ?_, fun j hj => ?_, ?_, ?_⟩;
+  . refine ⟨.inr (m - a.1.rank - 1), ?_, ?_, ?_, ?_⟩;
     . show M.root.1 = M.root.1;
       rfl;
-    . show m - a.1.rank - 1 < j;
+    . intro j hj;
+      show m - a.1.rank - 1 < j;
       omega;
     . rw [inr_forces_boxItr_bot_iff Rra];
       omega;
@@ -748,7 +749,8 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA (fun q => (hC q).1);
     obtain ⟨k₂, h₂⟩ := ihB (fun q => (hC q).2);
-    refine ⟨max k₁ k₂, fun n hn => ?_⟩;
+    refine ⟨max k₁ k₂, ?_⟩;
+    intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
     constructor;
@@ -756,7 +758,9 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A ihA =>
     by_cases h : (M.graftOmega a).root.1 ⊩ (□A);
-    . refine ⟨0, fun n _ => iff_of_true ?_ h⟩;
+    . refine ⟨0, ?_⟩;
+      intro n _;
+      refine iff_of_true ?_ h;
       rintro (y | j) Rny;
       . apply (coneTail_embed_modal_equivalent Rra y).mp;
         exact h (Sum.inl y.1) (root_rel_inl_of_isInConeOf Rra y.2);
@@ -773,13 +777,19 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
       . -- the refuting point is a cone point (no lateral cones), visible from every
         -- chain point of the tail model
         have hx : x.IsInConeOf a := hlat x Rrw;
-        refine ⟨0, fun n _ => iff_of_false (fun hbox => ?_) h⟩;
+        refine ⟨0, ?_⟩;
+        intro n _;
+        refine iff_of_false ?_ h;
+        intro hbox;
         apply hwA;
         apply (coneTail_embed_modal_equivalent Rra ⟨x, hx⟩).mpr;
         exact hbox (Sum.inl ⟨x, hx⟩) trivial;
       . -- the refuting point is a grafted chain point, visible from every later
         -- chain point of the tail model
-        refine ⟨i + 1, fun n hn => iff_of_false (fun hbox => ?_) h⟩;
+        refine ⟨i + 1, ?_⟩;
+        intro n hn;
+        refine iff_of_false ?_ h;
+        intro hbox;
         apply hwA;
         apply (coneTail_chainPoint_modal_equivalent Rra i).mpr;
         apply hbox (Sum.inr (i : ℕ∞));
