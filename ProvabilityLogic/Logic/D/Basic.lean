@@ -237,7 +237,9 @@ lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
       rintro (w | i) hw;
       · exact ⟨0, fun n _ => toPseudoTail.rel_chainPoint_embed⟩;
       · have hi : i < (⊤ : ℕ∞) := toPseudoTail.rel_chainPoint_chainPoint.mp hw;
-        refine ⟨i.toNat, fun n hn => toPseudoTail.rel_chainPoint_chainPoint.mpr ?_⟩;
+        refine ⟨i.toNat, ?_⟩;
+        intro n hn;
+        apply toPseudoTail.rel_chainPoint_chainPoint.mpr;
         calc i = ((i.toNat : ℕ) : ℕ∞) := (ENat.coe_toNat hi.ne).symm
           _ < ((n : ℕ) : ℕ∞) := by exact_mod_cast hn;
     obtain ⟨k₁, hk₁⟩ := key x Rrx;

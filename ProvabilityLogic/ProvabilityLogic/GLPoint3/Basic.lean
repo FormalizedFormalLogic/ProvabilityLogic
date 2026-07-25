@@ -241,10 +241,6 @@ variable {κ : Type u} [Nonempty κ]
 
 open Model Model.World
 
-/- NOTE: forcing of a lifted letterless formula depends only on the rank (cf. [VS83, Lemma 5]);
-this is the existing (sorry-free) lemma
-`Model.iff_forces_lift_rank_mem_spectrum` in `ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace`. -/
-
 /-- In a finite rooted linear GL model, the rank determines the world: `rank` is
 injective. -/
 lemma RootedModel.eq_of_rank_eq {M : RootedModel κ α} [Fintype M.World] [M.IsFiniteGLPoint3]
@@ -371,7 +367,7 @@ realization of `A` is unprovable in `T` (provided `T.height = ⊤`, e.g. `T = �
 -/
 theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   (∀ f : StandardConsistencyRealization α T, T ⊢ f A) → A ∈ LogicGLPoint3 := by
-  -- Following §5 of the paper, without Solovay sentences: take a finite rooted linear
+  -- Following [VS83, §5], without Solovay sentences: take a finite rooted linear
   -- countermodel of `A` (Kripke completeness of `GLPoint3`, `LogicGLPoint3.iff_forces_root`),
   -- replace each atom `a` by the letterless formula `ψ*(a) = rankDisj H(a)` whose spectrum
   -- is the set of ranks at which `a` is forced; since ranks determine worlds in a linear

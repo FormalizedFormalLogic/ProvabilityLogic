@@ -3,16 +3,17 @@ module
 public import ProvabilityLogic.LabelledGentzen.Basic
 public import Mathlib.Combinatorics.Pigeonhole
 
+/-!
+Looping sequents are provable, and the pigeonhole argument underlying the
+termination of proof search: along a chain of relational atoms longer than
+the number of available boxed formulas, some boxed formula repeats at both
+ends of a subchain, so the sequent is provable by looping.
+
+- [Neg14, Lemma 5.2, Theorem 5.5]
+-/
+
 @[expose]
 public section
-
-/-!
-Looping sequents are provable (`[Neg14]` Lemma 5.2), and the pigeonhole
-argument underlying the termination of proof search (`[Neg14]` Theorem 5.5):
-along a chain of relational atoms longer than the number of available boxed
-formulas, some boxed formula repeats at both ends of a subchain, so the
-sequent is provable by Lemma 5.2.
--/
 
 open LabelledGentzen
 

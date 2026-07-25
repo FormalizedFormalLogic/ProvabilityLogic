@@ -16,11 +16,13 @@ structure TwoLayeredSequent (α : Type u) extends Sequent α where
 notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
 
 /--
-  Sequent calculus for the logic `S` ([KK23], "`GLSseq`"; PLPL §2, "`𝗚𝐒`"),
-  formulated with a single sequent relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 2`.
-  `l = 0` is the level-1 (GL) sequent, coinciding with `ProvabilityLogic.Gentzen.ProofGentzen`;
-  `l = 1` is the level-2 (S) sequent, obtained from the level-1 one by additionally
-  allowing the reflexivity rule `boxL`.
+  Sequent calculus for the logic `S` (also called `GLSseq` in the literature, or `𝗚𝐒` in PLPL §2),
+  formulated with a single sequent relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 2`. `l = 0` is
+  the level-1 (GL) sequent, coinciding with `ProvabilityLogic.Gentzen.ProofGentzen`; `l = 1` is
+  the level-2 (S) sequent, obtained from the level-1 one by additionally allowing the reflexivity
+  rule `boxL`.
+
+  - [KK23, "GLSseq"]
 -/
 inductive LogicS.ProofGentzen : TwoLayeredSequent α → Type u
 | axm (l) (A)      : ProofGentzen ({A} ⟹[l] {A})
@@ -146,9 +148,10 @@ lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : �
 end LogicS
 
 /--
-  `LogicS.ProofGentzen` extended with a level-preserving cut rule
-  (KK23, PLPL §2, `Cut^l_l`). This is the "with cut" calculus alongside which
-  `LogicS.ProofGentzen` is cut-free.
+  `LogicS.ProofGentzen` extended with a level-preserving cut rule (called `Cut^l_l` in PLPL §2).
+  This is the "with cut" calculus alongside which `LogicS.ProofGentzen` is cut-free.
+
+  - [KK23]
 -/
 inductive LogicS.GentzenWithCutProof : TwoLayeredSequent α → Type u
 | axm (l) (A)      : GentzenWithCutProof ({A} ⟹[l] {A})
@@ -186,9 +189,10 @@ namespace GentzenWithCutProvable
 variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
 /--
-  KK23 Theorem 3.1, `5 ⇒ 6`: cut-free provability of `LogicS.ProofGentzen` implies
-  provability of the with-cut calculus `LogicS.GentzenWithCutProof` (a fortiori, adding the
-  cut rule can only add proofs).
+  Cut-free provability of `LogicS.ProofGentzen` implies provability of the with-cut calculus
+  `LogicS.GentzenWithCutProof` (a fortiori, adding the cut rule can only add proofs).
+
+  - [KK23, Theorem 3.1]
 -/
 theorem of_without_cut : ⊢ᴳ S → ⊢ᴳᶜ S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 

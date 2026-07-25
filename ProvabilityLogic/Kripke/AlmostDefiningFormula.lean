@@ -5,42 +5,36 @@ public import ProvabilityLogic.Kripke.DefiningFormula
 public import ProvabilityLogic.Kripke.Tail
 
 /-!
-# Almost defining formulas for D-models (Bek90 §4, Lemma 9)
+# Almost defining formulas for D-models
 
-This file states **Lemma 9 of [Bek90] §4** for the D-model case, together with the
-supporting notions:
+This file treats the D-model case, together with the supporting notions:
 
 * `RootedModel.StabilizedBisimulationUnder`: a bisimulation-under-`P` whose atomic
-  clause is waived at the root of the second model. This formalizes [Bek90]'s
+  clause is waived at the root of the second model. This formalizes the notion that
   "the *stabilizations* are `p̄`-isomorphic": two D-models agree everywhere except
   possibly in the valuation of their minimum points;
-* `RootedModel.AlmostDefines`: the *almost defining formula* property for D-models
-  (Remarks 1-2 of [Bek90] §4, p.265), the D-model analogue of
-  `RootedModel.IsDefiningFormula`;
+* `RootedModel.AlmostDefines`: the *almost defining formula* property for D-models,
+  the D-model analogue of `RootedModel.IsDefiningFormula`;
 * `RootedModel.graftOmega.phi0` and the lemmas around it
   (`forces_dia_and_valuationConj_of_not_forces_boxItr`,
   `forces_fdisj_charFormulaUnder_of_forces_boxItr`, `val_eq_of_forces_phi0`): the
-  D-model form of `Φ₀` (Remark 1) together with the direct consequences of it being
-  forced at the root of *another* `P`-simple D-model-shaped ω-model -- the D-model
-  specialization of Lemma 9.1 (p.264), which in this case needs no auxiliary
-  "largest shallow-enough predecessor" construction since there are no lateral cones
-  to separate `a` from;
-* `RootedModel.graftOmega.exists_almostDefiningFormula` (**Lemma 9 + Remarks 1-2
-  of [Bek90] §4**): every `P`-simple D-model has an *almost defining* formula `Φ₀`.
-  The uniqueness clause (`AlmostDefines.almost_unique`, Remark 2) is proved by an
-  explicit semantic bisimulation instead of the paper's `P`-isomorphism: embedded
-  points are related through their characteristic formulas, chain points through
-  their *exact depth* (`exists_exact_depth` and the surrounding lemmas: forcing
-  `□^[m+1]⊥` while refuting `□^[m]⊥`). Since a bisimulation -- unlike an isomorphism
-  -- may relate chain points of the two ω-models of matching depth regardless of
-  where the respective base trees end, neither Lemma 9.2 (the branch-point depth
-  bound) nor the `P`-simplicity of the other model is needed, mirroring how Lemma 7
-  (`RootedModel.exists_isDefiningFormula`) sheds its simpleness hypothesis under the
-  bisimulation formulation;
-* the "stabilization" transfer needed on the `LogicS` side (Lemma 4 of [Bek90] §4 in
-  the form needed here): a modalized formula forced at the root of a D-model
-  `M.graftOmega a` is eventually forced along the chain of the *tail model* over
-  the cone of `a` (`RootedModel.graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`).
+  D-model form of `Φ₀` together with the direct consequences of it being forced at
+  the root of *another* `P`-simple D-model-shaped ω-model -- the D-model
+  specialization, which in this case needs no auxiliary "largest shallow-enough
+  predecessor" construction since there are no lateral cones to separate `a` from;
+* `RootedModel.graftOmega.exists_almostDefiningFormula`: every `P`-simple D-model
+  has an *almost defining* formula `Φ₀`. Uniqueness (`AlmostDefines.almost_unique`)
+  is proved via an explicit semantic bisimulation rather than the paper's
+  `P`-isomorphism -- embedded points matched by their characteristic formulas,
+  chain points by their *exact depth* (`exists_exact_depth`) -- which needs neither
+  a branch-point depth bound nor the `P`-simplicity of the other model, mirroring
+  how `RootedModel.exists_isDefiningFormula` sheds its simpleness hypothesis;
+* the "stabilization" transfer needed on the `LogicS` side: a modalized formula
+  forced at the root of a D-model `M.graftOmega a` is eventually forced along the
+  chain of the *tail model* over the cone of `a`
+  (`RootedModel.graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`).
+
+- [Bek90, Lemma 9, Remarks 1-2, Lemma 4 (§4)]
 -/
 
 @[expose]
@@ -251,10 +245,11 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
     refine ⟨.inl a.1, Rra, fun j _ => Or.inl rfl, ?_, ?_⟩ <;>
       rw [inl_forces_boxItr_bot_iff hane] <;>
       omega;
-  . refine ⟨.inr (m - a.1.rank - 1), ?_, fun j hj => ?_, ?_, ?_⟩;
+  . refine ⟨.inr (m - a.1.rank - 1), ?_, ?_, ?_, ?_⟩;
     . show M.root.1 = M.root.1;
       rfl;
-    . show m - a.1.rank - 1 < j;
+    . intro j hj;
+      show m - a.1.rank - 1 < j;
       omega;
     . rw [inr_forces_boxItr_bot_iff Rra];
       omega;
@@ -514,17 +509,9 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree]
     haveI := hGL.toIsTrans;
     haveI : Std.Irrefl (N.graftOmega c').Rel :=
       @ConverseWellFounded.irrefl _ _ hGL.toIsConverseWellFounded;
-    -- **Remark 2 (p.265)**. The required stabilized bisimulation is defined
-    -- semantically: the two roots are related; an embedded point `x` of the D-model
-    -- is related to the points of `N.graftOmega c'` forcing its characteristic
-    -- formula `φ_x`; the chain point `chainPoint i` (of exact depth `i + 1 + a.1.rank`)
-    -- is related to the points of exact depth `i + 1 + a.1.rank`. Unlike the paper's
-    -- `P`-isomorphism, a bisimulation may relate chain points of the two ω-models of
-    -- matching depth regardless of where the respective base trees end, so no
-    -- Lemma 9.2-style branch-point analysis (nor `P`-simplicity of the other model)
-    -- is needed: `Φ₀` provides the forth/back transfers directly through Lemma 9.1
-    -- (its first conjunct for the deep points, its second conjunct for the shallow
-    -- ones) and the exact-depth lemmas above.
+    -- Unlike a `P`-isomorphism, this bisimulation may relate chain points of the two
+    -- ω-models of matching depth regardless of where the respective base trees end,
+    -- so no branch-point depth analysis is needed.
     refine ⟨{
       toRel := fun u v =>
         (u = (M.graftOmega a).root.1 ∧ v = (N.graftOmega c').root.1) ∨
@@ -762,7 +749,8 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA (fun q => (hC q).1);
     obtain ⟨k₂, h₂⟩ := ihB (fun q => (hC q).2);
-    refine ⟨max k₁ k₂, fun n hn => ?_⟩;
+    refine ⟨max k₁ k₂, ?_⟩;
+    intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
     constructor;
@@ -770,7 +758,9 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A ihA =>
     by_cases h : (M.graftOmega a).root.1 ⊩ (□A);
-    . refine ⟨0, fun n _ => iff_of_true ?_ h⟩;
+    . refine ⟨0, ?_⟩;
+      intro n _;
+      refine iff_of_true ?_ h;
       rintro (y | j) Rny;
       . apply (coneTail_embed_modal_equivalent Rra y).mp;
         exact h (Sum.inl y.1) (root_rel_inl_of_isInConeOf Rra y.2);
@@ -787,13 +777,19 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
       . -- the refuting point is a cone point (no lateral cones), visible from every
         -- chain point of the tail model
         have hx : x.IsInConeOf a := hlat x Rrw;
-        refine ⟨0, fun n _ => iff_of_false (fun hbox => ?_) h⟩;
+        refine ⟨0, ?_⟩;
+        intro n _;
+        refine iff_of_false ?_ h;
+        intro hbox;
         apply hwA;
         apply (coneTail_embed_modal_equivalent Rra ⟨x, hx⟩).mpr;
         exact hbox (Sum.inl ⟨x, hx⟩) trivial;
       . -- the refuting point is a grafted chain point, visible from every later
         -- chain point of the tail model
-        refine ⟨i + 1, fun n hn => iff_of_false (fun hbox => ?_) h⟩;
+        refine ⟨i + 1, ?_⟩;
+        intro n hn;
+        refine iff_of_false ?_ h;
+        intro hbox;
         apply hwA;
         apply (coneTail_chainPoint_modal_equivalent Rra i).mpr;
         apply hbox (Sum.inr (i : ℕ∞));

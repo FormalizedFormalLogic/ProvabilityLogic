@@ -57,12 +57,8 @@ end LO.FirstOrder.ProvabilityAbstraction.Provability
 variable (κ : Type u) [Nonempty κ] [Finite κ] [DecidableEq α] (A : _root_.Formula α)
 
 /-- A `Fintype` instance for `κ` derived classically from `Finite κ`, local to this file
-and to this specific section variable `κ` (not a generic instance over all `Finite` types,
-so it cannot conflict with unrelated structural `Fintype` instances elsewhere): `κ` is only
-ever finite here, never canonically enumerated, so the enumeration itself never matters,
-only its existence (needed for `Model.World.rank` and for the finite disjunctions `⩖` in
-`ModifiedSolovaySentences` below). This whole development is already classical (`open
-Classical` above) and noncomputable, so deriving `Fintype` via choice here loses nothing. -/
+and to this section variable `κ`: needed for `Model.World.rank` and the finite
+disjunctions `⩖` below, where only the existence of an enumeration matters. -/
 noncomputable local instance : Fintype κ := Fintype.ofFinite κ
 
 /--
@@ -567,7 +563,8 @@ lemma ClimbBeatsWitness.of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {
   obtain ⟨d, hd⟩ := hp;
   obtain ⟨p, hp, hpmin⟩ : ∃ p, Proof T p (neg ℒₒᵣ φ) ∧ ∀ z < p, ¬Proof T z (neg ℒₒᵣ φ) :=
     InductionOnHierarchy.least_number_sigma 𝚺 1 (P := (Proof T · (neg ℒₒᵣ φ))) (by definability) hd;
-  refine ⟨p, hp, fun w hw hθw ↦ ?_⟩;
+  refine ⟨p, hp, ?_⟩;
+  intro w hw hθw;
   unfold WitnessBeatsClimb at h; push Not at h;
   obtain ⟨p', hp'w, hp'proof⟩ := h w hθw;
   exact hpmin p' (lt_of_le_of_lt hp'w hw) hp'proof;
@@ -1046,7 +1043,8 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
               have hk₀prov : Provable T (⌜∼T.modifiedSolovay X σ θ k₀⌝ : V) := by
                 have := Provable.of_witness_of_not_witnessBeatsClimb (T := T) (θ := θ) ⟨w₀, hw₀⟩ hk₀nwin;
                 simpa [Sentence.quote_def, Semiformula.quote_def] using! this;
-              refine ⟨k₀, hib ▸ hbk₀, hk₀r, hk₀prov, fun _ ↦ ?_⟩;
+              refine ⟨k₀, hib ▸ hbk₀, hk₀r, hk₀prov, ?_⟩;
+              intro _;
               exact ClimbBeatsWitness.of_not_witnessBeatsClimb (T := T)
                 (by simpa [Sentence.quote_def, Semiformula.quote_def] using! hk₀prov) hk₀nwin;
             · have hnc : ¬(∀ j, i ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V)) :=
@@ -1055,7 +1053,8 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
               obtain ⟨k₀, hk₀, hk₀r, hk₀c⟩ := hnc;
               have hk₀prov : Provable T (⌜∼T.modifiedSolovay X σ θ k₀⌝ : V) := by
                 simpa [Theory.ConsistentWith.quote_iff] using! hk₀c;
-              refine ⟨k₀, hk₀, hk₀r, hk₀prov, fun _ ↦ ?_⟩;
+              refine ⟨k₀, hk₀, hk₀r, hk₀prov, ?_⟩;
+              intro _;
               have hnw : ¬∃ w, V ⊧/![w] θ.val := fun ⟨w, hw⟩ ↦ hσV (hθσ.mpr ⟨w, hw⟩);
               exact ClimbBeatsWitness.of_no_witness (T := T) hnw
                 (by simpa [Sentence.quote_def, Semiformula.quote_def] using! hk₀prov);
@@ -1076,9 +1075,11 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
             (fun k ↦ ⌜∼T.modifiedSolovay X σ θ k.val⌝) (by simpa using hk₀prov);
         refine ⟨j, hij, ?_⟩;
         simp only [ModifiedStep, if_neg hjr];
-        refine ⟨fun k hik hkr ↦ ?_, fun hib ↦ ?_⟩;
-        · simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hbest ⟨k, hik, hkr⟩;
-        · have hjk₀ : T.ProvabilityComparisonLE (V := V)
+        refine ⟨?_, ?_⟩;
+        · intro k hik hkr;
+          simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hbest ⟨k, hik, hkr⟩;
+        · intro hib;
+          have hjk₀ : T.ProvabilityComparisonLE (V := V)
               ⌜∼T.modifiedSolovay X σ θ j⌝ ⌜∼T.modifiedSolovay X σ θ k₀⌝ := hbest ⟨k₀, hik₀, hk₀r⟩;
           have hle : T.ProvabilityComparisonLE (V := V)
               (neg ℒₒᵣ (⌜T.modifiedSolovay X σ θ j⌝ : V)) (neg ℒₒᵣ (⌜T.modifiedSolovay X σ θ k₀⌝ : V)) := by

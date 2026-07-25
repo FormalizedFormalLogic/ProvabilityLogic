@@ -5,15 +5,15 @@ meta import ProvabilityLogic.LabelledGentzen.Basic
 meta import ProvabilityLogic.LabelledGentzen.Search
 meta import LeanTypst.EvalTypst
 
-@[expose]
-public section
-
 /-!
 Display-only printers for `G3KGL` labelled sequents and proof-search traces. None of
 this is used by `ProvabilityLogic.LabelledGentzen.Basic`/`ProvabilityLogic.LabelledGentzen.Search`'s
 mathematical content; it is kept in its own file so that those stay free of printing
 concerns.
 -/
+
+@[expose]
+public section
 
 namespace LabelledGentzen
 

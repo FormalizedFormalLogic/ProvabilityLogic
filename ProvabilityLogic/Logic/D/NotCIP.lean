@@ -3,20 +3,20 @@ module
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.Logic.GL.Fixedpoint
 
-@[expose]
-public section
-
 /-!
 # Dzhaparidze's logic `D` does not possess Craig's interpolation property
-
-Formalization of [Bek89], Section 8.
 
 The counterexample uses the two formulas
 * `A = □(□b ⋎ a) 🡒 □b`
 * `B = □(a 🡒 □c) 🡒 □c`
 
 and shows that `∼A 🡒 B` is provable in `D` (Lemma 9) while no interpolant exists.
+
+- [Bek89, Section 8]
 -/
+
+@[expose]
+public section
 
 universe u
 variable {α : Type u}
@@ -457,7 +457,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
         simp only [Formula.subfmlsS, Finset.mem_image];
         exact ⟨E, hE, rfl⟩);
     have hC'mem : C.modalize ∈ (C.modalize 🡘 #a).subfmls := by grind;
-    -- Step 1: root-forcing of `C'` transfers to the root of the tail model.
+    -- Root-forcing of `C'` transfers to the root of the tail model.
     have hstep1 : M.root.1 ⊩ C.modalize ↔
         Forces (M := (M.toModel.toTail M.root.1).toModel) (toTail.chainPoint ⊤)
           (C.modalize) := by
@@ -470,7 +470,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
         obtain ⟨k, hk⟩ := (toTail.tailLemma (C.modalize)).mp h;
         exact (toTail.root_forces_iff_forces_nat (fun E hE => Formula.subfmls_trans hE) hΓ
           (C.modalize) hC'mem k).mpr (hk k le_rfl);
-    -- Step 2: the tail model is the pseudo-tail whose lower valuation is that of the root.
+    -- The tail model is the pseudo-tail whose lower valuation is that of the root.
     have hstep2 : Forces (M := (M.toModel.toTail M.root.1).toModel)
         (toTail.chainPoint ⊤) (C.modalize) ↔
         Forces (M := (M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel)

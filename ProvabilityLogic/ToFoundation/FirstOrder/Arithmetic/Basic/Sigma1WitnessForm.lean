@@ -194,12 +194,14 @@ lemma exists_bound_witness {n : ℕ} {θ : ArithmeticSemiformula Empty (n + 2)} 
     · rintro y ⟨w, hw⟩;
       by_cases hya : y < a;
       · obtain ⟨u₀, hu₀⟩ := h y hya;
-        refine ⟨max w u₀, fun x hx _ => ?_⟩;
+        refine ⟨max w u₀, ?_⟩;
+        intro x hx _;
         rcases le_iff_lt_or_eq.mp (Arithmetic.lt_succ_iff_le.mp hx) with hx | rfl;
         · obtain ⟨u, hu, hPu⟩ := hw x hx (lt_trans hx hya);
           exact ⟨u, le_trans hu (le_max_left w u₀), hPu⟩;
         · exact ⟨u₀, le_max_right w u₀, hu₀⟩;
-      · refine ⟨w, fun x hx hxa => ?_⟩;
+      · refine ⟨w, ?_⟩;
+        intro x hx hxa;
         rcases le_iff_lt_or_eq.mp (Arithmetic.lt_succ_iff_le.mp hx) with hx | rfl;
         · exact hw x hx hxa;
         · exact absurd hxa hya;

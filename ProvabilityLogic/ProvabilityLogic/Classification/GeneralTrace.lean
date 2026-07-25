@@ -341,7 +341,6 @@ lemma subset_LogicGLAlpha_LogicS : LogicGLAlpha Alpha ⊆ @LogicS α := by
   | mem₁ hA => exact Logic.sumQuasiNormal.mem₁ hA;
   | mem₂ hA =>
     obtain ⟨A, ⟨i, _, rfl⟩, rfl⟩ := hA;
-    -- TODO: extract for all TBB instances are theorem of LogicS
     apply Logic.sumQuasiNormal.mem₂;
     use □^[i]⊥
     grind;
@@ -354,8 +353,7 @@ lemma LogicS.eq_trace : (@LogicS α).trace = Set.univ := by
   intro i;
   use (TBB i);
   constructor;
-  . -- TODO: extract for all TBB instances are theorem of LogicS
-    apply Logic.sumQuasiNormal.mem₂;
+  . apply Logic.sumQuasiNormal.mem₂;
     use □^[i]⊥
     grind;
   . grind;

@@ -7,11 +7,13 @@ public import ProvabilityLogic.Formula.Substitution
 
 This file collects purely syntactic notions around *modalization* of a `Formula`:
 
-- `Formula.ModalizedIn`: `p` occurs only in the scope of `□` in `A` ([SV82]: "`p` is
-  modalized in `A`").
+- `Formula.ModalizedIn`: `p` occurs only in the scope of `□` in `A` (termed "`p` is modalized
+  in `A`" in the source).
 - `Formula.Modalized`: every atom of `A` is modalized in `A`.
 - `Formula.modalize`: replace every non-modalized atom of `A` by `⊥`, turning `A` into a
   `Modalized` formula.
+
+- [SV82]
 -/
 
 @[expose]
@@ -23,7 +25,10 @@ namespace Formula
 
 variable {p q : α} {A B C : Formula α}
 
-/-- `p` occurs only in the scope of `□` in `A` ([SV82]: "`p` is modalized in `A`"). -/
+/-- `p` occurs only in the scope of `□` in `A` (termed "`p` is modalized in `A`" in the source).
+
+- [SV82]
+-/
 @[grind]
 def ModalizedIn (p : α) : Formula α → Prop
   | #a    => a ≠ p

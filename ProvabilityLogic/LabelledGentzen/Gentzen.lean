@@ -3,23 +3,15 @@ module
 public import ProvabilityLogic.Gentzen.Kripke
 public import ProvabilityLogic.LabelledGentzen.Kripke
 
-@[expose]
-public section
-
 /-!
 Syntactic embedding of the label-free Gentzen calculus (`ProvableGentzen`/`⊢ᵍ`) into
-Negri's labelled sequent calculus (`ProvableLabelledGentzen`/`⊢ˡ`).
-
-The embedding is by structural induction on `ProvableGentzen` (via `ProvableGentzen.rec`),
-through the generalized statement `ProvableGentzen.toLabelledGentzenAux`: each antecedent
-formula `B` of the label-free sequent is represented in the labelled antecedent either
-directly as `z ∶ B`, or (for `B = □C`) as `x ∶ □C` at some `R`-predecessor `x` of `z`.
-The latter representation is what makes the `boxGL` case go through: after `R□^Löb`
-introduces a fresh label `y`, the boxed context `Γ.box` stays at `z`, and is transferred to
-`y` on demand by `Trans` (`ProvableLabelledGentzen.transMany`) and `L□`
-(`ProvableLabelledGentzen.boxLMany`), while a boxed formula meeting its succedent copy across
-a relational atom is closed by `loop`.
+Negri's labelled sequent calculus (`ProvableLabelledGentzen`/`⊢ˡ`): every `ProvableGentzen`
+derivation of a label-free sequent gives a `ProvableLabelledGentzen` derivation of its
+translation `Sequent.toLabelled`.
 -/
+
+@[expose]
+public section
 
 open LabelledGentzen
 

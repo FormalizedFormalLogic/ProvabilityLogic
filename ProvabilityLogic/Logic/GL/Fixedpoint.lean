@@ -7,23 +7,22 @@ public import ProvabilityLogic.Kripke.Overwrite
 /-!
 # Fixed point theorem for GL via Gentzen-style sequent calculus
 
-Following [SV82], Section 4, we prove the fixed point theorem for GL using the cut-free
-sequent calculus `ProofGentzen` and the Maehara interpolation developed in
-`ProvabilityLogic.Gentzen.Maehara`.
+We prove the fixed point theorem for GL using the cut-free sequent calculus `ProofGentzen` and the
+Maehara interpolation developed in `ProvabilityLogic.Gentzen.Maehara`.
 
 Main ingredients:
 - `Formula.ModalizedIn`: `p` occurs only in the scope of `□` in `A`.
 - `ProvableGentzen.subst`: the calculus is closed under substitution.
 - `ProvableGentzen.ruleLoeb`: Löb's rule is admissible (via cut admissibility).
-- `ProvableGentzen.remove_modalized_atom_ant`/`suc` [SV82, Corollary 3.8]:
-  a modalized atom can be removed from a provable sequent.
-  Instead of [SV82]'s proof-theoretic argument via the decision procedure, we give a
-  semantic proof: flip the valuation of `p` at a single world of a finite countermodel;
-  since GL-models are transitive and irreflexive, this does not affect formulas in which
-  `p` is modalized.
-- `ProvableGentzen.fixpoint_uniqueness` [SV82, Lemma 4.3, UF]: proved semantically via
-  completeness and converse well-founded induction.
-- `ProvableGentzen.fixpoint_existence` [SV82, Theorem 4.4]: via Maehara interpolation.
+- `ProvableGentzen.remove_modalized_atom_ant`/`suc`: a modalized atom can be removed from a
+  provable sequent, via a semantic proof that flips the valuation of `p` at a single world of a
+  finite countermodel; since GL-models are transitive and irreflexive, this does not affect
+  formulas in which `p` is modalized.
+- `ProvableGentzen.fixpoint_uniqueness`: proved semantically via completeness and converse
+  well-founded induction.
+- `ProvableGentzen.fixpoint_existence`: via Maehara interpolation.
+
+- [SV82, Section 4, Corollary 3.8, Lemma 4.3, Theorem 4.4]
 -/
 
 @[expose]
@@ -103,9 +102,12 @@ lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula
     . intro hf y Rxy
       exact (forces_subst_single_iff_of_agree A y (hy y Rxy)).mpr (hf y Rxy)
 
-/-- Semantic core of the uniqueness of fixed points [SV82, Lemma 4.3]:
+/-- Semantic core of the uniqueness of fixed points:
 if `A 🡘 p` and `A⟦p ↦ q⟧ 🡘 q` hold at `x` and hereditarily above `x`,
-then `p` and `q` agree at `x` and hereditarily above `x`. -/
+then `p` and `q` agree at `x` and hereditarily above `x`.
+
+- [SV82, Lemma 4.3]
+-/
 lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
     (h₁ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A ↔ M.Val y p))
     (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A⟦p ↦ #q⟧ ↔ M.Val y q)) :
@@ -207,16 +209,21 @@ theorem ruleLoeb (h : ⊢ᵍ ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ
   have h₂ : ⊢ᵍᶜ (insert (□A) (Γ ∪ Γ.box) ⟹ {A}) := GentzenWithCutProvable.of_without_cut h
   simpa using GentzenWithCutProvable.cut h₁ h₂
 
-/-! ### Removing modalized atoms ([SV82, Corollary 3.8]; GL.typ, Lemma 3.9)
+/-! ### Removing modalized atoms (GL.typ, Lemma 3.9)
 
-[SV82] proves this by inspecting the proof-search tree of the decision procedure.
-We give a semantic proof instead: take a finite countermodel of `Γ ⟹ Δ` with
+We give a semantic proof: take a finite countermodel of `Γ ⟹ Δ` with
 countermodel world `x`, and overwrite the valuation of `p` at `x`. Since finite
 GL-models are transitive and irreflexive, `x` is not reachable from itself, so the
-truth values at `x` of formulas in which `p` is modalized are unchanged. -/
+truth values at `x` of formulas in which `p` is modalized are unchanged.
 
-/-- [SV82, Corollary 3.8] (antecedent case): if `⊢ᵍ p, Γ ⟹ Δ` and `p` is modalized
-in all formulas of `Γ` and `Δ`, then `⊢ᵍ Γ ⟹ Δ`. -/
+- [SV82, Corollary 3.8]
+-/
+
+/-- Antecedent case: if `⊢ᵍ p, Γ ⟹ Δ` and `p` is modalized
+in all formulas of `Γ` and `Δ`, then `⊢ᵍ Γ ⟹ Δ`.
+
+- [SV82, Corollary 3.8]
+-/
 theorem remove_modalized_atom_ant
     (hΓ : ∀ C ∈ Γ, C.ModalizedIn p) (hΔ : ∀ C ∈ Δ, C.ModalizedIn p)
     (h : ⊢ᵍ (insert (#p) Γ ⟹ Δ)) : ⊢ᵍ (Γ ⟹ Δ) := by
@@ -235,8 +242,11 @@ theorem remove_modalized_atom_ant
     . exact (hM' C (hΓ C hC)).mpr (hant C hC))
   exact hsuc D hD ((hM' D (hΔ D hD)).mp hfD)
 
-/-- [SV82, Corollary 3.8] (succedent case): if `⊢ᵍ Γ ⟹ Δ, p` and `p` is modalized
-in all formulas of `Γ` and `Δ`, then `⊢ᵍ Γ ⟹ Δ`. -/
+/-- Succedent case: if `⊢ᵍ Γ ⟹ Δ, p` and `p` is modalized
+in all formulas of `Γ` and `Δ`, then `⊢ᵍ Γ ⟹ Δ`.
+
+- [SV82, Corollary 3.8]
+-/
 theorem remove_modalized_atom_suc
     (hΓ : ∀ C ∈ Γ, C.ModalizedIn p) (hΔ : ∀ C ∈ Δ, C.ModalizedIn p)
     (h : ⊢ᵍ (Γ ⟹ insert (#p) Δ)) : ⊢ᵍ (Γ ⟹ Δ) := by
@@ -264,12 +274,18 @@ lemma iffR (h₁ : ⊢ᵍ (insert A Γ ⟹ {B})) (h₂ : ⊢ᵍ (insert B Γ ⟹
   . exact impR (by simpa using h₁)
   . exact impR (by simpa using h₂)
 
-/-! ### Uniqueness of fixed points ([SV82, Lemma 4.3]; GL.typ, Lemma 3.8)
+/-! ### Uniqueness of fixed points (GL.typ, Lemma 3.8)
 
 Proved semantically via completeness and converse well-founded induction
-(`Model.World.val_iff_of_fixpoints`). -/
+(`Model.World.val_iff_of_fixpoints`).
 
-/-- [SV82, Lemma 4.3] (UF): fixed points are unique. -/
+- [SV82, Lemma 4.3]
+-/
+
+/-- Fixed points are unique.
+
+- [SV82, Lemma 4.3]
+-/
 theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
     ⊢ᵍ ({⊡(A 🡘 #p), ⊡((A⟦p ↦ #q⟧) 🡘 #q)} ⟹ {(#p : Formula α) 🡘 #q}) := by
   apply Kripke.completeness
@@ -291,7 +307,10 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
     x (.inl rfl)
   grind
 
-/-! ### Existence of fixed points ([SV82, Theorem 4.4]; GL.typ, Lemma 3.10) -/
+/-! ### Existence of fixed points (GL.typ, Lemma 3.10)
+
+- [SV82, Theorem 4.4]
+-/
 
 /-- The premise sequent for the interpolation argument:
 `p, A, □(A 🡘 p), □(A' 🡘 q) ⟹ q, A'` where `A' = A⟦p ↦ q⟧`. -/
@@ -360,7 +379,10 @@ lemma fixpointFormula_atoms (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A
     FormulaFinset.atoms_empty, Formula.atoms] at h
   grind [Formula.atoms]
 
-/-- [SV82, Theorem 4.4] (existence): `⊢ᵍ ∅ ⟹ A⟦p ↦ D⟧ 🡘 D` for the constructed `D`. -/
+/-- Existence: `⊢ᵍ ∅ ⟹ A⟦p ↦ D⟧ 🡘 D` for the constructed `D`.
+
+- [SV82, Theorem 4.4]
+-/
 theorem fixpoint_existence (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
     ⊢ᵍ ((∅ : FormulaFinset α) ⟹
       {(A⟦p ↦ fixpointFormula hpq hA hq⟧) 🡘 fixpointFormula hpq hA hq}) := by
@@ -424,9 +446,12 @@ namespace LogicGL
 
 open Formula
 
-/-- The fixed point theorem for GL ([SV82, Theorem 4.4]; GL.typ, final theorem):
+/-- The fixed point theorem for GL (GL.typ, final theorem):
 for `p` modalized in `A` and a fresh atom `q`, there effectively exists a fixed point `D`
-of `A` containing only atoms of `A` other than `p`. -/
+of `A` containing only atoms of `A` other than `p`.
+
+- [SV82, Theorem 4.4]
+-/
 theorem fixpointTheorem {A : Formula α} {p q : α}
     (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
     ∃ D : Formula α, D.atoms ⊆ A.atoms \ {p} ∧ ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL :=

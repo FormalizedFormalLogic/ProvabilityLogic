@@ -3,15 +3,15 @@ module
 public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.Kripke.Preservation
 
-@[expose]
-public section
-
 /-!
 `ULift`-lifting of a model along its world type. Used to turn a `Fin (n + 1)`-indexed
 countermodel (living in `Type 0`) into a countermodel in an arbitrary universe `Type v`, so
 that Gentzen completeness theorems stated for a fixed universe of worlds can be generalized
 to quantify over all universes.
 -/
+
+@[expose]
+public section
 
 universe v
 

@@ -3,17 +3,16 @@ module
 public import ProvabilityLogic.Kripke.Simplification
 
 /-!
-# Defining formulas for finite GL-models (Bek90 §4, Lemma 7)
+# Defining formulas for finite GL-models
 
-This file defines defining formulas (matching [Bek90] §4) and proves Lemma 7: every
-finite GL-model has a defining formula over any finite set of variables `P`.
+This file defines defining formulas and proves Lemma 7: every finite GL-model has a
+defining formula over any finite set of variables `P`.
 
-[Bek90] cites prior work ([12], [Art86]) for Lemma 7 and states it for models
-simple-under-`P`, with uniqueness up to `P`-isomorphism. ProvabilityLogic's `IsDefiningFormula`
-instead phrases uniqueness via `Model.BisimulationUnder` (bisimilarity-under-`P` of the
-roots), and under this formulation the lemma reduces to the classical characteristic
-formula construction: for each world `x` (by well-founded recursion on `World.rank`)
-take
+[Bek90] states Lemma 7 for models simple-under-`P`, with uniqueness up to
+`P`-isomorphism. ProvabilityLogic's `IsDefiningFormula` instead phrases uniqueness via
+`Model.BisimulationUnder` (bisimilarity-under-`P` of the roots), and under this
+formulation the lemma reduces to the classical characteristic formula construction:
+for each world `x` (by well-founded recursion on `World.rank`) take
 
 `χ_x := p̄^(x) ⋏ ⋀_{x ≺ y} ◇χ_y ⋏ □(⋁_{x ≺ y} χ_y)`
 
@@ -22,9 +21,7 @@ where `p̄^(x)` (`World.valuationConj`) pins down `x`'s valuation on `P`. The re
 (`Model.charBisimulationUnder`), so no simpleness or tree-ness hypotheses are needed
 anywhere.
 
-The next target is Lemma 9 (the ω-model analogue, whose formula `Φ` is spelled out
-explicitly on p.264 of [Bek90] using `TBB`/`□^[N+1]⊥`-style depth markers together
-with the lateral cones' defining formulas).
+- [Bek90, §4, Lemma 7]
 -/
 
 @[expose]
@@ -214,7 +211,7 @@ open scoped Model
 
 /--
   A formula `A` is a **defining formula** for a (finite) GL-model `M` simple-under-`P`
-  (following [12]) if `A` depends only on `P`, is true at `M`'s root, and `M` is
+  if `A` depends only on `P`, is true at `M`'s root, and `M` is
   the *unique* model simple-under-`P` (up to bisimilarity-under-`P` of the roots,
   our surrogate for "`P`-isomorphism", see `Model.BisimulationUnder` in
   `ProvabilityLogic/Kripke/Preservation.lean`) in which `A` is true.

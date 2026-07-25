@@ -66,6 +66,11 @@ variable {A B C : Formula α}
 @[simp, grind .]
 lemma impId : ⊢ʰ A 🡒 A := mdp (mdp (implyS (B := A 🡒 A)) implyK) implyK
 
+-- `orIntroR` is flagged as unreferenced because `induction h <;> grind` never names it
+-- explicitly, but the binder name is not dead: since `rec` is `@[induction_eliminator]`,
+-- this name becomes the case tag used by `induction ... using rec` elsewhere
+-- (e.g. `case orIntroR => ...` in `ProvableHilbert.Letterless`), so it cannot be renamed
+-- to `_` without breaking those call sites.
 set_option linter.unusedVariables false in
 @[induction_eliminator]
 lemma rec

@@ -6,7 +6,7 @@ public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 /-!
 # Logic D as the provability logic of `T + Rfn_Σ₁(T)`
 
-Example 60 in [AB05]: `PL_T(T + Rfn_Σ₁(T)) = D`, generalizing Japaridze's theorem
+`PL_T(T + Rfn_Σ₁(T)) = D`, generalizing Japaridze's theorem
 `D = PL_PA(PA + ω-Con(PA))` to the local `Σ₁`-reflection formulation.
 
 Main definitions and results:
@@ -17,11 +17,13 @@ Main definitions and results:
 - `LogicD.arithmetical_completeness` (the `⊆` half): if `(T ∪ T.localReflection 𝚺 1) ⊢ f A`
   for every standard realization `f` for `T`, then `A ∈ LogicD`; `sorry` for now.
 - `LO.FirstOrder.ArithmeticTheory.unbounded_localReflection`: the instance of the
-  unboundedness theorem ([AB05] Theorem 23) needed for the `⊆` half; `sorry` for now.
+  unboundedness theorem needed for the `⊆` half; `sorry` for now.
 - `LogicD.eq_provabilityLogicRelativeTo_localReflection`: the resulting equality
   `D = PL_T(T ∪ Rfn_Σ₁(T))` for sound `T`.
 - `LogicD.arithmetical_soundness_PA`, `LogicD.eq_provabilityLogic_PA_localReflection`:
   the specializations to `T = 𝗣𝗔`.
+
+- [AB05, Example 60, Theorem 23]
 -/
 
 @[expose] public section

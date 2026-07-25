@@ -4,6 +4,20 @@ public import ProvabilityLogic.ProvabilityLogic.Classification.A_D
 public import ProvabilityLogic.ProvabilityLogic.Classification.D_S
 public import ProvabilityLogic.ProvabilityLogic.S.Basic
 
+/-!
+# Classification of truth provability logics
+
+The truth provability logics, i.e. the logics of the form `PL_T(𝗧𝗔)`, are precisely
+`S`, `D`, `LogicA`, and `LogicGLBetaMinus {n}ᶜ`, according to the soundness properties of `T`:
+
+- `PL_T(𝗧𝗔) = S` iff `T` is sound;
+- `PL_T(𝗧𝗔) = D` iff `T` is `Σ₁`-sound but not sound;
+- `PL_T(𝗧𝗔) = LogicA` iff `T` is not `Σ₁`-sound but of infinite characteristic;
+- `PL_T(𝗧𝗔) = LogicGLBetaMinus {n}ᶜ` iff `T` has characteristic `n` (i.e. `T.height = n`).
+
+- [AB05, Corollary 41]
+-/
+
 @[expose] public section
 
 open Classical
@@ -479,21 +493,6 @@ theorem classification_provability_logics [DecidableEq α] :
 end
 
 
-/-!
-# Classification of truth provability logics
-
-The truth provability logics, i.e. the logics of the form `PL_T(𝗧𝗔)`, are precisely
-`S`, `D`, `LogicA`, and `LogicGLBetaMinus {n}ᶜ`, according to the soundness properties of `T`:
-
-- `PL_T(𝗧𝗔) = S` iff `T` is sound;
-- `PL_T(𝗧𝗔) = D` iff `T` is `Σ₁`-sound but not sound;
-- `PL_T(𝗧𝗔) = LogicA` iff `T` is not `Σ₁`-sound but of infinite characteristic;
-- `PL_T(𝗧𝗔) = LogicGLBetaMinus {n}ᶜ` iff `T` has characteristic `n` (i.e. `T.height = n`).
-
-References:
-- [AB05, Corollary 41]
--/
-
 section trueArith
 
 section heightTrace
@@ -908,7 +907,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     rw [mem_trace_provabilityLogicRelativeTo_TA_iff] at hn;
     exact not_not.mp hn;
   . intro hn;
-    -- Step 1: `∼TBB n` is a theorem of `L`, since `T.height = n` makes `TBB n` false.
+    -- `∼TBB n` is a theorem of `L`, since `T.height = n` makes `TBB n` false.
     have hnTBB : (∼(TBB n) : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       intro f;
       apply Arithmetic.TA.provable_iff.mpr;
@@ -919,7 +918,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
         rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
       rw [e] at hcontra;
       exact ((models_standardInterpret_TBB_iff.mp hcontra) hn).elim;
-    -- Step 2: `L ⊄ S`, otherwise both `TBB n` and `∼TBB n` would be theorems of `S`,
+    -- `L ⊄ S`, otherwise both `TBB n` and `∼TBB n` would be theorems of `S`,
     -- contradicting the consistency of `S`.
     have hnotS : ¬ ((T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS) := by
       intro hSub;
@@ -931,7 +930,7 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
       exact LogicS.consistent
         (Logic.sumQuasiNormal.mdp
           (Logic.sumQuasiNormal.mdp (LogicS.provable_of_provable_GL htaut) h1) h2);
-    -- Step 3: by Lemma 49, `L = GLβ⁻ L.trace`, and `L.trace = {n}ᶜ` since `T.height = n`.
+    -- By Lemma 49, `L = GLβ⁻ L.trace`, and `L.trace = {n}ᶜ` since `T.height = n`.
     have htrace : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = {n}ᶜ := by
       ext m;
       rw [mem_trace_provabilityLogicRelativeTo_TA_iff, hn];
