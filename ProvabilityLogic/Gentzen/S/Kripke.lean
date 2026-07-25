@@ -61,7 +61,8 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
     match B with
     | □A =>
       obtain ⟨i₂, hi₂⟩ := Model.eventually_forces_boxImp_of_descending hw A;
-      refine ⟨max i₁ i₂, fun j hj C hC => ?_⟩;
+      refine ⟨max i₁ i₂, ?_⟩;
+      intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
       · have hCA : C = A := by injection hC;
@@ -69,7 +70,8 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
         exact hi₂ j (le_of_max_le_right hj)
       · exact hi₁ j (le_of_max_le_left hj) hC
     | #_ | ⊥ | _ 🡒 _ =>
-      refine ⟨i₁, fun j hj C hC => ?_⟩;
+      refine ⟨i₁, ?_⟩;
+      intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
       · exact absurd hC (by simp)
