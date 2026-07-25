@@ -51,7 +51,8 @@ lemma exists_linear_witness [M.IsGLPoint3] :
     ∃ z, x ≺ z ∧ z ⊮ D ∧ z ⊩ □D := by
     obtain ⟨z₀, hxz₀, hz₀⟩ := Model.World.not_forces_box.mp hxD;
     obtain ⟨z, ⟨hxz, hzD⟩, hzterm⟩ := M.terminalOf {z | x ≺ z ∧ z ⊮ D} ⟨z₀, hxz₀, hz₀⟩;
-    refine ⟨z, hxz, hzD, fun z' hzz' => ?_⟩;
+    refine ⟨z, hxz, hzD, ?_⟩;
+    intro z' hzz';
     by_contra hz'D;
     exact hzterm z' ⟨_root_.trans hxz hzz', hz'D⟩ hzz';
   by_cases hΔ' : (Δ.erase D).Nonempty;
@@ -59,7 +60,8 @@ lemma exists_linear_witness [M.IsGLPoint3] :
       ih (Δ.erase D) (Finset.erase_ssubset hD) hΔ' (fun A hA => hx A (Finset.mem_of_mem_erase hA));
     by_cases hD1 : w' ⊮ □D;
     · -- `D` joins the already-refuted complement, `S'` is unchanged.
-      refine ⟨w', hxw', S', hS'sub.trans (Finset.erase_subset _ _), hS'ne, hS', fun A hA => ?_⟩;
+      refine ⟨w', hxw', S', hS'sub.trans (Finset.erase_subset _ _), hS'ne, hS', ?_⟩;
+      intro A hA;
       rcases Finset.mem_sdiff.mp hA with ⟨hAΔ, hAS'⟩;
       by_cases hAD : A = D;
       · subst hAD; exact hD1;
@@ -69,11 +71,13 @@ lemma exists_linear_witness [M.IsGLPoint3] :
       · -- `w'` also refutes `D`, so `D` joins `S'`.
         refine ⟨w', hxw', insert D S',
           Finset.insert_subset_iff.mpr ⟨hD, hS'sub.trans (Finset.erase_subset _ _)⟩,
-          ⟨D, Finset.mem_insert_self _ _⟩, fun A hA => ?_, fun A hA => ?_⟩;
-        · rcases Finset.mem_insert.mp hA with rfl | hA;
+          ⟨D, Finset.mem_insert_self _ _⟩, ?_, ?_⟩;
+        · intro A hA;
+          rcases Finset.mem_insert.mp hA with rfl | hA;
           · exact ⟨hD2, hD1⟩;
           · exact hS' A hA;
-        · apply hDS' A;
+        · intro A hA;
+          apply hDS' A;
           simp only [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_erase, not_or] at hA ⊢;
           tauto;
       · -- `w'` forces `D`: descend past `w'` to a deeper world refuting `D` (and everything else).
