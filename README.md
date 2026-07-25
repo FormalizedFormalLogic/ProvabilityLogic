@@ -5,10 +5,6 @@
 
 Lean 4 Mechanization about Provability Logics
 
-## Documentation
-
-https://formalizedformallogic.github.io/ProvabilityLogic/docs/
-
 ## Import graph
 
 [![Import graph](https://formalizedformallogic.github.io/ProvabilityLogic/import_graph.png)](https://formalizedformallogic.github.io/ProvabilityLogic/import_graph.png)
