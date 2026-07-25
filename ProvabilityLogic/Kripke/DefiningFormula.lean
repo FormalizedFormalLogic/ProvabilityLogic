@@ -3,7 +3,7 @@ module
 public import ProvabilityLogic.Kripke.Simplification
 
 /-!
-# Defining formulas for finite GL-models (Bek90 §4, Lemma 7)
+# Defining formulas for finite GL-models
 
 This file defines defining formulas and proves Lemma 7: every finite GL-model has a
 defining formula over any finite set of variables `P`.
@@ -21,7 +21,7 @@ where `p̄^(x)` (`World.valuationConj`) pins down `x`'s valuation on `P`. The re
 (`Model.charBisimulationUnder`), so no simpleness or tree-ness hypotheses are needed
 anywhere.
 
-- [Bek90, Lemma 7]
+- [Bek90, §4, Lemma 7]
 -/
 
 @[expose]

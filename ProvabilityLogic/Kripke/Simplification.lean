@@ -4,9 +4,9 @@ public import ProvabilityLogic.Kripke.Cone
 public import ProvabilityLogic.Kripke.GraftOmega
 
 /-!
-# `P`-simplification of GL-models (Bek90 §4, item 3 + Lemmas 6, 8)
+# `P`-simplification of GL-models
 
-This file formalizes "removal of a redundant cone" from [Bek90] §4 and the
+This file formalizes "removal of a redundant cone" and the
 `P`-simplification lemmas (Lemma 6 for finite GL-models, Lemma 8 for ω-models).
 
 **A note on scope.** The classical "GL-model" of [Bek90] (going back to
@@ -20,6 +20,8 @@ through as stated. Also, "cone `𝒳_a`, `𝒳_y` are `p̄`-isomorphic" from the
 formalized here via `Model.BisimulationUnder` (bisimilarity restricted to atoms in `P`)
 rather than a literal frame isomorphism -- the modally correct and sufficient notion,
 see `ProvabilityLogic/Kripke/Preservation.lean`.
+
+- [Bek90, §4, item 3, Lemma 6, Lemma 8]
 -/
 
 @[expose]
