@@ -208,7 +208,8 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
   obtain ⟨i, hi⟩ :=
     Model.eventually_isReflexive_of_descending (M := (M.toTail tail).toModel)
       (w := fun n => toTail.chainPoint (↑n : ℕ∞)) hw X;
-  refine ⟨i, fun n hn => ?_⟩;
+  refine ⟨i, ?_⟩;
+  intro n hn;
   exact Model.World.forces_singleton_sequent.mp
     (hX ((M.toTail tail).toModel) ⟨toTail.chainPoint (↑n : ℕ∞), hi n hn⟩);
 
