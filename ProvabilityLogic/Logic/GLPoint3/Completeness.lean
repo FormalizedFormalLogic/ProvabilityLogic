@@ -3,9 +3,6 @@ module
 public import ProvabilityLogic.Logic.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
 
-@[expose]
-public section
-
 /-!
 # Soundness and Kripke completeness of `LogicGLPoint3`
 
@@ -15,6 +12,9 @@ This file bundles: the translation from `GL.3` Gentzen-provability to `LogicGLPo
 sequent calculus results of `ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`, the packaged Kripke completeness
 theorem `LogicGLPoint3.provability_TFAE` and its corollary `LogicGLPoint3.iff_forces_root`.
 -/
+
+@[expose]
+public section
 
 /-!
 # Step M: from `GL.3` Gentzen-provability to `LogicGLPoint3`-membership

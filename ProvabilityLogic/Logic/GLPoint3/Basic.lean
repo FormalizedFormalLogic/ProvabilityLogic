@@ -4,9 +4,6 @@ public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.SumNormal
 public import ProvabilityLogic.Kripke.Linearity
 
-@[expose]
-public section
-
 /-!
 # `LogicGLPoint3`: definition, combinators, the Hilbert-level witness lemma, and rule soundness
 
@@ -17,6 +14,9 @@ Hilbert-level witness lemma `LogicGLPoint3.witness` (Step K), the Hilbert-calcul
 `LogicGLPoint3.boxGLPoint3` (Step L), the counterpart of `Model.validate_gentzen_boxGLPoint3`
 (both in `ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`).
 -/
+
+@[expose]
+public section
 
 /--
 The normal extension of `GL` by the weak linearity axiom `.3`, i.e. `□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)`.

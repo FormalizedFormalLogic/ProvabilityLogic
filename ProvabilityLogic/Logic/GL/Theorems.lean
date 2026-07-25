@@ -120,14 +120,17 @@ theorem weakPoint3_dichotomy :
 
 end LogicGL
 
-/-! ### Examples from Maggesi–Perini Brogi [MPB23], §6.3
+/-! ### Examples from the meta-mathematical applications of `GL`
 
 Ground instances (over `Formula ℕ`, with a fixed atom `#0` standing in for the schema
 variable used in the paper) of the meta-mathematical examples discussed there, checked
 automatically via `LogicGL.decidableMem` (itself running the labelled proof search
 `search0`). The kernel-level `decide` tactic gets stuck unfolding `search0`'s
 well-founded recursion, so `native_decide` (trusting the compiler) is used instead;
-`#eval decide (... ∈ LogicGL)` confirms the same results via the same instance. -/
+`#eval decide (... ∈ LogicGL)` confirms the same results via the same instance.
+
+- [MPB23, §6.3]
+-/
 
 /-- Undecidability of consistency: if `PA` does not prove its own inconsistency, then its
 consistency is undecidable. -/

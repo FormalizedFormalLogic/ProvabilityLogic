@@ -4,6 +4,13 @@ public import Foundation.Vorspiel.List.ChainI
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
 public import ProvabilityLogic.ProvabilityLogic.Interpret
 
+/-!
+# Construction of Solovay sentences
+
+Port of the construction in `Foundation.ProvabilityLogic.SolovaySentences`
+(`LO.FirstOrder.Arithmetic.Bootstrapping.SolovaySentences`) to ProvabilityLogic's Kripke models.
+-/
+
 @[expose] public section
 
 open Classical
@@ -218,13 +225,6 @@ lemma rfl_mainlemma
 end
 
 end LO.FirstOrder.ProvabilityAbstraction.Provability.SolovaySentences
-
-/-!
-# Construction of Solovay sentences
-
-Port of the construction in `Foundation.ProvabilityLogic.SolovaySentences`
-(`LO.FirstOrder.Arithmetic.Bootstrapping.SolovaySentences`) to ProvabilityLogic's Kripke models.
--/
 
 noncomputable section
 

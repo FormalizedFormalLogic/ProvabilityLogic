@@ -16,20 +16,10 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
 
 section
 
-/-- A `Fintype` instance derived classically from `Finite`, local to this section: needed
-to even state `M.height`/`Model.World.rank` for an arbitrary `Finite` carrier, whose
-actual enumeration never matters. High priority so that it is always preferred over the
-structural (e.g. `Sum`-compositional) instances Mathlib provides for compound types,
-keeping `Fintype` resolution consistent with the classical instance baked into
-`StrongReflexiveCountermodel`'s fields in `ModifiedSolovaySentences.lean` (which is
-elaborated generically over an abstract carrier via the same `Fintype.ofFinite`
-derivation) — mixing this classical derivation with the structural one for the same
-compound type (e.g. `κ ⊕ Fin n`) would give two non-defeq `Fintype` instances and break
-downstream `Model.World.rank` equalities. This whole development is already classical
-(`open Classical` at the top of `ModifiedSolovaySentences.lean`) and noncomputable, so
-deriving `Fintype` via choice here loses nothing; the section is scoped tightly around
-the few declarations that actually touch `StrongReflexiveCountermodel`, so it cannot
-affect unrelated `Fintype` resolution elsewhere in this file. -/
+/-- A `Fintype` instance derived classically from `Finite`, local to this section. High
+priority keeps it consistent with the same classical derivation used for
+`StrongReflexiveCountermodel` in `ModifiedSolovaySentences.lean`, avoiding non-defeq
+`Fintype` instances on shared compound types (e.g. `κ ⊕ Fin n`). -/
 noncomputable local instance (priority := high) {κ : Type*} [Finite κ] : Fintype κ :=
   Fintype.ofFinite κ
 

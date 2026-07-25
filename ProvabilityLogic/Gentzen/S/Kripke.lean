@@ -27,8 +27,9 @@ lemma Model.rel_of_descending_lt (hw : ∀ n, w (n + 1) ≺ w n) {n j : ℕ} (hn
 
 omit [DecidableEq α] in
 /--
-  KK23 Theorem 3.1, `2 ⇒ 3` (Lemma 3.2, first half): along a strictly descending sequence of
-  worlds, `□A → A` is eventually forced.
+  Along a strictly descending sequence of worlds, `□A → A` is eventually forced.
+
+  - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2]
 -/
 lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w n) (A : Formula α) :
   ∃ i, ∀ j ≥ i, w j ⊩ (□A 🡒 A) := by
@@ -46,8 +47,10 @@ lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w 
     exact hn this;
 
 /--
-  KK23 Theorem 3.1, `2 ⇒ 3` (Lemma 3.2, second half): along a strictly descending sequence of
-  worlds, every world is eventually `X`-reflexive for a fixed finite set `X`.
+  Along a strictly descending sequence of worlds, every world is eventually `X`-reflexive
+  for a fixed finite set `X`.
+
+  - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2]
 -/
 lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n) (X : FormulaFinset α) :
   ∃ i, ∀ j ≥ i, (w j).IsReflexiveOf X := by
@@ -74,9 +77,10 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
 
 omit [Nonempty κ] [M.IsGL] in
 /--
-  KK23 Theorem 3.1, `2 ⇒ 3`: if there is a finite set `X` witnessing forcing at every
-  `X`-reflexive world of every `GL`-model, then forcing holds eventually along every infinitely
-  descending sequence.
+  If there is a finite set `X` witnessing forcing at every `X`-reflexive world of every
+  `GL`-model, then forcing holds eventually along every infinitely descending sequence.
+
+  - [KK23, Theorem 3.1 (2 ⇒ 3)]
 -/
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
@@ -97,10 +101,12 @@ namespace LogicS
 open ProvableGentzen
 
 /--
-  A sequent saturated for the level-`1` fragment of `LogicS.ProofGentzen` (KK23, Lemma 3.3):
-  besides the implicational saturation conditions of `Sequent.Saturated`, the antecedent is
-  closed under the `boxL` rule, all formulas come from the subformulas of the base sequent
-  `BS`, and the associated level-`1` sequent is `LogicS.ProvableGentzen`-unprovable.
+  A sequent saturated for the level-`1` fragment of `LogicS.ProofGentzen`: besides the
+  implicational saturation conditions of `Sequent.Saturated`, the antecedent is closed under
+  the `boxL` rule, all formulas come from the subformulas of the base sequent `BS`, and the
+  associated level-`1` sequent is `LogicS.ProvableGentzen`-unprovable.
+
+  - [KK23, Lemma 3.3]
 -/
 structure ExpandedLayeredSequent (BS : Sequent α) extends Sequent α where
   saturated      : toSequent.Saturated
@@ -342,8 +348,10 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         grind [ProvableGentzen.union'];
 
 /--
-  Saturation of the Lindenbaum construction (KK23, Lemma 3.3): the resulting sequent is
-  simultaneously `impL`-, `impR`- and `boxL`-saturated for the formulas listed in `Γ`.
+  Saturation of the Lindenbaum construction: the resulting sequent is simultaneously
+  `impL`-, `impR`- and `boxL`-saturated for the formulas listed in `Γ`.
+
+  - [KK23, Lemma 3.3]
 -/
 lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
@@ -355,9 +363,11 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
    saturated_boxL_lindenbaum_indexed hΓ⟩
 
 /--
-  Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen` (KK23, Lemma 3.3):
-  every level-`1` unprovable sequent within the subformulas of `BS` extends to a saturated,
-  `boxL`-closed, level-`1` unprovable sequent.
+  Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen`: every level-`1`
+  unprovable sequent within the subformulas of `BS` extends to a saturated, `boxL`-closed,
+  level-`1` unprovable sequent.
+
+  - [KK23, Lemma 3.3]
 -/
 noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
   (S₀_unprovable : ⊬ᴳ (S₀.ant ⟹[1] S₀.suc)) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) :
@@ -416,10 +426,12 @@ variable {BS : Sequent α} [Fact (⊬ᵍ BS)]
 instance : Nonempty (ExpandedSequent BS ⊕ ℕ) := ⟨.inr 0⟩
 
 /--
-  The countermodel for KK23 Theorem 3.1's cut-free completeness argument: the finite
-  countermodel `ProvableGentzen.Kripke.countermodelOf BS` extended by an infinite descending
-  chain of copies of the world `t` (each `Sum.inr n` sees every `Sum.inr m` with `m < n`,
-  the world `t` itself, and everything `t` sees).
+  The countermodel for the cut-free completeness argument: the finite countermodel
+  `ProvableGentzen.Kripke.countermodelOf BS` extended by an infinite descending chain of
+  copies of the world `t` (each `Sum.inr n` sees every `Sum.inr m` with `m < n`, the world
+  `t` itself, and everything `t` sees).
+
+  - [KK23, Theorem 3.1]
 -/
 @[grind]
 def chainModel (BS : Sequent α) [Fact (⊬ᵍ BS)] (t : ExpandedSequent BS) : Model (ExpandedSequent BS ⊕ ℕ) α where
@@ -484,9 +496,11 @@ lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
       · exact Rxy.elim;
 
 /--
-  Truth lemma for the chain part of `chainModel BS t` (KK23 Theorem 3.1's cut-free completeness
-  argument): provided the antecedent of `t` is `boxL`-closed, every formula in the antecedent of
-  `t` is forced at every chain world `Sum.inr n`, and every formula in the succedent is not forced.
+  Truth lemma for the chain part of `chainModel BS t`: provided the antecedent of `t` is
+  `boxL`-closed, every formula in the antecedent of `t` is forced at every chain world
+  `Sum.inr n`, and every formula in the succedent is not forced.
+
+  - [KK23, Theorem 3.1]
 -/
 lemma truthlemma_inr (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.1) {n : ℕ} {A : Formula α} :
   (A ∈ t.1.1 → Model.World.Forces (M := chainModel BS t) (.inr n) A) ∧
@@ -527,9 +541,11 @@ end
 namespace ProvableGentzen.Kripke
 
 /--
-  Cut-free completeness of `LogicS.ProofGentzen` for level-`1` sequents (KK23 Theorem 3.1,
-  condition `4 ⇒ 5`): if `Γ ⟹ Δ` is forced at some point along every infinitely descending
-  sequence of every `GL`-model, then `Γ ⟹[1] Δ` is provable in `LogicS.ProofGentzen`.
+  Cut-free completeness of `LogicS.ProofGentzen` for level-`1` sequents: if `Γ ⟹ Δ` is forced
+  at some point along every infinitely descending sequence of every `GL`-model, then
+  `Γ ⟹[1] Δ` is provable in `LogicS.ProofGentzen`.
+
+  - [KK23, Theorem 3.1 (4 ⇒ 5)]
 -/
 theorem completeness {Γ Δ : FormulaFinset α}
   (h :
@@ -554,10 +570,11 @@ namespace GentzenWithCutProvable
 variable {Γ Δ : FormulaFinset α}
 
 /--
-  KK23 Theorem 3.1, `6 ⇒ 1` (soundness of `LogicS.GentzenWithCutProof`): every
-  `LogicS.GentzenWithCutProof`-proof of `S` yields a finite set `X` such that `S` is forced at
-  every world `x` of every `GL`-model, provided `x` is `X`-reflexive whenever `S` is a
-  level-`1` sequent.
+  Soundness of `LogicS.GentzenWithCutProof`: every `LogicS.GentzenWithCutProof`-proof of `S`
+  yields a finite set `X` such that `S` is forced at every world `x` of every `GL`-model,
+  provided `x` is `X`-reflexive whenever `S` is a level-`1` sequent.
+
+  - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
 theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᴳᶜ S) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (x : M.World),
@@ -635,9 +652,11 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᴳᶜ S) :
       (hX₂ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_right));
 
 /--
-  KK23 Theorem 3.1, `6 ⇒ 1`, stated at the level of `LogicS.GentzenWithCutProvable`: provability
-  of a level-`1` sequent `Γ ⟹[1] Δ` yields a finite set `X` witnessing forcing at every
-  `X`-reflexive world of every `GL`-model.
+  Stated at the level of `LogicS.GentzenWithCutProvable`: provability of a level-`1` sequent
+  `Γ ⟹[1] Δ` yields a finite set `X` witnessing forcing at every `X`-reflexive world of every
+  `GL`-model.
+
+  - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
 theorem soundness (h : ⊢ᴳᶜ (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →

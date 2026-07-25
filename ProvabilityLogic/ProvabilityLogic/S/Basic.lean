@@ -7,7 +7,7 @@ public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 # Arithmetical soundness and completeness of Logic S
 
 Port of `Foundation.ProvabilityLogic.S.Soundness` and
-`Foundation.ProvabilityLogic.S.Completeness` (Theorem 3 in [AB05]) to ProvabilityLogic.
+`Foundation.ProvabilityLogic.S.Completeness` to ProvabilityLogic.
 
 Main results:
 - `LogicS.arithmetical_soundness`: if `A ∈ LogicS` then `ℕ↓[ℒₒᵣ] ⊧ f A` for every realization `f`.
@@ -21,6 +21,8 @@ independent: soundness is proved by induction via `LogicS.substlessInduction`, a
 completeness is reduced to the Kripke-semantical characterization
 `LogicS.iff_provable_S_provable_GL` together with the Solovay construction
 (`SolovaySentences.rfl_mainlemma` and `solovay_root_sound`).
+
+- [AB05, Theorem 3]
 -/
 
 @[expose] public section

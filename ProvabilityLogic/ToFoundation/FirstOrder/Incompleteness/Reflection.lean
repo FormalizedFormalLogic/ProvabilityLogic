@@ -11,7 +11,10 @@ open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
 namespace LO.FirstOrder.ArithmeticTheory
 
 /-- The local reflection schema `Rfn_Γₙ(T) = { Pr_T(σ) 🡒 σ | σ a Γₙ-sentence }` for the
-standard provability predicate of `T` (cf. §1.3 of [AB05]). -/
+standard provability predicate of `T`.
+
+- [AB05, §1.3]
+-/
 def localReflection
     (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (Γ : Polarity) (n : ℕ) :
     FirstOrder.ArithmeticTheory :=
@@ -61,8 +64,7 @@ theorem unbounded_localReflection
   -- the one at `∼π` for a suitable `Π₂`-sentence `π`) can be packaged into a single
   -- `Π₂`-sentence `π` by conjunction. This is the "trick, akin to Rosser's" omitted in
   -- [AB05]; it requires an arithmetized deduction theorem and a partial truth predicate
-  -- for `Σ₁`-sentences, neither of which is currently available in Foundation. See
-  -- `.claude/directions/d-completeness.md` for the detailed analysis.
+  -- for `Σ₁`-sentences, neither of which is currently available in Foundation.
   suffices key : ∀ π : FirstOrder.ArithmeticSentence,
       T ⊢ (T.standardProvability (∼π)) 🡒 ∼π →
       Entailment.Inconsistent (insert π T : FirstOrder.ArithmeticTheory) by

@@ -2,19 +2,19 @@ module
 
 public import ProvabilityLogic.Gentzen.Basic
 
-@[expose]
-public section
-
-variable {α : Type u} [DecidableEq α]
-
-namespace GLPoint3
-
 /-!
 Sequent calculus for `LogicGLPoint3` (`GL.3`), obtained from the sequent calculus for `GL`
 (`ProvabilityLogic.Gentzen.Basic`) by generalising `boxGL` to the rule `boxGLPoint3`: given a linear
 frame, two successors of a common world are comparable, so a boxed succedent `□Δ` can be
 established by exhausting every nonempty split `S ⊆ Δ`.
 -/
+
+@[expose]
+public section
+
+variable {α : Type u} [DecidableEq α]
+
+namespace GLPoint3
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})

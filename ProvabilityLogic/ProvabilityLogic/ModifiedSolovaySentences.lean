@@ -57,12 +57,8 @@ end LO.FirstOrder.ProvabilityAbstraction.Provability
 variable (κ : Type u) [Nonempty κ] [Finite κ] [DecidableEq α] (A : _root_.Formula α)
 
 /-- A `Fintype` instance for `κ` derived classically from `Finite κ`, local to this file
-and to this specific section variable `κ` (not a generic instance over all `Finite` types,
-so it cannot conflict with unrelated structural `Fintype` instances elsewhere): `κ` is only
-ever finite here, never canonically enumerated, so the enumeration itself never matters,
-only its existence (needed for `Model.World.rank` and for the finite disjunctions `⩖` in
-`ModifiedSolovaySentences` below). This whole development is already classical (`open
-Classical` above) and noncomputable, so deriving `Fintype` via choice here loses nothing. -/
+and to this section variable `κ`: needed for `Model.World.rank` and the finite
+disjunctions `⩖` below, where only the existence of an enumeration matters. -/
 noncomputable local instance : Fintype κ := Fintype.ofFinite κ
 
 /--

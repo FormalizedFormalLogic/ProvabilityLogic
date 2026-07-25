@@ -2,9 +2,6 @@ module
 
 public import ProvabilityLogic.LabelledGentzen.Basic
 
-@[expose]
-public section
-
 /-!
 Labelled sequent calculus for `LogicGLPoint3` (`GL.3`), obtained from the labelled
 calculus `G3KGL` for `GL` (`ProvabilityLogic.LabelledGentzen.Basic`) by adding a structural
@@ -13,6 +10,9 @@ given `x R y` and `x R z`, the successors `y` and `z` of a common world are
 compared by branching into `y R z`, `y = z` (realised as a relabelling of `y`
 to `z`), or `z R y`.
 -/
+
+@[expose]
+public section
 
 namespace LabelledGentzen
 

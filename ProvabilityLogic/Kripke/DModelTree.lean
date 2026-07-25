@@ -6,16 +6,15 @@ public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import Mathlib.Data.Fintype.Option
 
 /-!
-# Tree realization of pseudo-tail models (Bek90 §4, Lemma 3)
+# Tree realization of pseudo-tail models
 
 ProvabilityLogic's semantics of `LogicD` (`LogicD.provability_TFAE`) produces countermodels of the
-shape `M.toPseudoTail r o`, whereas the simplification machinery of [Bek90] §4
-(Lemma 8, `ProvabilityLogic/Kripke/Simplification.lean`) operates on ω-models of the shape
+shape `M.toPseudoTail r o`, whereas the simplification machinery (Lemma 8,
+`ProvabilityLogic/Kripke/Simplification.lean`) operates on ω-models of the shape
 `N.graftOmega a` over finite *trees* `N` with `a` *covering* the root. The two
 frame constructions are not isomorphic (the root of a `toPseudoTail` model has a free
 valuation `o` and no lateral cones, while `graftOmega` keeps the base root with
-its valuation and all its cones), so a bridge is needed -- this is the content of
-Lemma 3 of [Bek90] §4 in this codebase.
+its valuation and all its cones), so a bridge is needed.
 
 This file provides the bridge: the **D-model tree** `M.dModelTree r o` is the finite
 GL tree consisting of
@@ -30,7 +29,9 @@ and the evident last-element map is a pseudo-epimorphism from
 root. Hence any `toPseudoTail`-shaped countermodel yields a `graftOmega`-shaped
 countermodel over a finite tree, in which the tail point covers the root and there
 are **no lateral cones** (every point above the root lies in the tail point's cone) --
-i.e. a *D-model* in the sense of [Bek90], as required by the Lemma 9 machinery.
+i.e. a *D-model*, as required by the Lemma 9 machinery.
+
+- [Bek90, Lemma 3, §4]
 -/
 
 @[expose]

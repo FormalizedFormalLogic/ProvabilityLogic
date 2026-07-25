@@ -4,9 +4,6 @@ public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.Kripke
 public import ProvabilityLogic.Kripke.ULift
 
-@[expose]
-public section
-
 /-!
 Kripke semantics for `LogicGLPoint3`: soundness of `boxGLPoint3` (`Model.validate_gentzen_boxGLPoint3`)
 and Gentzen completeness (`ProvableGentzen.Kripke.completeness`), obtained by building a finite
@@ -25,6 +22,9 @@ The overall structure mirrors the `GL` development in `ProvabilityLogic.Gentzen.
   `GLPoint3.Chain.truthLemma` is the truth lemma for it.
 * `ProvableGentzen.Kripke.completeness` assembles all of the above into Gentzen completeness.
 -/
+
+@[expose]
+public section
 
 variable {κ : Type u} [Nonempty κ]
          {α : Type v} [DecidableEq α]
