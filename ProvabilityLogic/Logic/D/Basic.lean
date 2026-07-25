@@ -415,12 +415,12 @@ lemma LogicGL.not_provable_axiomP [DecidableEq α] : (∼□⊥ : Formula α) �
   use PUnit.{u + 1}, inferInstance, M;
   constructor;
   · exact {
-      trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
+      trans := by grind;
+      irrefl := by grind;
       finite := inferInstance
     };
-  · intro hM;
-    have := hM PUnit.unit;
+  · by_contra hC;
+    have := hC PUnit.unit;
     grind;
 
 /-- `GL` is a proper sublogic of `D`: it is contained in `D`
