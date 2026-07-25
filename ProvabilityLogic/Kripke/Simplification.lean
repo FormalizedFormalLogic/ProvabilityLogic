@@ -160,15 +160,14 @@ instance (a : M.NonRoot) : Std.Irrefl (M.removeCone a).Rel :=
 
 lemma isTree {a : M.NonRoot} [hTree : M.IsTree] :
   (M.removeCone a).IsTree := by
-  refine ⟨fun x y z hxz hyz => ?_⟩;
+  refine ⟨?_⟩;
+  intro x y z hxz hyz;
   rcases hTree.tree x.1 y.1 z.1 hxz hyz with h | h | h;
   . exact Or.inl (Subtype.ext h);
   . exact Or.inr (Or.inl h);
   . exact Or.inr (Or.inr h);
 
 section Finite
-
-set_option linter.overlappingInstances false
 
 lemma card_lt (a : M.NonRoot) [Fintype M.World] [Fintype (M.removeCone a).World] :
   Fintype.card (M.removeCone a).World < Fintype.card M.World :=
@@ -177,9 +176,15 @@ lemma card_lt (a : M.NonRoot) [Fintype M.World] [Fintype (M.removeCone a).World]
 
 variable [M.IsFiniteGL]
 
+-- `M.IsGL` and `M.IsFiniteGL` both imply `IsTrans M.World Model.Rel` here, but we keep
+-- the explicit `[M.IsGL]` from the section variables intentionally: it documents that
+-- `removeCone` is only meaningful for GL-models, independently of the finiteness
+-- hypothesis that happens to already carry that fact.
+set_option linter.overlappingInstances false in
 instance (a : M.NonRoot) : Finite (M.removeCone a).World :=
   Subtype.finite
 
+set_option linter.overlappingInstances false in
 instance (a : M.NonRoot) : (M.removeCone a).IsFiniteGL where
 
 end Finite
