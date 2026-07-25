@@ -9,9 +9,8 @@
 
 # Claude
 CLAUDE.local.md
-
-# Notes
-.notes
+.claude/docs/
+.claude/worktrees/
 
 # Import graph
 import_graph.dot
