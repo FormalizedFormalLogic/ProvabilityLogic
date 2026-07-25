@@ -7,7 +7,9 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
+# Supersede stale runs on the same ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -15,30 +17,50 @@ concurrency:
 permissions:
   contents: read
 
+# Runners are pinned to ubuntu-26.04 (NOT `ubuntu-latest`): a floating image is a
+# silent explosion waiting for GitHub's next bump. 26.04 is the newest LTS — if it
+# breaks it's a clean upstream bug report, which is the point. Bump by hand.
 jobs:
+  # ── Job 1: hydrate + cleanse the dependency layer ──────────────────────────────────────────────
+  # Absorb ALL the dependency-build noise HERE, off in its own job, so the build job below is clean.
+  #   • mathlib comes from `lake exe cache get` (downloaded oleans carry no per-module log → silent).
+  #   • Foundation is a git dependency with NO public olean cache, so it compiles from source and
+  #     emits lint/deprecation warnings that are upstream's, not ours. We build it once here, then
+  #     CLEAR its cached build logs so they don't `Replayed`-spam the build job with warnings we
+  #     can't fix and don't want to read.
+  # The built+cleansed Foundation is handed to the build job via a manifest-keyed cache. We
+  # deliberately do NOT cache mathlib's oleans, since `cache get` re-hydrates those fast.
+  # Bonus: keyed on toolchain+manifest, so Foundation only recompiles when its pinned rev bumps.
   deps:
     name: Build Foundation (cached)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - name: Cache Foundation build
+      # Probe the Foundation cache FIRST. On a hit this job's product already exists, so every step
+      # below is skipped and the post-job save re-affirms the existing entry — no wasted mathlib
+      # `cache get` or Foundation build. Only on a MISS do we run lean-action and build from source.
+      - name: Cache Foundation build (keyed on toolchain + manifest)
         id: foundation-cache
         uses: actions/cache@v6
         with:
           path: .lake/packages/Foundation/.lake/build
           key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-      - name: Setup elan
+      # elan + `lake exe cache get` only (build: false); we drive `lake build Foundation` ourselves.
+      # Skip lean-action's own whole-.lake GitHub cache (use-github-cache: false) — we manage a
+      # tighter, Foundation-only cache above instead of shuttling the full tree.
+      - uses: leanprover/lean-action@v1
         if: steps.foundation-cache.outputs.cache-hit != 'true'
-        run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Get Mathlib cache
-        if: steps.foundation-cache.outputs.cache-hit != 'true'
-        run: lake exe cache get
-      - name: Build Foundation
+        with:
+          build: false
+          use-github-cache: false
+      - name: Build Foundation from source (cache miss only)
         if: steps.foundation-cache.outputs.cache-hit != 'true'
         run: lake build Foundation
-      # Empty each module's `.trace` log so Foundation's warnings are not replayed downstream.
+      # ── Clear Foundation's cached warnings ───────────────────────────────────────────────────────
+      # Modern Lake stores each module's build diagnostics in its `.trace` file's `"log"` array and
+      # RE-EMITS them (`⚠ Replayed`) on every downstream build. Emptying `"log"` drops the replay
+      # WITHOUT touching the `.olean` (verified: no recompile, diagnostics vanish, build still green).
+      # Runs on a cache miss only: a hit's saved cache is already cleared.
       - name: Clear Foundation's replayed-warning cache
         if: steps.foundation-cache.outputs.cache-hit != 'true'
         run: |
@@ -58,27 +80,32 @@ jobs:
           print(f'cleared warning cache in {cleared} Foundation trace(s)')
           PY
 
+  # Build ProvabilityLogic against the cleansed dependency layer from `deps`, run the shake gate on
+  # the freshly built oleans, and generate the docs and import graph — all sharing the one build.
   build:
     name: Build project
     needs: deps
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-      - name: Setup elan
-        run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
-      - name: Get Mathlib cache
-        run: lake exe cache get
-      - name: Restore Foundation build
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-github-cache: false
+      # Restore the Foundation build cleansed by `deps` (guaranteed present via `needs: deps`).
+      - name: Restore Foundation build (warnings cleared)
         uses: actions/cache/restore@v6
         with:
           path: .lake/packages/Foundation/.lake/build
           key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
           fail-on-cache-miss: true
 
-      # Cache entries are immutable, so the key includes the commit SHA to always save fresh.
+      # ── The project's own build cache (`lake pack`/`unpack`) ─────────────────────────────────────
+      # Orthogonal to the Foundation cache above: `lake pack` archives ONLY the root package's
+      # `.lake/build` (our own oleans), never the dependency trees. Restoring + unpacking it lets
+      # `lake build` reuse traces and rebuild only the modules that actually changed. The key pins
+      # toolchain+manifest (so a Foundation bump busts it) and appends sha because cache entries are
+      # immutable; restore-keys fall back to the newest cache with a matching toolchain+manifest.
       - name: Restore project cache
         id: cache-restore
         uses: actions/cache/restore@v6
@@ -100,6 +127,8 @@ jobs:
       - name: Check environment with leanchecker
         run: lake env leanchecker ProvabilityLogic
 
+      # Re-pack the freshly built oleans and save under the exact primary key. Skipped for PRs from
+      # forks (no write access to the base repo's cache); pushes and same-repo PRs refresh the entry.
       - name: Pack project cache
         run: lake pack
       - name: Save project cache
@@ -110,8 +139,18 @@ jobs:
           path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
 
-      - uses: ts-graphviz/setup-graphviz@v2
       - uses: extractions/setup-just@v3
+
+      # shake reads the just-built oleans to find unused imports, so it must run after `lake build`.
+      - name: Check shake applied (no unused imports)
+        run: |
+          just shake
+          if [ -n "$(git diff)" ]; then
+            echo "Unused imports found. Please run 'just shake' and commit the changes."
+            exit 1
+          fi
+
+      - uses: ts-graphviz/setup-graphviz@v2
       - name: Generate import graph
         run: just import-graph
 
@@ -145,18 +184,17 @@ jobs:
             exit 1
           fi
 
+  # mk_all only scans the source tree (no build), so it runs as its own lightweight job.
   mk-all-check:
     name: Check mk_all executed
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: extractions/setup-just@v3
-      - name: Setup elan
-        run: |
-          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Get Mathlib cache
-        run: lake exe cache get
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-github-cache: false
       - name: Check mk_all executed
         run: |
           just mk-all
@@ -172,6 +210,7 @@ jobs:
     needs:
       - build
       - check-references
+      - mk-all-check
     permissions:
       pages: write
       id-token: write
