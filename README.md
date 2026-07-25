@@ -5,6 +5,10 @@
 
 Lean 4 Mechanization about Provability Logics
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution flow and [contribute/style.md](contribute/style.md) for the coding conventions.
+
 ## Import graph
 
 [![Import graph](https://formalizedformallogic.github.io/ProvabilityLogic/import_graph.png)](https://formalizedformallogic.github.io/ProvabilityLogic/import_graph.png)
