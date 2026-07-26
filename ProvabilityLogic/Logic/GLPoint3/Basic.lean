@@ -102,10 +102,8 @@ public section combinators
 
 variable {A B C : Formula α}
 
-/-- Shortcut to lift a `⊢ʰ`-proof of `GL` directly into `LogicGLPoint3`. -/
 lemma of_GL (h : ⊢ʰ A) : A ∈ LogicGLPoint3 := provable_of_provable_GL h
 
-/-- Modus ponens where the implication is a `⊢ʰ`-provable `GL` theorem. -/
 lemma mdp' (h : ⊢ʰ (A 🡒 B)) (hA : A ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (of_GL h) hA
 
@@ -118,41 +116,31 @@ private lemma imp_chain : ⊢ʰ (A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C) := by
   have hBC : ({B 🡒 C, A 🡒 B} : FormulaSet α) ⊢ʰ B 🡒 C := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.impTrans hAB hBC;
 
-/-- Transitivity of implication for members of `LogicGLPoint3`. -/
 lemma impTrans
     (hAB : (A 🡒 B) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
     (A 🡒 C) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' imp_chain hAB) hBC
 
-/-- Conjunction introduction for members of `LogicGLPoint3`. -/
 lemma andIntro' (hA : A ∈ LogicGLPoint3) (hB : B ∈ LogicGLPoint3) : (A ⋏ B) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.andIntro hA) hB
 
-/-- Left conjunction elimination for members of `LogicGLPoint3`. -/
-lemma andElimL' (h : (A ⋏ B) ∈ LogicGLPoint3) : A ∈ LogicGLPoint3 :=
-  mdp' ProvableHilbert.andElimL h
+lemma andElimL' (h : (A ⋏ B) ∈ LogicGLPoint3) : A ∈ LogicGLPoint3 := mdp' ProvableHilbert.andElimL h
 
-/-- Right conjunction elimination for members of `LogicGLPoint3`. -/
-lemma andElimR' (h : (A ⋏ B) ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 :=
-  mdp' ProvableHilbert.andElimR h
+lemma andElimR' (h : (A ⋏ B) ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 := mdp' ProvableHilbert.andElimR h
 
-/-- Left disjunction introduction for members of `LogicGLPoint3`. -/
 lemma orIntroL' (B : Formula α) (hA : A ∈ LogicGLPoint3) :
     (A ⋎ B) ∈ LogicGLPoint3 :=
   mdp' ProvableHilbert.orIntroL hA
 
-/-- Right disjunction introduction for members of `LogicGLPoint3`. -/
 lemma orIntroR' (A : Formula α) (hB : B ∈ LogicGLPoint3) :
     (A ⋎ B) ∈ LogicGLPoint3 :=
   mdp' ProvableHilbert.orIntroR hB
 
-/-- Disjunction elimination for members of `LogicGLPoint3`. -/
 lemma orElim'
     (hAC : (A 🡒 C) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3)
     (hAB : (A ⋎ B) ∈ LogicGLPoint3) : C ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (Logic.sumNormal.mdp (mdp' ProvableHilbert.orElim hAC) hBC) hAB
 
-/-- Necessitation distributes over an implication already known to hold in `LogicGLPoint3`. -/
 lemma box' (h : (A 🡒 B) ∈ LogicGLPoint3) : (□A 🡒 □B) ∈ LogicGLPoint3 :=
   mdp' ProvableHilbert.modalK (Logic.sumNormal.nec h)
 
@@ -261,8 +249,6 @@ lemma mem_imp_fdisj' (h : A ∈ Q) :
     (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
   of_GL (ProvableHilbert.imp_mem_fdisj h)
 
-/-- Implicational conjunction introduction for `LogicGLPoint3`: from `(C 🡒 A) ∈ L` and
-`(C 🡒 B) ∈ L` derive `(C 🡒 (A ⋏ B)) ∈ L`. -/
 lemma imp_and_intro'
     (hCA : (C 🡒 A) ∈ LogicGLPoint3) (hCB : (C 🡒 B) ∈ LogicGLPoint3) :
     (C 🡒 (A ⋏ B)) ∈ LogicGLPoint3 :=
@@ -287,8 +273,6 @@ lemma imp_fdisj_elim'
 
 end
 
-/-- Conjunction congruence in the right slot: from `(B 🡒 C) ∈ L` derive
-`((A ⋏ B) 🡒 (A ⋏ C)) ∈ L`. -/
 lemma imp_and_congr_right' (h : (B 🡒 C) ∈ LogicGLPoint3) :
     ((A ⋏ B) 🡒 (A ⋏ C)) ∈ LogicGLPoint3 :=
   imp_and_intro' (of_GL ProvableHilbert.andL) (impTrans (of_GL ProvableHilbert.andR) h)
@@ -628,13 +612,10 @@ public section combinators2
 
 variable {A B : Formula α}
 
-/-- Contraposition for members of `LogicGLPoint3`: from `(A 🡒 B) ∈ L` derive
-`(∼B 🡒 ∼A) ∈ L`. -/
 lemma contra' (h : (A 🡒 B) ∈ LogicGLPoint3) : (∼B 🡒 ∼A) ∈ LogicGLPoint3 :=
   mdp' (ProvableHilbert.elimContra (A := ∼A) (B := ∼B))
     (impTrans (of_GL ProvableHilbert.dne) (impTrans h (of_GL ProvableHilbert.dni)))
 
-/-- Monotonicity of `◇` for members of `LogicGLPoint3`. -/
 lemma diaImp' (h : (A 🡒 B) ∈ LogicGLPoint3) : (◇A 🡒 ◇B) ∈ LogicGLPoint3 :=
   contra' (box' (contra' h))
 
