@@ -11,6 +11,8 @@ variable {α : Type u}
 
 namespace LogicA
 
+open LogicGL
+
 section
 
 /-- Intrinsic definition of `LogicA` avoiding `subst` (for `LogicA.substlessInductionTBB`). -/

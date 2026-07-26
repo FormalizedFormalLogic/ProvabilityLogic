@@ -12,6 +12,8 @@ abbrev LogicS {α} : Logic α := (LogicGL) +ᴸ ({ □A 🡒 A | A })
 universe u v
 variable {α : Type u}
 
+open LogicGL
+
 namespace LogicS
 
 @[grind →]
@@ -184,7 +186,7 @@ lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
 `LogicS.ProofGentzen`-proof of the level-`1` sequent `∅ ⟹[1] {A}`. -/
 lemma provableGentzen_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
-  ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) := by
+  ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) := by
   apply ProvableGentzen.Kripke.completeness;
   intro κ _ M _ w hw;
   obtain ⟨X, hX⟩ := exists_isReflexive_forces_of_GL_provable h;
@@ -194,7 +196,7 @@ lemma provableGentzen_of_GL_provable [DecidableEq α]
 /-- Direction `5 → 2` of `provability_TFAE`: `LogicS.ProofGentzen`-provability of the level-`1`
 sequent `∅ ⟹[1] {A}` yields eventual forcing of `A` along the tail-model chain. -/
 lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
-  (h : ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
+  (h : ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A := by
   intro κ _ M _ tail;
@@ -227,7 +229,7 @@ theorem provability_TFAE [DecidableEq α] : [
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩ (⋀A.subfmlsS 🡒 A),
     (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
-    ⊢ᴳ (∅ ⟹[1] {A})
+    ⊢ᵍ[S] (∅ ⟹[1] {A})
   ].TFAE := by
   tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsS_imp;
@@ -247,7 +249,7 @@ theorem iff_provable_S_provable_GL [DecidableEq α] :
   - [KK23]
 -/
 theorem iff_provable_provableGentzen [DecidableEq α] :
-    A ∈ LogicS ↔ ⊢ᴳ ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
+    A ∈ LogicS ↔ ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
   provability_TFAE.out 0 4
 
 end LogicS

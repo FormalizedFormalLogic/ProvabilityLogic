@@ -8,6 +8,8 @@ public section
 
 variable {α : Type u}
 
+open LogicGL
+
 namespace LogicS
 
 variable [DecidableEq α] {A B : Formula α}
@@ -41,7 +43,7 @@ lemma provable_reassoc_of_provable_imp (h : (A 🡒 B) ∈ LogicS) :
     (((⋀A.subfmlsS) ⋏ A) 🡒 ((⋀B.subfmlsS) 🡒 B)) ∈ LogicGL := by
   have hGL : (⋀(A 🡒 B).subfmlsS 🡒 (A 🡒 B)) ∈ LogicGL := iff_provable_S_provable_GL.mp h
   rw [subfmlsS_imp] at hGL
-  have hUnion : ⊢ʰ ((⋀A.subfmlsS) ⋏ (⋀B.subfmlsS)) 🡒 (A 🡒 B) :=
+  have hUnion : ⊢ʰ[GL] ((⋀A.subfmlsS) ⋏ (⋀B.subfmlsS)) 🡒 (A 🡒 B) :=
     ProvableHilbert.impTrans (ProvableHilbert.imp_fconj_union _ _) hGL
   exact ProvableHilbert.mdp ProvableHilbert.imp_reassoc hUnion
 

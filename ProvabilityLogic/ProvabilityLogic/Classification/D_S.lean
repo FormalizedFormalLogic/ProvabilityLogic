@@ -10,6 +10,7 @@ open Classical
 open LO LO.Entailment
 open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
 open Model Model.World
+open LogicGL
 
 universe u
 variable {α : Type u}

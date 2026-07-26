@@ -6,6 +6,8 @@ public import ProvabilityLogic.Logic.S.Basic
 @[expose]
 public section
 
+open LogicGL
+
 universe u
 variable {α : Type u}
 

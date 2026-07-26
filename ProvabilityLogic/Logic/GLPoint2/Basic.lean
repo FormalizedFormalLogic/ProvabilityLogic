@@ -10,6 +10,8 @@ public section
 i.e. `◇(□A ⋏ B) 🡒 □(◇A ⋎ B)`. -/
 abbrev LogicGLPoint2 {α} : Logic α := LogicGL ⊕ᴸ { (◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B) | (A) (B) }
 
+open LogicGL
+
 namespace LogicGLPoint2
 
 lemma provable_of_provable_GL {A : Formula α} (h : A ∈ LogicGL) : A ∈ LogicGLPoint2 :=

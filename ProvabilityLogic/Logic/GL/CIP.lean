@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.Maehara
+public import ProvabilityLogic.Gentzen.GL.Maehara
 
 @[expose]
 public section
@@ -12,7 +12,7 @@ namespace LogicGL
 
 variable {A B : Formula α}
 
-lemma provable_imp_iff_provableGentzen_seqent : A 🡒 B ∈ LogicGL ↔ ⊢ᵍ ({A} ⟹ {B}) := by
+lemma provable_imp_iff_provableGentzen_seqent : A 🡒 B ∈ LogicGL ↔ ⊢ᵍ[GL] ({A} ⟹ {B}) := by
   constructor;
   · intro h;
     exact ProvableGentzen.deduction_theorem.mpr $ ProvableGentzen.of_provableHilbert h

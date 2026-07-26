@@ -6,6 +6,8 @@ public import ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace
 @[expose]
 public section
 
+open LogicGL
+
 /-- The finite line model is a finite linear GL model, being a strict linear order. -/
 instance {n : ℕ} : (finiteLineModel n).toModel.IsFiniteGLPoint3 where
   toIsFiniteGL := inferInstance

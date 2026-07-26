@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.Kripke.Basic
-public import ProvabilityLogic.Gentzen.Basic
+public import ProvabilityLogic.Gentzen.GL.Basic
 public import Mathlib.Data.Finset.Powerset
 public import Mathlib.Data.Finite.Prod
 
@@ -13,6 +13,9 @@ variable {κ : Type u} [Nonempty κ]
          {M : Model κ α}
          {A B : Formula α} {Γ Γ' Δ Δ' : FormulaFinset α}
 
+open LogicGL
+
+namespace LogicGL
 
 abbrev trivial_GL_model {α} : Model (Fin 1) α where
   Rel' := λ _ _ => False
@@ -22,6 +25,8 @@ instance : trivial_GL_model (α := α) |>.IsFiniteGL where
   finite := inferInstance;
   trans  := by tauto;
   irrefl := by tauto;
+
+end LogicGL
 
 
 namespace Model.World
@@ -172,12 +177,14 @@ lemma validate_gentzen_boxGL [DecidableEq α] [M.IsGL] (h : M ⊧ ((insert (□A
 end Model
 
 
+namespace LogicGL
+
 namespace ProvableGentzen
 
 namespace Kripke
 
 open Model in
-theorem soundness (h : ⊢ᵍ S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M ⊧ S := by
+theorem soundness (h : ⊢ᵍ[GL] S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M ⊧ S := by
   obtain ⟨p⟩ := h;
   intro _ M M_finiteGL;
   induction p with
@@ -189,12 +196,12 @@ theorem soundness (h : ⊢ᵍ S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ 
   | impR _ ih => exact validate_gentzen_impR ih
   | boxGL _ ih => exact validate_gentzen_boxGL ih
 
-theorem finite_soundness (h : ⊢ᵍ S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S := λ _ _ M [M.IsFiniteGL] => soundness h M
+theorem finite_soundness (h : ⊢ᵍ[GL] S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S := λ _ _ M [M.IsFiniteGL] => soundness h M
 
 end Kripke
 
 @[simp, grind .]
-theorem not_provable_empty : ⊬ᵍ (∅ ⟹ ∅ : Sequent α) := by
+theorem not_provable_empty : ⊬ᵍ[GL] (∅ ⟹ ∅ : Sequent α) := by
   by_contra h;
   have : (0 : trivial_GL_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_GL_model 0;
   grind;
@@ -212,7 +219,7 @@ structure Saturated (S : Sequent α) where
 
 structure Expanded (BS : Sequent α) (S : Sequent α) extends S.Saturated where
   subset_subfmls : S.1 ∪ S.2 ⊆ BS.subfmls
-  unprovable     : ⊬ᵍ S
+  unprovable     : ⊬ᵍ[GL] S
 
 end Sequent
 
@@ -220,7 +227,7 @@ end Sequent
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
   saturated         : toSequent.Saturated
   subset_subfmls    : toSequent.1 ∪ toSequent.2 ⊆ BS.subfmls
-  unprovable        : ⊬ᵍ toSequent
+  unprovable        : ⊬ᵍ[GL] toSequent
 
 namespace ExpandedSequent
 
@@ -265,12 +272,12 @@ variable {BS : Sequent α}
 
 open Classical in
 @[grind]
-noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ BS) (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ S }
+noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ[GL] BS) (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GL] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[GL] S }
 | [] => ⟨S₀, S₀_unprovable⟩
 | (A 🡒 B) :: Γ =>
   let ⟨S, hS⟩ := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ;
   if h : (A 🡒 B) ∈ S.1 then
-    if h : ⊬ᵍ ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+    if h : ⊬ᵍ[GL] ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
     else ⟨((insert B S.1) ⟹ S.2), by
       push Not at h;
       contrapose! hS;
@@ -287,7 +294,7 @@ noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ B
   else ⟨S, hS⟩
 | _ :: Γ => lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
 
-lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀} {Γ : FormulaList α} : S₀ ⊆ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1 := by
+lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀} {Γ : FormulaList α} : S₀ ⊆ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1 := by
   induction Γ with
   | nil =>
     exact ⟨Finset.Subset.refl _, Finset.Subset.refl _⟩
@@ -303,8 +310,8 @@ lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} 
       · exact ⟨ih.1, ih.2⟩;
 
 lemma subfmls_lindenbaum_indexed
-  {BS_unprovable : ⊬ᵍ BS}
-  {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
+  {BS_unprovable : ⊬ᵍ[GL] BS}
+  {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
   {Γ : FormulaList α} (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
   (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∪ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
   induction Γ with
@@ -324,7 +331,7 @@ lemma subfmls_lindenbaum_indexed
         grind;
 
 lemma saturated_lindenbaum_indexed
-  {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
+  {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀}
   {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
   :
     let S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ;
@@ -354,7 +361,7 @@ lemma saturated_lindenbaum_indexed
         · simp at h
         · exact h
     | C 🡒 D =>
-      have hunp : ⊬ᵍ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
+      have hunp : ⊬ᵍ[GL] (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2
       dsimp only [lindenbaum_indexed]
       split_ifs with h1 h2 h3 <;>
@@ -364,14 +371,14 @@ lemma saturated_lindenbaum_indexed
         grind [ProvableGentzen.union']
 
 lemma lindenbaum_indexed_saturated_impL_of_sorted_complexity
-  {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
+  {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀}
   {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
   (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1)
   : A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ∨ B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 :=
   (saturated_lindenbaum_indexed hΓ).1 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impL
-  {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
+  {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀}
   {Γ : FormulaList α} (h : A 🡒 B ∈ Γ)
   :
   letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable (Γ.insertionSort (·.complexity ≤ ·.complexity));
@@ -382,14 +389,14 @@ lemma lindenbaum_indexed_saturated_impL
   . apply List.mem_insertionSort _ |>.mpr h;
 
 lemma lindenbaum_indexed_saturated_impR_of_sorted_complexity
-  {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
+  {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀}
   {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
   (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2)
   : A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∧ B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 :=
   (saturated_lindenbaum_indexed hΓ).2 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impR
-  {BS_unprovable : ⊬ᵍ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀}
+  {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀}
   {Γ : FormulaList α} (h : A 🡒 B ∈ Γ)
   :
   letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable (Γ.insertionSort (·.complexity ≤ ·.complexity));
@@ -400,7 +407,7 @@ lemma lindenbaum_indexed_saturated_impR
   . apply List.mem_insertionSort _ |>.mpr h;
 
 noncomputable def lindenbaum
-  {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ S₀) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) : ExpandedSequent BS :=
+  {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GL] BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GL] S₀) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) : ExpandedSequent BS :=
   letI S := lindenbaum_indexed BS (Fact.elim inferInstance) S₀ S₀_unprovable $ BS.subfmls.toList.insertionSort (·.complexity ≤ ·.complexity);
   haveI : ∀ C ∈ BS.subfmls.toList.insertionSort (fun A B => A.complexity ≤ B.complexity), C ∈ BS.subfmls := by
     intro _ hB;
@@ -421,7 +428,7 @@ noncomputable def lindenbaum
     }
   }
 
-lemma subset_lindenbaum {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ BS)] {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls}
+lemma subset_lindenbaum {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GL] BS)] {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GL] S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls}
   : S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
 
 end
@@ -445,7 +452,7 @@ instance : Finite (ExpandedSequent BS) := by
   simp only [Prod.mk.injEq, Subtype.mk.injEq] at h
   exact ext h.1 h.2
 
-instance [Fact (⊬ᵍ BS)] : Nonempty (ExpandedSequent BS) := ⟨lindenbaum BS (Fact.elim inferInstance) (by grind)⟩
+instance [Fact (⊬ᵍ[GL] BS)] : Nonempty (ExpandedSequent BS) := ⟨lindenbaum BS (Fact.elim inferInstance) (by grind)⟩
 
 end ExpandedSequent
 
@@ -453,10 +460,10 @@ end ExpandedSequent
 
 namespace ProvableGentzen.Kripke
 
-variable {BS : Sequent α} [Fact (⊬ᵍ BS)]
+variable {BS : Sequent α} [Fact (⊬ᵍ[GL] BS)]
 
 @[grind]
-def countermodelOf (BS : Sequent α) [Fact (⊬ᵍ BS)] : Model (ExpandedSequent BS) α where
+def countermodelOf (BS : Sequent α) [Fact (⊬ᵍ[GL] BS)] : Model (ExpandedSequent BS) α where
   Val' x a := #a ∈ x.1.1
   Rel' x y :=
     x.1.1.prebox ⊂ y.1.1.prebox ∧
@@ -543,9 +550,9 @@ lemma truthlemma :
 lemma truthlemma_ant : A ∈ x.1.1 → x ⊩ A := truthlemma.1
 lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩ A := truthlemma.2
 
-theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S) : ⊢ᵍ S := by
+theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S) : ⊢ᵍ[GL] S := by
   contrapose! h;
-  have : Fact (⊬ᵍ S) := ⟨iff_unprovableGentzen_isEmpty_ProofGentzen.mpr h⟩;
+  have : Fact (⊬ᵍ[GL] S) := ⟨iff_unprovableGentzen_isEmpty_ProofGentzen.mpr h⟩;
   use (ExpandedSequent S), inferInstance, (countermodelOf S);
   constructor;
   . infer_instance;
@@ -559,3 +566,5 @@ theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → 
 end Kripke
 
 end ProvableGentzen
+
+end LogicGL

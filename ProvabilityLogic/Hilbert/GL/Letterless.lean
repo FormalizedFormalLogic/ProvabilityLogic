@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Hilbert.Basic
+public import ProvabilityLogic.Hilbert.GL.Basic
 public import ProvabilityLogic.Formula.Letterless
 
 @[expose]
@@ -8,7 +8,9 @@ public section
 
 variable {α : Type u}
 
-lemma ProvableHilbert.project {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.projectEmpty : LetterlessFormula) := by
+namespace LogicGL
+
+lemma ProvableHilbert.project {A : Formula α} (h : ⊢ʰ[GL] A) : ⊢ʰ[GL] (A.projectEmpty : LetterlessFormula) := by
   induction h using ProvableHilbert.rec with
   | implyK => exact ProvableHilbert.implyK
   | implyS => exact ProvableHilbert.implyS
@@ -25,7 +27,7 @@ lemma ProvableHilbert.project {A : Formula α} (h : ⊢ʰ A) : ⊢ʰ (A.projectE
   | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
   | nec h ih => exact ProvableHilbert.nec ih
 
-lemma ProvableHilbert.lift {B : LetterlessFormula} (h : ⊢ʰ B) : ⊢ʰ (LetterlessFormula.lift B : Formula α) := by
+lemma ProvableHilbert.lift {B : LetterlessFormula} (h : ⊢ʰ[GL] B) : ⊢ʰ[GL] (LetterlessFormula.lift B : Formula α) := by
   induction h using ProvableHilbert.rec with
   | implyK => exact ProvableHilbert.implyK
   | implyS => exact ProvableHilbert.implyS
@@ -41,3 +43,5 @@ lemma ProvableHilbert.lift {B : LetterlessFormula} (h : ⊢ʰ B) : ⊢ʰ (Letter
   | modalL => exact ProvableHilbert.modalL
   | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
   | nec h ih => exact ProvableHilbert.nec ih
+
+end LogicGL
