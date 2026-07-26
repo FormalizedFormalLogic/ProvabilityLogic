@@ -7,6 +7,11 @@ on:
   pull_request:
     branches:
       - main
+  # Required so these checks also run against the queue's speculative merge
+  # commit; otherwise a merge queue entry has no status checks to wait on.
+  merge_group:
+    branches:
+      - main
   workflow_dispatch:
 
 # Supersede stale runs on the same ref.
