@@ -1,6 +1,6 @@
 module
 
-public import Foundation.Vorspiel.List.ChainI
+public import ProvabilityLogic.ToFoundation.Vorspiel.List.ChainI
 public import Foundation.FirstOrder.Incompleteness.ProvabilityAbstraction.Height
 public import ProvabilityLogic.ProvabilityLogic.Interpret
 

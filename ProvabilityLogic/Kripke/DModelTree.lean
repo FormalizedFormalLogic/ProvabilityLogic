@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Kripke.Simplification
-public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import Mathlib.Data.Fintype.Option
 
 /-!

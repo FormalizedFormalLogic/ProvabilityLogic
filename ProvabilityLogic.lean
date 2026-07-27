@@ -81,5 +81,6 @@ public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
 public import ProvabilityLogic.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
 public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
+public import ProvabilityLogic.ToFoundation.Vorspiel.List.ChainI
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF
 public import ProvabilityLogic.ToFoundation.Vorspiel.Set.Basic
