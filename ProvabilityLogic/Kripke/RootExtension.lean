@@ -1,8 +1,8 @@
 module
 
 public import ProvabilityLogic.Kripke.RootedModel
+public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import Foundation.Vorspiel.Finset.Card
-public import Foundation.Vorspiel.List.Chain
 public import Mathlib.Data.Finite.Sum
 
 @[expose]

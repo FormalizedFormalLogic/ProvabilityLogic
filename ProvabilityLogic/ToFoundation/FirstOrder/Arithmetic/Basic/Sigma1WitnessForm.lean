@@ -156,7 +156,7 @@ private noncomputable def collectionMotive {n : ℕ} (θ : ArithmeticSemiformula
   let cond : ArithmeticSemiformula V 3 :=
     Semiformula.rel Language.LT.lt ![(#0 : ArithmeticSemiterm V 3), (&a : ArithmeticSemiterm V 3)];
   let inner : ArithmeticSemiformula V 3 := (collectionCore θ e).bexsLTSucc (#1 : ArithmeticSemiterm V 3);
-  ∃⁰ ((cond 🡒 inner).ballLT (#1 : ArithmeticSemiterm V 2))
+  ∃¹ ((cond 🡒 inner).ballLT (#1 : ArithmeticSemiterm V 2))
 
 omit [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] in
 private lemma hierarchy_collectionMotive {n : ℕ} {θ : ArithmeticSemiformula Empty (n + 2)}
@@ -211,7 +211,7 @@ lemma exists_bound_witness {n : ℕ} {θ : ArithmeticSemiformula Empty (n + 2)} 
 end Collection
 
 /-- Combine a `𝚫₀`-witnessed form of `φ` (with one extra bound variable `x`) into a
-`𝚫₀`-witnessed form of `∃⁰ φ`. -/
+`𝚫₀`-witnessed form of `∃¹ φ`. -/
 private lemma exs_case {n : ℕ} {φ : ArithmeticSemiformula Empty (n + 1)}
   {θ' : ArithmeticSemiformula Empty (n + 2)} (hθ' : Hierarchy 𝚺 0 θ')
   (h :
@@ -220,7 +220,7 @@ private lemma exs_case {n : ℕ} {φ : ArithmeticSemiformula Empty (n + 1)}
   )
   : ∃ θ : ArithmeticSemiformula Empty (n + 1), Hierarchy 𝚺 0 θ ∧
     ∀ (V : Type u) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁] (e : Fin n → V),
-      V ⊧/e (∃⁰ φ) ↔ ∃ w, V ⊧/(w :> e) θ := by
+      V ⊧/e (∃¹ φ) ↔ ∃ w, V ⊧/(w :> e) θ := by
   -- use a single witness bounding both the existential witness of `φ` and its own `𝚫₀`-witness
   use ((Rew.bShift.q.q ▹ θ').bexsLTSucc (#1 : ArithmeticSemiterm Empty (n + 2))).bexsLTSucc
     (#0 : ArithmeticSemiterm Empty (n + 1));
