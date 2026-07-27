@@ -239,6 +239,7 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
   obtain ⟨κ₂, hne₂, M₂, hgl₂, htree₂, a₂, Rra₂, -, hlatimp₂, -, htrans₂⟩ :=
     exists_simplificationUnder_omega' Rra₁ hcov₁ A.atoms;
   haveI := hne₂; haveI := hgl₂; haveI := htree₂;
+  haveI : Fintype M₂.World := Fintype.ofFinite _;
   have hlat₂ := hlatimp₂ hlat₁;
   have hnA₂ : (M₂.graftOmega a₂).root.1 ⊮ A :=
     fun h => hnA₁ ((htrans₂ A (Finset.Subset.refl _)).mpr h);

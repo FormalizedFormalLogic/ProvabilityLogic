@@ -54,12 +54,7 @@ def conItr (𝔅 : Provability T₀ T) (n : ℕ) : FirstOrder.Sentence L := ∼(
 
 end LO.FirstOrder.ProvabilityAbstraction.Provability
 
-variable (κ : Type u) [Nonempty κ] [Finite κ] [DecidableEq α] (A : _root_.Formula α)
-
-/-- A `Fintype` instance for `κ` derived classically from `Finite κ`, local to this file
-and to this section variable `κ`: needed for `Model.World.rank` and the finite
-disjunctions `⩖` below, where only the existence of an enumeration matters. -/
-noncomputable local instance : Fintype κ := Fintype.ofFinite κ
+variable (κ : Type u) [Nonempty κ] [Fintype κ] [DecidableEq α] (A : _root_.Formula α)
 
 /--
   A finite rooted GL countermodel of `A` with an `A`-reflexive point `r` above the root
