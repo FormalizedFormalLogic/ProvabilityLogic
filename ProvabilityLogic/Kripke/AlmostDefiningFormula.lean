@@ -418,9 +418,8 @@ lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL]
 end OtherModel
 
 /--
-  D-model case: every `P`-simple D-model -- an ω-model `M.graftOmega a` over a
-  finite GL tree `M` where `a` covers the root and there are no lateral cones
-  (`hlat`) -- admits an *almost defining* formula `Φ₀` (`AlmostDefines`).
+  D-model case: every D-model `M.graftOmega a` over a finite GL tree `M` with no
+  lateral cones (`hlat`) admits an *almost defining* formula `Φ₀` (`AlmostDefines`).
 
   This is stated only for the D-model special case (`n = 0` in the paper's
   notation): by Remark 1 (p.265) the formula then takes the simpler form
@@ -439,9 +438,7 @@ end OtherModel
 -/
 theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree]
   (Rra : M.root.1 ≺ a.1)
-  (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1)
-  (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a.1)
-  (hsimple : (M.graftOmega a).IsSimpleUnder P) :
+  (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a.1) :
   ∃ A : Formula α, AlmostDefines P (M.graftOmega a) A := by
   classical
   have hane : a.1 ≠ M.root.1 := graft.ne_root_of_rel Rra;

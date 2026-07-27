@@ -236,7 +236,7 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
     LogicD.exists_graftOmega_countermodel_of_not_mem hA;
   haveI := hne₁; haveI := hgl₁; haveI := htree₁;
   -- **Lemma 8**: `A.atoms`-simplification, staying a tree-shaped D-model.
-  obtain ⟨κ₂, hne₂, M₂, hgl₂, htree₂, a₂, Rra₂, hcov₂, hlatimp₂, hsimple₂, htrans₂⟩ :=
+  obtain ⟨κ₂, hne₂, M₂, hgl₂, htree₂, a₂, Rra₂, -, hlatimp₂, -, htrans₂⟩ :=
     exists_simplificationUnder_omega' Rra₁ hcov₁ A.atoms;
   haveI := hne₂; haveI := hgl₂; haveI := htree₂;
   have hlat₂ := hlatimp₂ hlat₁;
@@ -244,7 +244,7 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
     fun h => hnA₁ ((htrans₂ A (Finset.Subset.refl _)).mpr h);
   -- **Lemma 9**: the almost defining formula of the simplified D-model.
   obtain ⟨B, hBatoms, hBmod, hBroot, hBdef⟩ :=
-    graftOmega.exists_almostDefiningFormula Rra₂ hcov₂ hlat₂ hsimple₂;
+    graftOmega.exists_almostDefiningFormula Rra₂ hlat₂;
   refine ⟨∼B, by rw [Formula.atoms_neg]; exact hBatoms, ?_, ?_⟩;
   . -- `S ⊬ ∼B` (Lemma 4 of [Bek90] §4 + the tail-model semantics of `S`)
     exact not_mem_LogicS_neg_of_graftOmega_root_forces_modalized Rra₂ hlat₂ hBmod hBroot;
