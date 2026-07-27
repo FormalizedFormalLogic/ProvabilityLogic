@@ -23,6 +23,8 @@ lemma LogicS_subset_LogicD : LogicD (α := α) ⊆ LogicS := by
 universe u
 variable {α : Type u}
 
+open LogicGL
+
 /-- Semantic membership in `GL` via finite model completeness. -/
 lemma LogicGL.provable_of_valid [DecidableEq α] {A : Formula α}
     (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A) :

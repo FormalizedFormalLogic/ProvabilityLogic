@@ -1,25 +1,25 @@
 module
 
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
-public import ProvabilityLogic.Gentzen.Kripke
+public import ProvabilityLogic.Gentzen.GL.Kripke
 public import ProvabilityLogic.Kripke.ULift
 
 /-!
 Kripke semantics for `LogicGLPoint3`: soundness of `boxGLPoint3` (`Model.validate_gentzen_boxGLPoint3`)
 and Gentzen completeness (`ProvableGentzen.Kripke.completeness`), obtained by building a finite
-rooted countermodel from a `GLPoint3.Chain` of `LogicGLPoint3` expanded sequents.
+rooted countermodel from a `LogicGLPoint3.Chain` of `LogicGLPoint3` expanded sequents.
 
-The overall structure mirrors the `GL` development in `ProvabilityLogic.Gentzen.Kripke`:
-* `GLPoint3.ExpandedSequent`/`GLPoint3.ExpandedSequent.lindenbaum` saturate an unprovable sequent,
+The overall structure mirrors the `GL` development in `ProvabilityLogic.Gentzen.GL.Kripke`:
+* `LogicGLPoint3.ExpandedSequent`/`LogicGLPoint3.ExpandedSequent.lindenbaum` saturate an unprovable sequent,
   exactly as `ProvabilityLogic.Gentzen.ExpandedSequent` does for `GL`.
-* `GLPoint3.exists_unprovable_split` is the step lemma dual to `Model.exists_linear_witness`: it
+* `LogicGLPoint3.exists_unprovable_split` is the step lemma dual to `Model.exists_linear_witness`: it
   produces the nonempty split `S` witnessing the failure of one `boxGLPoint3` premise.
-* `GLPoint3.Chain` records a finite chain of expanded sequents built by repeatedly saturating
-  along such splits (`GLPoint3.exists_chain`), replacing the single fresh world used by the `GL`
+* `LogicGLPoint3.Chain` records a finite chain of expanded sequents built by repeatedly saturating
+  along such splits (`LogicGLPoint3.exists_chain`), replacing the single fresh world used by the `GL`
   countermodel: `boxGL` only ever needs one witness, `boxGLPoint3` needs a whole chain because of
   linearity.
-* `GLPoint3.Chain.chainModel` turns a chain into a genuinely linear finite `LogicGLPoint3` model, and
-  `GLPoint3.Chain.truthLemma` is the truth lemma for it.
+* `LogicGLPoint3.Chain.chainModel` turns a chain into a genuinely linear finite `LogicGLPoint3` model, and
+  `LogicGLPoint3.Chain.truthLemma` is the truth lemma for it.
 * `ProvableGentzen.Kripke.completeness` assembles all of the above into Gentzen completeness.
 -/
 
@@ -142,18 +142,20 @@ lemma validate_gentzen_boxGLPoint3 [M.IsGLPoint3] (hΔ : Δ.Nonempty)
 
 end Model
 
-namespace GLPoint3
+namespace LogicGLPoint3
+
+open LogicGL
 
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : Sequent α} :
-    (⊬ᵍ³ S) ↔ (IsEmpty (⊢ᵍ³! S)) := by simp [ProvableGentzen]
+    (⊬ᵍ[GLPoint3] S) ↔ (IsEmpty (⊢ᵍ[GLPoint3]! S)) := by simp [ProvableGentzen]
 
 /-- A `LogicGLPoint3`-unprovable, saturated, `BS.subfmls`-bounded sequent. This is the `LogicGLPoint3` analogue of
-`ProvabilityLogic.Gentzen.ExpandedSequent`, built from `⊢ᵍ³` instead of `⊢ᵍ`. `Sequent.Saturated` itself is
+`ProvabilityLogic.Gentzen.ExpandedSequent`, built from `⊢ᵍ[GLPoint3]` instead of `⊢ᵍ[GL]`. `Sequent.Saturated` itself is
 shared with the `GL` development. -/
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
   saturated      : toSequent.Saturated
   subset_subfmls : toSequent.1 ∪ toSequent.2 ⊆ BS.subfmls
-  unprovable     : ⊬ᵍ³ toSequent
+  unprovable     : ⊬ᵍ[GLPoint3] toSequent
 
 namespace ExpandedSequent
 
@@ -199,15 +201,15 @@ variable {BS : Sequent α}
 
 open Classical in
 /-- `LogicGLPoint3` analogue of `ProvabilityLogic.Gentzen.ExpandedSequent.lindenbaum_indexed`, expanding `S₀` one
-formula at a time (following the list `Γ`) while keeping it `⊢ᵍ³`-unprovable. -/
+formula at a time (following the list `Γ`) while keeping it `⊢ᵍ[GLPoint3]`-unprovable. -/
 @[grind]
-noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ³ BS)
-    (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ³ S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ³ S }
+noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ[GLPoint3] BS)
+    (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[GLPoint3] S }
 | [] => ⟨S₀, S₀_unprovable⟩
 | (A 🡒 B) :: Γ =>
   let ⟨S, hS⟩ := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
   if h : (A 🡒 B) ∈ S.1 then
-    if h : ⊬ᵍ³ ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+    if h : ⊬ᵍ[GLPoint3] ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
     else ⟨((insert B S.1) ⟹ S.2), by
       push Not at h
       contrapose! hS
@@ -224,7 +226,7 @@ noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ³
   else ⟨S, hS⟩
 | _ :: Γ => lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
 
-lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} :
     S₀ ⊆ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1 := by
   induction Γ with
@@ -242,8 +244,8 @@ lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α
       · exact ⟨ih.1, ih.2⟩
 
 lemma subfmls_lindenbaum_indexed
-    {BS_unprovable : ⊬ᵍ³ BS}
-    {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS}
+    {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
     {Γ : FormulaList α} (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
     (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∪
       (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
@@ -264,7 +266,7 @@ lemma subfmls_lindenbaum_indexed
         grind
 
 lemma saturated_lindenbaum_indexed
-    {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE) :
     let S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
     (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
@@ -292,7 +294,7 @@ lemma saturated_lindenbaum_indexed
         · simp at h
         · exact h
     | C 🡒 D =>
-      have hunp : ⊬ᵍ³ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
+      have hunp : ⊬ᵍ[GLPoint3] (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2
       dsimp only [lindenbaum_indexed]
       split_ifs with h1 h2 h3 <;>
@@ -302,7 +304,7 @@ lemma saturated_lindenbaum_indexed
         grind [ProvableGentzen.union']
 
 lemma lindenbaum_indexed_saturated_impL_of_sorted_complexity
-    {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
     (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1) :
     A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ∨
@@ -310,7 +312,7 @@ lemma lindenbaum_indexed_saturated_impL_of_sorted_complexity
   (saturated_lindenbaum_indexed hΓ).1 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impL
-    {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
     letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
       (Γ.insertionSort (·.complexity ≤ ·.complexity))
@@ -322,7 +324,7 @@ lemma lindenbaum_indexed_saturated_impL
   · apply List.mem_insertionSort _ |>.mpr h
 
 lemma lindenbaum_indexed_saturated_impR_of_sorted_complexity
-    {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
     (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2) :
     A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∧
@@ -330,7 +332,7 @@ lemma lindenbaum_indexed_saturated_impR_of_sorted_complexity
   (saturated_lindenbaum_indexed hΓ).2 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impR
-    {BS_unprovable : ⊬ᵍ³ BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ³ S₀}
+    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
     {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
     letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
       (Γ.insertionSort (·.complexity ≤ ·.complexity))
@@ -344,7 +346,7 @@ lemma lindenbaum_indexed_saturated_impR
 /-- `LogicGLPoint3` analogue of `ProvabilityLogic.Gentzen.ExpandedSequent.lindenbaum`: saturate `S₀` into a full
 `ExpandedSequent BS`, listing `BS.subfmls` in increasing complexity order. -/
 noncomputable def lindenbaum
-    {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ³ BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ³ S₀)
+    {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GLPoint3] BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀)
     (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) : ExpandedSequent BS :=
   letI S := lindenbaum_indexed BS (Fact.elim inferInstance) S₀ S₀_unprovable $
     BS.subfmls.toList.insertionSort (·.complexity ≤ ·.complexity)
@@ -368,13 +370,13 @@ noncomputable def lindenbaum
     }
   }
 
-lemma subset_lindenbaum {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ³ BS)] {S₀ : Sequent α}
-    {S₀_unprovable : ⊬ᵍ³ S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
+lemma subset_lindenbaum {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GLPoint3] BS)] {S₀ : Sequent α}
+    {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
     S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
 
 end
 
--- `Subsingleton S.Saturated` is already provided globally by `ProvabilityLogic.Gentzen.Kripke` (the `GL`
+-- `Subsingleton S.Saturated` is already provided globally by `ProvabilityLogic.Gentzen.GL.Kripke` (the `GL`
 -- development), since `Sequent.Saturated` itself is shared between `GL` and `GL.3`.
 
 lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant)
@@ -383,17 +385,17 @@ lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant)
   obtain ⟨⟨ΓT, ΔT⟩, _⟩ := T
   grind
 
-instance [Fact (⊬ᵍ³ BS)] : Nonempty (ExpandedSequent BS) :=
+instance [Fact (⊬ᵍ[GLPoint3] BS)] : Nonempty (ExpandedSequent BS) :=
   ⟨lindenbaum BS (Fact.elim inferInstance) (by grind)⟩
 
 end ExpandedSequent
 
 /-! ### Chains of `LogicGLPoint3` expanded sequents
 
-This file fixes the *interface* only: the data structure `GLPoint3.Chain` recording a finite
+This file fixes the *interface* only: the data structure `LogicGLPoint3.Chain` recording a finite
 chain `x₀, …, x_n : ExpandedSequent BS` together with the witnesses `S₀, …, S_{n-1}` and the
 invariants (inv0)–(inv4) from the completeness plan (Step D). No existence proof is given here;
-that is `GLPoint3.exists_chain`, proved below. Downstream lemmas (propagation lemmas, the chain
+that is `LogicGLPoint3.exists_chain`, proved below. Downstream lemmas (propagation lemmas, the chain
 model, the truth lemma) are meant to consume only the fields of `Chain` and the two projections
 `ExpandedSequent.Γ`/`ExpandedSequent.Θ` below. -/
 
@@ -414,12 +416,12 @@ end ExpandedSequent
 
 The chain has `n + 1` worlds `seq 0, …, seq n`, connected by `n` steps. Step `i : Fin n` moves
 from `seq i.castSucc` to `seq i.succ` using the nonempty split `S i ⊆ (seq i.castSucc).Θ` supplied
-by `GLPoint3.exists_unprovable_split`. The chain terminates when `(seq (Fin.last n)).Θ = ∅`
+by `LogicGLPoint3.exists_unprovable_split`. The chain terminates when `(seq (Fin.last n)).Θ = ∅`
 (inv4), which forces all boxed succedent formulas to eventually be discharged along the chain
-(this is exhibited by the propagation lemmas of `GLPoint3.Chain`, not here).
+(this is exhibited by the propagation lemmas of `LogicGLPoint3.Chain`, not here).
 
 Only the data and the invariants are recorded; existence of such a chain (for suitable `BS`,
-`S₀`) is the content of `GLPoint3.exists_chain`, proved separately from this interface. -/
+`S₀`) is the content of `LogicGLPoint3.exists_chain`, proved separately from this interface. -/
 structure Chain (BS : Sequent α) (S₀ : Sequent α) where
   /-- The length of the chain: there are `n + 1` worlds and `n` steps. -/
   n : ℕ
@@ -454,9 +456,9 @@ private lemma prebox_box_subset (Γ : FormulaFinset α) : Γ.prebox.box ⊆ Γ :
 /-- The step lemma dual to `Model.exists_linear_witness`: if a boxed sequent `Γ ⟹ Δ` (in
 their `prebox` form) is unprovable and `Δ.prebox` is nonempty, then some nonempty
 `S ⊆ Δ.prebox` makes the corresponding `boxGLPoint3` premise unprovable. -/
-theorem exists_unprovable_split (hΔ : Δ.prebox.Nonempty) (hunprov : ⊬ᵍ³ (Γ ⟹ Δ)) :
+theorem exists_unprovable_split (hΔ : Δ.prebox.Nonempty) (hunprov : ⊬ᵍ[GLPoint3] (Γ ⟹ Δ)) :
     ∃ S ⊆ Δ.prebox, S.Nonempty ∧
-      ⊬ᵍ³ ((Γ.prebox.box ∪ Γ.prebox ∪ S.box) ⟹ (S ∪ (Δ.prebox \ S).box)) := by
+      ⊬ᵍ[GLPoint3] ((Γ.prebox.box ∪ Γ.prebox ∪ S.box) ⟹ (S ∪ (Δ.prebox \ S).box)) := by
   by_contra h;
   push Not at h;
   exact hunprov
@@ -520,7 +522,7 @@ end ExpandedSequent
 succedent becomes empty. Proved by strong induction on the termination measure
 `(BS.subfmls \ x.Γ).card`, which strictly decreases at every step since the chosen split `S` is
 disjoint from `x.Γ` but ends up inside the next world's `Γ`. -/
-theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ³ BS) :
+theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ[GLPoint3] BS) :
     ∀ m : ℕ, ∀ x : ExpandedSequent BS, (BS.subfmls \ x.Γ).card ≤ m →
       ∃ (n : ℕ) (seq : Fin (n + 1) → ExpandedSequent BS) (split : Fin n → FormulaFinset α),
         seq 0 = x ∧
@@ -531,7 +533,7 @@ theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ³ BS) :
           ((seq i.castSucc).Θ \ split i).box ⊆ (seq i.succ).toSequent.suc) ∧
         (∀ i : Fin n, split i ⊆ (seq i.castSucc).Θ ∧ (split i).Nonempty) ∧
         (seq (Fin.last n)).Θ = ∅ := by
-  haveI : Fact (⊬ᵍ³ BS) := Fact.mk hBS
+  haveI : Fact (⊬ᵍ[GLPoint3] BS) := Fact.mk hBS
   intro m
   induction m using Nat.strong_induction_on with
   | _ m ih =>
@@ -542,7 +544,7 @@ theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ³ BS) :
     · have hΘne : x.Θ.Nonempty := Finset.nonempty_iff_ne_empty.mpr hΘ
       obtain ⟨S, hSsub, hSne, hunprov⟩ := exists_unprovable_split hΘne x.unprovable
       set prem : Sequent α := (x.Γ.box ∪ x.Γ ∪ S.box) ⟹ (S ∪ (x.Θ \ S).box) with hprem_def
-      have hprem_unprov : ⊬ᵍ³ prem := hunprov
+      have hprem_unprov : ⊬ᵍ[GLPoint3] prem := hunprov
       have hant_sub := x.ant_subset_subfmls
       have hsuc_sub := x.suc_subset_subfmls
       have h1 : x.Γ.box ⊆ BS.subfmls := x.Γ_box_subset_ant.trans hant_sub
@@ -623,10 +625,10 @@ theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ³ BS) :
 
 /-- The main existence theorem: any `S₀` unprovable and bounded by `BS.subfmls` (with `BS` itself
 unprovable) sits at the head of a `Chain BS S₀`. -/
-theorem exists_chain {BS S₀ : Sequent α} (hBS : ⊬ᵍ³ BS) (hS₀ : ⊬ᵍ³ S₀)
+theorem exists_chain {BS S₀ : Sequent α} (hBS : ⊬ᵍ[GLPoint3] BS) (hS₀ : ⊬ᵍ[GLPoint3] S₀)
     (hsub : S₀.ant ∪ S₀.suc ⊆ BS.subfmls) :
     Nonempty (Chain BS S₀) := by
-  haveI : Fact (⊬ᵍ³ BS) := Fact.mk hBS
+  haveI : Fact (⊬ᵍ[GLPoint3] BS) := Fact.mk hBS
   set x₀ : ExpandedSequent BS := ExpandedSequent.lindenbaum S₀ hS₀ hsub with hx₀_def
   obtain ⟨n, seq, split, hseq0, hant, hsuc, hspl, hlast⟩ :=
     exists_chain_from_aux hBS ((BS.subfmls \ x₀.Γ).card) x₀ (le_refl _)
@@ -785,13 +787,13 @@ namespace ProvableGentzen
 
 namespace Kripke
 
-/-- The rooted, finite version of `LogicGLPoint3` Gentzen completeness: any `⊢ᵍ³`-unprovable sequent `S`
+/-- The rooted, finite version of `LogicGLPoint3` Gentzen completeness: any `⊢ᵍ[GLPoint3]`-unprovable sequent `S`
 has a finite rooted `LogicGLPoint3` countermodel, refuting `S` right at the root. This is the essential
-statement, since `GLPoint3.iff_forces_root` only ever assumes forcing at the root of a model. -/
-theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ³ S) :
+statement, since `LogicGLPoint3.iff_forces_root` only ever assumes forcing at the root of a model. -/
+theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
     ∃ (n : ℕ) (M : RootedModel (Fin (n + 1)) α) (_ : M.toModel.IsFiniteGLPoint3),
       (∀ A ∈ S.ant, M.root.1 ⊩ A) ∧ (∀ A ∈ S.suc, ¬ M.root.1 ⊩ A) := by
-  obtain ⟨c⟩ := GLPoint3.exists_chain h h Sequent.subset_self_subfmls
+  obtain ⟨c⟩ := LogicGLPoint3.exists_chain h h Sequent.subset_self_subfmls
   refine ⟨c.n, c.chainRootedModel, (inferInstanceAs c.chainModel.IsFiniteGLPoint3), ?_, ?_⟩
   · intro A hA
     exact (c.truthLemma A 0).1 (c.subset_head.ant_subset hA)
@@ -802,7 +804,7 @@ theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ³ S) :
 Proved by contraposition, from the rooted finite countermodel of `exists_finite_countermodel`. -/
 theorem completeness {S : Sequent α}
     (h : ∀ {κ : Type}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ S) :
-    ⊢ᵍ³ S := by
+    ⊢ᵍ[GLPoint3] S := by
   by_contra hS
   obtain ⟨n, M, hFin, hant, hsuc⟩ := exists_finite_countermodel hS
   haveI := hFin
@@ -814,7 +816,7 @@ universe `w`, not just `Type 0`. Obtained from `completeness` by `ULift`-lifting
 `Fin (n + 1)` countermodel it produces into `Type w` via `Model.uLift`. -/
 theorem completeness_universe {S : Sequent α}
     (h : ∀ {κ : Type w}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ S) :
-    ⊢ᵍ³ S := by
+    ⊢ᵍ[GLPoint3] S := by
   apply completeness;
   intro κ _ M _ x hant;
   obtain ⟨D, hD, hDforces⟩ := h M.uLift.{w} (ULift.up x)
@@ -825,6 +827,6 @@ end Kripke
 
 end ProvableGentzen
 
-end GLPoint3
+end LogicGLPoint3
 
 end

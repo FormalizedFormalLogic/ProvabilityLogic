@@ -1,11 +1,13 @@
 module
 
 public import ProvabilityLogic.Gentzen.S.Basic
-public import ProvabilityLogic.Gentzen.Kripke
+public import ProvabilityLogic.Gentzen.GL.Kripke
 public import ProvabilityLogic.Kripke.ReflexiveWorld
 
 @[expose]
 public section
+
+open LogicGL
 
 universe u v
 
@@ -421,9 +423,9 @@ end ExpandedLayeredSequent
 
 section
 
-open _root_.ProvableGentzen.Kripke
+open _root_.LogicGL.ProvableGentzen.Kripke
 
-variable {BS : Sequent α} [Fact (⊬ᵍ BS)]
+variable {BS : Sequent α} [Fact (⊬ᵍ[GL] BS)]
 
 instance : Nonempty (ExpandedSequent BS ⊕ ℕ) := ⟨.inr 0⟩
 
@@ -436,7 +438,7 @@ instance : Nonempty (ExpandedSequent BS ⊕ ℕ) := ⟨.inr 0⟩
   - [KK23, Theorem 3.1]
 -/
 @[grind]
-def chainModel (BS : Sequent α) [Fact (⊬ᵍ BS)] (t : ExpandedSequent BS) : Model (ExpandedSequent BS ⊕ ℕ) α where
+def chainModel (BS : Sequent α) [Fact (⊬ᵍ[GL] BS)] (t : ExpandedSequent BS) : Model (ExpandedSequent BS ⊕ ℕ) α where
   Rel' x y :=
     match x, y with
     | .inl x, .inl y => Model.Rel (M := countermodelOf BS) x y
@@ -554,9 +556,9 @@ theorem completeness {Γ Δ : FormulaFinset α}
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
     (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩ (Γ ⟹ Δ)
   )
-  : ⊢ᴳ (Γ ⟹[1] Δ) := by
+  : ⊢ᵍ[S] (Γ ⟹[1] Δ) := by
   by_contra hp;
-  haveI : Fact (⊬ᵍ (Γ ⟹ Δ)) := ⟨not_provableGentzen_of_not_provable_one hp⟩;
+  haveI : Fact (⊬ᵍ[GL] (Γ ⟹ Δ)) := ⟨not_provableGentzen_of_not_provable_one hp⟩;
   have hsub : (Γ ⟹ Δ).1 ∪ (Γ ⟹ Δ).2 ⊆ (Γ ⟹ Δ).subfmls := by grind;
   let T : ExpandedLayeredSequent (Γ ⟹ Δ) := ExpandedLayeredSequent.lindenbaum (Γ ⟹ Δ) (Γ ⟹ Δ) hp hsub;
   let t : ExpandedSequent (Γ ⟹ Δ) := T.toExpandedSequent;
@@ -578,7 +580,7 @@ variable {Γ Δ : FormulaFinset α}
 
   - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
-theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᴳᶜ S) :
+theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (x : M.World),
   (S.level = 1 → x.IsReflexiveOf X) → x ⊩ S.toSequent := by
   induction h using LogicS.GentzenWithCutProvable.rec with
@@ -660,7 +662,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᴳᶜ S) :
 
   - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
-theorem soundness (h : ⊢ᴳᶜ (Γ ⟹[1] Δ)) :
+theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
   ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ (Γ ⟹ Δ) := by
   obtain ⟨X, hX⟩ := soundness_aux h;
@@ -693,9 +695,9 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
       (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩ (Γ ⟹ Δ),
     -- condition 5
-    ⊢ᴳ (Γ ⟹[1] Δ),
+    ⊢ᵍ[S] (Γ ⟹[1] Δ),
     -- condition 6
-    ⊢ᴳᶜ (Γ ⟹[1] Δ)
+    ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)
   ].TFAE := by
   tfae_have 1 → 2 := by
     intro h κ _ M _;
@@ -714,11 +716,11 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
 namespace GentzenWithCutProvable
 
 /--
-  Cut-elimination corollary of `semantical_TFAE`: condition `6` (`⊢ᴳᶜ`) and condition `5`
-  (`⊢ᴳ`) of the TFAE are equivalent, so a `LogicS.GentzenWithCutProof`-proof of a level-`1`
+  Cut-elimination corollary of `semantical_TFAE`: condition `6` (`⊢ᵍᶜ[S]`) and condition `5`
+  (`⊢ᵍ[S]`) of the TFAE are equivalent, so a `LogicS.GentzenWithCutProof`-proof of a level-`1`
   sequent yields a cut-free `LogicS.ProofGentzen`-proof of the same sequent.
 -/
-theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᴳᶜ (Γ ⟹[1] Δ)) : ⊢ᴳ (Γ ⟹[1] Δ) :=
+theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) :=
   (semantical_TFAE.out 5 4).mp h
 
 end GentzenWithCutProvable

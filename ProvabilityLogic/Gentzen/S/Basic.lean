@@ -1,9 +1,11 @@
 module
 
-public import ProvabilityLogic.Gentzen.Basic
+public import ProvabilityLogic.Gentzen.GL.Basic
 
 @[expose]
 public section
+
+open LogicGL
 
 variable {α : Type u} [DecidableEq α]
 
@@ -18,7 +20,7 @@ notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
 /--
   Sequent calculus for the logic `S` (also called `GLSseq` in the literature, or `𝗚𝐒` in PLPL §2),
   formulated with a single sequent relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 2`. `l = 0` is
-  the level-1 (GL) sequent, coinciding with `ProvabilityLogic.Gentzen.ProofGentzen`; `l = 1` is
+  the level-1 (GL) sequent, coinciding with `LogicGL.ProofGentzen`; `l = 1` is
   the level-2 (S) sequent, obtained from the level-1 one by additionally allowing the reflexivity
   rule `boxL`.
 
@@ -37,17 +39,17 @@ inductive LogicS.ProofGentzen : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped prefix:120 "⊢ᴳ! " => ProofGentzen
+scoped notation:120 "⊢ᵍ[S]! " Seq:121 => ProofGentzen Seq
 
-abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᴳ! S)
-scoped prefix:120 "⊢ᴳ " => ProvableGentzen
+abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍ[S]! S)
+scoped notation:120 "⊢ᵍ[S] " Seq:121 => ProvableGentzen Seq
 
 /--
   `LogicS.ProofGentzen` at level `0` coincides syntactically with the plain (level-independent)
   `ProofGentzen` for `GL`: every rule available for a level-`0` conclusion is exactly a rule of
   `ProofGentzen`, and `liftUp`/`boxL` can never conclude a level-`0` sequent.
 -/
-def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ! (Γ ⟹ Δ) → ⊢ᴳ! (Γ ⟹[0] Δ)
+def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[S]! (Γ ⟹[0] Δ)
 | .axm A    => .axm 0 A
 | .botL     => .botL 0
 | .wkL h h' => .wkL (ofProofGentzen h) h'
@@ -57,7 +59,7 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ! (Γ ⟹ Δ) → ⊢ᴳ! 
 | .boxGL h  => .boxGL (ofProofGentzen h)
 
 /-- The converse translation, by structural recursion on level-`0` `LogicS.ProofGentzen`-proofs. -/
-def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᴳ! (Γ ⟹[0] Δ) → ⊢ᵍ! (Γ ⟹ Δ)
+def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
 | .axm 0 A    => .axm A
 | .botL 0     => .botL
 | .wkL h h'   => .wkL (toProofGentzen h) h'
@@ -68,23 +70,23 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᴳ! (Γ ⟹[0] Δ) → ⊢�
 
 /-- Level-`0` `LogicS.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability. -/
 theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
-  (⊢ᵍ (Γ ⟹ Δ)) ↔ (⊢ᴳ (Γ ⟹[0] Δ)) :=
+  (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[S] (Γ ⟹[0] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
 
 namespace ProvableGentzen
 
 variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
-lemma axm (l) (A : Formula α) : ⊢ᴳ ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
-lemma botL (l) : ⊢ᴳ (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
-lemma wkL (π : ⊢ᴳ (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᴳ (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᴳ (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᴳ (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma impL (π₁ : ⊢ᴳ (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᴳ (insert B Γ ⟹[l] Δ)) : ⊢ᴳ ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
+lemma axm (l) (A : Formula α) : ⊢ᵍ[S] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
+lemma botL (l) : ⊢ᵍ[S] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
+lemma wkL (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[S] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
+lemma wkR (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[S] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
+lemma impL (π₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[S] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
   ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᴳ ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᴳ (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma liftUp (π : ⊢ᴳ (Γ ⟹[0] Δ)) : ⊢ᴳ (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
-lemma boxGL (π : ⊢ᴳ ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᴳ (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
-lemma boxL (π : ⊢ᴳ (insert A Γ ⟹[1] Δ)) : ⊢ᴳ (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
+lemma impR (π : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[S] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
+lemma liftUp (π : ⊢ᵍ[S] (Γ ⟹[0] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
+lemma boxGL (π : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[S] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
+lemma boxL (π : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[S] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
 
 /--
   Induction principle for `LogicS.ProvableGentzen` at the `Prop` level, mirroring
@@ -92,44 +94,44 @@ lemma boxL (π : ⊢ᴳ (insert A Γ ⟹[1] Δ)) : ⊢ᴳ (insert (□A) Γ ⟹[
 -/
 @[induction_eliminator]
 lemma rec
-  {motive : (S : TwoLayeredSequent α) → ⊢ᴳ S → Prop}
+  {motive : (S : TwoLayeredSequent α) → ⊢ᵍ[S] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (ProvableGentzen.axm l A))
   (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (ProvableGentzen.botL l))
-  (wkL : ∀ {l Γ Γ' Δ} (π : ⊢ᴳ (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) π → motive (Γ' ⟹[l] Δ) (wkL π h))
-  (wkR : ∀ {l Γ Δ Δ'} (π : ⊢ᴳ (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) π → motive (Γ ⟹[l] Δ') (wkR π h))
-  (impL : ∀ {l Γ Δ A B} (π₁ : ⊢ᴳ (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᴳ (insert B Γ ⟹[l] Δ)),
+  (wkL : ∀ {l Γ Γ' Δ} (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) π → motive (Γ' ⟹[l] Δ) (wkL π h))
+  (wkR : ∀ {l Γ Δ Δ'} (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) π → motive (Γ ⟹[l] Δ') (wkR π h))
+  (impL : ∀ {l Γ Δ A B} (π₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)),
     motive (Γ ⟹[l] insert A Δ) π₁ → motive (insert B Γ ⟹[l] Δ) π₂ →
     motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL π₁ π₂)
   )
-  (impR : ∀ {l Γ Δ A B} (π : ⊢ᴳ ((insert A Γ) ⟹[l] (insert B Δ))),
+  (impR : ∀ {l Γ Δ A B} (π : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))),
     motive ((insert A Γ) ⟹[l] (insert B Δ)) π → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR π)
   )
-  (liftUp : ∀ {Γ Δ} (π : ⊢ᴳ (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp π))
-  (boxGL : ∀ {Γ A} (π : ⊢ᴳ ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
+  (liftUp : ∀ {Γ Δ} (π : ⊢ᵍ[S] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp π))
+  (boxGL : ∀ {Γ A} (π : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
     motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) π → motive (Γ.box ⟹[0] {□A}) (boxGL π)
   )
-  (boxL : ∀ {Γ Δ A} (π : ⊢ᴳ (insert A Γ ⟹[1] Δ)),
+  (boxL : ∀ {Γ Δ A} (π : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)),
     motive (insert A Γ ⟹[1] Δ) π → motive (insert (□A) Γ ⟹[1] Δ) (boxL π)
   )
-  : ∀ {S : TwoLayeredSequent α} (h : ⊢ᴳ S), motive S h := by
+  : ∀ {S : TwoLayeredSequent α} (h : ⊢ᵍ[S] S), motive S h := by
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-scoped prefix:120 "⊬ᴳ " => λ S => ¬⊢ᴳ S
+scoped prefix:120 "⊬ᴳ " => λ S => ¬⊢ᵍ[S] S
 
-lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᴳ S) ↔ (IsEmpty (⊢ᴳ! S)) := by
+lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᴳ S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
   simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
-lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᴳ (Γ ⟹[l] Δ) :=
+lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
 /-- `Sequent`-shaped variant of `LogicS.ProvableGentzen.union`. -/
-lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᴳ (S.ant ⟹[l] S.suc) :=
+lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[S] (S.ant ⟹[l] S.suc) :=
   union l A hΓ hΔ
 
 /-- `botL` with side formulas, at any level. -/
-lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᴳ (Γ ⟹[l] Δ) :=
+lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
 /-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then so is the level-`0` one. -/
@@ -142,7 +144,7 @@ end ProvableGentzen
 open ProvableGentzen
 
 /-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then the plain sequent is `ProvableGentzen`-unprovable. -/
-lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᴳ (Γ ⟹[1] Δ)) : ⊬ᵍ (Γ ⟹ Δ) :=
+lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᴳ (Γ ⟹[1] Δ)) : ⊬ᵍ[GL] (Γ ⟹ Δ) :=
   λ hp => ProvableGentzen.not_provable_zero_of_not_provable_one h (iff_provableGentzen_provable_zero.mp hp)
 
 end LogicS
@@ -167,13 +169,13 @@ inductive LogicS.GentzenWithCutProof : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped prefix:120 "⊢ᴳᶜ! " => GentzenWithCutProof
+scoped notation:120 "⊢ᵍᶜ[S]! " Seq:121 => GentzenWithCutProof Seq
 
-abbrev GentzenWithCutProvable (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᴳᶜ! S)
-scoped prefix:120 "⊢ᴳᶜ " => GentzenWithCutProvable
+abbrev GentzenWithCutProvable (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍᶜ[S]! S)
+scoped notation:120 "⊢ᵍᶜ[S] " Seq:121 => GentzenWithCutProvable Seq
 
 /-- Every `LogicS.ProofGentzen`-proof is in particular a `LogicS.GentzenWithCutProof`-proof. -/
-def GentzenWithCutProof.ofProofGentzen {S : TwoLayeredSequent α} : ⊢ᴳ! S → ⊢ᴳᶜ! S
+def GentzenWithCutProof.ofProofGentzen {S : TwoLayeredSequent α} : ⊢ᵍ[S]! S → ⊢ᵍᶜ[S]! S
 | .axm l A    => .axm l A
 | .botL l     => .botL l
 | .wkL h h'   => .wkL (GentzenWithCutProof.ofProofGentzen h) h'
@@ -194,51 +196,51 @@ variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : For
 
   - [KK23, Theorem 3.1]
 -/
-theorem of_without_cut : ⊢ᴳ S → ⊢ᴳᶜ S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
+theorem of_without_cut : ⊢ᵍ[S] S → ⊢ᵍᶜ[S] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
-lemma axm (l) (A : Formula α) : ⊢ᴳᶜ ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
-lemma botL (l) : ⊢ᴳᶜ (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
-lemma wkL (h : ⊢ᴳᶜ (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᴳᶜ (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
-lemma wkR (h : ⊢ᴳᶜ (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ') : ⊢ᴳᶜ (Γ ⟹[l] Δ') := ⟨GentzenWithCutProof.wkR h.some h'⟩
-lemma impL (h₁ : ⊢ᴳᶜ (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᴳᶜ (insert B Γ ⟹[l] Δ)) : ⊢ᴳᶜ ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
+lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[S] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
+lemma botL (l) : ⊢ᵍᶜ[S] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
+lemma wkL (h : ⊢ᵍᶜ[S] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[S] (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
+lemma wkR (h : ⊢ᵍᶜ[S] (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ') : ⊢ᵍᶜ[S] (Γ ⟹[l] Δ') := ⟨GentzenWithCutProof.wkR h.some h'⟩
+lemma impL (h₁ : ⊢ᵍᶜ[S] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[S] (insert B Γ ⟹[l] Δ)) : ⊢ᵍᶜ[S] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
   ⟨GentzenWithCutProof.impL h₁.some h₂.some⟩
-lemma impR (h : ⊢ᴳᶜ ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᴳᶜ (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
-lemma liftUp (h : ⊢ᴳᶜ (Γ ⟹[0] Δ)) : ⊢ᴳᶜ (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp h.some⟩
-lemma boxGL (h : ⊢ᴳᶜ ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᴳᶜ (Γ.box ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
-lemma boxL (h : ⊢ᴳᶜ (insert A Γ ⟹[1] Δ)) : ⊢ᴳᶜ (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
-lemma cut (h₁ : ⊢ᴳᶜ (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᴳᶜ (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᴳᶜ (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
+lemma impR (h : ⊢ᵍᶜ[S] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[S] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
+lemma liftUp (h : ⊢ᵍᶜ[S] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp h.some⟩
+lemma boxGL (h : ⊢ᵍᶜ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍᶜ[S] (Γ.box ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
+lemma boxL (h : ⊢ᵍᶜ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[S] (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
+lemma cut (h₁ : ⊢ᵍᶜ[S] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[S] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[S] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
 /--
   Induction principle for `LogicS.GentzenWithCutProvable` at the `Prop` level, mirroring
-  `ProvabilityLogic.Gentzen.WithCut.GentzenWithCutProvable.rec` for the (level-free) `GL` calculus.
+  `ProvabilityLogic.Gentzen.GL.WithCut.GentzenWithCutProvable.rec` for the (level-free) `GL` calculus.
 -/
 @[induction_eliminator]
 lemma rec
-  {motive : (S : TwoLayeredSequent α) → ⊢ᴳᶜ S → Prop}
+  {motive : (S : TwoLayeredSequent α) → ⊢ᵍᶜ[S] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (GentzenWithCutProvable.axm l A))
   (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (GentzenWithCutProvable.botL l))
-  (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᴳᶜ (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h h'))
-  (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᴳᶜ (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h h'))
-  (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᴳᶜ (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᴳᶜ (insert B Γ ⟹[l] Δ)),
+  (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍᶜ[S] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h h'))
+  (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍᶜ[S] (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h h'))
+  (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍᶜ[S] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[S] (insert B Γ ⟹[l] Δ)),
     motive (Γ ⟹[l] insert A Δ) h₁ → motive (insert B Γ ⟹[l] Δ) h₂ →
     motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL h₁ h₂)
   )
-  (impR : ∀ {l Γ Δ A B} (h : ⊢ᴳᶜ ((insert A Γ) ⟹[l] (insert B Δ))),
+  (impR : ∀ {l Γ Δ A B} (h : ⊢ᵍᶜ[S] ((insert A Γ) ⟹[l] (insert B Δ))),
     motive ((insert A Γ) ⟹[l] (insert B Δ)) h → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR h)
   )
-  (liftUp : ∀ {Γ Δ} (h : ⊢ᴳᶜ (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp h))
-  (boxGL : ∀ {Γ A} (h : ⊢ᴳᶜ ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
+  (liftUp : ∀ {Γ Δ} (h : ⊢ᵍᶜ[S] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp h))
+  (boxGL : ∀ {Γ A} (h : ⊢ᵍᶜ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
     motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) h → motive (Γ.box ⟹[0] {□A}) (boxGL h)
   )
-  (boxL : ∀ {Γ Δ A} (h : ⊢ᴳᶜ (insert A Γ ⟹[1] Δ)),
+  (boxL : ∀ {Γ Δ A} (h : ⊢ᵍᶜ[S] (insert A Γ ⟹[1] Δ)),
     motive (insert A Γ ⟹[1] Δ) h → motive (insert (□A) Γ ⟹[1] Δ) (boxL h)
   )
-  (cut : ∀ {l Γ₁ Γ₂ Δ₁ Δ₂ A} (h₁ : ⊢ᴳᶜ (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᴳᶜ (insert A Γ₂ ⟹[l] Δ₂)),
+  (cut : ∀ {l Γ₁ Γ₂ Δ₁ Δ₂ A} (h₁ : ⊢ᵍᶜ[S] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[S] (insert A Γ₂ ⟹[l] Δ₂)),
     motive (Γ₁ ⟹[l] insert A Δ₁) h₁ → motive (insert A Γ₂ ⟹[l] Δ₂) h₂ →
     motive (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) (GentzenWithCutProvable.cut h₁ h₂)
   )
-  : ∀ {S : TwoLayeredSequent α} (h : ⊢ᴳᶜ S), motive S h := by
+  : ∀ {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S), motive S h := by
     rintro S ⟨h⟩;
     induction h <;> grind;
 

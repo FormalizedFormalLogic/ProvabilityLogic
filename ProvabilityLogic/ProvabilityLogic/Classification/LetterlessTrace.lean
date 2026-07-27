@@ -322,6 +322,7 @@ end
 
 open LO
 open LO.FirstOrder.ProvabilityAbstraction
+open LogicGL
 
 namespace LetterlessFormula
 
@@ -554,10 +555,10 @@ lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula 
       obtain ⟨Y₁, hY₁, h₁⟩ := ih₁;
       obtain ⟨Y₂, hY₂, h₂⟩ := ih₂;
       use Y₁ ∪ Y₂, by grind;
-      have w₁ : (⊢ʰ ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₁))) := by
+      have w₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₁))) := by
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset Finset.subset_union_left);
-      have w₂ : (⊢ʰ ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₂))) := by
+      have w₂ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(Y₁ ∪ Y₂)) : Formula α) 🡒 LetterlessFormula.lift (⋀Y₂))) := by
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset Finset.subset_union_right);
       exact ProvableHilbert.mdp
@@ -889,7 +890,7 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
       rw [show (LetterlessFormula.standardInterpret T B) = Formula.interpret f₀ (LetterlessFormula.lift B) from
         (LetterlessFormula.interpret_lift (f := f₀)).symm];
       have hmem : (C 🡒 LetterlessFormula.lift B) ∈ LogicGL := by
-        show ⊢ʰ (C 🡒 LetterlessFormula.lift B);
+        show ⊢ʰ[GL] (C 🡒 LetterlessFormula.lift B);
         have hsub : ({LetterlessFormula.lift B} : FormulaFinset α) ⊆ Δ.image LetterlessFormula.lift :=
           Finset.singleton_subset_iff.mpr (Finset.mem_image_of_mem _ hBΔ);
         simpa using ProvableHilbert.imp_fconj_fconj_of_subset (Γ := Δ.image LetterlessFormula.lift) hsub;

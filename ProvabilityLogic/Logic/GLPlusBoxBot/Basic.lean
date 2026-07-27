@@ -8,6 +8,7 @@ public import ProvabilityLogic.Logic.GL.Basic
 open Classical
 open LO
 open LO.FirstOrder.ProvabilityAbstraction
+open LogicGL
 
 /-- `LogicGLPlusBoxBot n`: the quasi-normal extension of `GL` by the boxbot axiom `□^[n]⊥`
 for a finite `n`, and `GL` itself for `n = ∞`. -/

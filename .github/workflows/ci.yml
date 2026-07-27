@@ -123,6 +123,30 @@ jobs:
         if: hashFiles('.lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz') != ''
         run: lake unpack
 
+      # `restore-keys` can fall back to a cache packed before a file was renamed or deleted; `lake
+      # build` only rebuilds modules whose *source* changed, so a stale `.olean`/`.trace` for a
+      # since-removed path survives untouched. `leanchecker` walks every olean it finds, so an
+      # orphaned one — compiled against an older environment — can fail the kernel replay even
+      # though nothing on the current source tree is wrong. Drop any build artifact whose module no
+      # longer has a matching `.lean` file before building.
+      - name: Prune orphaned build artifacts from renamed/removed sources
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          src_root = pathlib.Path('ProvabilityLogic')
+          for build_root in [pathlib.Path('.lake/build/lib/lean/ProvabilityLogic'), pathlib.Path('.lake/build/ir/ProvabilityLogic')]:
+              if not build_root.exists():
+                  continue
+              for f in sorted(build_root.rglob('*')):
+                  if not f.is_file():
+                      continue
+                  rel_dir = f.relative_to(build_root).parent
+                  base = f.name.split('.', 1)[0]
+                  if not (src_root / rel_dir / f'{base}.lean').exists():
+                      print(f'removing orphaned artifact {f}')
+                      f.unlink()
+          PY
+
       - name: Build ProvabilityLogic
         run: lake build ProvabilityLogic
 

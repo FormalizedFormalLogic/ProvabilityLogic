@@ -12,6 +12,8 @@ def LogicGLPoint3OplusBoxBot {α} : ℕ∞ → Logic α
   | .some n => LogicGLPoint3 ⊕ᴸ {□^[n]⊥}
   | .none   => LogicGLPoint3
 
+open LogicGL
+
 namespace LogicGLPoint3OplusBoxBot
 
 variable {α : Type*} [DecidableEq α] {n : ℕ} {A B C : Formula α}

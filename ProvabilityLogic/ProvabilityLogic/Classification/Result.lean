@@ -24,6 +24,7 @@ open Classical
 open LO LO.Entailment
 open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
 open Model Model.World
+open LogicGL
 
 universe u
 variable {α : Type u}
@@ -229,27 +230,27 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
       by_cases hnBeta : n ∈ Beta;
       . exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (by simp [NBeta, hnN, hnBeta]));
       . exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (by simp [F, hnBeta]));
-    -- `⊢ʰ ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 ⋀TBB(NBeta ∪-image F)` at the letterless level.
-    have s₁ : (⊢ʰ ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
+    -- `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 ⋀TBB(NBeta ∪-image F)` at the letterless level.
+    have s₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
         🡒 A)) := by
-      have w₁ : (⊢ʰ ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
+      have w₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
           🡒 LetterlessFormula.lift (⋀Y₁))) := by
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset sub₁);
       exact ProvableHilbert.impTrans w₁ hGL₁;
     -- Merge lemma for finite conjunctions, semantically.
-    have merge : (⊢ʰ ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    have merge : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α))) := by
-      have : (⊢ʰ ((⋀(NBeta.image TBB) : LetterlessFormula)
+      have : (⊢ʰ[GL] ((⋀(NBeta.image TBB) : LetterlessFormula)
           🡒 (⋀(F.image TBB)) 🡒 (⋀((NBeta.image TBB) ∪ (F.image TBB))))) := by
         apply LogicGL.iff_forces.mpr;
         grind;
       simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α) this;
-    -- Compose: `⊢ʰ ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 A`.
-    have c₂ : (⊢ʰ ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    -- Compose: `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 A`.
+    have c₂ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)) := by
-      have t : (⊢ʰ (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+      have t : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α))
           🡒 ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α) 🡒 A)
@@ -258,9 +259,9 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
         apply LogicGL.iff_forces.mpr;
         grind;
       exact ProvableHilbert.mdp (ProvableHilbert.mdp t merge) s₁;
-    -- The `GLβ⁻` axiom gives `⊢ʰ ∼⋀TBB(F) 🡒 A`.
-    have c₃ : (⊢ʰ ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)) := by
-      have w₂ : (⊢ʰ ((TBBMinus _ hCf : LetterlessFormula) 🡒 (⋀Y₂ : LetterlessFormula))) := by
+    -- The `GLβ⁻` axiom gives `⊢ʰ[GL] ∼⋀TBB(F) 🡒 A`.
+    have c₃ : (⊢ʰ[GL] ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)) := by
+      have w₂ : (⊢ʰ[GL] ((TBBMinus _ hCf : LetterlessFormula) 🡒 (⋀Y₂ : LetterlessFormula))) := by
         have := ProvableHilbert.imp_fconj_fconj_of_subset
           (Γ := ({TBBMinus _ hCf} : LetterlessFormulaFinset)) (Γ' := Y₂)
           (fun C hC => by simpa using hY₂ C hC);
@@ -268,9 +269,9 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
           = TBBMinus _ hCf by simp] at this;
       have := ProvableHilbert.impTrans (ProvableHilbert.lift (α := α) w₂) hGL₂;
       simpa [LetterlessFormula.lift, TBBMinus] using this;
-    -- Excluded middle on `⋀TBB(F)` finishes: `⊢ʰ ⋀TBB(NBeta) 🡒 A`.
-    have final : (⊢ʰ ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A)) := by
-      have t₂ : (⊢ʰ (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    -- Excluded middle on `⋀TBB(F)` finishes: `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 A`.
+    have final : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A)) := by
+      have t₂ : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)
           🡒 ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)
           🡒 ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A))) := by
@@ -398,7 +399,7 @@ lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
     have d₂ : ((∼(LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α)) 🡒 A)
         ∈ LogicGL := by
       obtain ⟨Y₂, hY₂, hGL₂⟩ := GL_sumQuasiNormal_finite_provable h₂;
-      have w₂ : (⊢ʰ ((TBBMinus _ hCf : LetterlessFormula) 🡒 (⋀Y₂ : LetterlessFormula))) := by
+      have w₂ : (⊢ʰ[GL] ((TBBMinus _ hCf : LetterlessFormula) 🡒 (⋀Y₂ : LetterlessFormula))) := by
         have := ProvableHilbert.imp_fconj_fconj_of_subset
           (Γ := ({TBBMinus _ hCf} : LetterlessFormulaFinset)) (Γ' := Y₂)
           (fun C hC => by simpa using hY₂ C hC);
