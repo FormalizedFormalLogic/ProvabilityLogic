@@ -107,27 +107,20 @@ open Model.World (IsInConeOf IsProperPredecessorOf Forces)
 
 variable {M : RootedModel κ α} {a : M.NonRoot}
 
-/--
-  A classically-chosen `Fintype` instance for any finite GL-model's worlds, derived
-  from the `Finite M.World` instance that `Model.IsFiniteGL` already provides. Kept
-  `local` (not a global instance) to avoid the diamond issues a general
-  `Finite → Fintype` instance would cause; within this file it lets declarations that
-  need `Fintype M.World` (e.g. for `Model.World.charFormulaUnder`'s `Finset.univ`)
-  take just `[M.IsFiniteGL]`, with the same canonical instance found everywhere it's
-  needed (so no mismatch between separately-derived `Fintype` instances arises).
--/
-noncomputable local instance instFintypeWorldOfIsFiniteGL {M' : RootedModel κ α}
-  [M'.IsFiniteGL] : Fintype M'.World := Fintype.ofFinite _
-
-/-- Likewise for the `Fintype` instance of a cone, derived from `Finite (Cone M a)`
-(itself automatic from `Finite M.World`, see `Model.instFiniteCone` in
-`ProvabilityLogic/Kripke/Cone.lean`). -/
+/-- A classically-chosen `Fintype` instance for a finite GL-model's cones, derived
+from `Finite (Cone M a)` (itself automatic from `Finite M.World`, see
+`Model.instFiniteCone` in `ProvabilityLogic/Kripke/Cone.lean`). Kept `local` (not a
+global instance) to avoid the diamond issues a general `Finite → Fintype` instance
+would cause; within this file it lets declarations that need `Fintype (M.toModel↾a)`
+(e.g. for `Model.World.charFormulaUnder`'s `Finset.univ`) take just `[M.IsFiniteGL]`,
+with the same canonical instance found everywhere it's needed (so no mismatch between
+separately-derived `Fintype` instances arises). -/
 noncomputable local instance instFintypeConeOfIsFiniteGL {M' : RootedModel κ α}
   [M'.IsFiniteGL] {a' : M'.World} : Fintype (M'.toModel↾a') := Fintype.ofFinite _
 
 /-- A non-root world of `M` forces its own characteristic formula as an `inl` world
 of the ω-grafted model. -/
-lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL]
+lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL] [Fintype M.World]
   {x : M.World} (hx : x ≠ M.root.1) :
   Forces (M := (M.graftOmega a).toModel) (.inl x) (x.charFormulaUnder P) := by
   suffices h : ∀ n (x : M.World), x.rank = n → x ≠ M.root.1 →
@@ -148,7 +141,7 @@ lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL]
 
 section Depth
 
-variable [M.IsFiniteGL]
+variable [M.IsFiniteGL] [Fintype M.World]
 
 /-- Depth characterization of embedded non-root points of the ω-grafted model:
 `Sum.inl x` forces `□^[k]⊥` iff `x.rank < k`. -/
@@ -213,6 +206,7 @@ lemma inr_forces_boxItr_bot_iff (Rra : M.root.1 ≺ a.1) {i k : ℕ} :
     intro w hw;
     exact absurd (relItr_from_inr_le Rra hw) (by omega);
 
+omit [Fintype M.World] in
 /-- Every cone point of `a` lies above the root of the D-model. -/
 lemma root_rel_inl_of_isInConeOf (Rra : M.root.1 ≺ a.1) {x : M.World} (hx : x.IsInConeOf a.1) :
   (M.graftOmega a).root.1 ≺ (Sum.inl x : (M.graftOmega a).World) := by
@@ -301,12 +295,12 @@ end Depth
 section OtherModel
 
 variable {κ' : Type*} [Nonempty κ'] {N : RootedModel κ' α} {c : N.NonRoot} [DecidableEq α]
-  [M.IsFiniteGL]
+  [M.IsFiniteGL] [Fintype M.World]
 
 /-- The `Φ₀` formula of Remark 1 (p.265), abbreviated for the "almost defining"
 uniqueness lemmas below: `□(∼□^[N+1]⊥ 🡒 (◇φ_a ⋏ p̄^{(a)})) ⋏ □(□^[N+1]⊥ 🡒 ⋁_{x⪰a}φ_x)`
 with `N = a.rank`. -/
-noncomputable abbrev phi0 (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
+noncomputable abbrev phi0 (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World] (a : M.World)
   (P : Finset α) : Formula α :=
   □(∼(□^[a.rank + 1]⊥) 🡒 ((◇(a.charFormulaUnder P)) ⋏ a.valuationConj P))
     ⋏ □((□^[a.rank + 1]⊥) 🡒 ⋁(Finset.univ.image fun y : M.toModel↾a => y.1.charFormulaUnder P))
@@ -380,7 +374,7 @@ lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P) 
 
   - [Bek90, Lemma 9.1 (§4, D-model case, cone-localized form)]
 -/
-lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL]
+lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
   (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
   {v : (N.graftOmega c).World} (Rrv : (N.graftOmega c).root.1 ≺ v)
@@ -399,7 +393,7 @@ lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL]
 /-- Root form of `exists_forces_charFormulaUnder_of_not_forces_boxItr`: the root of
 `N.graftOmega c` forcing `Φ₀` sees a point forcing `φ_x` for every `x` in the
 cone of `a` (through the grafted chain, which is unboundedly deep). -/
-lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL]
+lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
   (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
   {x : M.World} (hx : x.IsInConeOf a.1) :
@@ -437,7 +431,7 @@ end OtherModel
 
   - [Bek90, Lemma 9 (§4, D-model case), Lemma 1 (§5)]
 -/
-theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree]
+theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintype M.World]
   (Rra : M.root.1 ≺ a.1)
   (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1)
   (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a.1)
@@ -503,6 +497,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree]
         exact forces_boxItr.mp hw (.inl t) ⟨.inl a.1, Or.inl rfl, relItr_inl ht⟩;
   case almost_unique =>
     intro κ' _ N _ c Rrc _ _ hAroot;
+    haveI : Fintype N.World := Fintype.ofFinite _;
     have hcne : c ≠ N.root.1 := fun h => not_rel_root (h ▸ Rrc);
     set c' : N.NonRoot := ⟨c, hcne⟩ with hc'_def;
     haveI hGL : (N.graftOmega c').IsGL := isGL Rrc;
@@ -655,7 +650,7 @@ abbrev coneTail (M : RootedModel κ α) (a : M.World) :
   RootedModel (Model.toTail.World (Model.toRootedModel M.toModel a).toModel) α :=
   (Model.toRootedModel M.toModel a).toModel.toTail (Model.toRootedModel M.toModel a).root.1
 
-variable [M.IsFiniteGL]
+variable [M.IsFiniteGL] [Fintype M.World]
 
 /--
   The chain-and-cone part of the D-model `M.graftOmega a` is bisimilar to the
@@ -710,6 +705,7 @@ def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
       have hmi : (m : ℕ∞) < (i : ℕ∞) := Rv;
       exact_mod_cast hmi;
 
+omit [Fintype M.World] in
 /-- The grafted chain point `i` of the D-model is modally equivalent to `chainPoint i`
 of the tail model over the cone of `a`. -/
 lemma coneTail_chainPoint_modal_equivalent (Rra : M.root.1 ≺ a.1) (i : ℕ) :
@@ -718,6 +714,7 @@ lemma coneTail_chainPoint_modal_equivalent (Rra : M.root.1 ≺ a.1) (i : ℕ) :
   modal_equivalent_of_bisimilar (coneTailBisimulation M a.1 Rra)
     (show (coneTailBisimulation M a.1 Rra).toRel (Sum.inr i) (Sum.inr (i : ℕ∞)) from rfl)
 
+omit [Fintype M.World] in
 /-- An embedded cone point of the D-model is modally equivalent to its copy in the
 tail model over the cone of `a`. -/
 lemma coneTail_embed_modal_equivalent (Rra : M.root.1 ≺ a.1) (y : M.toModel↾a.1) :
@@ -726,6 +723,7 @@ lemma coneTail_embed_modal_equivalent (Rra : M.root.1 ≺ a.1) (y : M.toModel↾
   modal_equivalent_of_bisimilar (coneTailBisimulation M a.1 Rra)
     (show (coneTailBisimulation M a.1 Rra).toRel (Sum.inl y.1) (Sum.inl y) from rfl)
 
+omit [Fintype M.World] in
 /--
   **Stabilization transfer for modalized formulas**: for a D-model
   `M.graftOmega a` (no lateral cones, `hlat`), the forcing of a modalized

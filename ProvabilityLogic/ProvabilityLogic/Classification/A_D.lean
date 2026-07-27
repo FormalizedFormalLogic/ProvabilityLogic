@@ -17,21 +17,14 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
 
 section
 
-/-- A `Fintype` instance derived classically from `Finite`, local to this section. High
-priority keeps it consistent with the same classical derivation used for
-`StrongReflexiveCountermodel` in `ModifiedSolovaySentences.lean`, avoiding non-defeq
-`Fintype` instances on shared compound types (e.g. `κ ⊕ Fin n`). -/
-noncomputable local instance (priority := high) {κ : Type*} [Finite κ] : Fintype κ :=
-  Fintype.ofFinite κ
-
 /--
 Any finite rooted `GL` countermodel of `A` whose root sees an `A`-reflexive node `r`
 yields a countermodel of `A` in the sense of `StrongReflexiveCountermodel`.
 
 - [Bek90, Lemma 5]
 -/
-noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ] [Finite κ]
-    {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL]
+noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ]
+    {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World]
     (hnA : M.root.1 ⊮ A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩ ⋀A.subfmlsS) :
     StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
   -- Both extra conditions (the reflexive node's unique predecessor being the root, and
@@ -113,6 +106,7 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
   obtain ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩ := LogicA.exists_reflexive_countermodel_of_not_mem_LogicA hA;
   haveI := hne;
   haveI := hfgl;
+  haveI : Fintype M.World := Fintype.ofFinite _;
   let X := StrongReflexiveCountermodel.ofReflexive M hnA r hr hrS;
   let S := LO.FirstOrder.Theory.standardProvability.modifiedSolovaySentences T X hσ;
   use Model.World.rank X.r, S.realization;
