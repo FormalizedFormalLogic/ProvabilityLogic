@@ -96,8 +96,24 @@ lemma rec
     | boxT h ih => apply boxT ⟨h⟩ ih;
     | boxGrz h ih => apply boxGrz ⟨h⟩ ih;
 
+/-- One direction of the deduction theorem for the cut-full calculus. -/
+theorem deductionTheorem (π : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
+  rw [(show ({A 🡒 B} : FormulaFinset α) = insert (A 🡒 B) ∅ by grind)];
+  apply impR;
+  rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];
+
 /-- The standard form of the Grz axiom, via a cut on `□A` between `seq_grz_box` and `seq_T`. -/
-theorem grz_std {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := sorry
+theorem grz_std {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
+  have h₁ : ⊢ᵍᶜ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ insert (□A) ∅) := by
+    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    exact of_without_cut ProvableGentzen.seq_grz_box;
+  have h₂ : ⊢ᵍᶜ[Grz] (insert (□A) (∅ : FormulaFinset α) ⟹ {A}) := by
+    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    exact of_without_cut ProvableGentzen.seq_T;
+  have h₃ := cut h₁ h₂;
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} ∪ (∅ : FormulaFinset α)) = {□(□(A 🡒 □A) 🡒 A)} by grind),
+      (show ((∅ : FormulaFinset α) ∪ {A}) = {A} by grind)] at h₃;
+  exact deductionTheorem h₃;
 
 end GentzenWithCutProvable
 
@@ -114,7 +130,21 @@ theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := sor
 alias cut_elimination := of_with_cut
 
 /-- Modus ponens for `Grz`, via the cut system. -/
-theorem mdp : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {B}) := sorry
+theorem mdp : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {B}) := λ p q => by
+  replace p : ⊢ᵍ[Grz] ((∅ : FormulaFinset α) ⟹ insert (A 🡒 B) ∅) := by
+    rwa [(show insert (A 🡒 B) (∅ : FormulaFinset α) = {A 🡒 B} by grind)];
+  replace q : ⊢ᵍ[Grz] ((∅ : FormulaFinset α) ⟹ insert A ∅) := by
+    rwa [(show insert A (∅ : FormulaFinset α) = {A} by grind)];
+  have himpL : ⊢ᵍ[Grz] (insert (A 🡒 B) (insert A ∅) ⟹ {B}) :=
+    LogicGrz.ProvableGentzen.impL (LogicGrz.ProvableGentzen.union A) (LogicGrz.ProvableGentzen.union B);
+  have r : ⊢ᵍᶜ[Grz] (insert A (∅ : FormulaFinset α) ⟹ {B}) := by
+    have h := GentzenWithCutProvable.cut (GentzenWithCutProvable.of_without_cut p) (GentzenWithCutProvable.of_without_cut himpL);
+    rwa [(show ((∅ : FormulaFinset α) ∪ insert A ∅) = insert A ∅ by grind),
+         (show ((∅ : FormulaFinset α) ∪ {B}) = {B} by grind)] at h;
+  have h := GentzenWithCutProvable.cut (GentzenWithCutProvable.of_without_cut q) r;
+  rw [(show ((∅ : FormulaFinset α) ∪ (∅ : FormulaFinset α)) = ∅ by grind),
+      (show ((∅ : FormulaFinset α) ∪ {B}) = {B} by grind)] at h;
+  exact cut_elimination h;
 
 end ProvableGentzen
 

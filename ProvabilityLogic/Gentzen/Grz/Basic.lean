@@ -156,31 +156,89 @@ def orElim : ⊢ᵍ[Grz]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) �
 ### Modal theorems
 
 These express the reflexivity (`T`), transitivity (`4`), and Grzegorczyk axioms as cut-free
-`Grz` derivations, together with the `K` axiom and necessitation. Their proofs are supplied in
-a follow-up task; only the statements are fixed here.
+`Grz` derivations, together with the `K` axiom and necessitation.
 -/
 
-def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := sorry
+def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
+  rw [← insert_empty_eq];
+  apply boxT;
+  rw [insert_empty_eq];
+  exact axm A;
 
-def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := sorry
+def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := deductionTheorem $ wkL seq_T (by grind)
 
-def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := sorry
+def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := by
+  rw [(show ({□A} : FormulaFinset α) = FormulaFinset.box {A} by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box ({A} : FormulaFinset α) = {□A} by grind)];
+  exact union (□A);
 
-def modal4 : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 □□A}) := sorry
+def modal4 : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 □□A}) := deductionTheorem $ wkL seq_four (by grind)
 
-def seq_grz_core : ⊢ᵍ[Grz]! ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)} ⟹ {A}) := sorry
+def seq_grz_core : ⊢ᵍ[Grz]! ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)} ⟹ {A}) := by
+  rw [(show ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)} : FormulaFinset α)
+    = insert (□(□(A 🡒 □A) 🡒 A)) {□(A 🡒 □A)} by grind)];
+  apply boxT;
+  apply mdpL_mem (□(A 🡒 □A)) A;
 
-def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := sorry
+def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} : FormulaFinset α) = FormulaFinset.box {□(A 🡒 □A) 🡒 A} by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box ({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
+  exact seq_grz_core;
 
-def modalGrz : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := sorry
+def modalGrz : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
 
-def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := sorry
+def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
+  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = FormulaFinset.box {A, A 🡒 B} by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box ({A, A 🡒 B} : FormulaFinset α) = {□A, □(A 🡒 B)} by grind)];
+  rw [(show insert (□(B 🡒 □B)) ({□A, □(A 🡒 B)} : FormulaFinset α)
+    = insert (□A) (insert (□(A 🡒 B)) {□(B 🡒 □B)}) by grind)];
+  apply boxT;
+  rw [(show insert A (insert (□(A 🡒 B)) ({□(B 🡒 □B)} : FormulaFinset α))
+    = insert (□(A 🡒 B)) (insert A {□(B 🡒 □B)}) by grind)];
+  apply boxT;
+  apply mdpL_mem A B;
 
-def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := sorry
+def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := deductionTheorem $ deductionTheorem seq_K_core
 
-def nec : ⊢ᵍ[Grz]! (∅ ⟹ {A}) → ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := sorry
+def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
+  rw [(show (∅ : FormulaFinset α) = FormulaFinset.box ∅ by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box (∅ : FormulaFinset α) = ∅ by grind)];
+  exact wkL p (by grind);
 
-def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := sorry
+def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
+  set E := A 🡒 □A with hE;
+  set C := □E 🡒 A with hC;
+  set D := E 🡒 □E with hD;
+  have h₁ : ⊢ᵍ[Grz]! ({□E, □D, □C} ⟹ {A}) := wkL seq_grz_core (by grind);
+  have h₂ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {□A}) := by
+    rw [(show ({□D, □C} : FormulaFinset α) = FormulaFinset.box {D, C} by grind)];
+    apply boxGrz;
+    rw [(show FormulaFinset.box ({D, C} : FormulaFinset α) = {□D, □C} by grind)];
+    exact h₁;
+  have h₃ : ⊢ᵍ[Grz]! ({A, □D, □C} ⟹ {□A}) := wkL h₂ (by grind);
+  have h₄ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {E}) := by
+    rw [hE, (show ({A 🡒 □A} : FormulaFinset α) = insert (A 🡒 □A) ∅ by grind)];
+    apply impR;
+    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    exact h₃;
+  have h₅ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E}) := by
+    rw [(show ({□C} : FormulaFinset α) = FormulaFinset.box {C} by grind)];
+    apply boxGrz;
+    rw [(show FormulaFinset.box ({C} : FormulaFinset α) = {□C} by grind)];
+    exact h₄;
+  have h₆ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E, A}) := wkR h₅ (by grind);
+  have h₇ : ⊢ᵍ[Grz]! ({C, □C} ⟹ {A}) := by
+    apply impL;
+    . exact h₆;
+    . exact union A;
+  have h₈ : ⊢ᵍ[Grz]! ({□C} ⟹ {A}) := by
+    have p := boxT h₇;
+    rwa [(show insert (□C) ({□C} : FormulaFinset α) = {□C} by grind)] at p;
+  exact deductionTheorem h₈;
 
 end ProofGentzen
 
