@@ -2,6 +2,7 @@ module
 
 public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF
+public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.WCWF
 
 @[expose]
 public section
@@ -118,6 +119,21 @@ instance [M.IsFiniteGL] : M.IsGL where
   cwf := IsConverseWellFounded.cwf (rel := M.Rel);
 
 instance [M.IsGL] : Std.Irrefl M.Rel := ConverseWellFounded.irrefl
+
+/-- A `Grz` frame: reflexive, transitive, and weakly converse well-founded (the converse
+of the irreflexive part of the relation is well-founded). This is the standard semantic
+characterization of `Grz` frames; folklore, mirroring `Model.IsGL` above. -/
+class IsGrz (M : Model κ α) extends Std.Refl M.Rel, IsTrans _ M.Rel, IsWeaklyConverseWellFounded _ M.Rel
+
+/-- A finite `Grz` frame: reflexive, transitive, antisymmetric, and finite. On a finite
+antisymmetric transitive relation, weak converse well-foundedness is automatic, so `IsGrz`
+follows (see the instance below); folklore, mirroring `Model.IsFiniteGL` above. -/
+class IsFiniteGrz (M : Model κ α) extends Std.Refl M.Rel, IsTrans _ M.Rel, Std.Antisymm M.Rel where
+  [finite : Finite M.World]
+instance [M.IsFiniteGrz] : Finite M.World := IsFiniteGrz.finite
+
+instance [M.IsFiniteGrz] : M.IsGrz where
+  wcwf := IsWeaklyConverseWellFounded.wcwf (rel := M.Rel);
 
 abbrev TerminalOf (X : Set M.World) := { t // t ∈ X ∧ ∀ x ∈ X, ¬(t ≺ x) }
 
