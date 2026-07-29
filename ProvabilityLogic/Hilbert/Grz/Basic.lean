@@ -558,7 +558,40 @@ lemma imp_conj_box [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[Grz] ⋀(Δ.
     refine impTrans imp_insert_fconj ?_;
     exact impTrans (ctxAndIntroRule andL (impTrans andR ih)) (impTrans imp_box_and (boxImp imp_fconj_insert));
 
-theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S → ⊢ʰ[Grz] (⋀S.ant) 🡒 (⋁S.suc) := sorry
+theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S → ⊢ʰ[Grz] (⋀S.ant) 🡒 (⋁S.suc) := by
+  intro h;
+  induction h with
+  | axm A => simp;
+  | botL => simp;
+  | wkL _ hΓ ih =>
+    exact ProvableHilbert.impTrans (imp_fconj_fconj_of_subset (by grind)) ih;
+  | wkR _ hΔ ih =>
+    exact ProvableHilbert.impTrans ih (imp_fdisj_fdisj_of_subset (by grind));
+  | impL h₁ h₂ ih₁ ih₂ =>
+    have e₁ := impTrans ih₁ imp_fdisj_insert;
+    have e₂ := impTrans imp_fconj_insert ih₂;
+    exact impTrans imp_insert_fconj (bridge_impL e₁ e₂);
+  | impR h ih =>
+    have e := impTrans imp_fconj_insert (impTrans ih imp_fdisj_insert);
+    exact impTrans (bridge_impR e) imp_insert_fdisj;
+  | @boxT Γ Δ B h ih =>
+    -- ih : ⊢ʰ[Grz] ⋀(insert B Γ) 🡒 ⋁Δ, goal : ⊢ʰ[Grz] ⋀(insert (□B) Γ) 🡒 ⋁Δ
+    have step : ⊢ʰ[Grz] ⋀(insert (□B) Γ) 🡒 ⋀(insert B Γ) :=
+      impTrans imp_insert_fconj (impTrans (ctxAndIntroRule (impTrans andL modalT) andR) imp_fconj_insert);
+    exact impTrans step ih;
+  | @boxGrz Γ A h ih =>
+    -- ih : ⊢ʰ[Grz] ⋀(insert (□(A 🡒 □A)) Γ.box) 🡒 A, goal : ⊢ʰ[Grz] ⋀Γ.box 🡒 □A
+    simp_all;
+    have ih' : ⊢ʰ[Grz] (□(A 🡒 □A) ⋏ ⋀Γ.box) 🡒 A := impTrans imp_fconj_insert ih;
+    have step2 : ⊢ʰ[Grz] ⋀Γ.box 🡒 (□(A 🡒 □A) 🡒 A) := mdp imp_swap (mdp imp_uncurry_and ih');
+    have step4 : ⊢ʰ[Grz] □(⋀Γ.box) 🡒 □A := impTrans (boxImp step2) modalGrz;
+    have step5 : ⊢ʰ[Grz] ⋀Γ.box 🡒 ⋀(Γ.box.box) := by
+      apply imp_fconj_of_forall;
+      intro F hF;
+      obtain ⟨E, hE, rfl⟩ := Finset.mem_image.mp hF;
+      obtain ⟨C, hC, rfl⟩ := Finset.mem_image.mp hE;
+      exact impTrans (imp_fconj_of_mem (Finset.mem_image.mpr ⟨C, hC, rfl⟩)) modal4;
+    exact impTrans (impTrans step5 imp_conj_box) step4;
 
 theorem of_provableGentzen_singleton [DecidableEq α] : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ʰ[Grz] A := sorry
 
