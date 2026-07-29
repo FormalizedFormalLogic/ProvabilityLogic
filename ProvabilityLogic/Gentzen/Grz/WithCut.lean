@@ -102,8 +102,9 @@ theorem deductionTheorem (π : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ
   apply impR;
   rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];
 
-/-- The standard form of the Grz axiom, via a cut on `□A` between `seq_grz_box` and `seq_T`. -/
-theorem grz_std {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
+/-- The standard form of the Grz axiom, derived from the boxed `ProofGentzen.modalGrzAux` by a
+cut against the reflexivity axiom. -/
+theorem modalGrz {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
   have h₁ : ⊢ᵍᶜ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ insert (□A) ∅) := by
     rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
     exact of_without_cut ProvableGentzen.seq_grz_box;
@@ -128,6 +129,10 @@ variable {S : Sequent α} {A B : Formula α}
     - [BG86] (syntactic proof) -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := sorry
 alias cut_elimination := of_with_cut
+
+/-- The Grz axiom in its standard, cut-free form. -/
+theorem modalGrz {A : Formula α} : ⊢ᵍ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) :=
+  cut_elimination GentzenWithCutProvable.modalGrz
 
 /-- Modus ponens for `Grz`, via the cut system. -/
 theorem mdp : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {B}) := λ p q => by

@@ -179,11 +179,13 @@ def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
   rw [(show □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
   exact seq_grz_core;
 
-/-- The Grz axiom, in the boxed form that `Grz` is axiomatized by as an omitting system.
+/-- The Grz axiom, in the boxed form that `Grz` is axiomatized by as an omitting system. The
+standard form `modalGrz`, from which the box is dropped, follows from this one by a cut against
+the reflexivity axiom; see `GentzenWithCutProvable.modalGrz`.
 
 - [Avr84, Definition 1.1]
 - [SS21, §2 (v)] -/
-def modalGrz : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
+def modalGrzAux : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
 
 def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
   rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = □({A, A 🡒 B} : FormulaFinset α) by grind)];
@@ -204,40 +206,6 @@ def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
   apply boxGrz;
   rw [(show □(∅ : FormulaFinset α) = ∅ by grind)];
   exact wkL p (by grind);
-
-/-- The Grz axiom in its customary unboxed form, derived without cut. Not stated in this form in
-the sources, which take the boxed `modalGrz` as primitive; the cut-free derivation is original to
-this formalization. -/
-def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
-  set E := A 🡒 □A with hE;
-  set C := □E 🡒 A with hC;
-  set D := E 🡒 □E with hD;
-  have h₁ : ⊢ᵍ[Grz]! ({□E, □D, □C} ⟹ {A}) := wkL seq_grz_core (by grind);
-  have h₂ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {□A}) := by
-    rw [(show ({□D, □C} : FormulaFinset α) = □({D, C} : FormulaFinset α) by grind)];
-    apply boxGrz;
-    rw [(show □({D, C} : FormulaFinset α) = {□D, □C} by grind)];
-    exact h₁;
-  have h₃ : ⊢ᵍ[Grz]! ({A, □D, □C} ⟹ {□A}) := wkL h₂ (by grind);
-  have h₄ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {E}) := by
-    rw [hE, (show ({A 🡒 □A} : FormulaFinset α) = insert (A 🡒 □A) ∅ by grind)];
-    apply impR;
-    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
-    exact h₃;
-  have h₅ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E}) := by
-    rw [(show ({□C} : FormulaFinset α) = □({C} : FormulaFinset α) by grind)];
-    apply boxGrz;
-    rw [(show □({C} : FormulaFinset α) = {□C} by grind)];
-    exact h₄;
-  have h₆ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E, A}) := wkR h₅ (by grind);
-  have h₇ : ⊢ᵍ[Grz]! ({C, □C} ⟹ {A}) := by
-    apply impL;
-    . exact h₆;
-    . exact union A;
-  have h₈ : ⊢ᵍ[Grz]! ({□C} ⟹ {A}) := by
-    have p := boxT h₇;
-    rwa [(show insert (□C) ({□C} : FormulaFinset α) = {□C} by grind)] at p;
-  exact deductionTheorem h₈;
 
 end ProofGentzen
 
@@ -302,11 +270,10 @@ lemma seq_four : ⊢ᵍ[Grz] ({□A} ⟹ {□□A}) := ⟨ProofGentzen.seq_four�
 lemma modal4 : ⊢ᵍ[Grz] (∅ ⟹ {□A 🡒 □□A}) := ⟨ProofGentzen.modal4⟩
 lemma seq_grz_core : ⊢ᵍ[Grz] ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)} ⟹ {A}) := ⟨ProofGentzen.seq_grz_core⟩
 lemma seq_grz_box : ⊢ᵍ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := ⟨ProofGentzen.seq_grz_box⟩
-lemma modalGrz : ⊢ᵍ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := ⟨ProofGentzen.modalGrz⟩
+lemma modalGrzAux : ⊢ᵍ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := ⟨ProofGentzen.modalGrzAux⟩
 lemma seq_K_core : ⊢ᵍ[Grz] ({□A, □(A 🡒 B)} ⟹ {□B}) := ⟨ProofGentzen.seq_K_core⟩
 lemma modalK : ⊢ᵍ[Grz] (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := ⟨ProofGentzen.modalK⟩
 lemma nec : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {□A}) := λ ⟨p⟩ => ⟨ProofGentzen.nec p⟩
-lemma grz_std_cutfree : ⊢ᵍ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := ⟨ProofGentzen.grz_std_cutfree⟩
 
 @[induction_eliminator]
 lemma rec
