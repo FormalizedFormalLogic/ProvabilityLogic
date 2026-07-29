@@ -35,8 +35,8 @@ stay inside the closure and get its own slot in the complexity-sorted saturation
 -/
 noncomputable def _root_.LogicGL.Sequent.subfmlsGrz (S : Sequent α) : FormulaFinset α :=
   S.subfmls
-    ∪ (S.subfmls.prebox.image (λ ψ => ψ 🡒 □ψ))
-    ∪ (S.subfmls.prebox.image (λ ψ => □(ψ 🡒 □ψ)))
+    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ ψ => ψ 🡒 □ψ))
+    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ ψ => □(ψ 🡒 □ψ)))
 
 variable {S : Sequent α}
 
@@ -68,7 +68,7 @@ lemma box_mem_subfmlsGrz (h : □A ∈ S.subfmlsGrz) : A ∈ S.subfmlsGrz := by
 @[grind =>]
 lemma grzCompanions_mem_subfmlsGrz (h : □A ∈ S.subfmls) :
   (A 🡒 □A) ∈ S.subfmlsGrz ∧ □(A 🡒 □A) ∈ S.subfmlsGrz := by
-  have h : A ∈ S.subfmls.prebox := FormulaFinset.iff_mem_prebox_mem.mpr h;
+  have h : A ∈ FormulaFinset.prebox S.subfmls := FormulaFinset.iff_mem_prebox_mem.mpr h;
   constructor;
   · simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
     exact Or.inl (Or.inr ⟨A, h, rfl⟩);
@@ -414,6 +414,129 @@ instance [Fact (⊬ᵍ[Grz] BS)] : Nonempty (ExpandedSequent BS) :=
     (Finset.subset_union_right.trans Sequent.subset_self_subfmls)⟩
 
 end ExpandedSequent
+
+
+namespace ProvableGentzen.Kripke
+
+variable {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)]
+
+/--
+The canonical finite countermodel of an unprovable `Grz` sequent `BS`: worlds are the expanded
+sequents built over `BS`, an atom holds at a world exactly when it sits in its antecedent, and
+one world precedes another when its `□`-preimage antecedent is contained in the other's, with
+the containment forced into equality once it also holds in the reverse direction. Unlike the
+`GL` countermodel this relation is reflexive; the reversed-containment clause is exactly what
+forces antisymmetry.
+-/
+@[grind]
+def countermodelOf (BS : Sequent α) [Fact (⊬ᵍ[Grz] BS)] : Model (ExpandedSequent BS) α where
+  Val' x a := #a ∈ x.1.1
+  Rel' x y := (x.1.1.prebox ⊆ y.1.1.prebox) ∧ ((y.1.1.prebox ⊆ x.1.1.prebox) → x = y)
+
+instance : (countermodelOf BS).IsFiniteGrz where
+  finite := inferInstance
+  refl := fun x => ⟨Finset.Subset.refl _, fun _ => rfl⟩
+  trans := by
+    intro x y z hxy hyz;
+    refine ⟨hxy.1.trans hyz.1, fun h => ?_⟩;
+    obtain rfl : x = y := hxy.2 (hyz.1.trans h);
+    exact hyz.2 h;
+  antisymm := fun _ _ hxy hyx => hxy.2 hyx.1
+
+variable {x : (countermodelOf BS).World} {A : Formula α}
+
+/--
+Truth lemma for the `Grz` countermodel: membership in the antecedent of an expanded sequent
+forces the formula, and membership in the succedent refutes it. -/
+lemma truthlemma :
+  (A ∈ x.1.1 → x ⊩ A) ∧ (A ∈ x.1.2 → ¬x ⊩ A) := by
+  induction A generalizing x with
+  | atom a =>
+    constructor
+    · intro h; exact h
+    · intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩
+  | bot =>
+    constructor
+    · intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
+    · intro _ hf; exact hf
+  | imp A B ihA ihB =>
+    constructor
+    · intro h hsA
+      rcases x.saturated.impL h with hA | hB
+      · exact absurd hsA (ihA.2 hA)
+      · exact ihB.1 hB
+    · intro h hf
+      obtain ⟨hA, hB⟩ := x.saturated.impR h
+      exact (ihB.2 hB) (hf (ihA.1 hA))
+  | box A ih =>
+    refine ⟨?_, ?_⟩;
+    · intro h y Rxy;
+      have hA : A ∈ x.1.1.prebox := FormulaFinset.iff_mem_prebox_mem.mpr h;
+      exact ih.1 (y.boxT_closed (FormulaFinset.iff_mem_prebox_mem.mp (Rxy.1 hA)));
+    · intro h;
+      apply Model.World.not_forces_box.mpr;
+      by_cases hAsuc : A ∈ x.1.2;
+      · exact ⟨x, ⟨Finset.Subset.refl _, fun _ => rfl⟩, ih.2 hAsuc⟩;
+      · let y : ExpandedSequent BS :=
+          ExpandedSequent.lindenbaum
+            (insert (□(A 🡒 □A)) (x.1.1.prebox.box) ⟹ {A})
+            (by
+              intro hprov;
+              have hb : ⊢ᵍ[Grz] (x.1.1.prebox.box ⟹ {□A}) := ProvableGentzen.boxGrz hprov;
+              exact x.unprovable (ProvableGentzen.wk hb
+                (show x.1.1.prebox.box ⊆ x.1.1 by grind)
+                (show ({□A} : FormulaFinset α) ⊆ x.1.2 by grind));
+            )
+            (by
+              intro C hC;
+              simp only [Finset.mem_insert] at hC;
+              rcases hC with rfl | hC;
+              · exact (grzCompanions_mem_subfmlsGrz (x.suc_subset h)).2;
+              · obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
+                exact x.ant_subset (FormulaFinset.iff_mem_prebox_mem.mp hB);
+            )
+            (by
+              intro C hC;
+              simp only [Finset.mem_singleton] at hC;
+              subst hC;
+              exact Sequent.mem_subfmls_subfmls (x.suc_subset h) Formula.mem_subfmls_box;
+            );
+        refine ⟨y, ⟨?_, ?_⟩, ih.2 (ExpandedSequent.subset_lindenbaum.2 (Finset.mem_singleton_self A))⟩;
+        · intro B hB;
+          exact FormulaFinset.iff_mem_prebox_mem.mpr $
+            ExpandedSequent.subset_lindenbaum.1 (Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ hB));
+        · intro hyx;
+          exfalso;
+          have h1 : □(A 🡒 □A) ∈ y.1.1 := ExpandedSequent.subset_lindenbaum.1 (Finset.mem_insert_self _ _);
+          have h3 : (A 🡒 □A) ∈ x.1.1.prebox := hyx (FormulaFinset.iff_mem_prebox_mem.mpr h1);
+          have h5 : (A 🡒 □A) ∈ x.1.1 := x.boxT_closed (FormulaFinset.iff_mem_prebox_mem.mp h3);
+          rcases ExpandedSequent.of_mem_imp_ant h5 with h6 | h6;
+          · exact hAsuc h6;
+          · exact ExpandedSequent.not_mem_both ⟨h6, h⟩;
+
+lemma truthlemma_ant : A ∈ x.1.1 → x ⊩ A := truthlemma.1
+lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩ A := truthlemma.2
+
+/-- Kripke completeness of the cut-free `LogicGrz.ProofGentzen`: a sequent valid in every
+finite `Grz` model is provable. -/
+theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ S) : ⊢ᵍ[Grz] S := by
+  contrapose! h;
+  have : Fact (⊬ᵍ[Grz] S) := ⟨iff_unprovableGentzen_isEmpty_ProofGentzen.mpr h⟩;
+  use (ExpandedSequent S), inferInstance, (countermodelOf S);
+  constructor;
+  . infer_instance;
+  . dsimp [Model.ValidateSequent, Model.World.ForcesSequent];
+    push Not;
+    use (ExpandedSequent.lindenbaum S (Fact.elim inferInstance)
+      (Finset.subset_union_left.trans Sequent.subset_self_subfmls |>.trans subfmls_subset_subfmlsGrz)
+      (Finset.subset_union_right.trans Sequent.subset_self_subfmls));
+    constructor;
+    . intro C hC; exact truthlemma_ant $ ExpandedSequent.subset_lindenbaum.1 hC;
+    . intro D hD; exact truthlemma_suc $ ExpandedSequent.subset_lindenbaum.2 hD;
+
+end Kripke
+
+end ProvableGentzen
 
 end LogicGrz
 
