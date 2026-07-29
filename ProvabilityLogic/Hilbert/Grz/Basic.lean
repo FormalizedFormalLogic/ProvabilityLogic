@@ -16,9 +16,12 @@ Hilbert-style proof system for `Grz`, over a `Minimal + DNE` propositional base,
 `LogicGL.ProofHilbert`.
 
 Besides the shared propositional primitives, four modal axioms are needed: `modalK`, `modal4`,
-`modalT`, and `modalGrz`. Note that `modalT` (`□A 🡒 A`) is genuinely independent from the other
-three here — the Avron-form Grz axiom `□(□(A 🡒 □A) 🡒 A) 🡒 □A` alone is already valid in `GL`
-(which lacks `T`), so `K + 4 + Grz` is not enough to derive reflexivity.
+`modalT`, and `modalGrz`, the last in its standard form `□(□(A 🡒 □A) 🡒 A) 🡒 A`.
+Savateev-Shamkanov instead take the boxed form `□(□(A 🡒 □A) 🡒 A) 🡒 □A` as primitive; the two are
+interderivable over `K4` (see `ProvableHilbert.modalGrzAux`). Note that `modalT` (`□A 🡒 A`) is
+genuinely independent from the other three here — the boxed Grz axiom `□(□(A 🡒 □A) 🡒 A) 🡒 □A`
+alone is already valid in `GL` (which lacks `T`), so `K + 4 + Grz`-boxed is contained in `GL`,
+which is not enough to derive reflexivity.
 - [SS21, §2]
 -/
 inductive ProofHilbert : Formula α → Type u
@@ -34,7 +37,7 @@ inductive ProofHilbert : Formula α → Type u
 | modalK   {A B}   : ProofHilbert $ □(A 🡒 B) 🡒 (□A 🡒 □B)
 | modal4   {A}     : ProofHilbert $ □A 🡒 □□A
 | modalT   {A}     : ProofHilbert $ □A 🡒 A
-| modalGrz {A}     : ProofHilbert $ □(□(A 🡒 □A) 🡒 A) 🡒 □A
+| modalGrz {A}     : ProofHilbert $ □(□(A 🡒 □A) 🡒 A) 🡒 A
 | mdp      {A B}   : ProofHilbert (A 🡒 B) → ProofHilbert A → ProofHilbert B
 | nec      {A}     : ProofHilbert A → ProofHilbert (□A)
 notation:50 "⊢ʰ[Grz]! " A:51 => ProofHilbert A
@@ -61,7 +64,7 @@ variable {A B C : Formula α}
 @[simp, grind .] lemma modalK : ⊢ʰ[Grz] □(A 🡒 B) 🡒 (□A 🡒 □B) := ⟨ProofHilbert.modalK⟩
 @[simp, grind .] lemma modal4 : ⊢ʰ[Grz] □A 🡒 □□A := ⟨ProofHilbert.modal4⟩
 @[simp, grind .] lemma modalT : ⊢ʰ[Grz] □A 🡒 A := ⟨ProofHilbert.modalT⟩
-@[simp, grind .] lemma modalGrz : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 □A := ⟨ProofHilbert.modalGrz⟩
+@[simp, grind .] lemma modalGrz : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 A := ⟨ProofHilbert.modalGrz⟩
 
 @[simp, grind .] lemma prop1 : ⊢ʰ[Grz] A 🡒 B 🡒 A := implyK
 @[simp, grind .] lemma prop2 : ⊢ʰ[Grz] (A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C) := implyS
@@ -87,7 +90,7 @@ lemma rec
   (modalK   : ∀ {A B} (h : ⊢ʰ[Grz] □(A 🡒 B) 🡒 (□A 🡒 □B)), motive _ h)
   (modal4   : ∀ {A} (h : ⊢ʰ[Grz] □A 🡒 □□A), motive _ h)
   (modalT   : ∀ {A} (h : ⊢ʰ[Grz] □A 🡒 A), motive _ h)
-  (modalGrz : ∀ {A} (h : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 □A), motive _ h)
+  (modalGrz : ∀ {A} (h : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 A), motive _ h)
   (mdp      : ∀ {A B} (h₁ : ⊢ʰ[Grz] A 🡒 B) (h₂ : ⊢ʰ[Grz] A), motive _ h₁ → motive _ h₂ → motive _ (mdp h₁ h₂))
   (nec      : ∀ {A} (h : ⊢ʰ[Grz] A), motive A h → motive _ (nec h))
   : ∀ {A} (h : ⊢ʰ[Grz] A), motive _ h := by
@@ -211,6 +214,10 @@ lemma impTrans : ⊢ʰ[Grz] A 🡒 B → ⊢ʰ[Grz] B 🡒 C → ⊢ʰ[Grz] A �
   replace h₁ := DeducibleHilbert.iff_singleton_deducible_provable.mpr h₁;
   replace h₂ : {A} ⊢ʰ[Grz] B 🡒 C := DeducibleHilbert.ofProvable h₂;
   exact DeducibleHilbert.iff_singleton_deducible_provable.mp $ DeducibleHilbert.mdp h₂ h₁;
+
+/-- The boxed form of the Grz axiom, derived from the standard `modalGrz` via `modal4`. -/
+lemma modalGrzAux : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 □A :=
+  impTrans modal4 (mdp modalK (nec modalGrz))
 
 @[grind =>] lemma dni : ⊢ʰ[Grz] A 🡒 ∼∼A := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
@@ -538,7 +545,7 @@ theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S →
     simp_all;
     have ih' : ⊢ʰ[Grz] (□(A 🡒 □A) ⋏ ⋀Γ.box) 🡒 A := impTrans imp_fconj_insert ih;
     have step2 : ⊢ʰ[Grz] ⋀Γ.box 🡒 (□(A 🡒 □A) 🡒 A) := mdp imp_swap (mdp imp_uncurry_and ih');
-    have step4 : ⊢ʰ[Grz] □(⋀Γ.box) 🡒 □A := impTrans (boxImp step2) modalGrz;
+    have step4 : ⊢ʰ[Grz] □(⋀Γ.box) 🡒 □A := impTrans (boxImp step2) modalGrzAux;
     have step5 : ⊢ʰ[Grz] ⋀Γ.box 🡒 ⋀(Γ.box.box) := by
       apply imp_fconj_of_forall;
       intro F hF;
