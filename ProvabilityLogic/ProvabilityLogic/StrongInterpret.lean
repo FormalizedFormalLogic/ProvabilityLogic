@@ -13,7 +13,7 @@ repository does not define the modal logic `Grz`.
 
 @[expose] public section
 
-open LO
+open LO LO.Entailment
 open LO.FirstOrder LO.FirstOrder.ProvabilityAbstraction
 
 variable {α : Type*}
@@ -36,13 +36,43 @@ def strongInterpret (f : Realization α 𝔅) : Formula α → FirstOrder.Senten
 
 variable {f : Realization α 𝔅} {A : Formula α}
 
+omit [T₀ ⪯ T] in
+/-- The interpretation of `⊡A` unfolds through `Formula.interpret` to a De Morgan shape built
+from `🡒`/`⊥`, which is not syntactically the ambient `⋏`; this bridges the two.
+
+Routine technical bridge, with no separate source. -/
+private lemma interpret_boxdot_inside : T ⊢ f (⊡A) 🡘 (f A) ⋏ 𝔅 (f A) := by
+  letI := Classical.decEq (FirstOrder.Sentence L);
+  dsimp [Formula.interpret];
+  cl_prover;
+
 /-- The interpretation of the boxdot translate of `A` is `T`-provably equivalent to the strong
 interpretation of `A`.
 
 This is a routine technical bridge carried over from Foundation, with no separate source. -/
 lemma iff_interpret_boxdot_strongInterpret_inside [𝔅.HBL2] :
     T ⊢ f (Aᵇ) 🡘 A.strongInterpret f := by
-  sorry
+  letI := Classical.decEq (FirstOrder.Sentence L);
+  induction A with
+  | atom a => simp [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
+  | bot => simp only [Formula.boxdotTranslate, strongInterpret, Formula.interpret]; cl_prover;
+  | imp A B ihA ihB =>
+    simp only [Formula.boxdotTranslate, strongInterpret];
+    exact ECC!_of_E!_of_E! ihA ihB;
+  | box A ih =>
+    simp only [Formula.boxdotTranslate, strongInterpret];
+    apply E!_trans interpret_boxdot_inside;
+    apply K!_intro;
+    · apply CKK!_of_C!_of_C!;
+      · cl_prover [ih];
+      · apply WeakerThan.pbl (𝓢 := T₀);
+        apply 𝔅.mono;
+        cl_prover [ih];
+    · apply CKK!_of_C!_of_C!;
+      · cl_prover [ih];
+      · apply WeakerThan.pbl (𝓢 := T₀);
+        apply 𝔅.mono;
+        cl_prover [ih];
 
 /-- `T` proves the interpretation of the boxdot translate of `A` iff it proves the strong
 interpretation of `A`.
@@ -50,7 +80,9 @@ interpretation of `A`.
 This is a routine technical bridge carried over from Foundation, with no separate source. -/
 lemma iff_interpret_boxdot_strongInterpret [𝔅.HBL2] :
     T ⊢ f (Aᵇ) ↔ T ⊢ A.strongInterpret f := by
-  sorry
+  constructor;
+  · intro h; exact (C_of_E_mp! iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
+  · intro h; exact (C_of_E_mpr! iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
 
 /-- A model of `T` satisfies the interpretation of the boxdot translate of `A` iff it satisfies
 the strong interpretation of `A`.
