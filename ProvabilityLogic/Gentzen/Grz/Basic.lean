@@ -144,13 +144,6 @@ def orElim : ⊢ᵍ[Grz]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) �
   . apply mdpL_mem B C;
 
 
-/-!
-### Modal theorems
-
-These express the reflexivity (`T`), transitivity (`4`), and Grzegorczyk axioms as cut-free
-`Grz` derivations, together with the `K` axiom and necessitation.
--/
-
 def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
   rw [← insert_empty_eq];
   apply boxT;
@@ -179,13 +172,8 @@ def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
   rw [(show □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
   exact seq_grz_core;
 
-/-- The Grz axiom, in the boxed form that `Grz` is axiomatized by as an omitting system. The
-standard form `modalGrz`, from which the box is dropped, follows from this one by a cut against
-the reflexivity axiom; see `GentzenWithCutProvable.modalGrz`.
-
-- [Avr84, Definition 1.1]
-- [SS21, §2 (v)] -/
 def modalGrzAux : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
+
 
 def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
   rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = □({A, A 🡒 B} : FormulaFinset α) by grind)];
@@ -201,6 +189,7 @@ def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
 
 def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := deductionTheorem $ deductionTheorem seq_K_core
 
+
 def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
   rw [(show (∅ : FormulaFinset α) = □(∅ : FormulaFinset α) by grind)];
   apply boxGrz;
@@ -213,9 +202,6 @@ end ProofGentzen
 abbrev ProvableGentzen (S : Sequent α) : Prop := Nonempty (ProofGentzen S)
 notation:120 "⊢ᵍ[Grz] " S:121 => ProvableGentzen S
 
-/-- Negated form of `LogicGrz.ProvableGentzen`. Declared once here so that files depending on
-`LogicGrz.Basic` (both `Completeness` and `Witness`) share a single notation instead of each
-redeclaring their own copy, which would make `⊬ᵍ[Grz]` ambiguous whenever both are imported together. -/
 notation:120 "⊬ᵍ[Grz] " S:121 => ¬ ProvableGentzen S
 
 namespace ProvableGentzen
@@ -260,8 +246,6 @@ lemma orIntroL : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orI
 lemma orIntroR : ⊢ᵍ[Grz] (∅ ⟹ {B 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroR⟩
 lemma orElim : ⊢ᵍ[Grz] (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := ⟨ProofGentzen.orElim⟩
 
-/-- Deduction theorem (forward direction only; the converse would need `impRInv`,
-which is not yet ported for `Grz`). -/
 theorem deductionTheorem (π : ⊢ᵍ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍ[Grz] (Γ ⟹ {A 🡒 B}) := ⟨π.some.deductionTheorem⟩
 
 lemma seq_T : ⊢ᵍ[Grz] ({□A} ⟹ {A}) := ⟨ProofGentzen.seq_T⟩

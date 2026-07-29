@@ -11,19 +11,6 @@ namespace LogicGrz
 
 open LogicGL
 
-/--
-Hilbert-style proof system for `Grz`, over a `Minimal + DNE` propositional base, mirroring
-`LogicGL.ProofHilbert`.
-
-Besides the shared propositional primitives, four modal axioms are needed: `modalK`, `modal4`,
-`modalT`, and `modalGrz`, the last in its standard form `□(□(A 🡒 □A) 🡒 A) 🡒 A`.
-Savateev-Shamkanov instead take the boxed form `□(□(A 🡒 □A) 🡒 A) 🡒 □A` as primitive; the two are
-interderivable over `K4` (see `ProvableHilbert.modalGrzAux`). Note that `modalT` (`□A 🡒 A`) is
-genuinely independent from the other three here — the boxed Grz axiom `□(□(A 🡒 □A) 🡒 A) 🡒 □A`
-alone is already valid in `GL` (which lacks `T`), so `K + 4 + Grz`-boxed is contained in `GL`,
-which is not enough to derive reflexivity.
-- [SS21, §2]
--/
 inductive ProofHilbert : Formula α → Type u
 | implyK   {A B}   : ProofHilbert $ A 🡒 B 🡒 A
 | implyS   {A B C} : ProofHilbert $ (A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)

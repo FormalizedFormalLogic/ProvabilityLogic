@@ -3,13 +3,6 @@ module
 public import ProvabilityLogic.Gentzen.Grz.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 
-/-!
-Kripke completeness of the cut-free `LogicGrz.ProofGentzen`. The Lindenbaum-style saturation
-follows the `LogicS` development (`ProvabilityLogic.Gentzen.S.Kripke`), whose `boxL`-closure
-construction is the model for the `boxT`-closure needed here, rather than the plain `LogicGL`
-one, since `LogicGrz` also unboxes formulas from the antecedent.
--/
-
 @[expose]
 public section
 
@@ -20,8 +13,6 @@ variable {κ : Type u} [Nonempty κ]
 
 namespace Model
 
-/-- Soundness of the `boxT` rule: reflexivity of `M.Rel` lets a boxed antecedent formula be
-unboxed. Folklore, mirroring `validate_gentzen_boxGL` above. -/
 lemma validate_gentzen_boxT [Std.Refl M.Rel] (h : M ⊧ (insert B Γ ⟹ Δ)) :
   M ⊧ (insert (□B) Γ ⟹ Δ) := by
   intro x hx;
@@ -36,16 +27,12 @@ section
 variable {x : M.World}
 
 omit [DecidableEq α] in
-/-- On a reflexive frame a world refuting `A` also refutes `□A`. -/
 private lemma not_forces_box_of_not_forces [Std.Refl M.Rel] (h : x ⊮ A) : x ⊮ □A :=
   fun hx => h (hx x (Std.Refl.refl x))
 
 end
 
 open World in
-/-- Soundness of the `boxGrz` rule: on a `Grz` frame (reflexive, transitive, weakly converse
-well-founded), the Grz box-right rule preserves validity. Folklore, mirroring
-`validate_gentzen_boxGL` above. -/
 lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ.box ⟹ {A})) :
   M ⊧ (Γ.box ⟹ {□A}) := by
   intro x;
@@ -82,12 +69,6 @@ end Model
 
 namespace LogicGrz
 
-/--
-The one-point frame with the universally true relation. Used to show that
-`LogicGrz.ProvableGentzen` does not derive the empty sequent. Unlike `LogicGL.trivial_GL_model`,
-whose relation is always `False`, a `Grz` frame must be reflexive, so the one-point `Grz`
-countermodel has to relate its single point to itself.
--/
 abbrev trivial_Grz_model {α} : Model (Fin 1) α where
   Rel' := λ _ _ => True
   Val' := λ _ _ => False
@@ -100,15 +81,6 @@ instance : trivial_Grz_model (α := α) |>.IsFiniteGrz where
 
 open LogicGL
 
-/--
-The subformula closure needed to run the Lindenbaum construction for `LogicGrz.ProofGentzen`:
-besides the ordinary subformulas of `S`, it contains the Grz companions `ψ 🡒 □ψ` and their boxed
-form `□(ψ 🡒 □ψ)` for every `□ψ` occurring in `S`. The `boxGrz` rule's premise introduces
-`□(ψ 🡒 □ψ)`, which is not a subformula of the conclusion, so a saturated sequent built on top of
-`S` may range beyond `S.subfmls`. The middle component is needed on top of the other two because
-`boxT`-saturation unboxes `□(ψ 🡒 □ψ)` into the antecedent, and the resulting `ψ 🡒 □ψ` must both
-stay inside the closure and get its own slot in the complexity-sorted saturation pass.
--/
 noncomputable def _root_.LogicGL.Sequent.subfmlsGrz (S : Sequent α) : FormulaFinset α :=
   S.subfmls
     ∪ (FormulaFinset.prebox S.subfmls |>.image (λ ψ => ψ 🡒 □ψ))

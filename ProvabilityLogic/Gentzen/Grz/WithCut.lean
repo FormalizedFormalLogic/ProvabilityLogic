@@ -12,11 +12,6 @@ namespace LogicGrz
 open LogicGL
 open scoped FormulaFinset
 
-/--
-The cut-full Gentzen sequent calculus for `Grz`: the cut-free rules of `LogicGrz.ProofGentzen`
-together with the `cut` rule. Cut-elimination (`ProvableGentzen.of_with_cut` below) shows that
-adding `cut` yields no new provable sequents.
--/
 inductive GentzenWithCutProof : Sequent α → Type u
 | axm (A) : GentzenWithCutProof ({A} ⟹ {A})
 | botL : GentzenWithCutProof ({⊥} ⟹ ∅)
@@ -123,11 +118,6 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α}
 
-/-- Cut-elimination for `Grz`: proved semantically via Kripke completeness. Every formula
-provable in the cut-full system is also provable in the cut-free system, following the approach
-in `LogicGL.ProvableGentzen.of_with_cut`.
-- [Avr84, §I] (semantic proof)
-- [BG86] (syntactic proof) -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := by
   intro h;
   induction h using GentzenWithCutProvable.rec with
@@ -140,8 +130,6 @@ theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := by
   | boxT _ ih => exact ProvableGentzen.boxT ih
   | boxGrz _ ih => exact ProvableGentzen.boxGrz ih
   | cut _ _ ih₁ ih₂ =>
-    -- The cut rule has no direct syntactic elimination here; instead we argue
-    -- semantically via completeness, using soundness of both cut premises.
     apply Kripke.completeness;
     rintro κ _ M _ x;
     have := Kripke.finite_soundness ih₁ M x;
@@ -149,11 +137,9 @@ theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := by
     grind;
 alias cut_elimination := of_with_cut
 
-/-- The Grz axiom in its standard, cut-free form. -/
 theorem modalGrz {A : Formula α} : ⊢ᵍ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) :=
   cut_elimination GentzenWithCutProvable.modalGrz
 
-/-- Modus ponens for `Grz`, via the cut system. -/
 theorem mdp : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {B}) := λ p q => by
   replace p : ⊢ᵍ[Grz] ((∅ : FormulaFinset α) ⟹ insert (A 🡒 B) ∅) := by
     rwa [(show insert (A 🡒 B) (∅ : FormulaFinset α) = {A 🡒 B} by grind)];
