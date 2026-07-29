@@ -204,7 +204,11 @@ def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
 
 def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := deductionTheorem $ deductionTheorem seq_K_core
 
-def nec : ⊢ᵍ[Grz]! (∅ ⟹ {A}) → ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := sorry
+def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
+  rw [(show (∅ : FormulaFinset α) = FormulaFinset.box ∅ by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box (∅ : FormulaFinset α) = ∅ by grind)];
+  exact wkL p (by grind);
 
 def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := sorry
 
