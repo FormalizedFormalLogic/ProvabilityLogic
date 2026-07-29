@@ -52,7 +52,6 @@ def mdpL_mem (A B) (h₁ : A 🡒 B ∈ Γ := by grind) (h₂ : A ∈ Γ := by g
   . apply union A;
   . apply union B;
 
-/-- One direction of the deduction theorem. -/
 def deductionTheorem (π : ⊢ᵍ[Grz]! (insert A Γ ⟹ {B})) : ⊢ᵍ[Grz]! (Γ ⟹ {A 🡒 B}) := by
   rw [← insert_empty_eq];
   apply impR;
@@ -102,24 +101,20 @@ def elimContra : ⊢ᵍ[Grz]! (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := by
   rw [(show insert B (insert (∼A 🡒 ∼B) ∅) = ({∼A 🡒 ∼B, B}) by grind)];
   exact impL (negR $ union A) (negL $ union B);
 
-/-- Double negation elimination (`Minimal + DNE` primitive). -/
 def dne : ⊢ᵍ[Grz]! (∅ ⟹ {∼∼A 🡒 A}) := by
   apply deductionTheorem;
   exact negL (negR (axm A));
 
-/-- Left conjunction elimination. -/
 def andElimL : ⊢ᵍ[Grz]! (∅ ⟹ {(A ⋏ B) 🡒 A}) := by
   apply deductionTheorem;
   apply andL;
   apply union A;
 
-/-- Right conjunction elimination. -/
 def andElimR : ⊢ᵍ[Grz]! (∅ ⟹ {(A ⋏ B) 🡒 B}) := by
   apply deductionTheorem;
   apply andL;
   apply union B;
 
-/-- Conjunction introduction. -/
 def andIntro : ⊢ᵍ[Grz]! (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
@@ -128,21 +123,18 @@ def andIntro : ⊢ᵍ[Grz]! (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := by
   . apply union A;
   . apply union B;
 
-/-- Left disjunction introduction. -/
 def orIntroL : ⊢ᵍ[Grz]! (∅ ⟹ {A 🡒 (A ⋎ B)}) := by
   apply deductionTheorem;
   rw [← insert_empty_eq];
   apply orR;
   apply union A;
 
-/-- Right disjunction introduction. -/
 def orIntroR : ⊢ᵍ[Grz]! (∅ ⟹ {B 🡒 (A ⋎ B)}) := by
   apply deductionTheorem;
   rw [← insert_empty_eq];
   apply orR;
   apply union B;
 
-/-- Disjunction elimination. -/
 def orElim : ⊢ᵍ[Grz]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
@@ -168,9 +160,9 @@ def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
 def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := deductionTheorem $ wkL seq_T (by grind)
 
 def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := by
-  rw [(show ({□A} : FormulaFinset α) = FormulaFinset.box {A} by grind)];
+  rw [(show ({□A} : FormulaFinset α) = □({A} : FormulaFinset α) by grind)];
   apply boxGrz;
-  rw [(show FormulaFinset.box ({A} : FormulaFinset α) = {□A} by grind)];
+  rw [(show □({A} : FormulaFinset α) = {□A} by grind)];
   exact union (□A);
 
 def modal4 : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 □□A}) := deductionTheorem $ wkL seq_four (by grind)
@@ -182,17 +174,21 @@ def seq_grz_core : ⊢ᵍ[Grz]! ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)
   apply mdpL_mem (□(A 🡒 □A)) A;
 
 def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
-  rw [(show ({□(□(A 🡒 □A) 🡒 A)} : FormulaFinset α) = FormulaFinset.box {□(A 🡒 □A) 🡒 A} by grind)];
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} : FormulaFinset α) = □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) by grind)];
   apply boxGrz;
-  rw [(show FormulaFinset.box ({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
+  rw [(show □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
   exact seq_grz_core;
 
+/-- The Grz axiom, in the boxed form that `Grz` is axiomatized by as an omitting system.
+
+- [Avr84, Definition 1.1]
+- [SS21, §2 (v)] -/
 def modalGrz : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
 
 def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
-  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = FormulaFinset.box {A, A 🡒 B} by grind)];
+  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = □({A, A 🡒 B} : FormulaFinset α) by grind)];
   apply boxGrz;
-  rw [(show FormulaFinset.box ({A, A 🡒 B} : FormulaFinset α) = {□A, □(A 🡒 B)} by grind)];
+  rw [(show □({A, A 🡒 B} : FormulaFinset α) = {□A, □(A 🡒 B)} by grind)];
   rw [(show insert (□(B 🡒 □B)) ({□A, □(A 🡒 B)} : FormulaFinset α)
     = insert (□A) (insert (□(A 🡒 B)) {□(B 🡒 □B)}) by grind)];
   apply boxT;
@@ -204,20 +200,23 @@ def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
 def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := deductionTheorem $ deductionTheorem seq_K_core
 
 def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
-  rw [(show (∅ : FormulaFinset α) = FormulaFinset.box ∅ by grind)];
+  rw [(show (∅ : FormulaFinset α) = □(∅ : FormulaFinset α) by grind)];
   apply boxGrz;
-  rw [(show FormulaFinset.box (∅ : FormulaFinset α) = ∅ by grind)];
+  rw [(show □(∅ : FormulaFinset α) = ∅ by grind)];
   exact wkL p (by grind);
 
+/-- The Grz axiom in its customary unboxed form, derived without cut. Not stated in this form in
+the sources, which take the boxed `modalGrz` as primitive; the cut-free derivation is original to
+this formalization. -/
 def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
   set E := A 🡒 □A with hE;
   set C := □E 🡒 A with hC;
   set D := E 🡒 □E with hD;
   have h₁ : ⊢ᵍ[Grz]! ({□E, □D, □C} ⟹ {A}) := wkL seq_grz_core (by grind);
   have h₂ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {□A}) := by
-    rw [(show ({□D, □C} : FormulaFinset α) = FormulaFinset.box {D, C} by grind)];
+    rw [(show ({□D, □C} : FormulaFinset α) = □({D, C} : FormulaFinset α) by grind)];
     apply boxGrz;
-    rw [(show FormulaFinset.box ({D, C} : FormulaFinset α) = {□D, □C} by grind)];
+    rw [(show □({D, C} : FormulaFinset α) = {□D, □C} by grind)];
     exact h₁;
   have h₃ : ⊢ᵍ[Grz]! ({A, □D, □C} ⟹ {□A}) := wkL h₂ (by grind);
   have h₄ : ⊢ᵍ[Grz]! ({□D, □C} ⟹ {E}) := by
@@ -226,9 +225,9 @@ def grz_std_cutfree : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A
     rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
     exact h₃;
   have h₅ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E}) := by
-    rw [(show ({□C} : FormulaFinset α) = FormulaFinset.box {C} by grind)];
+    rw [(show ({□C} : FormulaFinset α) = □({C} : FormulaFinset α) by grind)];
     apply boxGrz;
-    rw [(show FormulaFinset.box ({C} : FormulaFinset α) = {□C} by grind)];
+    rw [(show □({C} : FormulaFinset α) = {□C} by grind)];
     exact h₄;
   have h₆ : ⊢ᵍ[Grz]! ({□C} ⟹ {□E, A}) := wkR h₅ (by grind);
   have h₇ : ⊢ᵍ[Grz]! ({C, □C} ⟹ {A}) := by
