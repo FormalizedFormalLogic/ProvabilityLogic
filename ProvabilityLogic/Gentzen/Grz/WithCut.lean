@@ -96,8 +96,24 @@ lemma rec
     | boxT h ih => apply boxT ⟨h⟩ ih;
     | boxGrz h ih => apply boxGrz ⟨h⟩ ih;
 
+/-- One direction of the deduction theorem for the cut-full calculus. -/
+theorem deductionTheorem (π : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
+  rw [(show ({A 🡒 B} : FormulaFinset α) = insert (A 🡒 B) ∅ by grind)];
+  apply impR;
+  rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];
+
 /-- The standard form of the Grz axiom, via a cut on `□A` between `seq_grz_box` and `seq_T`. -/
-theorem grz_std {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := sorry
+theorem grz_std {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
+  have h₁ : ⊢ᵍᶜ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ insert (□A) ∅) := by
+    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    exact of_without_cut ProvableGentzen.seq_grz_box;
+  have h₂ : ⊢ᵍᶜ[Grz] (insert (□A) (∅ : FormulaFinset α) ⟹ {A}) := by
+    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    exact of_without_cut ProvableGentzen.seq_T;
+  have h₃ := cut h₁ h₂;
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} ∪ (∅ : FormulaFinset α)) = {□(□(A 🡒 □A) 🡒 A)} by grind),
+      (show ((∅ : FormulaFinset α) ∪ {A}) = {A} by grind)] at h₃;
+  exact deductionTheorem h₃;
 
 end GentzenWithCutProvable
 
