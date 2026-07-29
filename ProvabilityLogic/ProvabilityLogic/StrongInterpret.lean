@@ -91,7 +91,27 @@ This is a routine technical bridge carried over from Foundation, with no separat
 lemma iff_models_interpret_boxdot_strongInterpret
     {M} [Nonempty M] [Structure L M] [M↓[L] ⊧* T] [𝔅.HBL2] [𝔅.SoundOn M] :
     M↓[L] ⊧ f (Aᵇ) ↔ M↓[L] ⊧ A.strongInterpret f := by
-  sorry
+  induction A with
+  | atom a => simp [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
+  | bot => simp [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
+  | imp A B ihA ihB => simp_all [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
+  | box A ih =>
+    suffices (M↓[L] ⊧ f (Aᵇ)) ∧ (M↓[L] ⊧ 𝔅 (f (Aᵇ))) ↔
+        (M↓[L] ⊧ A.strongInterpret f) ∧ (M↓[L] ⊧ 𝔅 (A.strongInterpret f)) by
+      simpa [Formula.boxdotTranslate, Formula.interpret, strongInterpret] using this;
+    constructor;
+    . rintro ⟨h₁, h₂⟩;
+      refine ⟨ih.mp h₁, ?_⟩;
+      apply models_of_provable (T := T) inferInstance;
+      apply WeakerThan.pbl (𝓢 := T₀);
+      apply 𝔅.D1;
+      exact iff_interpret_boxdot_strongInterpret.mp (𝔅.sound_on h₂);
+    . rintro ⟨h₁, h₂⟩;
+      refine ⟨ih.mpr h₁, ?_⟩;
+      apply models_of_provable (T := T) inferInstance;
+      apply WeakerThan.pbl (𝓢 := T₀);
+      apply 𝔅.D1;
+      exact iff_interpret_boxdot_strongInterpret.mpr (𝔅.sound_on h₂);
 
 end Formula
 
