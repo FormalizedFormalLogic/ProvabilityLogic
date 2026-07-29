@@ -160,13 +160,21 @@ These express the reflexivity (`T`), transitivity (`4`), and Grzegorczyk axioms 
 a follow-up task; only the statements are fixed here.
 -/
 
-def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := sorry
+def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
+  rw [← insert_empty_eq];
+  apply boxT;
+  rw [insert_empty_eq];
+  exact axm A;
 
-def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := sorry
+def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := deductionTheorem $ wkL seq_T (by grind)
 
-def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := sorry
+def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := by
+  rw [(show ({□A} : FormulaFinset α) = FormulaFinset.box {A} by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box ({A} : FormulaFinset α) = {□A} by grind)];
+  exact union (□A);
 
-def modal4 : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 □□A}) := sorry
+def modal4 : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 □□A}) := deductionTheorem $ wkL seq_four (by grind)
 
 def seq_grz_core : ⊢ᵍ[Grz]! ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)} ⟹ {A}) := sorry
 
