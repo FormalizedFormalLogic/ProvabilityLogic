@@ -69,6 +69,20 @@ instance [Finite M.World] : Finite (toRootedModel M r).World := inferInstance
 
 instance [M.IsFiniteGL] : (toRootedModel M r).IsFiniteGL where
 
+instance [Std.Refl M.Rel] : Std.Refl (toRootedModel M r).Rel := by
+  constructor;
+  rintro ⟨x, rfl | Rrx⟩ <;>
+  . simp_all only [Model.Rel, toRootedModel];
+    apply Std.Refl.refl;
+
+instance [Std.Antisymm M.Rel] : Std.Antisymm (toRootedModel M r).Rel := by
+  constructor;
+  rintro ⟨x, _⟩ ⟨y, _⟩ Rxy Ryx;
+  simp_all only [Model.Rel, toRootedModel];
+  exact Subtype.ext (Std.Antisymm.antisymm x y Rxy Ryx)
+
+instance [M.IsFiniteGrz] : (toRootedModel M r).IsFiniteGrz where
+
 
 variable [IsTrans _ M.Rel]
 
