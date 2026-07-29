@@ -593,13 +593,16 @@ theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S →
       exact impTrans (imp_fconj_of_mem (Finset.mem_image.mpr ⟨C, hC, rfl⟩)) modal4;
     exact impTrans (impTrans step5 imp_conj_box) step4;
 
-theorem of_provableGentzen_singleton [DecidableEq α] : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ʰ[Grz] A := sorry
+theorem of_provableGentzen_singleton [DecidableEq α] : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ʰ[Grz] A := by
+  intro h;
+  simpa using mdp (of_provableGentzen h) (by simp);
 
 end ProvableHilbert
 
 
 theorem iff_provableHilbert_provableGentzen [DecidableEq α] {A : Formula α} :
-  ⊢ʰ[Grz] A ↔ ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) := sorry
+  ⊢ʰ[Grz] A ↔ ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) :=
+  ⟨ProvableGentzen.of_provableHilbert, ProvableHilbert.of_provableGentzen_singleton⟩
 
 end LogicGrz
 
