@@ -49,8 +49,7 @@ lemma subfmls_subset_subfmlsGrz : S.subfmls ⊆ S.subfmlsGrz := by
 lemma imp_mem_subfmlsGrz (h : A 🡒 B ∈ S.subfmlsGrz) : A ∈ S.subfmls ∧ B ∈ S.subfmls := by
   simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image] at h;
   rcases h with (h | ⟨ψ, hψ, heq⟩) | ⟨ψ, hψ, heq⟩;
-  · exact ⟨Sequent.mem_subfmls_subfmls h Formula.mem_subfmls_imp_left,
-      Sequent.mem_subfmls_subfmls h Formula.mem_subfmls_imp_right⟩;
+  · grind;
   · obtain ⟨rfl, rfl⟩ : A = ψ ∧ B = □ψ := by grind;
     have hψ : □A ∈ S.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hψ;
     exact ⟨Sequent.mem_subfmls_subfmls hψ Formula.mem_subfmls_box, hψ⟩;
@@ -202,6 +201,157 @@ lemma bounds_lindenbaum_indexed (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_su
       split_ifs with h;
       · exact ⟨Finset.insert_subset (box_mem_subfmlsGrz (ih.1 h)) ih.1, ih.2⟩;
       · exact ih;
+
+/--
+  `impL`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
+  sequent is closed under the `impL` rule for implications from `Γ`.
+-/
+lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
+  let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.ant → A ∈ S.1.suc ∨ B ∈ S.1.ant := by
+  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
+  revert hΓ
+  induction Γ with
+  | nil =>
+    intro _ A;
+    intros;
+    simp_all;
+  | cons x Γ' ih =>
+    intro hΓ;
+    rw [List.pairwise_cons] at hΓ;
+    obtain ⟨hhead, htail⟩ := hΓ;
+    replace ih : ∀ {A B : Formula α}, A 🡒 B ∈ Γ' →
+      A 🡒 B ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant →
+      A ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc ∨ B ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant := ih htail;
+    match x with
+    | #a | ⊥ =>
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      refine ih ?_ hx;
+      rcases List.mem_cons.mp hmem with h | h;
+      · simp at h;
+      · exact h;
+    | C 🡒 D =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      split_ifs at hx ⊢ with h1 h2 h3 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+    | □C =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      split_ifs at hx ⊢ with h1 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+
+/--
+  `impR`-saturation part of `saturated_lindenbaum_indexed`: the succedent of the saturated
+  sequent is closed under the `impR` rule for implications from `Γ`.
+-/
+lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
+  let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.suc → A ∈ S.1.ant ∧ B ∈ S.1.suc := by
+  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
+  revert hΓ
+  induction Γ with
+  | nil =>
+    intro _ A;
+    intros;
+    simp_all;
+  | cons x Γ' ih =>
+    intro hΓ;
+    rw [List.pairwise_cons] at hΓ;
+    obtain ⟨hhead, htail⟩ := hΓ;
+    replace ih : ∀ {A B : Formula α}, A 🡒 B ∈ Γ' →
+      A 🡒 B ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc →
+      A ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ∧ B ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc := ih htail;
+    match x with
+    | #a | ⊥ =>
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      refine ih ?_ hx;
+      rcases List.mem_cons.mp hmem with h | h;
+      · simp at h;
+      · exact h;
+    | C 🡒 D =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      split_ifs at hx ⊢ with h1 h2 h3 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+    | □C =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A B hmem hx;
+      split_ifs at hx ⊢ with h1 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+
+/--
+  `boxT`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
+  sequent is closed under the `boxT` rule for boxed formulas from `Γ`.
+-/
+lemma saturated_boxT_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
+  let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  ∀ {A : Formula α}, □A ∈ Γ → □A ∈ S.1.ant → A ∈ S.1.ant := by
+  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
+  revert hΓ
+  induction Γ with
+  | nil =>
+    intro _ A;
+    intros;
+    simp_all;
+  | cons x Γ' ih =>
+    intro hΓ;
+    rw [List.pairwise_cons] at hΓ;
+    obtain ⟨hhead, htail⟩ := hΓ;
+    replace ih : ∀ {A : Formula α}, □A ∈ Γ' →
+      □A ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant →
+      A ∈ (lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant := ih htail;
+    match x with
+    | #a | ⊥ =>
+      dsimp only [lindenbaum_indexed];
+      intro A hmem hx;
+      refine ih ?_ hx;
+      rcases List.mem_cons.mp hmem with h | h;
+      · simp at h;
+      · exact h;
+    | C 🡒 D =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A hmem hx;
+      split_ifs at hx ⊢ with h1 h2 h3 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+    | □C =>
+      have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
+      intro A hmem hx;
+      split_ifs at hx ⊢ with h1 <;>
+        simp_all only [List.mem_cons] <;>
+        grind [ProvableGentzen.union'];
+
+/--
+  Saturation of the Lindenbaum construction: the resulting sequent is simultaneously
+  `impL`-, `impR`- and `boxT`-saturated for the formulas listed in `Γ`.
+-/
+lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
+  let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.ant → A ∈ S.1.suc ∨ B ∈ S.1.ant) ∧
+  (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.suc → A ∈ S.1.ant ∧ B ∈ S.1.suc) ∧
+  (∀ {A : Formula α}, □A ∈ Γ → □A ∈ S.1.ant → A ∈ S.1.ant) :=
+  ⟨saturated_impL_lindenbaum_indexed hΓ,
+   saturated_impR_lindenbaum_indexed hΓ,
+   saturated_boxT_lindenbaum_indexed hΓ⟩
 
 end ExpandedSequent
 
