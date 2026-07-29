@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Formula.Substitution
-public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.WCWF
 
 @[expose]

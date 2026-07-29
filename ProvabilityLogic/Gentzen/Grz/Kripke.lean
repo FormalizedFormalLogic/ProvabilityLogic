@@ -2,8 +2,6 @@ module
 
 public import ProvabilityLogic.Gentzen.Grz.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
-public import Mathlib.Data.Finset.Powerset
-public import Mathlib.Data.Finite.Prod
 
 /-!
 Kripke completeness of the cut-free `LogicGrz.ProofGentzen`. The Lindenbaum-style saturation
@@ -636,7 +634,7 @@ end Kripke
 
 @[simp, grind .]
 theorem not_provable_empty : ⊬ᵍ[Grz] (∅ ⟹ ∅ : Sequent α) := by
-  by_contra h;
+  by_contra! h;
   have : (0 : trivial_Grz_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_Grz_model 0;
   grind;
 
