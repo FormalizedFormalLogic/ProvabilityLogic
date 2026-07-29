@@ -83,8 +83,8 @@ open LogicGL
 
 noncomputable def _root_.LogicGL.Sequent.subfmlsGrz (S : Sequent α) : FormulaFinset α :=
   S.subfmls
-    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ ψ => ψ 🡒 □ψ))
-    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ ψ => □(ψ 🡒 □ψ)))
+    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ C => C 🡒 □C))
+    ∪ (FormulaFinset.prebox S.subfmls |>.image (λ C => □(C 🡒 □C)))
 
 variable {S : Sequent α}
 
@@ -96,22 +96,22 @@ lemma subfmls_subset_subfmlsGrz : S.subfmls ⊆ S.subfmlsGrz := by
 @[grind =>]
 lemma imp_mem_subfmlsGrz (h : A 🡒 B ∈ S.subfmlsGrz) : A ∈ S.subfmls ∧ B ∈ S.subfmls := by
   simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image] at h;
-  rcases h with (h | ⟨ψ, hψ, heq⟩) | ⟨ψ, hψ, heq⟩;
+  rcases h with (h | ⟨C, hC, heq⟩) | ⟨C, hC, heq⟩;
   · grind;
-  · obtain ⟨rfl, rfl⟩ : A = ψ ∧ B = □ψ := by grind;
-    have hψ : □A ∈ S.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hψ;
-    exact ⟨Sequent.mem_subfmls_subfmls hψ Formula.mem_subfmls_box, hψ⟩;
+  · obtain ⟨rfl, rfl⟩ : A = C ∧ B = □C := by grind;
+    have hC : □A ∈ S.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hC;
+    exact ⟨Sequent.mem_subfmls_subfmls hC Formula.mem_subfmls_box, hC⟩;
   · exact absurd heq (by grind);
 
 @[grind =>]
 lemma box_mem_subfmlsGrz (h : □A ∈ S.subfmlsGrz) : A ∈ S.subfmlsGrz := by
   simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image] at h;
-  rcases h with (h | ⟨ψ, _, heq⟩) | ⟨ψ, hψ, heq⟩;
+  rcases h with (h | ⟨C, _, heq⟩) | ⟨C, hC, heq⟩;
   · exact subfmls_subset_subfmlsGrz (Sequent.mem_subfmls_subfmls h Formula.mem_subfmls_box);
   · exact absurd heq (by grind);
-  · obtain rfl : A = ψ 🡒 □ψ := by grind;
+  · obtain rfl : A = C 🡒 □C := by grind;
     simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
-    exact Or.inl (Or.inr ⟨ψ, hψ, rfl⟩);
+    exact Or.inl (Or.inr ⟨C, hC, rfl⟩);
 
 @[grind =>]
 lemma grzCompanions_mem_subfmlsGrz (h : □A ∈ S.subfmls) :
