@@ -190,9 +190,19 @@ def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
 
 def modalGrz : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}) := deductionTheorem $ wkL seq_grz_box (by grind)
 
-def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := sorry
+def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
+  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = FormulaFinset.box {A, A 🡒 B} by grind)];
+  apply boxGrz;
+  rw [(show FormulaFinset.box ({A, A 🡒 B} : FormulaFinset α) = {□A, □(A 🡒 B)} by grind)];
+  rw [(show insert (□(B 🡒 □B)) ({□A, □(A 🡒 B)} : FormulaFinset α)
+    = insert (□A) (insert (□(A 🡒 B)) {□(B 🡒 □B)}) by grind)];
+  apply boxT;
+  rw [(show insert A (insert (□(A 🡒 B)) ({□(B 🡒 □B)} : FormulaFinset α))
+    = insert (□(A 🡒 B)) (insert A {□(B 🡒 □B)}) by grind)];
+  apply boxT;
+  apply mdpL_mem A B;
 
-def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := sorry
+def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := deductionTheorem $ deductionTheorem seq_K_core
 
 def nec : ⊢ᵍ[Grz]! (∅ ⟹ {A}) → ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := sorry
 
