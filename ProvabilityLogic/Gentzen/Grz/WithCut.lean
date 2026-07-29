@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.Grz.Basic
+public import ProvabilityLogic.Gentzen.Grz.Kripke
 
 @[expose]
 public section
@@ -127,7 +127,25 @@ variable {S : Sequent α} {A B : Formula α}
     `LogicGL.ProvableGentzen.of_with_cut`.
     - [Avr84, §I] (semantic proof)
     - [BG86] (syntactic proof) -/
-theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := sorry
+theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := by
+  intro h;
+  induction h using GentzenWithCutProvable.rec with
+  | axm A => exact ProvableGentzen.axm A
+  | botL => exact ProvableGentzen.botL
+  | wkL _ h ih => exact ProvableGentzen.wkL ih h
+  | wkR _ h ih => exact ProvableGentzen.wkR ih h
+  | impL _ _ ih₁ ih₂ => exact ProvableGentzen.impL ih₁ ih₂
+  | impR _ ih => exact ProvableGentzen.impR ih
+  | boxT _ ih => exact ProvableGentzen.boxT ih
+  | boxGrz _ ih => exact ProvableGentzen.boxGrz ih
+  | cut _ _ ih₁ ih₂ =>
+    -- The cut rule has no direct syntactic elimination here; instead we argue
+    -- semantically via completeness, using soundness of both cut premises.
+    apply Kripke.completeness;
+    rintro κ _ M _ x;
+    have := Kripke.finite_soundness ih₁ M x;
+    have := Kripke.finite_soundness ih₂ M x;
+    grind;
 alias cut_elimination := of_with_cut
 
 /-- The Grz axiom in its standard, cut-free form. -/

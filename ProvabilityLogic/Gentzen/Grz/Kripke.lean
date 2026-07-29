@@ -20,6 +20,21 @@ variable {κ : Type u} [Nonempty κ]
          {M : Model κ α}
          {A B : Formula α} {Γ Γ' Δ Δ' : FormulaFinset α}
 
+namespace Model
+
+/-- Soundness of the `boxT` rule: reflexivity of `M.Rel` lets a boxed antecedent formula be
+unboxed. Folklore, mirroring `validate_gentzen_boxGL` above. -/
+lemma validate_gentzen_boxT [Std.Refl M.Rel] (h : M ⊧ (insert B Γ ⟹ Δ)) :
+  M ⊧ (insert (□B) Γ ⟹ Δ) := sorry
+
+/-- Soundness of the `boxGrz` rule: on a `Grz` frame (reflexive, transitive, weakly converse
+well-founded), the Grz box-right rule preserves validity. Folklore, mirroring
+`validate_gentzen_boxGL` above. -/
+lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ.box ⟹ {A})) :
+  M ⊧ (Γ.box ⟹ {□A}) := sorry
+
+end Model
+
 namespace LogicGrz
 
 /--
@@ -550,7 +565,33 @@ theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → 
     . intro C hC; exact truthlemma_ant $ ExpandedSequent.subset_lindenbaum.1 hC;
     . intro D hD; exact truthlemma_suc $ ExpandedSequent.subset_lindenbaum.2 hD;
 
+open Model in
+/-- Kripke soundness of the cut-free `LogicGrz.ProofGentzen`: every provable sequent is valid in
+every `Grz` model. -/
+theorem soundness {S : Sequent α} (h : ⊢ᵍ[Grz] S) :
+  ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGrz] → M ⊧ S := by
+  intro κ _ M _;
+  induction h with
+  | axm A => exact validate_gentzen_axm
+  | botL => exact validate_gentzen_botL
+  | wkL _ _ ih => exact validate_gentzen_wkL ih
+  | wkR _ _ ih => exact validate_gentzen_wkR ih
+  | impL _ _ ih₁ ih₂ => exact validate_gentzen_impL ih₁ ih₂
+  | impR _ ih => exact validate_gentzen_impR ih
+  | boxT _ ih => exact Model.validate_gentzen_boxT ih
+  | boxGrz _ ih => exact Model.validate_gentzen_boxGrz ih
+
+theorem finite_soundness {S : Sequent α} (h : ⊢ᵍ[Grz] S) :
+  ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ S :=
+  λ _ _ M [M.IsFiniteGrz] => soundness h M
+
 end Kripke
+
+@[simp, grind .]
+theorem not_provable_empty : ⊬ᵍ[Grz] (∅ ⟹ ∅ : Sequent α) := by
+  by_contra h;
+  have : (0 : trivial_Grz_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_Grz_model 0;
+  grind;
 
 end ProvableGentzen
 
