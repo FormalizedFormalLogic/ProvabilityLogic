@@ -156,8 +156,7 @@ def orElim : ⊢ᵍ[Grz]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) �
 ### Modal theorems
 
 These express the reflexivity (`T`), transitivity (`4`), and Grzegorczyk axioms as cut-free
-`Grz` derivations, together with the `K` axiom and necessitation. Their proofs are supplied in
-a follow-up task; only the statements are fixed here.
+`Grz` derivations, together with the `K` axiom and necessitation.
 -/
 
 def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
