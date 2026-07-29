@@ -22,6 +22,22 @@ variable {κ : Type u} [Nonempty κ]
 
 namespace LogicGrz
 
+/--
+The one-point frame with the universally true relation. Used to show that
+`LogicGrz.ProvableGentzen` does not derive the empty sequent. Unlike `LogicGL.trivial_GL_model`,
+whose relation is always `False`, a `Grz` frame must be reflexive, so the one-point `Grz`
+countermodel has to relate its single point to itself.
+-/
+abbrev trivial_Grz_model {α} : Model (Fin 1) α where
+  Rel' := λ _ _ => True
+  Val' := λ _ _ => False
+
+instance : trivial_Grz_model (α := α) |>.IsFiniteGrz where
+  finite   := inferInstance;
+  refl     := by tauto;
+  trans    := by tauto;
+  antisymm := fun a b _ _ => Subsingleton.elim a b;
+
 open LogicGL
 
 /--
