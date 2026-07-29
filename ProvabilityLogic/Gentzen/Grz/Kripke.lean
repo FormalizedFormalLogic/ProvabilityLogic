@@ -33,11 +33,52 @@ lemma validate_gentzen_boxT [Std.Refl M.Rel] (h : M ⊧ (insert B Γ ⟹ Δ)) :
   · exact Model.World.forces_box.mp (hx (□C) (Finset.mem_insert_self _ _)) x (Std.Refl.refl x);
   · exact hx C (Finset.mem_insert_of_mem hC);
 
+section
+
+variable {x : M.World}
+
+omit [DecidableEq α] in
+/-- On a reflexive frame a world refuting `A` also refutes `□A`. -/
+private lemma not_forces_box_of_not_forces [Std.Refl M.Rel] (h : x ⊮ A) : x ⊮ □A :=
+  fun hx => h (hx x (Std.Refl.refl x))
+
+end
+
+open World in
 /-- Soundness of the `boxGrz` rule: on a `Grz` frame (reflexive, transitive, weakly converse
 well-founded), the Grz box-right rule preserves validity. Folklore, mirroring
 `validate_gentzen_boxGL` above. -/
 lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ.box ⟹ {A})) :
-  M ⊧ (Γ.box ⟹ {□A}) := sorry
+  M ⊧ (Γ.box ⟹ {□A}) := by
+  intro x;
+  apply forces_ctx_singleton_sequent.mpr;
+  intro hΓ;
+  apply forces_box.mpr;
+  intro y Rxy;
+  by_contra hy;
+  have h₁ : ∀ z, x ≺ z → ∀ C ∈ Γ.box, z ⊩ C := by
+    intro z Rxz C hC;
+    obtain ⟨D, hD, rfl⟩ := Finset.mem_image.mp hC;
+    intro w Rzw;
+    exact hΓ (□D) (Finset.mem_image_of_mem _ hD) w (_root_.trans Rxz Rzw);
+  obtain ⟨v, ⟨Rxv, hv⟩, hmax⟩ :=
+    WeaklyConverseWellFounded.has_max (r := M.Rel) {z | x ≺ z ∧ z ⊮ □A}
+      ⟨y, Rxy, not_forces_box_of_not_forces hy⟩;
+  replace hmax : ∀ z, x ≺ z → z ⊮ □A → v ≺ z → v = z := by
+    intro z Rxz hz Rvz;
+    by_contra hne;
+    exact hmax z ⟨Rxz, hz⟩ ⟨Rvz, hne⟩;
+  obtain ⟨w, Rvw, hw⟩ := not_forces_box.mp hv;
+  obtain rfl : v = w :=
+    hmax w (_root_.trans Rxv Rvw) (not_forces_box_of_not_forces hw) Rvw;
+  refine hw $ forces_ctx_singleton_sequent.mp (h v) ?_;
+  intro C hC;
+  rcases Finset.mem_insert.mp hC with rfl | hC;
+  · intro u Rvu hu;
+    by_contra hnu;
+    obtain rfl := hmax u (_root_.trans Rxv Rvu) hnu Rvu;
+    exact hw hu;
+  · exact h₁ v Rxv C hC;
 
 end Model
 
