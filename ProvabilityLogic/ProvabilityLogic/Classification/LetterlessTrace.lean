@@ -5,6 +5,7 @@ public import ProvabilityLogic.Kripke.FiniteLineModel
 public import ProvabilityLogic.ToFoundation.Vorspiel.Set.Basic
 public import ProvabilityLogic.Formula.Countable
 public import ProvabilityLogic.ProvabilityLogic.GL.Uniform
+public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 
 @[expose]
 public section

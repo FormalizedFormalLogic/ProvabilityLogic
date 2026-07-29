@@ -3,6 +3,7 @@ module
 public import ProvabilityLogic.Kripke.AlmostDefiningFormula
 public import ProvabilityLogic.Logic.A.Basic
 public import ProvabilityLogic.Kripke.DModelTree
+public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 
 @[expose] public section
 
