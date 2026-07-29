@@ -78,7 +78,9 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 public import ProvabilityLogic.ProvabilityLogic.ModifiedSolovaySentences
 public import ProvabilityLogic.ProvabilityLogic.S.Basic
 public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
+public import ProvabilityLogic.ProvabilityLogic.StrongInterpret
 public import ProvabilityLogic.ToFoundation.FirstOrder.Arithmetic.Basic.Sigma1WitnessForm
+public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.ChainI

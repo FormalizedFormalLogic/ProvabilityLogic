@@ -8,6 +8,7 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 Port of the `strongInterpret` portion of `Foundation.ProvabilityLogic.Grz.Completeness`, a file
 that no longer exists upstream. The arithmetical soundness and completeness theorems are out of
 scope here, since this repository does not define the modal logic `Grz`.
+
 - [Gol78]
 - [Boo80]
 -/
@@ -24,7 +25,8 @@ variable {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T] {𝔅 : Provability T₀ T}
 namespace Formula
 
 omit [L.DecidableEq] in
-/-- The strong interpretation sending `□A` to `(A.strongInterpret f) ⋏ 𝔅 (A.strongInterpret f)` instead of `𝔅 (A.interpret f)`. -/
+/-- The strong interpretation sending `□A` to `(A.strongInterpret f) ⋏ 𝔅 (A.strongInterpret f)`
+instead of `𝔅 (A.interpret f)`. -/
 @[grind]
 def strongInterpret (f : Realization α 𝔅) : Formula α → FirstOrder.Sentence L
   | #a    => f.val a

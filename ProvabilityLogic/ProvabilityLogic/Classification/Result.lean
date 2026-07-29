@@ -3,7 +3,6 @@ module
 public import ProvabilityLogic.ProvabilityLogic.Classification.A_D
 public import ProvabilityLogic.ProvabilityLogic.Classification.D_S
 public import ProvabilityLogic.ProvabilityLogic.S.Basic
-public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 
 /-!
 # Classification of truth provability logics
