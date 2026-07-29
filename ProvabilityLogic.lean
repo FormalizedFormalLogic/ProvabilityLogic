@@ -63,6 +63,7 @@ public import ProvabilityLogic.Logic.GLPoint3.Basic
 public import ProvabilityLogic.Logic.GLPoint3.Completeness
 public import ProvabilityLogic.Logic.GLPoint3.Letterless
 public import ProvabilityLogic.Logic.GLPoint3OplusBoxBot.Basic
+public import ProvabilityLogic.Logic.Grz.Basic
 public import ProvabilityLogic.Logic.S.Basic
 public import ProvabilityLogic.Logic.S.Boxdot
 public import ProvabilityLogic.Logic.S.CIP
