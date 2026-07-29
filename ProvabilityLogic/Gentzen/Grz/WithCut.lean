@@ -123,10 +123,11 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α}
 
-/-- Cut-elimination for `Grz`. To be proved semantically via Kripke completeness, as in
-    `LogicGL.ProvableGentzen.of_with_cut`.
-    - [Avr84, §I] (semantic proof)
-    - [BG86] (syntactic proof) -/
+/-- Cut-elimination for `Grz`: proved semantically via Kripke completeness. Every formula
+provable in the cut-full system is also provable in the cut-free system, following the approach
+in `LogicGL.ProvableGentzen.of_with_cut`.
+- [Avr84, §I] (semantic proof)
+- [BG86] (syntactic proof) -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[Grz] S → ⊢ᵍ[Grz] S := by
   intro h;
   induction h using GentzenWithCutProvable.rec with

@@ -39,7 +39,6 @@ lemma WeaklyConverseWellFounded.has_max [IsWeaklyConverseWellFounded α r] (s : 
     ∃ m ∈ s, ∀ x ∈ s, ¬(r m x ∧ m ≠ x) :=
   ConverseWellFounded.iff_has_max.mp IsWeaklyConverseWellFounded.wcwf s hs
 
-/-- The irreflexive part of any relation is irreflexive. -/
 instance : Std.Irrefl r.IrreflGen := ⟨fun _ h => h.2 rfl⟩
 
 -- `IsTrans r` alone does not suffice: `x ≠ y`, `y ≠ z` and `r x z` do not rule out `x = z`;

@@ -179,8 +179,7 @@ namespace ProvableGentzen
 
 variable {A : Formula α}
 
-/-- Every Hilbert-provable `Grz` formula is Gentzen-provable as a singleton sequent. (This
-direction rests on cut-elimination via `LogicGrz.ProvableGentzen.of_with_cut`.) -/
+/-- Every Hilbert-provable `Grz` formula is Gentzen-provable as a singleton sequent. -/
 theorem of_provableHilbert [DecidableEq α] : ⊢ʰ[Grz] A → ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) := by
   intro h;
   induction h with
@@ -562,11 +561,7 @@ theorem of_provableGentzen_singleton [DecidableEq α] : ⊢ᵍ[Grz] (∅ ⟹ {A}
 end ProvableHilbert
 
 
-/-- A formula is Hilbert-provable iff it is Gentzen-provable as a singleton sequent.
-
-Only the left-to-right direction rests on cut-elimination (`LogicGrz.ProvableGentzen.of_with_cut`,
-still unproved), since the Hilbert rule `mdp` needs modus ponens in the cut-free calculus; the
-converse holds outright. -/
+/-- A formula is Hilbert-provable iff it is Gentzen-provable as a singleton sequent. -/
 theorem iff_provableHilbert_provableGentzen [DecidableEq α] {A : Formula α} :
   ⊢ʰ[Grz] A ↔ ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) :=
   ⟨ProvableGentzen.of_provableHilbert, ProvableHilbert.of_provableGentzen_singleton⟩

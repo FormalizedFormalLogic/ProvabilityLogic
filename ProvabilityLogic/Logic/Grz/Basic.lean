@@ -3,6 +3,17 @@ module
 public import ProvabilityLogic.Logic.SumQuasiNormal
 public import ProvabilityLogic.Hilbert.Grz.Basic
 
+/-!
+# Soundness and Kripke completeness of `LogicGrz`
+
+This file bundles the equivalences between: membership in `LogicGrz` (Grz-provability),
+Hilbert-style provability, cut-free and cut-full Gentzen-style provability, validity over
+finite Grz-models, and validity at the root of finite rooted Grz-models.
+
+Unlike `LogicGL`, Grz has no labelled Gentzen calculus or tree-model unravelling in this
+repository, so the `provability_TFAE` equivalence list is shorter.
+-/
+
 @[expose]
 public section
 
