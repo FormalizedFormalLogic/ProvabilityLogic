@@ -25,7 +25,13 @@ namespace Model
 /-- Soundness of the `boxT` rule: reflexivity of `M.Rel` lets a boxed antecedent formula be
 unboxed. Folklore, mirroring `validate_gentzen_boxGL` above. -/
 lemma validate_gentzen_boxT [Std.Refl M.Rel] (h : M ⊧ (insert B Γ ⟹ Δ)) :
-  M ⊧ (insert (□B) Γ ⟹ Δ) := sorry
+  M ⊧ (insert (□B) Γ ⟹ Δ) := by
+  intro x hx;
+  apply h x;
+  intro C hC;
+  rcases Finset.mem_insert.mp hC with rfl | hC;
+  · exact Model.World.forces_box.mp (hx (□C) (Finset.mem_insert_self _ _)) x (Std.Refl.refl x);
+  · exact hx C (Finset.mem_insert_of_mem hC);
 
 /-- Soundness of the `boxGrz` rule: on a `Grz` frame (reflexive, transitive, weakly converse
 well-founded), the Grz box-right rule preserves validity. Folklore, mirroring
