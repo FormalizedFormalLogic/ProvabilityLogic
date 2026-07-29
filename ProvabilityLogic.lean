@@ -12,6 +12,7 @@ public import ProvabilityLogic.Gentzen.GL.WithCut
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
 public import ProvabilityLogic.Gentzen.Grz.Basic
+public import ProvabilityLogic.Gentzen.Grz.Kripke
 public import ProvabilityLogic.Gentzen.Grz.WithCut
 public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
@@ -86,4 +87,5 @@ public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.ChainI
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF
+public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.WCWF
 public import ProvabilityLogic.ToFoundation.Vorspiel.Set.Basic
