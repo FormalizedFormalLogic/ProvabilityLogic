@@ -23,7 +23,6 @@ variable {κ : Type u} [Nonempty κ]
 namespace LogicGrz
 
 open LogicGL
-open scoped FormulaFinset
 
 /--
 The subformula closure needed to run the Lindenbaum construction for `LogicGrz.ProofGentzen`:
@@ -108,6 +107,101 @@ lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
 @[grind .] lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by grind;
 @[grind =>] lemma of_mem_imp_ant (h : A 🡒 B ∈ S.1.1 := by grind) : A ∈ S.1.2 ∨ B ∈ S.1.1 := S.saturated.impL h
 @[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
+
+open Classical in
+/--
+  One step of the Lindenbaum-style saturation for `LogicGrz.ProofGentzen`: process the given
+  list of formulas, saturating the sequent for `impL`, `impR` and `boxT` while preserving
+  `LogicGrz.ProofGentzen`-unprovability.
+-/
+@[grind]
+noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[Grz] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[Grz] S }
+| [] => ⟨S₀, S₀_unprovable⟩
+| (A 🡒 B) :: Γ =>
+  let ⟨S, hS⟩ := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  if h : (A 🡒 B) ∈ S.1 then
+    if h : ⊬ᵍ[Grz] ((S.1) ⟹ (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+    else ⟨((insert B S.1) ⟹ S.2), by
+      push Not at h;
+      contrapose! hS;
+      have := ProvableGentzen.impL h hS;
+      rwa [(show insert (A 🡒 B) S.1 = S.1 by grind)] at this;
+    ⟩
+  else if h : (A 🡒 B) ∈ S.2 then ⟨
+    ((insert A S.1) ⟹ (insert B S.2)),
+    by
+      contrapose! hS;
+      have := ProvableGentzen.impR hS;
+      rwa [(show insert (A 🡒 B) S.2 = S.2 by grind)] at this;
+  ⟩
+  else ⟨S, hS⟩
+| (□A) :: Γ =>
+  let ⟨S, hS⟩ := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  if h : (□A) ∈ S.1 then ⟨
+    ((insert A S.1) ⟹ S.2),
+    by
+      contrapose! hS;
+      have := ProvableGentzen.boxT hS;
+      rwa [(show insert (□A) S.1 = S.1 by grind)] at this;
+  ⟩
+  else ⟨S, hS⟩
+| _ :: Γ => lindenbaum_indexed S₀ S₀_unprovable Γ
+
+variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[Grz] S₀} {Γ : FormulaList α}
+
+/-- Every step of `lindenbaum_indexed` only ever extends `S₀`. -/
+lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprovable Γ).1 := by
+  induction Γ with
+  | nil =>
+    exact ⟨Finset.Subset.refl _, Finset.Subset.refl _⟩
+  | cons A Γ ih =>
+    match A with
+    | #a | ⊥ => exact ih
+    | A 🡒 B =>
+      dsimp only [lindenbaum_indexed];
+      split_ifs;
+      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      · exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
+      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
+      · exact ⟨ih.1, ih.2⟩;
+    | □A =>
+      dsimp only [lindenbaum_indexed];
+      split_ifs;
+      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      · exact ⟨ih.1, ih.2⟩;
+
+variable {BS : Sequent α}
+
+/--
+  Two-sided invariant of `lindenbaum_indexed`: if the antecedent of `S₀` stays inside
+  `BS.subfmlsGrz` and its succedent inside `BS.subfmls`, so do those of the resulting sequent.
+  The bound is asymmetric like `ExpandedSequent` itself; each membership is derived from the
+  invariant already established for the shorter list together with the closure lemmas for
+  `Sequent.subfmlsGrz`, so no side condition on `Γ` is needed.
+-/
+lemma bounds_lindenbaum_indexed (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_suc : S₀.suc ⊆ BS.subfmls) :
+  (lindenbaum_indexed S₀ S₀_unprovable Γ).1.ant ⊆ BS.subfmlsGrz ∧
+  (lindenbaum_indexed S₀ S₀_unprovable Γ).1.suc ⊆ BS.subfmls := by
+  induction Γ with
+  | nil => exact ⟨S₀_ant, S₀_suc⟩
+  | cons C Γ ih =>
+    match C with
+    | #a | ⊥ => exact ih
+    | A 🡒 B =>
+      dsimp only [lindenbaum_indexed];
+      split_ifs with h1 h2 h3;
+      · exact ⟨Finset.insert_subset (subfmls_subset_subfmlsGrz (imp_mem_subfmlsGrz (ih.1 h1)).2) ih.1, ih.2⟩;
+      · exact ⟨ih.1, Finset.insert_subset (imp_mem_subfmlsGrz (ih.1 h1)).1 ih.2⟩;
+      · exact ⟨
+          Finset.insert_subset (subfmls_subset_subfmlsGrz (Sequent.mem_subfmls_subfmls (ih.2 h3) Formula.mem_subfmls_imp_left)) ih.1,
+          Finset.insert_subset (Sequent.mem_subfmls_subfmls (ih.2 h3) Formula.mem_subfmls_imp_right) ih.2
+        ⟩;
+      · exact ih;
+    | □A =>
+      dsimp only [lindenbaum_indexed];
+      split_ifs with h;
+      · exact ⟨Finset.insert_subset (box_mem_subfmlsGrz (ih.1 h)) ih.1, ih.2⟩;
+      · exact ih;
 
 end ExpandedSequent
 
