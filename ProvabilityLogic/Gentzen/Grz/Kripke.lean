@@ -353,6 +353,66 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
    saturated_impR_lindenbaum_indexed hΓ,
    saturated_boxT_lindenbaum_indexed hΓ⟩
 
+/--
+  Lindenbaum-style saturation for `LogicGrz.ProofGentzen`: every unprovable sequent bounded by
+  the subformula closure of `BS` extends to a saturated, `boxT`-closed, unprovable sequent whose
+  bounds against `BS` are still asymmetric. Runs `lindenbaum_indexed` once over
+  `BS.subfmlsGrz` sorted by complexity.
+-/
+noncomputable def lindenbaum {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)] (S₀ : Sequent α)
+  (S₀_unprovable : ⊬ᵍ[Grz] S₀) (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_suc : S₀.suc ⊆ BS.subfmls) :
+  ExpandedSequent BS :=
+  letI Γ := BS.subfmlsGrz.toList.insertionSort (·.complexity ≤ ·.complexity);
+  letI S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  haveI hΓsorted : (Γ.map (·.complexity)).SortedLE := by
+    rw [List.map_insertionSort (f := Formula.complexity) (l := BS.subfmlsGrz.toList) (r := λ A B => ((A.complexity) ≤ (B.complexity))) (s := (· ≤ ·)) (by grind)];
+    exact List.sortedLE_insertionSort (l := BS.subfmlsGrz.toList.map (·.complexity));
+  haveI hbounds : S.1.ant ⊆ BS.subfmlsGrz ∧ S.1.suc ⊆ BS.subfmls := bounds_lindenbaum_indexed S₀_ant S₀_suc;
+  {
+    toSequent  := S.1,
+    unprovable := S.2,
+    ant_subset := hbounds.1,
+    suc_subset := hbounds.2,
+    saturated := {
+      impL := by
+        intro A B h;
+        apply saturated_impL_lindenbaum_indexed hΓsorted ?_ h;
+        exact List.mem_insertionSort _ |>.mpr $ Finset.mem_toList.mpr $ hbounds.1 h;
+      impR := by
+        intro A B h;
+        apply saturated_impR_lindenbaum_indexed hΓsorted ?_ h;
+        exact List.mem_insertionSort _ |>.mpr $ Finset.mem_toList.mpr $ subfmls_subset_subfmlsGrz (hbounds.2 h);
+    },
+    boxT_closed := by
+      intro A h;
+      apply saturated_boxT_lindenbaum_indexed hΓsorted ?_ h;
+      exact List.mem_insertionSort _ |>.mpr $ Finset.mem_toList.mpr $ hbounds.1 h;
+  }
+
+lemma subset_lindenbaum {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)] {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[Grz] S₀}
+  {S₀_ant : S₀.ant ⊆ BS.subfmlsGrz} {S₀_suc : S₀.suc ⊆ BS.subfmls} :
+  S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀_ant S₀_suc).1 := subset_lindenbaum_indexed
+
+/-- Two `ExpandedSequent`s agree once their underlying antecedent and succedent agree. -/
+lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant) (hs : S.toSequent.suc = T.toSequent.suc) : S = T := by
+  obtain ⟨⟨ΓS, ΔS⟩, _⟩ := S;
+  obtain ⟨⟨ΓT, ΔT⟩, _⟩ := T;
+  grind;
+
+instance : Finite (ExpandedSequent BS) := by
+  apply Finite.of_injective
+    (β := {x : Finset (Formula α) // x ∈ BS.subfmlsGrz.powerset} × {x : Finset (Formula α) // x ∈ BS.subfmls.powerset})
+    (fun S : ExpandedSequent BS => (⟨S.toSequent.ant, Finset.mem_powerset.mpr S.ant_subset⟩,
+               ⟨S.toSequent.suc, Finset.mem_powerset.mpr S.suc_subset⟩))
+  intro S T h;
+  simp only [Prod.mk.injEq, Subtype.mk.injEq] at h
+  exact ext h.1 h.2
+
+instance [Fact (⊬ᵍ[Grz] BS)] : Nonempty (ExpandedSequent BS) :=
+  ⟨lindenbaum BS (Fact.elim inferInstance)
+    (Finset.subset_union_left.trans Sequent.subset_self_subfmls |>.trans subfmls_subset_subfmlsGrz)
+    (Finset.subset_union_right.trans Sequent.subset_self_subfmls)⟩
+
 end ExpandedSequent
 
 end LogicGrz
