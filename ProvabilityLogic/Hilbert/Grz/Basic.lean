@@ -99,15 +99,107 @@ lemma rec
 end ProvableHilbert
 
 
+inductive DeductionHilbert : FormulaSet α → Formula α → Type _
+| ofProof {X A} : ⊢ʰ[Grz]! A → DeductionHilbert X A
+| ofContext {X A} : A ∈ X → DeductionHilbert X A
+| mdp {X A B} : (DeductionHilbert X (A 🡒 B)) → (DeductionHilbert X A) → (DeductionHilbert X B)
+notation:50 X:51 " ⊢ʰ[Grz]! " A:51 => DeductionHilbert X A
+
+abbrev DeducibleHilbert (X : FormulaSet α) (A : Formula α) := Nonempty (X ⊢ʰ[Grz]! A)
+notation:50 X:51 " ⊢ʰ[Grz] " A:51 => DeducibleHilbert X A
+
+namespace DeducibleHilbert
+
+variable {X Y : FormulaSet α} {A B C : Formula α}
+
+@[grind <=] lemma ofProvable : (⊢ʰ[Grz] A) → (X ⊢ʰ[Grz] A) := λ ⟨h⟩ => ⟨.ofProof h⟩
+@[grind <=] lemma ofContext : A ∈ X → (X ⊢ʰ[Grz] A) := λ h => ⟨.ofContext h⟩
+@[grind =>] lemma mdp : X ⊢ʰ[Grz] A 🡒 B → X ⊢ʰ[Grz] A → X ⊢ʰ[Grz] B := λ ⟨h₁⟩ ⟨h₂⟩ => ⟨.mdp h₁ h₂⟩
+
+@[induction_eliminator]
+protected lemma rec
+  {motive : (X : FormulaSet α) → (A : Formula α) → (X ⊢ʰ[Grz] A) → Prop}
+  (ofProvable : ∀ {X A}, (h : ⊢ʰ[Grz] A) → motive X A (ofProvable h))
+  (ofContext : ∀ {X A}, (h : A ∈ X) → motive X A (ofContext h))
+  (mdp : ∀ {X A B}, (hAB : X ⊢ʰ[Grz] A 🡒 B) → (hA : X ⊢ʰ[Grz] A) → (motive X (A 🡒 B) hAB) → (motive X A hA) → (motive X B (mdp hAB hA)))
+  : ∀ {X A}, (h : X ⊢ʰ[Grz] A) → motive X A h := by
+  rintro X A ⟨h⟩;
+  induction h with
+  | ofProof h => apply ofProvable ⟨h⟩;
+  | _ => grind;
+
+lemma of_subset_ctx (hXY : X ⊆ Y) : (X ⊢ʰ[Grz] A) → (Y ⊢ʰ[Grz] A) := λ h => by induction h <;> grind;
+
+lemma to_ctx : (X ⊢ʰ[Grz] A 🡒 B) → (insert A X ⊢ʰ[Grz] B) := λ h => by
+  apply mdp;
+  . show insert A X ⊢ʰ[Grz] A 🡒 B;
+    exact of_subset_ctx (by simp) h;
+  . exact ofContext (by simp);
+
+lemma drop_ctx (h : insert A X ⊢ʰ[Grz] B) : (X ⊢ʰ[Grz] A 🡒 B) := by
+  generalize e : insert A X = Y at h;
+  induction h with
+  | ofProvable h =>
+    subst e;
+    exact ofProvable $ .af h;
+  | ofContext h =>
+    subst e;
+    rcases Set.mem_insert_iff.mp h with (rfl | h);
+    . exact ofProvable .impId;
+    . apply mdp;
+      . exact ofProvable (.prop1);
+      . exact ofContext h;
+  | mdp _ _ ihAB ihA =>
+    subst e;
+    replace ihAB := ihAB rfl;
+    replace ihA := ihA rfl;
+    exact mdp (mdp (ofProvable (.prop2)) ihAB) ihA;
+
+theorem deduction_theorem : (insert A X ⊢ʰ[Grz] B) ↔ (X ⊢ʰ[Grz] A 🡒 B) := ⟨drop_ctx, to_ctx⟩
+
+lemma iff_empty_ctx : (∅ ⊢ʰ[Grz] A) ↔ (⊢ʰ[Grz] A) := by
+  constructor
+  . intro h;
+    generalize e : (∅ : FormulaSet α) = X at h;
+    induction h <;> grind;
+  . apply ofProvable;
+
+lemma iff_singleton_deducible_provable : ({A} ⊢ʰ[Grz] B) ↔ (⊢ʰ[Grz] A 🡒 B) := by
+  rw [show ({A} : FormulaSet α) = insert A ∅ by simp];
+  apply Iff.trans deduction_theorem iff_empty_ctx;
+
+/-- Context-level transitivity of implication. -/
+lemma impTrans (p : X ⊢ʰ[Grz] A 🡒 B) (q : X ⊢ʰ[Grz] B 🡒 C) : X ⊢ʰ[Grz] A 🡒 C :=
+  mdp (mdp (ofProvable ProvableHilbert.prop2) (mdp (ofProvable ProvableHilbert.prop1) q)) p
+
+end DeducibleHilbert
+
+
 namespace ProvableGentzen
 
 variable {A : Formula α}
 
-/-- Every Hilbert-provable `Grz` formula is Gentzen-provable as a singleton sequent.
-Provable by induction on the Hilbert derivation, translating each axiom/rule to its
-`LogicGrz.ProofGentzen` counterpart (`ProofGentzen.modalT`, `.modal4`, `.modalGrz`, `.nec`,
-`ProvableGentzen.mdp`); left for the Hilbert-side follow-up task. -/
-theorem of_provableHilbert [DecidableEq α] : ⊢ʰ[Grz] A → ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) := sorry
+/-- Every Hilbert-provable `Grz` formula is Gentzen-provable as a singleton sequent, by
+induction on the Hilbert derivation, translating each axiom/rule to its `LogicGrz.ProofGentzen`
+counterpart. -/
+theorem of_provableHilbert [DecidableEq α] : ⊢ʰ[Grz] A → ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) := by
+  intro h;
+  induction h with
+  | implyK => exact .implyK;
+  | implyS => exact .implyS;
+  | dne => exact .dne;
+  | andElimL => exact .andElimL;
+  | andElimR => exact .andElimR;
+  | andIntro => exact .andIntro;
+  | orIntroL => exact .orIntroL;
+  | orIntroR => exact .orIntroR;
+  | orElim => exact .orElim;
+  | modalK => exact .modalK;
+  | modal4 => exact .modal4;
+  | modalT => exact .modalT;
+  | modalGrz => exact .modalGrz;
+  | nec _ h => exact .nec h;
+  | mdp _ _ ih₁ ih₂ => exact .mdp ih₁ ih₂;
 
 end ProvableGentzen
 
