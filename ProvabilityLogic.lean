@@ -80,6 +80,7 @@ public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 public import ProvabilityLogic.ProvabilityLogic.GL.Uniform
 public import ProvabilityLogic.ProvabilityLogic.GLPlusBoxBot.Basic
 public import ProvabilityLogic.ProvabilityLogic.GLPoint3.Basic
+public import ProvabilityLogic.ProvabilityLogic.Grz.Basic
 public import ProvabilityLogic.ProvabilityLogic.Interpret
 public import ProvabilityLogic.ProvabilityLogic.ModifiedSolovaySentences
 public import ProvabilityLogic.ProvabilityLogic.S.Basic

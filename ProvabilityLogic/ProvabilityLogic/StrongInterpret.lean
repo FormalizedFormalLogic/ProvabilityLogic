@@ -6,8 +6,10 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 # The strong interpretation and the boxdot translation
 
 Port of the `strongInterpret` portion of `Foundation.ProvabilityLogic.Grz.Completeness`, a file
-that no longer exists upstream. The arithmetical soundness and completeness theorems are out of
-scope here, since this repository does not define the modal logic `Grz`.
+that no longer exists upstream. This file provides the ground work — the strong interpretation
+of a formula and its equivalence with the interpretation of the boxdot translate — on top of
+which `ProvabilityLogic.ProvabilityLogic.Grz.Basic` builds the arithmetical completeness of the
+modal logic `Grz`.
 
 - [Gol78]
 - [Boo80]
