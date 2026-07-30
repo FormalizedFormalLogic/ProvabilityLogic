@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.Logic.Grz.Basic
-public import ProvabilityLogic.Logic.GL.Basic
+public import ProvabilityLogic.Logic.S.Boxdot
 
 @[expose] public section
 
@@ -116,5 +116,10 @@ theorem iff_provable_boxdot_GL_provable_Grz : Aᵇ ∈ LogicGL ↔ A ∈ LogicGr
   provable_Grz_of_provable_boxdot_GL,
   provable_boxdot_GL_of_provable_Grz
 ⟩
+
+/-- `Grz`-provability of `A` is equivalent to `S`-provability of its boxdot translate. -/
+theorem iff_provable_boxdot_S_provable_Grz : Aᵇ ∈ LogicS ↔ A ∈ LogicGrz :=
+  Iff.trans LogicS.iff_provable_boxdot_GL_provable_boxdot_S.symm
+    iff_provable_boxdot_GL_provable_Grz
 
 end
