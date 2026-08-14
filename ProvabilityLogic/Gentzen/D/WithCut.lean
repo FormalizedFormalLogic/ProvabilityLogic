@@ -70,7 +70,7 @@ lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[D] ({A} ⟹[l] {A}) := ⟨GentzenWith
 
   - [KKIM25, §3]
 -/
-lemma botL (l) : ⊢ᵍᶜ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := sorry
+lemma botL (l) : ⊢ᵍᶜ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
 /--
   Left weakening, at any level.
 
