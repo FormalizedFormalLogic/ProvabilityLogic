@@ -35,7 +35,17 @@ abbrev GentzenWithCutProvable (S : ThreeLayeredSequent α) : Prop := Nonempty (�
 scoped notation:120 "⊢ᵍᶜ[D] " Seq:121 => GentzenWithCutProvable Seq
 
 /-- Every `LogicD.ProofGentzen`-proof is in particular a `LogicD.GentzenWithCutProof`-proof. -/
-def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]! S → ⊢ᵍᶜ[D]! S := sorry
+def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]! S → ⊢ᵍᶜ[D]! S
+| .axm l A    => .axm l A
+| .botL l     => .botL l
+| .wkL h h'   => .wkL (GentzenWithCutProof.ofProofGentzen h) h'
+| .wkR h h'   => .wkR (GentzenWithCutProof.ofProofGentzen h) h'
+| .impL h₁ h₂ => .impL (GentzenWithCutProof.ofProofGentzen h₁) (GentzenWithCutProof.ofProofGentzen h₂)
+| .impR h     => .impR (GentzenWithCutProof.ofProofGentzen h)
+| .boxGL h    => .boxGL (GentzenWithCutProof.ofProofGentzen h)
+| .liftUp h   => .liftUp (GentzenWithCutProof.ofProofGentzen h)
+| .boxL h     => .boxL (GentzenWithCutProof.ofProofGentzen h)
+| .liftUpBox h => .liftUpBox (GentzenWithCutProof.ofProofGentzen h)
 
 namespace GentzenWithCutProvable
 
@@ -47,7 +57,7 @@ variable {S : ThreeLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : F
 
   - [KKIM25, §3]
 -/
-theorem of_without_cut : ⊢ᵍ[D] S → ⊢ᵍᶜ[D] S := sorry
+theorem of_without_cut : ⊢ᵍ[D] S → ⊢ᵍᶜ[D] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
 /--
   The initial sequent `A ⟹[l] A`, at any level.
