@@ -101,7 +101,7 @@ lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D
 
   - [KKIM25, §3]
 -/
-lemma liftUp (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := sorry
+lemma liftUp (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp h.some⟩
 /--
   `(GL□)`.
 
