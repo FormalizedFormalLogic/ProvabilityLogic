@@ -76,7 +76,7 @@ lemma botL (l) : ⊢ᵍᶜ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨Gent
 
   - [KKIM25, §3]
 -/
-lemma wkL (h : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[D] (Γ' ⟹[l] Δ) := sorry
+lemma wkL (h : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[D] (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
 /--
   Right weakening, at any level.
 
