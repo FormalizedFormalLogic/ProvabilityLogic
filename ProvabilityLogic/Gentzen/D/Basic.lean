@@ -259,7 +259,8 @@ lemma orR (π : ⊢ᵍ[D] (Γ ⟹[l] (insert A (insert B Δ)))) : ⊢ᵍ[D] (Γ 
 
   - [KKIM25, §3]
 -/
-lemma negL (π : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) Γ ⟹[l] Δ) := sorry
+lemma negL (π : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) Γ ⟹[l] Δ) :=
+  impL π (botL_mem l)
 
 /--
   Negation right, the derived rule for the abbreviation `∼A := A 🡒 ⊥`, at any level.
