@@ -336,7 +336,8 @@ theorem provable_two_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢�
 
   - [KKIM25, Theorem 4.3]
 -/
-theorem provable_one_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := sorry
+theorem provable_one_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) :=
+  ProvableGentzen.liftUp ⟨ofProofGentzen h.some⟩
 
 end LogicD
 
