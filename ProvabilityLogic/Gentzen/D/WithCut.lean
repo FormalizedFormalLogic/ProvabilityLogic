@@ -64,7 +64,7 @@ theorem of_without_cut : ⊢ᵍ[D] S → ⊢ᵍᶜ[D] S := λ ⟨h⟩ => ⟨Gent
 
   - [KKIM25, §3]
 -/
-lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[D] ({A} ⟹[l] {A}) := sorry
+lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[D] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
 /--
   The initial sequent `⊥ ⟹[l]`, at any level.
 
