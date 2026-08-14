@@ -218,7 +218,8 @@ lemma rec
 
 scoped prefix:120 "⊬ᴰ " => λ S => ¬⊢ᵍ[D] S
 
-lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : (⊬ᴰ S) ↔ (IsEmpty (⊢ᵍ[D]! S)) := sorry
+lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : (⊬ᴰ S) ↔ (IsEmpty (⊢ᵍ[D]! S)) := by
+  simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
 lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) := sorry
