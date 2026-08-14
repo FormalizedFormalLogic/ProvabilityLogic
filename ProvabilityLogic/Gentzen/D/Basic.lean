@@ -56,7 +56,14 @@ scoped notation:120 "⊢ᵍ[D] " Seq:121 => ProvableGentzen Seq
 
   - [KKIM25, Theorem 4.1]
 -/
-def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[D]! (Γ ⟹[0] Δ) := sorry
+def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[D]! (Γ ⟹[0] Δ)
+| .axm A      => .axm 0 A
+| .botL       => .botL 0
+| .wkL h h'   => .wkL (ofProofGentzen h) h'
+| .wkR h h'   => .wkR (ofProofGentzen h) h'
+| .impL h₁ h₂ => .impL (ofProofGentzen h₁) (ofProofGentzen h₂)
+| .impR h     => .impR (ofProofGentzen h)
+| .boxGL h    => .boxGL (ofProofGentzen h)
 
 /-- The converse translation, by structural recursion on level-`0` `LogicD.ProofGentzen`-proofs. -/
 def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ) := sorry
