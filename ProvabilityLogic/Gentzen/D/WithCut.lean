@@ -7,14 +7,9 @@ public import ProvabilityLogic.Gentzen.D.Basic
 (`ProvabilityLogic.Gentzen.D.Basic`) by a level-preserving cut rule.
 
 Like `LogicD.ProofGentzen`, this is a single inductive on `ThreeLayeredSequent`, a `Sequent`
-tagged with a level `l : Fin 3`: `l = 0` is the GL-sequent (`⇒`), `l = 1` is the S-sequent
-(`⊢`), and `l = 2` is the D-sequent (`⇒⇒`). Besides the level-generic `LK` rules (now
-including cut), the constructors encode the source's modal rules `(GL□)` (`boxGL`, level `0`
-only), `(GLtoS)` (`liftUp`, lifting a level-`0` sequent to level `1`), `(S□left)` (`boxL`,
-level `1` only), and `(StoD)` (`liftUpBox`, lifting a boxed level-`1` sequent to level `2`).
-As for the cut-free calculus, no constructor other than the level-generic `LK` rules and
-`liftUpBox` targets level `2`, so the source's remark "only `LK⇒⇒`-rules can have D-sequents
-as assumptions" holds here by construction.
+tagged with a level `l : Fin 3`: `l = 0` is the GL-sequent, `l = 1` is the S-sequent, and
+`l = 2` is the D-sequent. The constructors encode the source's modal rules `(GL□)` (`boxGL`),
+`(GLtoS)` (`liftUp`), `(S□left)` (`boxL`), and `(StoD)` (`liftUpBox`).
 -/
 
 @[expose]
@@ -22,10 +17,7 @@ public section
 
 variable {α : Type u} [DecidableEq α]
 
-/--
-  `LogicD.ProofGentzen` extended with a level-preserving cut rule, mirroring
-  `LogicS.GentzenWithCutProof` for the two-level `S` calculus. This is the "with cut" calculus
-  alongside which `LogicD.ProofGentzen` is cut-free.
+/-- `LogicD.ProofGentzen` with a level-preserving cut rule.
 
   - [KKIM25, §3]
 -/
@@ -49,7 +41,6 @@ scoped prefix:120 "⊢ᵍᶜ[D]! " => GentzenWithCutProof
 abbrev GentzenWithCutProvable (S : ThreeLayeredSequent α) : Prop := Nonempty (⊢ᵍᶜ[D]! S)
 scoped prefix:120 "⊢ᵍᶜ[D] " => GentzenWithCutProvable
 
-/-- Every `LogicD.ProofGentzen`-proof is in particular a `LogicD.GentzenWithCutProof`-proof. -/
 def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]! S → ⊢ᵍᶜ[D]! S
 | .axm l A    => .axm l A
 | .botL l     => .botL l
@@ -66,87 +57,26 @@ namespace GentzenWithCutProvable
 
 variable {S : ThreeLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 3}
 
-/--
-  Cut-free provability of `LogicD.ProofGentzen` implies provability of the with-cut calculus
-  `LogicD.GentzenWithCutProof` (a fortiori, adding the cut rule can only add proofs).
+/-- Cut-free `LogicD` provability implies `LogicD.GentzenWithCutProof` provability.
 
   - [KKIM25, §3]
 -/
 theorem of_without_cut : ⊢ᵍ[D] S → ⊢ᵍᶜ[D] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
-/--
-  The initial sequent `A ⟹[l] A`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[D] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
-/--
-  The initial sequent `⊥ ⟹[l]`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma botL (l) : ⊢ᵍᶜ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
-/--
-  Left weakening, at any level.
-
-  - [KKIM25, §3]
--/
 lemma wkL (h : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[D] (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
-/--
-  Right weakening, at any level.
-
-  - [KKIM25, §3]
--/
 lemma wkR (h : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ') : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ') := ⟨GentzenWithCutProof.wkR h.some h'⟩
-/--
-  Left introduction of `🡒`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma impL (h₁ : ⊢ᵍᶜ[D] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍᶜ[D] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
   ⟨GentzenWithCutProof.impL h₁.some h₂.some⟩
-/--
-  Right introduction of `🡒`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
-/--
-  `(GLtoS)`: a GL-sequent lifts to an S-sequent.
-
-  - [KKIM25, §3]
--/
 lemma liftUp (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp h.some⟩
-/--
-  `(GL□)`.
-
-  - [KKIM25, §3]
--/
 lemma boxGL (h : ⊢ᵍᶜ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍᶜ[D] (Γ.box ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
-/--
-  `(S□left)`.
-
-  - [KKIM25, §3]
--/
 lemma boxL (h : ⊢ᵍᶜ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
-/--
-  `(StoD)`: a boxed S-sequent lifts to a D-sequent.
-
-  - [KKIM25, §3]
--/
 lemma liftUpBox {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍᶜ[D] (Γ.box ⟹[2] Δ.box) := ⟨GentzenWithCutProof.liftUpBox h.some⟩
-/--
-  Cut, preserving the level of both premises.
-
-  - [KKIM25, §3]
--/
 lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
-/--
-  Induction principle for `LogicD.GentzenWithCutProvable` at the `Prop` level, mirroring
-  `LogicS.GentzenWithCutProvable.rec` for the two-level `S` calculus.
--/
 @[induction_eliminator]
 lemma rec
   {motive : (S : ThreeLayeredSequent α) → ⊢ᵍᶜ[D] S → Prop}

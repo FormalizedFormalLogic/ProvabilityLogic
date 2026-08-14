@@ -3,17 +3,12 @@ module
 public import ProvabilityLogic.Gentzen.S.Basic
 
 /-!
-Cut-free sequent calculus `D³_seq` for the provability logic `D`, together with its
-GL-sequent and S-sequent conservativity results and derived rules.
+Cut-free sequent calculus `D³_seq` for the provability logic `D`.
 
-`LogicD.ProofGentzen` is a single inductive on `ThreeLayeredSequent`, a `Sequent` tagged
-with a level `l : Fin 3`: `l = 0` is the GL-sequent (`⇒`), `l = 1` is the S-sequent (`⊢`),
-and `l = 2` is the D-sequent (`⇒⇒`). Besides the level-generic `LK` rules, the constructors
-encode the source's modal rules `(GL□)` (`boxGL`, level `0` only), `(GLtoS)` (`liftUp`,
-lifting a level-`0` sequent to level `1`), `(S□left)` (`boxL`, level `1` only), and `(StoD)`
-(`liftUpBox`, lifting a boxed level-`1` sequent to level `2`). Since no constructor other
-than the level-generic `LK` rules and `liftUpBox` targets level `2`, the source's remark
-"only `LK⇒⇒`-rules can have D-sequents as assumptions" holds here by construction.
+`LogicD.ProofGentzen` is a single inductive on `ThreeLayeredSequent`, a `Sequent` tagged with
+a level `l : Fin 3`: `l = 0` is the GL-sequent, `l = 1` is the S-sequent, and `l = 2` is the
+D-sequent. The constructors encode the source's modal rules `(GL□)` (`boxGL`), `(GLtoS)`
+(`liftUp`), `(S□left)` (`boxL`), and `(StoD)` (`liftUpBox`).
 -/
 
 @[expose]
@@ -24,9 +19,7 @@ open scoped LogicS
 
 variable {α : Type u} [DecidableEq α]
 
-/--
-  A `Sequent` layered with a level `l : Fin 3`, as used by the three-level sequent calculus
-  `LogicD.ProofGentzen`.
+/-- A `Sequent` with a level `l : Fin 3`, used in the three-level sequent calculus for `D`.
 
   - [KKIM25, §3]
 -/
@@ -35,12 +28,9 @@ structure ThreeLayeredSequent (α : Type u) extends Sequent α where
 notation:50 Γ:51 " ⟹[" l "] " Δ:51 => ThreeLayeredSequent.mk (Γ ⟹ Δ) l
 
 /--
-  Sequent calculus `D³_seq` for the provability logic `D`, formulated with a single sequent
-  relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 3`. `l = 0` is the GL-sequent (`⇒`),
-  coinciding with `LogicGL.ProofGentzen`; `l = 1` is the S-sequent (`⊢`), coinciding with
-  `LogicS.ProofGentzen` at level `1`; `l = 2` is the D-sequent (`⇒⇒`), reachable only from
-  boxed S-sequents via `liftUpBox`. As noted in the source, the bottom layer of a `D³_seq`-proof
-  therefore consists only of the level-generic `LK⇒⇒` rules.
+  Sequent calculus `D³_seq` for the provability logic `D`, with levels `l : Fin 3`. Level `0`
+  matches `LogicGL.ProofGentzen`; level `1` matches `LogicS.ProofGentzen` at level `1`; level
+  `2` is reachable only from boxed S-sequents via `liftUpBox`.
 
   - [KKIM25, §3]
 -/
@@ -63,10 +53,7 @@ scoped prefix:120 "⊢ᵍ[D]! " => ProofGentzen
 abbrev ProvableGentzen (S : ThreeLayeredSequent α) : Prop := Nonempty (⊢ᵍ[D]! S)
 scoped prefix:120 "⊢ᵍ[D] " => ProvableGentzen
 
-/--
-  `LogicD.ProofGentzen` at level `0` coincides syntactically with the plain (level-independent)
-  `ProofGentzen` for `GL`: every rule available for a level-`0` conclusion is exactly a rule of
-  `ProofGentzen`, and `liftUp`/`boxL`/`liftUpBox` can never conclude a level-`0` sequent.
+/-- Embed a level-0 `LogicGL` proof into level-0 `LogicD`.
 
   - [KKIM25, Theorem 4.1]
 -/
@@ -79,7 +66,7 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢�
 | .impR h     => .impR (ofProofGentzen h)
 | .boxGL h    => .boxGL (ofProofGentzen h)
 
-/-- The converse translation, by structural recursion on level-`0` `LogicD.ProofGentzen`-proofs. -/
+/-- Extract a level-0 `LogicGL` proof from level-0 `LogicD`. -/
 def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
 | .axm 0 A    => .axm A
 | .botL 0     => .botL
@@ -89,8 +76,7 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → �
 | .impR h     => .impR (toProofGentzen h)
 | .boxGL h    => .boxGL (toProofGentzen h)
 
-/--
-  Level-`0` `LogicD.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability.
+/-- Level-`0` `LogicD.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability.
 
   - [KKIM25, Theorem 4.1]
 -/
@@ -98,10 +84,7 @@ theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
   (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[0] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
 
-/--
-  Every `LogicS.ProofGentzen`-proof of a level-`1` sequent is in particular a
-  `LogicD.ProofGentzen`-proof of the same sequent: any `D³_seq`-proof of an S-sequent
-  consists only of the rules of `S_seq`.
+/-- Embed a level-1 `LogicS` proof into level-1 `LogicD`.
 
   - [KKIM25, Theorem 4.2]
 -/
@@ -115,7 +98,7 @@ def ofProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[1] Δ) → �
 | .liftUp h   => .liftUp (ofProofGentzen (LogicS.toProofGentzen h))
 | .boxL h     => .boxL (ofProofGentzenS h)
 
-/-- The converse translation, by structural recursion on level-`1` `LogicD.ProofGentzen`-proofs. -/
+/-- Extract a level-1 `LogicS` proof from level-1 `LogicD`. -/
 def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → ⊢ᵍ[S]! (Γ ⟹[1] Δ)
 | .axm 1 A    => .axm 1 A
 | .botL 1     => .botL 1
@@ -126,8 +109,7 @@ def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → �
 | .liftUp h   => .liftUp (LogicS.ofProofGentzen (toProofGentzen h))
 | .boxL h     => .boxL (toProofGentzenS h)
 
-/--
-  Level-`1` `LogicD.ProvableGentzen`-provability is exactly level-`1` `LogicS.ProvableGentzen`-provability.
+/-- Level-`1` `LogicD.ProvableGentzen`-provability is exactly level-`1` `LogicS.ProvableGentzen`-provability.
 
   - [KKIM25, Theorem 4.2]
 -/
@@ -137,11 +119,8 @@ theorem iff_provableGentzenS_provable_one {Γ Δ : FormulaFinset α} :
 
 namespace ProofGentzen
 
-/--
-  Every `GL`-sequent provable in `GL_seq` is also provable, at the top `D`-sequent level, in
-  `D³_seq`: from a `LogicD.ProofGentzen`-proof of a level-`0` sequent, obtain a level-`2` proof of
-  the same sequent by applying `(GLtoS)` then `(StoD)` at the `(GL□)` step, and recursing
-  through the other `LK⇒⇒` rules.
+/-- Lift a level-`0` `LogicD.ProofGentzen`-proof to level `2`, by applying `(GLtoS)` and
+  `(StoD)` at the `(GL□)` step and recursing through the other rules.
 
   - [KKIM25, Theorem 4.3]
 -/
@@ -163,72 +142,18 @@ namespace ProvableGentzen
 
 variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 3}
 
-/--
-  The initial sequent `A ⟹[l] A`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma axm (l) (A : Formula α) : ⊢ᵍ[D] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
-/--
-  The initial sequent `⊥ ⟹[l]`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma botL (l) : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
-/--
-  Left weakening, at any level.
-
-  - [KKIM25, §3]
--/
 lemma wkL (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[D] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
-/--
-  Right weakening, at any level.
-
-  - [KKIM25, §3]
--/
 lemma wkR (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[D] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
-/--
-  Left introduction of `🡒`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma impL (π₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
   ⟨ProofGentzen.impL π₁.some π₂.some⟩
-/--
-  Right introduction of `🡒`, at any level.
-
-  - [KKIM25, §3]
--/
 lemma impR (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-/--
-  `(GLtoS)`: a GL-sequent lifts to an S-sequent.
-
-  - [KKIM25, §3]
--/
 lemma liftUp (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
-/--
-  `(GL□)`.
-
-  - [KKIM25, §3]
--/
 lemma boxGL (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[D] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
-/--
-  `(S□left)`.
-
-  - [KKIM25, §3]
--/
 lemma boxL (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
-/--
-  `(StoD)`: a boxed S-sequent lifts to a D-sequent.
-
-  - [KKIM25, §3]
--/
 lemma liftUpBox {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := ⟨ProofGentzen.liftUpBox π.some⟩
 
-/--
-  Induction principle for `LogicD.ProvableGentzen` at the `Prop` level, mirroring
-  `LogicS.ProvableGentzen.rec` for the two-level `S` calculus.
--/
 @[induction_eliminator]
 lemma rec
   {motive : (S : ThreeLayeredSequent α) → ⊢ᵍ[D] S → Prop}
@@ -266,56 +191,33 @@ lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : 
 lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
-/-- `Sequent`-shaped variant of `LogicD.ProvableGentzen.union`. -/
 lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[D] (S.ant ⟹[l] S.suc) :=
   union l A hΓ hΔ
 
-/-- `botL` with side formulas, at any level. -/
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
-/-- If a level-`1` sequent is `LogicD.ProvableGentzen`-unprovable then so is the level-`0` one. -/
 lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[D] (Γ ⟹[1] Δ) → ⊬ᵍ[D] (Γ ⟹[0] Δ) := by
   contrapose!;
   apply liftUp;
 
-/--
-  Disjunction left, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`, at any level.
-
-  - [KKIM25, §3]
--/
+/-- Disjunction left, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`. -/
 lemma orL (π₁ : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] (insert (A ⋎ B) Γ ⟹[l] Δ) :=
   impL (impR (wkR π₁ (by grind))) π₂
 
-/--
-  Disjunction right, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`, at any level.
-
-  - [KKIM25, §3]
--/
+/-- Disjunction right, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`. -/
 lemma orR (π : ⊢ᵍ[D] (Γ ⟹[l] (insert A (insert B Δ)))) : ⊢ᵍ[D] (Γ ⟹[l] insert (A ⋎ B) Δ) :=
   impR (impL π (botL_mem l))
 
-/--
-  Negation left, the derived rule for the abbreviation `∼A := A 🡒 ⊥`, at any level.
-
-  - [KKIM25, §3]
--/
+/-- Negation left, the derived rule for the abbreviation `∼A := A 🡒 ⊥`. -/
 lemma negL (π : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) Γ ⟹[l] Δ) :=
   impL π (botL_mem l)
 
-/--
-  Negation right, the derived rule for the abbreviation `∼A := A 🡒 ⊥`, at any level.
-
-  - [KKIM25, §3]
--/
+/-- Negation right, the derived rule for the abbreviation `∼A := A 🡒 ⊥`. -/
 lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] insert (∼A) Δ) :=
   impR (wkR π (by grind))
 
-/--
-  `Prop`-level version of `LogicD.ProofGentzen.liftUpTwo`.
-
-  - [KKIM25, Theorem 4.3]
--/
+/-- `Prop`-level version of `LogicD.ProofGentzen.liftUpTwo`. -/
 lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := ⟨ProofGentzen.liftUpTwo π.some⟩
 
 /--
@@ -324,8 +226,8 @@ lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := �
   - [KKIM25, Example 3.2]
 -/
 lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒 (□A ⋎ □B)}) := by
-  have h₁ : ⊢ᵍ[D] (({□A} : FormulaFinset α) ⟹[1] {□A, □B}) := union 1 (□A);
-  have h₂ : ⊢ᵍ[D] (({□B} : FormulaFinset α) ⟹[1] {□A, □B}) := union 1 (□B);
+  have h₁ : ⊢ᵍ[D] (({□A}) ⟹[1] {□A, □B}) := union 1 (□A);
+  have h₂ : ⊢ᵍ[D] (({□B}) ⟹[1] {□A, □B}) := union 1 (□B);
   have h₃ : ⊢ᵍ[D] (({□A ⋎ □B} : FormulaFinset α) ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
   have h₄ : ⊢ᵍ[D] (({□(□A ⋎ □B)} : FormulaFinset α) ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
   rw [(show ({□(□A ⋎ □B)} : FormulaFinset α) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
@@ -341,7 +243,7 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
 
   - [KKIM25, Example 3.3]
 -/
-lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□(⊥ : Formula α)}) := by
+lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□⊥}) := by
   have h₁ : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[1] ∅) := botL 1;
   have h₂ : ⊢ᵍ[D] (({□⊥} : FormulaFinset α) ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
   rw [(show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
