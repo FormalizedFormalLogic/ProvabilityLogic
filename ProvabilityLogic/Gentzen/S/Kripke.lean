@@ -116,7 +116,7 @@ structure ExpandedLayeredSequent (BS : Sequent α) extends Sequent α where
   saturated      : toSequent.Saturated
   boxL_closed    : ∀ {A : Formula α}, □A ∈ toSequent.ant → A ∈ toSequent.ant
   subset_subfmls : toSequent.ant ∪ toSequent.suc ⊆ BS.subfmls
-  unprovable     : ⊬ᴳ (toSequent.ant ⟹[1] toSequent.suc)
+  unprovable     : ⊬ᵍ[S] (toSequent.ant ⟹[1] toSequent.suc)
 
 namespace ExpandedLayeredSequent
 
@@ -131,13 +131,13 @@ open Classical in
   while preserving level-`1` unprovability.
 -/
 @[grind]
-noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᴳ (S₀.ant ⟹[1] S₀.suc)) :
-  FormulaList α → { S : Sequent α // ⊬ᴳ (S.ant ⟹[1] S.suc) }
+noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)) :
+  FormulaList α → { S : Sequent α // ⊬ᵍ[S] (S.ant ⟹[1] S.suc) }
 | [] => ⟨S₀, S₀_unprovable⟩
 | (A 🡒 B) :: Γ =>
   let ⟨S, hS⟩ := lindenbaum_indexed S₀ S₀_unprovable Γ;
   if h : (A 🡒 B) ∈ S.1 then
-    if h : ⊬ᴳ ((S.1) ⟹[1] (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+    if h : ⊬ᵍ[S] ((S.1) ⟹[1] (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
     else ⟨((insert B S.1) ⟹ S.2), by
       push Not at h;
       contrapose! hS;
@@ -164,7 +164,7 @@ noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬�
   else ⟨S, hS⟩
 | _ :: Γ => lindenbaum_indexed S₀ S₀_unprovable Γ
 
-variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᴳ (S₀.ant ⟹[1] S₀.suc)} {Γ : FormulaList α}
+variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)} {Γ : FormulaList α}
          {A B : Formula α}
 
 lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprovable Γ).1 := by
@@ -243,7 +243,7 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       · simp at h;
       · exact h;
     | C 🡒 D =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
@@ -251,7 +251,7 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
     | □C =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
@@ -289,7 +289,7 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       · simp at h;
       · exact h;
     | C 🡒 D =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
@@ -297,7 +297,7 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
     | □C =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
@@ -335,7 +335,7 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       · simp at h;
       · exact h;
     | C 🡒 D =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A hmem hx;
@@ -343,7 +343,7 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
     | □C =>
-      have hunp : ⊬ᴳ ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+      have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
       dsimp only [lindenbaum_indexed];
       intro A hmem hx;
@@ -374,7 +374,7 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   - [KK23, Lemma 3.3]
 -/
 noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
-  (S₀_unprovable : ⊬ᴳ (S₀.ant ⟹[1] S₀.suc)) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) :
+  (S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) :
   ExpandedLayeredSequent BS :=
   letI Γ := BS.subfmls.toList.insertionSort (·.complexity ≤ ·.complexity);
   letI S := lindenbaum_indexed S₀ S₀_unprovable Γ;
@@ -408,7 +408,7 @@ noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
       exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
   }
 
-lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᴳ (S₀.ant ⟹[1] S₀.suc)} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
+lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
   S₀ ⊆ (lindenbaum BS S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
 
 /-- Forgetting the `boxL`-closure: an `ExpandedLayeredSequent` is in particular an `ExpandedSequent`. -/

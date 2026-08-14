@@ -39,10 +39,10 @@ inductive LogicS.ProofGentzen : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped notation:120 "⊢ᵍ[S]! " Seq:121 => ProofGentzen Seq
+scoped prefix:120 "⊢ᵍ[S]! " => ProofGentzen
 
 abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍ[S]! S)
-scoped notation:120 "⊢ᵍ[S] " Seq:121 => ProvableGentzen Seq
+scoped prefix:120 "⊢ᵍ[S] " => ProvableGentzen
 
 /--
   `LogicS.ProofGentzen` at level `0` coincides syntactically with the plain (level-independent)
@@ -117,9 +117,9 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-scoped prefix:120 "⊬ᴳ " => λ S => ¬⊢ᵍ[S] S
+scoped prefix:120 "⊬ᵍ[S] " => (¬ ProvableGentzen ·)
 
-lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᴳ S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
+lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᵍ[S] S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
   simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
@@ -135,7 +135,7 @@ lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
 /-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then so is the level-`0` one. -/
-lemma not_provable_zero_of_not_provable_one : ⊬ᴳ (Γ ⟹[1] Δ) → ⊬ᴳ (Γ ⟹[0] Δ) := by
+lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[S] (Γ ⟹[1] Δ) → ⊬ᵍ[S] (Γ ⟹[0] Δ) := by
   contrapose!;
   apply liftUp;
 
@@ -144,7 +144,7 @@ end ProvableGentzen
 open ProvableGentzen
 
 /-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then the plain sequent is `ProvableGentzen`-unprovable. -/
-lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᴳ (Γ ⟹[1] Δ)) : ⊬ᵍ[GL] (Γ ⟹ Δ) :=
+lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[S] (Γ ⟹[1] Δ)) : ⊬ᵍ[GL] (Γ ⟹ Δ) :=
   λ hp => ProvableGentzen.not_provable_zero_of_not_provable_one h (iff_provableGentzen_provable_zero.mp hp)
 
 end LogicS
@@ -169,10 +169,10 @@ inductive LogicS.GentzenWithCutProof : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped notation:120 "⊢ᵍᶜ[S]! " Seq:121 => GentzenWithCutProof Seq
+scoped prefix:120 "⊢ᵍᶜ[S]! " => GentzenWithCutProof
 
 abbrev GentzenWithCutProvable (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍᶜ[S]! S)
-scoped notation:120 "⊢ᵍᶜ[S] " Seq:121 => GentzenWithCutProvable Seq
+scoped prefix:120 "⊢ᵍᶜ[S] " => GentzenWithCutProvable
 
 /-- Every `LogicS.ProofGentzen`-proof is in particular a `LogicS.GentzenWithCutProof`-proof. -/
 def GentzenWithCutProof.ofProofGentzen {S : TwoLayeredSequent α} : ⊢ᵍ[S]! S → ⊢ᵍᶜ[S]! S
