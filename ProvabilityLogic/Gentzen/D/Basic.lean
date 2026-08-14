@@ -243,7 +243,8 @@ lemma not_provable_zero_of_not_provable_one : ⊬ᴰ (Γ ⟹[1] Δ) → ⊬ᴰ (
 
   - [KKIM25, §3]
 -/
-lemma orL (π₁ : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] (insert (A ⋎ B) Γ ⟹[l] Δ) := sorry
+lemma orL (π₁ : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] (insert (A ⋎ B) Γ ⟹[l] Δ) :=
+  impL (impR (wkR π₁ (by grind))) π₂
 
 /--
   Disjunction right, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`, at any level.
