@@ -91,7 +91,15 @@ theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
 
   - [KKIM25, Theorem 4.2]
 -/
-def ofProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[1] Δ) → ⊢ᵍ[D]! (Γ ⟹[1] Δ) := sorry
+def ofProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[1] Δ) → ⊢ᵍ[D]! (Γ ⟹[1] Δ)
+| .axm 1 A    => .axm 1 A
+| .botL 1     => .botL 1
+| .wkL h h'   => .wkL (ofProofGentzenS h) h'
+| .wkR h h'   => .wkR (ofProofGentzenS h) h'
+| .impL h₁ h₂ => .impL (ofProofGentzenS h₁) (ofProofGentzenS h₂)
+| .impR h     => .impR (ofProofGentzenS h)
+| .liftUp h   => .liftUp (ofProofGentzen (LogicS.toProofGentzen h))
+| .boxL h     => .boxL (ofProofGentzenS h)
 
 /-- The converse translation, by structural recursion on level-`1` `LogicD.ProofGentzen`-proofs. -/
 def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → ⊢ᵍ[S]! (Γ ⟹[1] Δ) := sorry
