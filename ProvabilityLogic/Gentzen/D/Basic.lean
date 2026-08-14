@@ -267,7 +267,8 @@ lemma negL (π : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) �
 
   - [KKIM25, §3]
 -/
-lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] insert (∼A) Δ) := sorry
+lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] insert (∼A) Δ) :=
+  impR (wkR π (by grind))
 
 /--
   `Prop`-level version of `LogicD.ProofGentzen.liftUpTwo`.
