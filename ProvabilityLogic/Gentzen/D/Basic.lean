@@ -222,7 +222,8 @@ lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : 
   simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
-lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) := sorry
+lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
+  wkR (wkL (axm l A) (by grind)) (by grind)
 
 /-- `Sequent`-shaped variant of `LogicD.ProvableGentzen.union`. -/
 lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[D] (S.ant ⟹[l] S.suc) := sorry
