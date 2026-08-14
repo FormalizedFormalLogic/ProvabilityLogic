@@ -118,7 +118,8 @@ def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → �
   - [KKIM25, Theorem 4.2]
 -/
 theorem iff_provableGentzenS_provable_one {Γ Δ : FormulaFinset α} :
-  (⊢ᵍ[S] (Γ ⟹[1] Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[1] Δ)) := sorry
+  (⊢ᵍ[S] (Γ ⟹[1] Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[1] Δ)) :=
+  ⟨λ ⟨h⟩ => ⟨ofProofGentzenS h⟩, λ ⟨h⟩ => ⟨toProofGentzenS h⟩⟩
 
 namespace ProofGentzen
 
