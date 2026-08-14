@@ -125,7 +125,8 @@ lemma liftUpBox {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.b
 
   - [KKIM25, §3]
 -/
-lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) := sorry
+lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
+  ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
 /--
   Induction principle for `LogicD.GentzenWithCutProvable` at the `Prop` level, mirroring
