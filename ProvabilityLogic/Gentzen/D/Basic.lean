@@ -102,7 +102,15 @@ def ofProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[1] Δ) → �
 | .boxL h     => .boxL (ofProofGentzenS h)
 
 /-- The converse translation, by structural recursion on level-`1` `LogicD.ProofGentzen`-proofs. -/
-def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → ⊢ᵍ[S]! (Γ ⟹[1] Δ) := sorry
+def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → ⊢ᵍ[S]! (Γ ⟹[1] Δ)
+| .axm 1 A    => .axm 1 A
+| .botL 1     => .botL 1
+| .wkL h h'   => .wkL (toProofGentzenS h) h'
+| .wkR h h'   => .wkR (toProofGentzenS h) h'
+| .impL h₁ h₂ => .impL (toProofGentzenS h₁) (toProofGentzenS h₂)
+| .impR h     => .impR (toProofGentzenS h)
+| .liftUp h   => .liftUp (LogicS.ofProofGentzen (toProofGentzen h))
+| .boxL h     => .boxL (toProofGentzenS h)
 
 /--
   Level-`1` `LogicD.ProvableGentzen`-provability is exactly level-`1` `LogicS.ProvableGentzen`-provability.
