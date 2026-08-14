@@ -302,7 +302,7 @@ lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] inser
 
   - [KKIM25, Theorem 4.3]
 -/
-lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := sorry
+lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := ⟨ProofGentzen.liftUpTwo π.some⟩
 
 /--
   The `D³_seq`-provability of the axiom `□(□A ⋎ □B) 🡒 (□A ⋎ □B)`.
