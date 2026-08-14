@@ -95,7 +95,7 @@ lemma impL (h₁ : ⊢ᵍᶜ[D] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[D] (i
 
   - [KKIM25, §3]
 -/
-lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := sorry
+lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
 /--
   `(GLtoS)`: a GL-sequent lifts to an S-sequent.
 
