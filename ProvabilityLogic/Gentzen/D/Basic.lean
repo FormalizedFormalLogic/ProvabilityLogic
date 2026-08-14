@@ -112,7 +112,7 @@ variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 3}
 
   - [KKIM25, §3]
 -/
-lemma axm (l) (A : Formula α) : ⊢ᵍ[D] ({A} ⟹[l] {A}) := sorry
+lemma axm (l) (A : Formula α) : ⊢ᵍ[D] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
 /--
   The initial sequent `⊥ ⟹[l]`, at any level.
 
