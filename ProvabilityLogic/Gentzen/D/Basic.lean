@@ -36,7 +36,7 @@ notation:50 Γ:51 " ⟹[" l "] " Δ:51 => ThreeLayeredSequent.mk (Γ ⟹ Δ) l
 -/
 inductive LogicD.ProofGentzen : ThreeLayeredSequent α → Type u
 | axm (l) (A)      : ProofGentzen ({A} ⟹[l] {A})
-| botL (l)         : ProofGentzen (({⊥} : FormulaFinset α) ⟹[l] ∅)
+| botL (l)         : ProofGentzen ({⊥} ⟹[l] ∅)
 | wkL  {l Γ Γ' Δ}  : ProofGentzen (Γ ⟹[l] Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹[l] Δ)
 | wkR  {l Γ Δ Δ'}  : ProofGentzen (Γ ⟹[l] Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹[l] Δ')
 | impL {l Γ Δ A B} : ProofGentzen (Γ ⟹[l] (insert A Δ)) → ProofGentzen (insert B Γ ⟹[l] Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹[l] Δ)
@@ -52,6 +52,8 @@ scoped prefix:120 "⊢ᵍ[D]! " => ProofGentzen
 
 abbrev ProvableGentzen (S : ThreeLayeredSequent α) : Prop := Nonempty (⊢ᵍ[D]! S)
 scoped prefix:120 "⊢ᵍ[D] " => ProvableGentzen
+
+variable {Γ Δ : FormulaFinset α}
 
 /-- Embed a level-0 `LogicGL` proof into level-0 `LogicD`.
 
@@ -80,7 +82,7 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → �
 
   - [KKIM25, Theorem 4.1]
 -/
-theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
+theorem iff_provableGentzen_provable_zero :
   (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[0] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
 
@@ -113,7 +115,7 @@ def toProofGentzenS {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[1] Δ) → �
 
   - [KKIM25, Theorem 4.2]
 -/
-theorem iff_provableGentzenS_provable_one {Γ Δ : FormulaFinset α} :
+theorem iff_provableGentzenS_provable_one :
   (⊢ᵍ[S] (Γ ⟹[1] Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[1] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzenS h⟩, λ ⟨h⟩ => ⟨toProofGentzenS h⟩⟩
 
@@ -152,7 +154,7 @@ lemma impR (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ
 lemma liftUp (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
 lemma boxGL (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[D] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
 lemma boxL (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
-lemma liftUpBox {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := ⟨ProofGentzen.liftUpBox π.some⟩
+lemma liftUpBox (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := ⟨ProofGentzen.liftUpBox π.some⟩
 
 @[induction_eliminator]
 lemma rec
@@ -226,15 +228,15 @@ lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := �
   - [KKIM25, Example 3.2]
 -/
 lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒 (□A ⋎ □B)}) := by
-  have h₁ : ⊢ᵍ[D] (({□A}) ⟹[1] {□A, □B}) := union 1 (□A);
-  have h₂ : ⊢ᵍ[D] (({□B}) ⟹[1] {□A, □B}) := union 1 (□B);
-  have h₃ : ⊢ᵍ[D] (({□A ⋎ □B} : FormulaFinset α) ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
-  have h₄ : ⊢ᵍ[D] (({□(□A ⋎ □B)} : FormulaFinset α) ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
-  rw [(show ({□(□A ⋎ □B)} : FormulaFinset α) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
-    (show ({□A, □B} : FormulaFinset α) = ({A, B} : FormulaFinset α).box by grind)] at h₄;
+  have h₁ : ⊢ᵍ[D] ({□A} ⟹[1] {□A, □B}) := union 1 (□A);
+  have h₂ : ⊢ᵍ[D] ({□B} ⟹[1] {□A, □B}) := union 1 (□B);
+  have h₃ : ⊢ᵍ[D] ({□A ⋎ □B} ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
+  have h₄ : ⊢ᵍ[D] ({□(□A ⋎ □B)} ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
+  rw [(show ({□(□A ⋎ □B)}) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
+    (show ({□A, □B}) = ({A, B} : FormulaFinset α).box by grind)] at h₄;
   have h₅ := liftUpBox h₄;
-  rw [(show ({□A ⋎ □B} : FormulaFinset α).box = ({□(□A ⋎ □B)} : FormulaFinset α) by grind),
-    (show ({A, B} : FormulaFinset α).box = ({□A, □B} : FormulaFinset α) by grind)] at h₅;
+  rw [(show ({□A ⋎ □B} : FormulaFinset α).box = {□(□A ⋎ □B)} by grind),
+    (show ({A, B} : FormulaFinset α).box = {□A, □B} by grind)] at h₅;
   exact impR (orR (Δ := ∅) h₅);
 
 /--
@@ -245,24 +247,26 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
 -/
 lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□⊥}) := by
   have h₁ : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[1] ∅) := botL 1;
-  have h₂ : ⊢ᵍ[D] (({□⊥} : FormulaFinset α) ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
+  have h₂ : ⊢ᵍ[D] ({□⊥} ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
   rw [(show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
-    (show (∅ : FormulaFinset α) = (∅ : FormulaFinset α).box by grind)] at h₂;
+    (show ∅ = (∅ : FormulaFinset α).box by grind)] at h₂;
   have h₃ := liftUpBox h₂;
   rw [(show ({⊥} : FormulaFinset α).box = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
-    (show (∅ : FormulaFinset α).box = (∅ : FormulaFinset α) by grind)] at h₃;
+    (show (∅ : FormulaFinset α).box = ∅ by grind)] at h₃;
   exact negR (Δ := ∅) h₃;
 
 end ProvableGentzen
 
 open ProvableGentzen
 
+variable {Γ Δ : FormulaFinset α}
+
 /--
   Every `GL_seq`-proof lifts to a `D³_seq`-proof of the same sequent at the top D-sequent level.
 
   - [KKIM25, Theorem 4.3]
 -/
-theorem provable_two_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
+theorem provable_two_of_provableGentzen_GL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
   ProvableGentzen.liftUpTwo ⟨ofProofGentzen h.some⟩
 
 /--
@@ -270,7 +274,7 @@ theorem provable_two_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢�
 
   - [KKIM25, Theorem 4.3]
 -/
-theorem provable_one_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) :=
+theorem provable_one_of_provableGentzen_GL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) :=
   ProvableGentzen.liftUp ⟨ofProofGentzen h.some⟩
 
 end LogicD

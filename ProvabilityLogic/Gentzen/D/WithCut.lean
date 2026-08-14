@@ -23,7 +23,7 @@ variable {α : Type u} [DecidableEq α]
 -/
 inductive LogicD.GentzenWithCutProof : ThreeLayeredSequent α → Type u
 | axm (l) (A)      : GentzenWithCutProof ({A} ⟹[l] {A})
-| botL (l)         : GentzenWithCutProof (({⊥} : FormulaFinset α) ⟹[l] ∅)
+| botL (l)         : GentzenWithCutProof ({⊥} ⟹[l] ∅)
 | wkL  {l Γ Γ' Δ}  : GentzenWithCutProof (Γ ⟹[l] Δ) → (_ : Γ ⊆ Γ' := by grind) → GentzenWithCutProof (Γ' ⟹[l] Δ)
 | wkR  {l Γ Δ Δ'}  : GentzenWithCutProof (Γ ⟹[l] Δ) → (_ : Δ ⊆ Δ' := by grind) → GentzenWithCutProof (Γ ⟹[l] Δ')
 | impL {l Γ Δ A B} : GentzenWithCutProof (Γ ⟹[l] (insert A Δ)) → GentzenWithCutProof (insert B Γ ⟹[l] Δ) → GentzenWithCutProof ((insert (A 🡒 B) Γ) ⟹[l] Δ)
@@ -73,7 +73,7 @@ lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D
 lemma liftUp (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp h.some⟩
 lemma boxGL (h : ⊢ᵍᶜ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍᶜ[D] (Γ.box ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
 lemma boxL (h : ⊢ᵍᶜ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
-lemma liftUpBox {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍᶜ[D] (Γ.box ⟹[2] Δ.box) := ⟨GentzenWithCutProof.liftUpBox h.some⟩
+lemma liftUpBox (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍᶜ[D] (Γ.box ⟹[2] Δ.box) := ⟨GentzenWithCutProof.liftUpBox h.some⟩
 lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
