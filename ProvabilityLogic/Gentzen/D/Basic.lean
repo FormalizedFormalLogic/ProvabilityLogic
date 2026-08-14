@@ -182,7 +182,7 @@ lemma boxL (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) �
 
   - [KKIM25, §3]
 -/
-lemma liftUpBox {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := sorry
+lemma liftUpBox {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := ⟨ProofGentzen.liftUpBox π.some⟩
 
 /--
   Induction principle for `LogicD.ProvableGentzen` at the `Prop` level, mirroring
