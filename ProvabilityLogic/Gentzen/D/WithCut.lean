@@ -3,7 +3,7 @@ module
 public import ProvabilityLogic.Gentzen.D.Basic
 
 /-!
-`LogicD.GentzenWithCutProof`, the with-cut extension of the cut-free `D³_seq` calculus
+`LogicD.GentzenWithCutProof`, the with-cut extension of the cut-free sequent calculus for `D`
 (`ProvabilityLogic.Gentzen.D.Basic`) by a level-preserving cut rule.
 
 Like `LogicD.ProofGentzen`, this is a single inductive on `ThreeLayeredSequent`, a `Sequent`

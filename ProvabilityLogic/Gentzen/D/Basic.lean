@@ -3,7 +3,7 @@ module
 public import ProvabilityLogic.Gentzen.S.Basic
 
 /-!
-Cut-free sequent calculus `D³_seq` for the provability logic `D`.
+The cut-free sequent calculus for the provability logic `D`.
 
 `LogicD.ProofGentzen` is a single inductive on `ThreeLayeredSequent`, a `Sequent` tagged with
 a level `l : Fin 3`: `l = 0` is the GL-sequent, `l = 1` is the S-sequent, and `l = 2` is the
@@ -28,11 +28,11 @@ structure ThreeLayeredSequent (α : Type u) extends Sequent α where
 notation:50 Γ:51 " ⟹[" l "] " Δ:51 => ThreeLayeredSequent.mk (Γ ⟹ Δ) l
 
 /--
-  Sequent calculus `D³_seq` for the provability logic `D`, with levels `l : Fin 3`. Level `0`
+  The sequent calculus for the provability logic `D`, with levels `l : Fin 3`. Level `0`
   matches `LogicGL.ProofGentzen`; level `1` matches `LogicS.ProofGentzen` at level `1`; level
   `2` is reachable only from boxed S-sequents via `liftUpBox`.
 
-  - [KKIM25, §3]
+  - [KKIM25, §3, "D³seq"]
 -/
 inductive LogicD.ProofGentzen : ThreeLayeredSequent α → Type u
 | axm (l) (A)      : ProofGentzen ({A} ⟹[l] {A})
@@ -223,7 +223,7 @@ lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] inser
 lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := ⟨ProofGentzen.liftUpTwo π.some⟩
 
 /--
-  The `D³_seq`-provability of the axiom `□(□A ⋎ □B) 🡒 (□A ⋎ □B)`.
+  `LogicD.ProvableGentzen`-provability of the axiom `□(□A ⋎ □B) 🡒 (□A ⋎ □B)`.
 
   - [KKIM25, Example 3.2]
 -/
@@ -240,8 +240,8 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
   exact impR (orR (Δ := ∅) h₅);
 
 /--
-  The `D³_seq`-provability of `∼□⊥`, the `D³_seq` adaptation of the `D²_seq`-proof
-  given in the source (there stated with `(GLtoD)`, which `D³_seq` does not have).
+  `LogicD.ProvableGentzen`-provability of `∼□⊥`. The source proves this in its
+  two-sequent calculus, using a rule this three-level calculus does not have.
 
   - [KKIM25, Example 3.3]
 -/
@@ -262,7 +262,8 @@ open ProvableGentzen
 variable {Γ Δ : FormulaFinset α}
 
 /--
-  Every `GL_seq`-proof lifts to a `D³_seq`-proof of the same sequent at the top D-sequent level.
+  Every `GL_seq`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same sequent at the
+  top D-sequent level.
 
   - [KKIM25, Theorem 4.3]
 -/
@@ -270,7 +271,8 @@ theorem provable_two_of_provableGentzen_GL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ
   ProvableGentzen.liftUpTwo ⟨ofProofGentzen h.some⟩
 
 /--
-  Every `GL_seq`-proof lifts to a `D³_seq`-proof of the same sequent at the S-sequent level.
+  Every `GL_seq`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same sequent at the
+  S-sequent level.
 
   - [KKIM25, Theorem 4.3]
 -/
