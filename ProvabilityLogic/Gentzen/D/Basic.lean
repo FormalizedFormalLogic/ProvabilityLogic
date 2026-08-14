@@ -58,10 +58,10 @@ inductive LogicD.ProofGentzen : ThreeLayeredSequent α → Type u
 
 namespace LogicD
 
-scoped notation:120 "⊢ᵍ[D]! " Seq:121 => ProofGentzen Seq
+scoped prefix:120 "⊢ᵍ[D]! " => ProofGentzen
 
 abbrev ProvableGentzen (S : ThreeLayeredSequent α) : Prop := Nonempty (⊢ᵍ[D]! S)
-scoped notation:120 "⊢ᵍ[D] " Seq:121 => ProvableGentzen Seq
+scoped prefix:120 "⊢ᵍ[D] " => ProvableGentzen
 
 /--
   `LogicD.ProofGentzen` at level `0` coincides syntactically with the plain (level-independent)
@@ -257,9 +257,9 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-scoped prefix:120 "⊬ᴰ " => λ S => ¬⊢ᵍ[D] S
+scoped prefix:120 "⊬ᵍ[D] " => (¬ ProvableGentzen ·)
 
-lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : (⊬ᴰ S) ↔ (IsEmpty (⊢ᵍ[D]! S)) := by
+lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : ThreeLayeredSequent α} : (⊬ᵍ[D] S) ↔ (IsEmpty (⊢ᵍ[D]! S)) := by
   simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
@@ -275,7 +275,7 @@ lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
 /-- If a level-`1` sequent is `LogicD.ProvableGentzen`-unprovable then so is the level-`0` one. -/
-lemma not_provable_zero_of_not_provable_one : ⊬ᴰ (Γ ⟹[1] Δ) → ⊬ᴰ (Γ ⟹[0] Δ) := by
+lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[D] (Γ ⟹[1] Δ) → ⊬ᵍ[D] (Γ ⟹[0] Δ) := by
   contrapose!;
   apply liftUp;
 

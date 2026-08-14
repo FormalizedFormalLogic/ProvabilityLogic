@@ -44,10 +44,10 @@ inductive LogicD.GentzenWithCutProof : ThreeLayeredSequent α → Type u
 
 namespace LogicD
 
-scoped notation:120 "⊢ᵍᶜ[D]! " Seq:121 => GentzenWithCutProof Seq
+scoped prefix:120 "⊢ᵍᶜ[D]! " => GentzenWithCutProof
 
 abbrev GentzenWithCutProvable (S : ThreeLayeredSequent α) : Prop := Nonempty (⊢ᵍᶜ[D]! S)
-scoped notation:120 "⊢ᵍᶜ[D] " Seq:121 => GentzenWithCutProvable Seq
+scoped prefix:120 "⊢ᵍᶜ[D] " => GentzenWithCutProvable
 
 /-- Every `LogicD.ProofGentzen`-proof is in particular a `LogicD.GentzenWithCutProof`-proof. -/
 def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]! S → ⊢ᵍᶜ[D]! S
