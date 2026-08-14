@@ -118,7 +118,7 @@ lemma axm (l) (A : Formula α) : ⊢ᵍ[D] ({A} ⟹[l] {A}) := ⟨ProofGentzen.a
 
   - [KKIM25, §3]
 -/
-lemma botL (l) : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := sorry
+lemma botL (l) : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
 /--
   Left weakening, at any level.
 
