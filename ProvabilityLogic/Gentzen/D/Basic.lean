@@ -309,7 +309,17 @@ lemma liftUpTwo (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := �
 
   - [KKIM25, Example 3.2]
 -/
-lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒 (□A ⋎ □B)}) := sorry
+lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒 (□A ⋎ □B)}) := by
+  have h₁ : ⊢ᵍ[D] (({□A} : FormulaFinset α) ⟹[1] {□A, □B}) := union 1 (□A);
+  have h₂ : ⊢ᵍ[D] (({□B} : FormulaFinset α) ⟹[1] {□A, □B}) := union 1 (□B);
+  have h₃ : ⊢ᵍ[D] (({□A ⋎ □B} : FormulaFinset α) ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
+  have h₄ : ⊢ᵍ[D] (({□(□A ⋎ □B)} : FormulaFinset α) ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
+  rw [(show ({□(□A ⋎ □B)} : FormulaFinset α) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
+    (show ({□A, □B} : FormulaFinset α) = ({A, B} : FormulaFinset α).box by grind)] at h₄;
+  have h₅ := liftUpBox h₄;
+  rw [(show ({□A ⋎ □B} : FormulaFinset α).box = ({□(□A ⋎ □B)} : FormulaFinset α) by grind),
+    (show ({A, B} : FormulaFinset α).box = ({□A, □B} : FormulaFinset α) by grind)] at h₅;
+  exact impR (orR (Δ := ∅) h₅);
 
 /--
   The `D³_seq`-provability of `∼□⊥`, the `D³_seq` adaptation of the `D²_seq`-proof
