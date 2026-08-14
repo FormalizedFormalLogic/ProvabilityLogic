@@ -2,6 +2,21 @@ module
 
 public import ProvabilityLogic.Gentzen.D.Basic
 
+/-!
+`LogicD.GentzenWithCutProof`, the with-cut extension of the cut-free `D³_seq` calculus
+(`ProvabilityLogic.Gentzen.D.Basic`) by a level-preserving cut rule.
+
+Like `LogicD.ProofGentzen`, this is a single inductive on `ThreeLayeredSequent`, a `Sequent`
+tagged with a level `l : Fin 3`: `l = 0` is the GL-sequent (`⇒`), `l = 1` is the S-sequent
+(`⊢`), and `l = 2` is the D-sequent (`⇒⇒`). Besides the level-generic `LK` rules (now
+including cut), the constructors encode the source's modal rules `(GL□)` (`boxGL`, level `0`
+only), `(GLtoS)` (`liftUp`, lifting a level-`0` sequent to level `1`), `(S□left)` (`boxL`,
+level `1` only), and `(StoD)` (`liftUpBox`, lifting a boxed level-`1` sequent to level `2`).
+As for the cut-free calculus, no constructor other than the level-generic `LK` rules and
+`liftUpBox` targets level `2`, so the source's remark "only `LK⇒⇒`-rules can have D-sequents
+as assumptions" holds here by construction.
+-/
+
 @[expose]
 public section
 

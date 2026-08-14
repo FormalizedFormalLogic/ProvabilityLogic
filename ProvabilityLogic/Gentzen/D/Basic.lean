@@ -2,6 +2,20 @@ module
 
 public import ProvabilityLogic.Gentzen.S.Basic
 
+/-!
+Cut-free sequent calculus `D³_seq` for the provability logic `D`, together with its
+GL-sequent and S-sequent conservativity results and derived rules.
+
+`LogicD.ProofGentzen` is a single inductive on `ThreeLayeredSequent`, a `Sequent` tagged
+with a level `l : Fin 3`: `l = 0` is the GL-sequent (`⇒`), `l = 1` is the S-sequent (`⊢`),
+and `l = 2` is the D-sequent (`⇒⇒`). Besides the level-generic `LK` rules, the constructors
+encode the source's modal rules `(GL□)` (`boxGL`, level `0` only), `(GLtoS)` (`liftUp`,
+lifting a level-`0` sequent to level `1`), `(S□left)` (`boxL`, level `1` only), and `(StoD)`
+(`liftUpBox`, lifting a boxed level-`1` sequent to level `2`). Since no constructor other
+than the level-generic `LK` rules and `liftUpBox` targets level `2`, the source's remark
+"only `LK⇒⇒`-rules can have D-sequents as assumptions" holds here by construction.
+-/
+
 @[expose]
 public section
 
