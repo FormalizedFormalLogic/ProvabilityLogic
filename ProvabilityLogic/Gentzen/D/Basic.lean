@@ -327,7 +327,15 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
 
   - [KKIM25, Example 3.3]
 -/
-lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□(⊥ : Formula α)}) := sorry
+lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□(⊥ : Formula α)}) := by
+  have h₁ : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[1] ∅) := botL 1;
+  have h₂ : ⊢ᵍ[D] (({□⊥} : FormulaFinset α) ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
+  rw [(show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
+    (show (∅ : FormulaFinset α) = (∅ : FormulaFinset α).box by grind)] at h₂;
+  have h₃ := liftUpBox h₂;
+  rw [(show ({⊥} : FormulaFinset α).box = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
+    (show (∅ : FormulaFinset α).box = (∅ : FormulaFinset α) by grind)] at h₃;
+  exact negR (Δ := ∅) h₃;
 
 end ProvableGentzen
 
