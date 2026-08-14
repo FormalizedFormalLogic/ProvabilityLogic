@@ -230,7 +230,8 @@ lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grin
   union l A hΓ hΔ
 
 /-- `botL` with side formulas, at any level. -/
-lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) := sorry
+lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
+  wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
 /-- If a level-`1` sequent is `LogicD.ProvableGentzen`-unprovable then so is the level-`0` one. -/
 lemma not_provable_zero_of_not_provable_one : ⊬ᴰ (Γ ⟹[1] Δ) → ⊬ᴰ (Γ ⟹[0] Δ) := sorry
