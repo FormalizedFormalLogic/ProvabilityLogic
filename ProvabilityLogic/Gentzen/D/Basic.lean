@@ -234,7 +234,9 @@ lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
 /-- If a level-`1` sequent is `LogicD.ProvableGentzen`-unprovable then so is the level-`0` one. -/
-lemma not_provable_zero_of_not_provable_one : ⊬ᴰ (Γ ⟹[1] Δ) → ⊬ᴰ (Γ ⟹[0] Δ) := sorry
+lemma not_provable_zero_of_not_provable_one : ⊬ᴰ (Γ ⟹[1] Δ) → ⊬ᴰ (Γ ⟹[0] Δ) := by
+  contrapose!;
+  apply liftUp;
 
 /--
   Disjunction left, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`, at any level.
