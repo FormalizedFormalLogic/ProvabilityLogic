@@ -328,7 +328,8 @@ open ProvableGentzen
 
   - [KKIM25, Theorem 4.3]
 -/
-theorem provable_two_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := sorry
+theorem provable_two_of_provableGentzen_GL {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
+  ProvableGentzen.liftUpTwo ⟨ofProofGentzen h.some⟩
 
 /--
   Every `GL_seq`-proof lifts to a `D³_seq`-proof of the same sequent at the S-sequent level.
