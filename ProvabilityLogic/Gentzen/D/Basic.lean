@@ -131,7 +131,17 @@ namespace ProofGentzen
 
   - [KKIM25, Theorem 4.3]
 -/
-def liftUpTwo {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[D]! (Γ ⟹[2] Δ) := sorry
+def liftUpTwo {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[D]! (Γ ⟹[2] Δ)
+| .axm 0 A      => .axm 2 A
+| .botL 0       => .botL 2
+| .wkL h h'     => .wkL (liftUpTwo h) h'
+| .wkR h h'     => .wkR (liftUpTwo h) h'
+| .impL h₁ h₂   => .impL (liftUpTwo h₁) (liftUpTwo h₂)
+| .impR h       => .impR (liftUpTwo h)
+| .boxGL (Γ := Γ) (A := A) π => by
+    have h := ProofGentzen.liftUp (ProofGentzen.boxGL π);
+    rw [(show ({□A} : FormulaFinset α) = ({A} : FormulaFinset α).box by grind)] at h ⊢;
+    exact ProofGentzen.liftUpBox h;
 
 end ProofGentzen
 
