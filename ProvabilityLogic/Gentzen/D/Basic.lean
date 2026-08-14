@@ -66,7 +66,14 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢�
 | .boxGL h    => .boxGL (ofProofGentzen h)
 
 /-- The converse translation, by structural recursion on level-`0` `LogicD.ProofGentzen`-proofs. -/
-def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ) := sorry
+def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
+| .axm 0 A    => .axm A
+| .botL 0     => .botL
+| .wkL h h'   => .wkL (toProofGentzen h) h'
+| .wkR h h'   => .wkR (toProofGentzen h) h'
+| .impL h₁ h₂ => .impL (toProofGentzen h₁) (toProofGentzen h₂)
+| .impR h     => .impR (toProofGentzen h)
+| .boxGL h    => .boxGL (toProofGentzen h)
 
 /--
   Level-`0` `LogicD.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability.
@@ -74,7 +81,8 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → �
   - [KKIM25, Theorem 4.1]
 -/
 theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
-  (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[0] Δ)) := sorry
+  (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[D] (Γ ⟹[0] Δ)) :=
+  ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
 
 /--
   Every `LogicS.ProofGentzen`-proof of a level-`1` sequent is in particular a
