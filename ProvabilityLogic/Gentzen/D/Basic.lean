@@ -226,7 +226,8 @@ lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
 /-- `Sequent`-shaped variant of `LogicD.ProvableGentzen.union`. -/
-lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[D] (S.ant ⟹[l] S.suc) := sorry
+lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[D] (S.ant ⟹[l] S.suc) :=
+  union l A hΓ hΔ
 
 /-- `botL` with side formulas, at any level. -/
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[D] (Γ ⟹[l] Δ) := sorry
