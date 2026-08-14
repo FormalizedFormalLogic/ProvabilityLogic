@@ -164,7 +164,7 @@ lemma impR (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ
 
   - [KKIM25, §3]
 -/
-lemma liftUp (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := sorry
+lemma liftUp (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
 /--
   `(GL□)`.
 
