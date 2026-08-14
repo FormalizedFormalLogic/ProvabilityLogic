@@ -105,10 +105,7 @@ namespace LogicS
 open ProvableGentzen
 
 /--
-  A sequent saturated for the level-`1` fragment of `LogicS.ProofGentzen`: besides the
-  implicational saturation conditions of `Sequent.Saturated`, the antecedent is closed under
-  the `boxL` rule, all formulas come from the subformulas of the base sequent `BS`, and the
-  associated level-`1` sequent is `LogicS.ProvableGentzen`-unprovable.
+  A sequent saturated for the level-`1` fragment of `LogicS.ProofGentzen`.
 
   - [KK23, Lemma 3.3]
 -/
@@ -126,8 +123,7 @@ variable {BS : Sequent α}
 
 open Classical in
 /--
-  One step of the Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen`:
-  process the given list of formulas, saturating the sequent for `impL`, `impR` and `boxL`
+  One step of the Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen`
   while preserving level-`1` unprovability.
 -/
 @[grind]
@@ -213,10 +209,6 @@ lemma subfmls_lindenbaum_indexed (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) (h
       . intro;
         grind;
 
-/--
-  `impL`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
-  sequent is closed under the `impL` rule for implications from `Γ`.
--/
 lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1 := by
@@ -259,10 +251,6 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  `impR`-saturation part of `saturated_lindenbaum_indexed`: the succedent of the saturated
-  sequent is closed under the `impR` rule for implications from `Γ`.
--/
 lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.2 → A ∈ S.1.1 ∧ B ∈ S.1.2 := by
@@ -305,10 +293,6 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  `boxL`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
-  sequent is closed under the `boxL` rule for boxed formulas from `Γ`.
--/
 lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A : Formula α}, □A ∈ Γ → □A ∈ S.1.1 → A ∈ S.1.1 := by
@@ -411,7 +395,6 @@ noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
 lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
   S₀ ⊆ (lindenbaum BS S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
 
-/-- Forgetting the `boxL`-closure: an `ExpandedLayeredSequent` is in particular an `ExpandedSequent`. -/
 def toExpandedSequent (T : ExpandedLayeredSequent BS) : ExpandedSequent BS where
   toSequent      := T.toSequent
   saturated      := T.saturated
@@ -431,9 +414,7 @@ instance : Nonempty (ExpandedSequent BS ⊕ ℕ) := ⟨.inr 0⟩
 
 /--
   The countermodel for the cut-free completeness argument: the finite countermodel
-  `ProvableGentzen.Kripke.countermodelOf BS` extended by an infinite descending chain of
-  copies of the world `t` (each `Sum.inr n` sees every `Sum.inr m` with `m < n`, the world
-  `t` itself, and everything `t` sees).
+  `ProvableGentzen.Kripke.countermodelOf BS` extended by an infinite descending chain of copies of the world `t`.
 
   - [KK23, Theorem 3.1]
 -/
@@ -478,10 +459,6 @@ instance : (chainModel BS t).IsGL where
     · exact hInl x;
     · exact hInr n;
 
-/--
-  Forcing at a world `Sum.inl x` of `chainModel BS t` coincides with forcing at `x` in
-  `ProvableGentzen.Kripke.countermodelOf BS`: no world of the copied countermodel sees the chain part.
--/
 lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
   (Model.World.Forces (M := chainModel BS t) (.inl x) A) ↔
   (Model.World.Forces (M := countermodelOf BS) x A) := by
@@ -500,9 +477,7 @@ lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
       · exact Rxy.elim;
 
 /--
-  Truth lemma for the chain part of `chainModel BS t`: provided the antecedent of `t` is
-  `boxL`-closed, every formula in the antecedent of `t` is forced at every chain world
-  `Sum.inr n`, and every formula in the succedent is not forced.
+  Truth lemma for the chain part of `chainModel BS t` when the antecedent is `boxL`-closed.
 
   - [KK23, Theorem 3.1]
 -/
@@ -574,9 +549,7 @@ namespace GentzenWithCutProvable
 variable {Γ Δ : FormulaFinset α}
 
 /--
-  Soundness of `LogicS.GentzenWithCutProof`: every `LogicS.GentzenWithCutProof`-proof of `S`
-  yields a finite set `X` such that `S` is forced at every world `x` of every `GL`-model,
-  provided `x` is `X`-reflexive whenever `S` is a level-`1` sequent.
+  Soundness of `LogicS.GentzenWithCutProof`.
 
   - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
@@ -656,9 +629,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
       (hX₂ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_right));
 
 /--
-  Stated at the level of `LogicS.GentzenWithCutProvable`: provability of a level-`1` sequent
-  `Γ ⟹[1] Δ` yields a finite set `X` witnessing forcing at every `X`-reflexive world of every
-  `GL`-model.
+  Soundness at the level of `LogicS.GentzenWithCutProvable`.
 
   - [KK23, Theorem 3.1 (6 ⇒ 1)]
 -/
@@ -673,11 +644,7 @@ theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
 end GentzenWithCutProvable
 
 /--
-  The six equivalent characterizations of `Γ ⟹ Δ` being a theorem of the sequent calculus
-  `LogicS.ProofGentzen` for `S` at level `1` — uniform, model-wise and pointwise finite-set
-  reflexivity witnesses on `GL`-models (conditions `1`–`4`), cut-free
-  `LogicS.ProofGentzen`-provability (condition `5`), and `LogicS.GentzenWithCutProof`-provability
-  (condition `6`).
+  The six equivalent characterizations of `Γ ⟹ Δ` being a theorem of `LogicS.ProofGentzen` at level `1`.
 
   - [KK23, Theorem 3.1]
 -/
@@ -716,9 +683,7 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
 namespace GentzenWithCutProvable
 
 /--
-  Cut-elimination corollary of `semantical_TFAE`: condition `6` (`⊢ᵍᶜ[S]`) and condition `5`
-  (`⊢ᵍ[S]`) of the TFAE are equivalent, so a `LogicS.GentzenWithCutProof`-proof of a level-`1`
-  sequent yields a cut-free `LogicS.ProofGentzen`-proof of the same sequent.
+  Cut elimination corollary: every `LogicS.GentzenWithCutProof`-proof yields a cut-free `LogicS.ProofGentzen`-proof.
 -/
 theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) :=
   (semantical_TFAE.out 5 4).mp h
