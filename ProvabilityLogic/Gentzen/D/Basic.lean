@@ -212,7 +212,9 @@ lemma rec
   (liftUpBox : ∀ {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)),
     motive (Γ.box ⟹[1] Δ.box) π → motive (Γ.box ⟹[2] Δ.box) (liftUpBox π)
   )
-  : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍ[D] S), motive S h := sorry
+  : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍ[D] S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h <;> grind;
 
 scoped prefix:120 "⊬ᴰ " => λ S => ¬⊢ᵍ[D] S
 
