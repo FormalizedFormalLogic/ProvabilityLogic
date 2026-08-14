@@ -160,7 +160,9 @@ lemma rec
     motive (Γ₁ ⟹[l] insert A Δ₁) h₁ → motive (insert A Γ₂ ⟹[l] Δ₂) h₂ →
     motive (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) (GentzenWithCutProvable.cut h₁ h₂)
   )
-  : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S), motive S h := sorry
+  : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h <;> grind;
 
 end GentzenWithCutProvable
 
