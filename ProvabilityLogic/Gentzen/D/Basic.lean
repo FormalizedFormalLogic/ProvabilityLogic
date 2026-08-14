@@ -124,7 +124,7 @@ lemma botL (l) : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGe
 
   - [KKIM25, §3]
 -/
-lemma wkL (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[D] (Γ' ⟹[l] Δ) := sorry
+lemma wkL (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[D] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
 /--
   Right weakening, at any level.
 
