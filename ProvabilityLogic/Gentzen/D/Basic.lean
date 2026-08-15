@@ -231,11 +231,15 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
   have h₂ : ⊢ᵍ[D] ({□B} ⟹[1] {□A, □B}) := union 1 (□B);
   have h₃ : ⊢ᵍ[D] ({□A ⋎ □B} ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
   have h₄ : ⊢ᵍ[D] ({□(□A ⋎ □B)} ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
-  rw [(show ({□(□A ⋎ □B)}) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
-    (show ({□A, □B}) = ({A, B} : FormulaFinset α).box by grind)] at h₄;
+  rw [
+    (show ({□(□A ⋎ □B)}) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
+    (show ({□A, □B}) = ({A, B} : FormulaFinset α).box by grind)
+  ] at h₄;
   have h₅ := liftUp₁₂ h₄;
-  rw [(show ({□A ⋎ □B} : FormulaFinset α).box = {□(□A ⋎ □B)} by grind),
-    (show ({A, B} : FormulaFinset α).box = {□A, □B} by grind)] at h₅;
+  rw [
+    (show ({□A ⋎ □B} : FormulaFinset α).box = {□(□A ⋎ □B)} by grind),
+    (show ({A, B} : FormulaFinset α).box = {□A, □B} by grind)
+  ] at h₅;
   exact impR (orR (Δ := ∅) h₅);
 
 /--
@@ -247,11 +251,15 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
 lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□⊥}) := by
   have h₁ : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[1] ∅) := botL 1;
   have h₂ : ⊢ᵍ[D] ({□⊥} ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
-  rw [(show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
-    (show ∅ = (∅ : FormulaFinset α).box by grind)] at h₂;
+  rw [
+    (show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
+    (show ∅ = (∅ : FormulaFinset α).box by grind)
+  ] at h₂;
   have h₃ := liftUp₁₂ h₂;
-  rw [(show ({⊥} : FormulaFinset α).box = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
-    (show (∅ : FormulaFinset α).box = ∅ by grind)] at h₃;
+  rw [
+    (show ({⊥} : FormulaFinset α).box = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
+    (show (∅ : FormulaFinset α).box = ∅ by grind)
+  ] at h₃;
   exact negR (Δ := ∅) h₃;
 
 end ProvableGentzen
