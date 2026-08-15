@@ -321,9 +321,7 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
 
 /--
   Characterization of `Logic D` in terms of `GL`, together with cut-free provability of `A`
-  in the level-`2` sequent calculus for `D` (`LogicD.ProofGentzen`). The latter equivalence is
-  `[KKIM25]`'s Proposition 3.6, obtained here semantically, via the cut-elimination of
-  `ProvabilityLogic.Gentzen.D.Kripke`, rather than the syntactic argument of the source.
+  in the level-`2` sequent calculus for `D`.
 
   - [KKIM25, Proposition 3.6]
 -/

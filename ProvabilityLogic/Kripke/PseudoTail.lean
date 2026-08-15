@@ -19,10 +19,6 @@ abbrev toFreeTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
   infinite descending chain `chainPoint n` (`n : ℕ`) attached below it, connecting to
   the whole of the original model `M`. Chain point `chainPoint i` takes the valuation
   `V i`.
-
-  Unlike a tail point of [KKIM25, Definition 2.2], which sees only the cone of a
-  designated world together with the tail points below it, here every chain point sees
-  the whole of `M`.
 -/
 abbrev toFreeTail (M : Model κ α) (V : ℕ∞ → α → Prop) :
     RootedModel (toFreeTail.World M) α where
@@ -164,8 +160,9 @@ lemma forces_box_of_root_forces_box {x : (M.toFreeTail V).World}
   | .inr i, .inr j => exact rel_chainPoint_chainPoint.mpr $ lt_of_lt_of_le (rel_chainPoint_chainPoint.mp Rxy) le_top;
 
 /--
-  If `□A` holds at cofinally many chain points, it holds at the free-tail model's root
-  (ω): the core of condition (‡) in the proof of [KKIM25, Theorem 5.7].
+  If `□A` holds at cofinally many chain points, it holds at the free-tail model's root (ω).
+
+  - [KKIM25, Theorem 5.7]
 -/
 lemma root_forces_box_of_frequently_chainPoint_forces
   (h : ∀ n : ℕ, ∃ j ≥ n, Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (j : ℕ∞)) (□A)) :

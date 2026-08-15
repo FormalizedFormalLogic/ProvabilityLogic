@@ -31,8 +31,7 @@ omit [DecidableEq α] in
   set `Γ'` for every `j` beyond some `i`, then some single `D ∈ Γ'` witnesses it cofinally
   often.
 
-  Folklore; a routine bridge used for the `liftUp₁₂` case of
-  `LogicD.GentzenWithCutProvable.soundness_aux`.
+  Folklore.
 -/
 private lemma exists_mem_forall_exists_ge {Γ' : FormulaFinset α} {P : Formula α → ℕ → Prop} {i : ℕ}
     (h : ∀ j ≥ i, ∃ D ∈ Γ', P D j) : ∃ D ∈ Γ', ∀ n, ∃ j ≥ n, P D j := by
@@ -100,7 +99,7 @@ theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.
 
 /--
   Soundness of `LogicD.GentzenWithCutProof` for level-`2` sequents `Γ ⟹[2] Δ`, against the
-  class of free ω-extensions of `GL`-models — condition `1 ⇒ 4` of `LogicD.semantical_TFAE`.
+  class of free ω-extensions of `GL`-models.
 
   - [KKIM25, Theorem 5.8]
 -/
@@ -125,9 +124,7 @@ lemma not_provable_GL_of_not_provable_2 {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[D
 
 /--
   If a level-`2` sequent is `LogicD.ProvableGentzen`-unprovable then the boxed sequent
-  `□(Γ.prebox) ⟹ □(Δ.prebox)` is `LogicS.ProvableGentzen`-unprovable at level `1`. The
-  contrapositive is the `(GLtoD)` step of the source's completeness argument, routed through
-  `LogicS.ProofGentzen` rather than an auxiliary `GL`-sequent.
+  `□(Γ.prebox) ⟹ □(Δ.prebox)` is `LogicS.ProvableGentzen`-unprovable at level `1`.
 
   - [KKIM25, Theorem 5.8]
 -/
@@ -143,8 +140,7 @@ end ProvableGentzen
   A sequent saturated for the level-`2` fragment of `LogicD.ProofGentzen`: besides the
   implicational saturation conditions of `Sequent.Saturated`, all formulas come from the
   subformulas of the base sequent `BS`, and the associated level-`2` sequent is
-  `LogicD.ProvableGentzen`-unprovable. Unlike `LogicS.ExpandedLayeredSequent`, there is no
-  `boxL`-closure condition, since `LogicD.ProofGentzen` has no level-`2` `boxL` rule.
+  `LogicD.ProvableGentzen`-unprovable.
 
   - [KKIM25, Definition 5.2, Lemma 5.3]
 -/
@@ -172,9 +168,7 @@ open Classical in
 /--
   One step of the Lindenbaum-style saturation for level-`2` sequents of
   `LogicD.ProofGentzen`: process the given list of formulas, saturating the sequent for
-  `impL` and `impR` while preserving level-`2` unprovability. Unlike
-  `LogicS.ExpandedLayeredSequent.lindenbaum_indexed`, boxed formulas are left untouched, since
-  `LogicD.ProofGentzen` has no level-`2` `boxL` rule.
+  `impL` and `impR` while preserving level-`2` unprovability.
 
   - [KKIM25, Definition 5.2, Lemma 5.3]
 -/
@@ -334,10 +328,6 @@ variable {BS : Sequent α} [Fact (⊬ᵍ[GL] BS)]
   `LogicGL.ProvableGentzen.Kripke.countermodelOf BS`, extended by a constant ω-chain sharing
   the valuation of the cone's root.
 
-  Restricting to the cone of `t` (rather than the whole countermodel) is necessary because a
-  `Model.toPseudoTail` chain point sees the entire base model: without the restriction, chain
-  points would see worlds outside the cone of `t`, breaking the box case of the truth lemma.
-
   - [KKIM25, Theorem 5.8]
 -/
 noncomputable def bottomModel (BS : Sequent α) [Fact (⊬ᵍ[GL] BS)] (t : ExpandedSequent BS) (o : α → Prop) :
@@ -466,8 +456,7 @@ end bottomModel
 
 /--
   Cut-free completeness of `LogicD.ProofGentzen` for level-`2` sequents, restricted to
-  constant ω-extensions of finite `GL`-models — the hypothesis a finite-model countermodel
-  construction can discharge. `completeness` is the corollary for all `GL`-models.
+  constant ω-extensions of finite `GL`-models.
 
   - [KKIM25, Theorem 5.8]
 -/
@@ -506,7 +495,7 @@ theorem completeness_finite {Γ Δ : FormulaFinset α}
 
 /--
   Cut-free completeness of `LogicD.ProofGentzen` for level-`2` sequents, restricted to
-  constant ω-extensions of `GL`-models — condition `3 ⇒ 2` of `LogicD.semantical_TFAE`.
+  constant ω-extensions of `GL`-models.
 
   - [KKIM25, Theorem 5.8]
 -/
@@ -522,9 +511,7 @@ end ProvableGentzen.Kripke
 
 /--
   The four equivalent characterizations of `Γ ⟹ Δ` being a theorem of the level-`2` sequent
-  calculus for `D`, restricted to the limit ordinal ω: `LogicD.GentzenWithCutProof`- and
-  cut-free `LogicD.ProofGentzen`-provability (conditions `1`-`2`), and validity at the root of
-  every constant, respectively free, ω-extension of every `GL`-model (conditions `3`-`4`).
+  calculus for `D`, restricted to the limit ordinal ω.
 
   - [KKIM25, Theorem 5.8]
 -/
@@ -549,15 +536,13 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
 namespace GentzenWithCutProvable
 
 /--
-  Cut-elimination corollary of `semantical_TFAE`: condition `1` (`⊢ᵍᶜ[D]`) and condition `2`
-  (`⊢ᵍ[D]`) are equivalent, so a `LogicD.GentzenWithCutProof`-proof of a level-`2` sequent
-  yields a cut-free `LogicD.ProofGentzen`-proof of the same sequent.
+  Cut-elimination for the sequent calculus for `D`: a proof with cut of a level-`2` sequent
+  gives a cut-free proof of the same sequent.
 
-  Original to this formalization: a direct corollary of `semantical_TFAE`, not stated
-  separately in the source.
+  - [KKIM25, Theorem 5.8]
 -/
 theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
-  Kripke.completeness (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsGL] _ _ => soundness h M _)
+  (semantical_TFAE.out 0 1).mp h
 
 end GentzenWithCutProvable
 
