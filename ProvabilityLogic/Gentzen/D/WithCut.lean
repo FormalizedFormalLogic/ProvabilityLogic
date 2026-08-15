@@ -70,6 +70,23 @@ def GentzenWithCutProof.toGentzenWithCutProofS₀ {Γ Δ : FormulaFinset α} : �
 | .boxGL h    => .boxGL (GentzenWithCutProof.toGentzenWithCutProofS₀ h)
 | .cut h₁ h₂  => .cut (GentzenWithCutProof.toGentzenWithCutProofS₀ h₁) (GentzenWithCutProof.toGentzenWithCutProofS₀ h₂)
 
+/-- The with-cut variant of `LogicD.toProofGentzenS`, at level `1`. This is the bridge that lets
+  soundness for level-`2` `LogicD.GentzenWithCutProof` reuse `LogicS.GentzenWithCutProvable.soundness`
+  wholesale.
+
+  - [KKIM25, Theorem 4.2]
+-/
+def GentzenWithCutProof.toGentzenWithCutProofS₁ {Γ Δ : FormulaFinset α} : ⊢ᵍᶜ[D]! (Γ ⟹[1] Δ) → ⊢ᵍᶜ[S]! (Γ ⟹[1] Δ)
+| .axm 1 A    => .axm 1 A
+| .botL 1     => .botL 1
+| .wkL h h'   => .wkL (GentzenWithCutProof.toGentzenWithCutProofS₁ h) h'
+| .wkR h h'   => .wkR (GentzenWithCutProof.toGentzenWithCutProofS₁ h) h'
+| .impL h₁ h₂ => .impL (GentzenWithCutProof.toGentzenWithCutProofS₁ h₁) (GentzenWithCutProof.toGentzenWithCutProofS₁ h₂)
+| .impR h     => .impR (GentzenWithCutProof.toGentzenWithCutProofS₁ h)
+| .liftUp₀₁ h => .liftUp (GentzenWithCutProof.toGentzenWithCutProofS₀ h)
+| .boxL h     => .boxL (GentzenWithCutProof.toGentzenWithCutProofS₁ h)
+| .cut h₁ h₂  => .cut (GentzenWithCutProof.toGentzenWithCutProofS₁ h₁) (GentzenWithCutProof.toGentzenWithCutProofS₁ h₂)
+
 namespace GentzenWithCutProvable
 
 variable {S : ThreeLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 3}
