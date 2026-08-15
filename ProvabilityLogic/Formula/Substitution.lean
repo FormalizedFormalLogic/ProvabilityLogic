@@ -133,6 +133,9 @@ notation:95 A "⟦" p " ↦ " B "⟧" => Formula.subst (Formula.Substitution.sin
 
 @[simp, grind =] lemma subst_single_atom_of_ne (h : a ≠ p) : (#a)⟦p ↦ B⟧ = #a := by simp [h]
 
+/-- Substituting `p` for itself is the identity. -/
+@[simp, grind =] lemma subst_single_self : A⟦p ↦ #p⟧ = A := subst_eq_self_of_forall_atoms (by grind)
+
 lemma subst_single_eq_self_of_not_mem_atoms (h : p ∉ A.atoms) : A⟦p ↦ B⟧ = A := by
   induction A <;> grind [atoms]
 
@@ -153,21 +156,25 @@ lemma atoms_subst_single_subset : (A⟦p ↦ B⟧).atoms ⊆ (A.atoms \ {p}) ∪
     . exact ihD.trans (by intro w; simp; grind)
   | box C ih => simpa [atoms] using ih
 
-/-- Substituting a fresh atom `q` for `p` and then `p` for `q` recovers the formula. -/
-lemma subst_single_cancel (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ #p⟧ = A := by
+/-- Routing a substitution through a fresh atom `q` is the same as substituting directly. -/
+lemma subst_single_subst_single (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ B⟧ = A⟦p ↦ B⟧ := by
   induction A with
   | atom a =>
     by_cases h : a = p
-    . subst h; simp
-    . have : a ≠ q := fun e => hq (by simp [atoms, e])
-      rw [subst_single_atom_of_ne h, subst_single_atom_of_ne this]
-  | bot => simp
+    . subst h; simp;
+    . have : a ≠ q := fun e => hq (by simp [atoms, e]);
+      simp [h, this];
+  | bot => simp;
   | imp C D ihC ihD =>
-    simp only [atoms, Finset.mem_union, not_or] at hq
-    simp [ihC hq.1, ihD hq.2]
+    simp only [atoms, Finset.mem_union, not_or] at hq;
+    simp [ihC hq.1, ihD hq.2];
   | box C ih =>
-    simp only [atoms] at hq
-    simp [ih hq]
+    simp only [atoms] at hq;
+    simp [ih hq];
+
+/-- Substituting a fresh atom `q` for `p` and then `p` for `q` recovers the formula. -/
+lemma subst_single_cancel (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ #p⟧ = A := by
+  rw [subst_single_subst_single hq, subst_single_self]
 
 end Single
 
