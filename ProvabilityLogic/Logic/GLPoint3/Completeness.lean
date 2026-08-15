@@ -173,11 +173,11 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
 ].TFAE := by
   tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
   tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
-  tfae_have 3 → 2 := by
+  tfae_have 5 → 2 := by
     intro h;
-    apply LogicGLPoint3.ProvableGentzen.Kripke.completeness_universe;
-    intro κ _ M _;
-    exact Model.validateSequent_singleton_iff.mpr (h M);
+    apply LogicGLPoint3.ProvableGentzen.Kripke.completeness;
+    intro n _ M _;
+    exact Model.validateSequent_singleton_iff.mpr (h n M);
   tfae_have 3 → 4 := fun h {κ} _ M _ => h M.toModel M.root.1;
   tfae_have 4 → 3 := by
     intro h κ _ M _ x;
