@@ -232,8 +232,6 @@ end Rank
 
 section Mainlemma
 
-open Model.World
-
 variable [DecidableEq α] {A : Formula α}
 
 /--
@@ -247,14 +245,14 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
   (Rra : M.root.1 ≺ (a : M.World))
   {C : Formula α} (hC : C ∈ A.subfmls)
   :
-  (∀ i : Fin k, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inr i) C ↔
-    Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl a) C)) ∧
-  (∀ x : M.World, (Forces (M := (M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  (∀ i : Fin k, ((.inr i) ⊩[(M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel] C ↔
+    (.inl a) ⊩[(M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel] C)) ∧
+  (∀ x : M.World, ((.inl x) ⊩[(M.graft ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩ k).toModel] C ↔ x ⊩[M.toModel] C)) := by
   have hane : (a : M.World) ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
   induction C with
   | box B ihB =>
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
-    have h₂ : ∀ x : M.World, (Forces (M := (M.graft ⟨a, hane⟩ k).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
+    have h₂ : ∀ x : M.World, ((.inl x) ⊩[(M.graft ⟨a, hane⟩ k).toModel] (□B) ↔ x ⊩[M.toModel] □B) := by
       intro x;
       constructor;
       . intro h y Rxy;
@@ -270,7 +268,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
       . exact h (.inl y) (Or.inr Ray);
       . exact absurd Ray hane;
     . intro h;
-      have haB : a.1 ⊩ B := a.2 (by grind) (h₂ a |>.mp h);
+      have haB : a.1 ⊩[M.toModel] B := a.2 (by grind) (h₂ a |>.mp h);
       rintro (y | j) Riy;
       . rcases Riy with rfl | hay;
         . exact ihB₂ _ |>.mpr haB;

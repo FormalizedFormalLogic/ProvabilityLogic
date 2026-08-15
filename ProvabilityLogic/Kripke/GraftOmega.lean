@@ -54,7 +54,6 @@ abbrev graftOmega (M : RootedModel κ α) (a : M.NonRoot) : RootedModel (graftOm
 namespace graftOmega
 
 open Model Model.World
-open Model.World (Forces)
 
 variable {a : M.NonRoot}
 
@@ -119,7 +118,7 @@ open Model.World in
 /-- The root of `M.graftOmega a` has infinite depth: it refutes `□^[n]⊥` for
 every `n`, hence forces every `TBB n` (and `∼(□^[n]⊥)`). -/
 lemma root_not_forces_boxItr_bot {n : ℕ} :
-    ¬((M.graftOmega a).root.1 ⊩ (□^[n]⊥)) := by
+    ¬((M.graftOmega a).root.1 ⊩[_] (□^[n]⊥)) := by
   intro h;
   match n with
   | 0 => exact h;
@@ -230,8 +229,8 @@ lemma relItr_from_inl {x : M.World} {n : ℕ}
 /-- A non-root world forcing `□^[n]⊥` in `M` also forces it as an `inl` world of the
 ω-grafted model. -/
 lemma inl_forces_boxItr_bot {x : M.World} {n : ℕ}
-  (hx : x ≠ M.root.1) (h : x ⊩ (□^[n]⊥)) :
-  Forces (M := (M.graftOmega a).toModel) (.inl x) (□^[n]⊥) := by
+  (hx : x ≠ M.root.1) (h : x ⊩[M.toModel] (□^[n]⊥)) :
+  (.inl x) ⊩[(M.graftOmega a).toModel] (□^[n]⊥) := by
   apply forces_boxItr.mpr;
   intro w hw;
   obtain ⟨y, rfl, hxy, -⟩ := relItr_from_inl hx hw;
@@ -256,9 +255,9 @@ variable [DecidableEq α] {A : Formula α}
 lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
   (Rra : M.root.1 ≺ (a : M.World)) :
   ∀ {C : Formula α}, C ∈ A.subfmls →
-  (∀ i : ℕ, (Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inr i) C ↔
-    Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inl a) C)) ∧
-  (∀ x : M.World, (Forces (M := (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel) (.inl x) C ↔ x ⊩ C)) := by
+  (∀ i : ℕ, ((.inr i) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
+    (.inl a) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C)) ∧
+  (∀ x : M.World, ((.inl x) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔ x ⊩[M.toModel] C)) := by
   have hane : (a : M.World) ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ Rra);
   intro C;
   induction C with
@@ -266,7 +265,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
     intro hB;
     obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
     have h₂ : ∀ x : M.World,
-        (Forces (M := (M.graftOmega ⟨a, hane⟩).toModel) (.inl x) (□B) ↔ x ⊩ □B) := by
+        ((.inl x) ⊩[(M.graftOmega ⟨a, hane⟩).toModel] (□B) ↔ x ⊩[M.toModel] □B) := by
       intro x;
       constructor;
       . intro h y Rxy;
@@ -282,7 +281,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
       . exact h (.inl y) (Or.inr Ray);
       . exact absurd Ray hane;
     . intro h;
-      have haB : a.1 ⊩ B := a.2 hB (h₂ a |>.mp h);
+      have haB : a.1 ⊩[M.toModel] B := a.2 hB (h₂ a |>.mp h);
       rintro (y | j) Riy;
       . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
         . subst hya; exact ihB₂ _ |>.mpr haB;

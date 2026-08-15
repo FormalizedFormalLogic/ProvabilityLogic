@@ -116,8 +116,6 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toTail tai
 
 instance [M.IsGL] : (M.toTail tail).IsGL where
 
-open Model.World (Forces)
-
 /-- The embedding of the original model into the tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) : M →ₚ (M.toTail tail).toModel where
   toFun := toTail.embed
@@ -134,14 +132,14 @@ lemma modal_equivalent_original {x : M.World} :
 
 /-- At an original-model world (`embed x`), forcing in the tail model agrees with
 forcing in the original model. -/
-lemma forces_inl {x : M.World} : Forces (M := (M.toTail tail).toModel) (toTail.embed x) A ↔ x ⊩ A :=
+lemma forces_inl {x : M.World} : (toTail.embed x) ⊩[(M.toTail tail).toModel] A ↔ x ⊩[M] A :=
   modal_equivalent_original.symm
 
 /-- Forcing of `□A` is downward closed on the chain: if it holds at `chainPoint n`,
 it also holds at any `chainPoint m` below it. -/
 lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
-  (h : Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) (□A)) :
-  Forces (M := (M.toTail tail).toModel) (toTail.chainPoint m) (□A) := by
+  (h : (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A)) :
+  (toTail.chainPoint m) ⊩[(M.toTail tail).toModel] (□A) := by
   rintro (x | j) Rmy;
   . exact h (toTail.embed x) rel_chainPoint_embed;
   . apply h (toTail.chainPoint j);
@@ -151,8 +149,8 @@ lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
 /-- Forcing at chain points (`chainPoint n`) eventually stabilizes as `n` grows. -/
 lemma forces_nat_eventually_stable (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
-    (Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A ↔
-     Forces (M := (M.toTail tail).toModel) (toTail.chainPoint k) A) := by
+    ((toTail.chainPoint n) ⊩[(M.toTail tail).toModel] A ↔
+     (toTail.chainPoint k) ⊩[(M.toTail tail).toModel] A) := by
   induction A with
   | atom a => exact ⟨0, fun n _ => Iff.rfl⟩;
   | bot => exact ⟨0, fun n _ => Iff.rfl⟩;
@@ -167,7 +165,7 @@ lemma forces_nat_eventually_stable (A : Formula α) :
     . intro h ha; exact hB.mp (h (hA.mpr ha));
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A _ =>
-    by_cases hf : ∀ n : ℕ, Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) (□A);
+    by_cases hf : ∀ n : ℕ, (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A);
     . exact ⟨0, fun n _ => iff_of_true (hf n) (hf 0)⟩;
     . push Not at hf;
       obtain ⟨m, hm⟩ := hf;
@@ -177,8 +175,8 @@ lemma forces_nat_eventually_stable (A : Formula α) :
 forcing value at the tail model's own root (`chainPoint ⊤`). -/
 lemma forces_nat_eventually_root (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
-    (Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A ↔
-     Forces (M := (M.toTail tail).toModel) (toTail.chainPoint ⊤) A) := by
+    ((toTail.chainPoint n) ⊩[(M.toTail tail).toModel] A ↔
+     (toTail.chainPoint ⊤) ⊩[(M.toTail tail).toModel] A) := by
   induction A with
   | atom a => exact ⟨0, fun n _ => Iff.rfl⟩;
   | bot => exact ⟨0, fun n _ => Iff.rfl⟩;
@@ -193,7 +191,7 @@ lemma forces_nat_eventually_root (A : Formula α) :
     . intro h ha; exact hB.mp (h (hA.mpr ha));
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A _ =>
-    by_cases hf : ∀ n : ℕ, Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) (□A);
+    by_cases hf : ∀ n : ℕ, (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A);
     . refine ⟨0, ?_⟩;
       intro n _;
       refine iff_of_true (hf n) ?_;
@@ -203,7 +201,7 @@ lemma forces_nat_eventually_root (A : Formula α) :
         exact hf (m + 1) (toTail.chainPoint m) (rel_chainPoint_chainPoint.mpr (by exact_mod_cast Nat.lt_succ_self m));
     . push Not at hf;
       obtain ⟨m, hm⟩ := hf;
-      have hm' : ¬ Forces (M := (M.toTail tail).toModel) (toTail.chainPoint ⊤) (□A) := fun h => hm (by
+      have hm' : ¬ (toTail.chainPoint ⊤) ⊩[(M.toTail tail).toModel] (□A) := fun h => hm (by
         rintro (x | j) hxy;
         . exact h (toTail.embed x) rel_chainPoint_embed;
         . exact h (toTail.chainPoint j) (rel_chainPoint_chainPoint.mpr (lt_of_lt_of_le (rel_chainPoint_chainPoint.mp hxy) le_top)));
@@ -215,8 +213,8 @@ lemma forces_nat_eventually_root (A : Formula α) :
   sufficiently large `n`).
 -/
 lemma tailLemma (A : Formula α) :
-  Forces (M := (M.toTail tail).toModel) (toTail.chainPoint ⊤) A ↔
-    ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A := by
+  (toTail.chainPoint ⊤) ⊩[(M.toTail tail).toModel] A ↔
+    ∃ k : ℕ, ∀ n : ℕ, k ≤ n → (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] A := by
   obtain ⟨k, hk⟩ := forces_nat_eventually_root (tail := tail) A;
   constructor;
   . intro h; exact ⟨k, fun n hn => (hk n hn).mpr h⟩;
@@ -231,8 +229,8 @@ lemma tailLemma (A : Formula α) :
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {Γ : FormulaFinset α}
   (Γclosed : ∀ B ∈ Γ, B.subfmls ⊆ Γ)
-  (hΓ : ∀ B ∈ Γ.prebox, M.root.1 ⊩ (□B 🡒 B)) :
-  ∀ B ∈ Γ, ∀ n : ℕ, M.root.1 ⊩ B ↔ Forces (M := (M.toModel.toTail M.root.1).toModel) (toTail.chainPoint n) B := by
+  (hΓ : ∀ B ∈ Γ.prebox, M.root.1 ⊩[M.toModel] (□B 🡒 B)) :
+  ∀ B ∈ Γ, ∀ n : ℕ, M.root.1 ⊩[M.toModel] B ↔ (toTail.chainPoint n) ⊩[(M.toModel.toTail M.root.1).toModel] B := by
   intro B;
   induction B with
   | atom a => intro _ n; exact Iff.rfl;
@@ -264,19 +262,17 @@ end toTail
 
 section Reindex
 
-open Model.World (Forces)
-
 variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {e : κ ≃ κ'}
 
 /-- Re-indexing the base model along `e` does not change the tail construction, up to
 transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
 the literature. -/
 lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
-  Forces (M := ((M.reindex e).toTail (e tail)).toModel) (Sum.map e id x) A ↔
-  Forces (M := (M.toTail tail).toModel) x A := by
-  have h : Forces (M := ((M.reindex e).toTail (e tail)).toModel) (Sum.map e id x) A ↔
-      Forces (M := (M.toTail tail).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞)))
-        (Sum.map e id x) A := by
+  Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  x ⊩[(M.toTail tail).toModel] A := by
+  have h :
+      Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+      Sum.map e id x ⊩[(M.toTail tail).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞))] A := by
     apply Model.forces_congr;
     · funext y z;
       rcases y with y | i <;> rcases z with z | j <;> rfl;
@@ -286,13 +282,14 @@ lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
 
 /-- Forcing at a chain point is unaffected by re-indexing the base model. -/
 lemma forces_toTail_reindex_chainPoint_iff {i : ℕ∞} :
-  Forces (M := ((M.reindex e).toTail (e tail)).toModel) (toTail.chainPoint i) A ↔
-  Forces (M := (M.toTail tail).toModel) (toTail.chainPoint i) A :=
+  toTail.chainPoint i ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  toTail.chainPoint i ⊩[(M.toTail tail).toModel] A :=
   forces_toTail_reindex_iff (x := toTail.chainPoint i)
 
 /-- Forcing at the root is unaffected by re-indexing the base model. -/
 lemma forces_toTail_reindex_root_iff :
-  ((M.reindex e).toTail (e tail)).root.1 ⊩ A ↔ (M.toTail tail).root.1 ⊩ A :=
+  ((M.reindex e).toTail (e tail)).root.1 ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  (M.toTail tail).root.1 ⊩[(M.toTail tail).toModel] A :=
   forces_toTail_reindex_chainPoint_iff (i := ⊤)
 
 end Reindex

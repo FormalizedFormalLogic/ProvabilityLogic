@@ -53,13 +53,13 @@ def reindexBisimulation (M : Model κ α) (e : κ ≃ κ') : M ⇄ M.reindex e w
 /-- Forcing is preserved by re-indexing a model: a formula is forced at `e x` in `M.reindex e`
 iff it is forced at `x` in `M`. -/
 lemma forces_reindex_iff {x : M.World} :
-  Model.World.Forces (M := M.reindex e) (e x) A ↔ Model.World.Forces (M := M) x A :=
+  e x ⊩[M.reindex e] A ↔ x ⊩[M] A :=
   (World.modal_equivalent_of_bisimilar (M.reindexBisimulation e) rfl).symm
 
 /-- Forcing is preserved by re-indexing a model, stated at an arbitrary world `y` of
 `M.reindex e` rather than at one of the form `e x`. -/
 lemma forces_reindex_iff' {y : (M.reindex e).World} :
-  Model.World.Forces (M := M.reindex e) y A ↔ Model.World.Forces (M := M) (e.symm y) A := by
+  y ⊩[M.reindex e] A ↔ e.symm y ⊩[M] A := by
   simpa using forces_reindex_iff (M := M) (e := e) (x := e.symm y);
 
 instance [IsTrans _ M.Rel] : IsTrans _ (M.reindex e).Rel where
@@ -114,7 +114,8 @@ instance [M.IsFiniteGLPoint3] : (M.reindex e).IsFiniteGLPoint3 :=
   inferInstanceAs (M.toModel.reindex e).IsFiniteGLPoint3
 
 /-- Forcing at the root is preserved by re-indexing a rooted model. -/
-lemma forces_reindex_root_iff : (M.reindex e).root.1 ⊩ A ↔ M.root.1 ⊩ A :=
+lemma forces_reindex_root_iff :
+  (M.reindex e).root.1 ⊩[(M.reindex e).toModel] A ↔ M.root.1 ⊩[M.toModel] A :=
   Model.forces_reindex_iff
 
 end RootedModel
@@ -155,15 +156,13 @@ noncomputable def toConcrete (M : Model κ α) : ConcreteModel M.card α :=
 
 /-- Forcing is preserved by presenting a finite model as a concrete one. -/
 lemma forces_toConcrete_iff {x : M.World} :
-  Model.World.Forces (M := M.toConcrete) (Finite.equivFin κ x) A ↔
-  Model.World.Forces (M := M) x A :=
+  Finite.equivFin κ x ⊩[M.toConcrete] A ↔ x ⊩[M] A :=
   forces_reindex_iff
 
 /-- Forcing is preserved by presenting a finite model as a concrete one, stated at an arbitrary
 world of the concrete model. -/
 lemma forces_toConcrete_iff' {x : M.toConcrete.World} :
-  Model.World.Forces (M := M.toConcrete) x A ↔
-  Model.World.Forces (M := M) ((Finite.equivFin κ).symm x) A :=
+  x ⊩[M.toConcrete] A ↔ (Finite.equivFin κ).symm x ⊩[M] A :=
   forces_reindex_iff'
 
 /-- Validity is preserved by presenting a finite model as a concrete one. -/
@@ -192,7 +191,8 @@ instance [M.IsFiniteGLPoint3] : M.toConcrete.IsFiniteGLPoint3 :=
   inferInstanceAs (M.reindex (Finite.equivFin κ)).IsFiniteGLPoint3
 
 /-- Forcing at the root is preserved by presenting a finite rooted model as a concrete one. -/
-lemma forces_toConcrete_root_iff : M.toConcrete.root.1 ⊩ A ↔ M.root.1 ⊩ A :=
+lemma forces_toConcrete_root_iff :
+  M.toConcrete.root.1 ⊩[M.toConcrete.toModel] A ↔ M.root.1 ⊩[M.toModel] A :=
   forces_reindex_root_iff
 
 end RootedModel

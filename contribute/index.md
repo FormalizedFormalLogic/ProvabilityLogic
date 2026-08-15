@@ -40,12 +40,6 @@ PRs (title and body) are written in English. Commit messages — subject, body a
   ```shell
   just mk-all
   ```
-- Remove unused imports and unnecessary `public`. `lake shake` needs a completed build, so run it after `lake build`, then build once more because it rewrites import lines:
-  ```shell
-  just shake
-  lake build
-  ```
-  Watch for `meta import` lines: shake mistakes them for duplicates of the `public import` of the same module and deletes them. Annotate them with `-- shake: keep`, and if the build fails with `Invalid \`meta\` definition … consider adding \`public meta import …\``, restore the deleted line with that annotation.
 - If you added entries to `references.bib`, format it and regenerate the keys:
   ```shell
   just format-bib

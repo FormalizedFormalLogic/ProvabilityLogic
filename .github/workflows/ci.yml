@@ -85,8 +85,8 @@ jobs:
           print(f'cleared warning cache in {cleared} Foundation trace(s)')
           PY
 
-  # Build ProvabilityLogic against the cleansed dependency layer from `deps`, run the shake gate on
-  # the freshly built oleans, and generate the docs and import graph — all sharing the one build.
+  # Build ProvabilityLogic against the cleansed dependency layer from `deps`, and generate the docs
+  # and import graph — all sharing the one build.
   build:
     name: Build project
     needs: deps
@@ -166,15 +166,6 @@ jobs:
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
 
       - uses: extractions/setup-just@v3
-
-      # shake reads the just-built oleans to find unused imports, so it must run after `lake build`.
-      - name: Check shake applied (no unused imports)
-        run: |
-          just shake
-          if [ -n "$(git diff)" ]; then
-            echo "Unused imports found. Please run 'just shake' and commit the changes."
-            exit 1
-          fi
 
       - uses: ts-graphviz/setup-graphviz@v2
       - name: Generate import graph

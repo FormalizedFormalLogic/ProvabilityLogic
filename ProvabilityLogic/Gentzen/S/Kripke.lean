@@ -34,8 +34,8 @@ omit [DecidableEq α] in
   - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2]
 -/
 lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w n) (A : Formula α) :
-  ∃ i, ∀ j ≥ i, w j ⊩ (□A 🡒 A) := by
-  by_cases h : ∀ n, w n ⊩ A;
+  ∃ i, ∀ j ≥ i, w j ⊩[_] (□A 🡒 A) := by
+  by_cases h : ∀ n, w n ⊩[_] A;
   · exact ⟨0, fun j _ => by rw [Model.World.forces_imp]; right; exact h j⟩;
   · push Not at h;
     obtain ⟨n, hn⟩ := h;
@@ -45,7 +45,7 @@ lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w 
     left;
     by_contra hcon;
     have hjn : w j ≺ w n := Model.rel_of_descending_lt hw (n := n) (j := j) (by omega);
-    have : w n ⊩ A := (Model.World.forces_box).mp hcon (w n) hjn;
+    have : w n ⊩[_] A := (Model.World.forces_box).mp hcon (w n) hjn;
     exact hn this;
 
 /--
@@ -89,10 +89,10 @@ omit [Nonempty κ] [M.IsGL] in
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-    ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ (Γ ⟹ Δ)
+    ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ)
   ) :
   ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
-  (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩ (Γ ⟹ Δ) := by
+  (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩[_] (Γ ⟹ Δ) := by
   intro κ _ M _ w hw;
   obtain ⟨X, hX⟩ := h M;
   obtain ⟨i, hi⟩ := Model.eventually_isReflexive_of_descending hw X;
@@ -460,8 +460,8 @@ instance : (chainModel BS t).IsGL where
     · exact hInr n;
 
 lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
-  (Model.World.Forces (M := chainModel BS t) (.inl x) A) ↔
-  (Model.World.Forces (M := countermodelOf BS) x A) := by
+  ((.inl x) ⊩[chainModel BS t] A) ↔
+  (x ⊩[countermodelOf BS] A) := by
   induction A generalizing x with
   | atom a => exact Iff.rfl;
   | bot => exact Iff.rfl;
@@ -482,8 +482,8 @@ lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
   - [KK23, Theorem 3.1]
 -/
 lemma truthlemma_inr (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.1) {n : ℕ} {A : Formula α} :
-  (A ∈ t.1.1 → Model.World.Forces (M := chainModel BS t) (.inr n) A) ∧
-  (A ∈ t.1.2 → ¬Model.World.Forces (M := chainModel BS t) (.inr n) A) := by
+  (A ∈ t.1.1 → (.inr n) ⊩[chainModel BS t] A) ∧
+  (A ∈ t.1.2 → (.inr n) ⊮[chainModel BS t] A) := by
   induction A generalizing n with
   | atom a =>
     constructor;
@@ -529,7 +529,7 @@ namespace ProvableGentzen.Kripke
 theorem completeness {Γ Δ : FormulaFinset α}
   (h :
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
-    (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩ (Γ ⟹ Δ)
+    (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩[_] (Γ ⟹ Δ)
   )
   : ⊢ᵍ[S] (Γ ⟹[1] Δ) := by
   by_contra hp;
@@ -555,7 +555,7 @@ variable {Γ Δ : FormulaFinset α}
 -/
 theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (x : M.World),
-  (S.level = 1 → x.IsReflexiveOf X) → x ⊩ S.toSequent := by
+  (S.level = 1 → x.IsReflexiveOf X) → x ⊩[_] S.toSequent := by
   induction h using LogicS.GentzenWithCutProvable.rec with
   | axm l A =>
     refine ⟨∅, ?_⟩;
@@ -607,13 +607,13 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
     refine ⟨insert (□A') X, ?_⟩;
     intro κ _ M _ x hrefl h;
     have hRefl : x.IsReflexiveOf (insert (□A') X) := hrefl rfl;
-    have hBoxA : x ⊩ (□A') := h _ (Finset.mem_insert_self _ _);
-    have hImp : x ⊩ (□A' 🡒 A') := hRefl (Finset.mem_insert_self _ _);
-    have hA : x ⊩ A' := by
+    have hBoxA : x ⊩[_] (□A') := h _ (Finset.mem_insert_self _ _);
+    have hImp : x ⊩[_] (□A' 🡒 A') := hRefl (Finset.mem_insert_self _ _);
+    have hA : x ⊩[_] A' := by
       rcases Model.World.forces_imp.mp hImp with h' | h';
       · exact absurd hBoxA h';
       · exact h';
-    have hΓ : ∀ C ∈ insert A' Γ', x ⊩ C := by
+    have hΓ : ∀ C ∈ insert A' Γ', x ⊩[_] C := by
       intro C hC;
       rcases Finset.mem_insert.mp hC with rfl | hC;
       · exact hA;
@@ -635,7 +635,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
 -/
 theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ (Γ ⟹ Δ) := by
+  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ) := by
   obtain ⟨X, hX⟩ := soundness_aux h;
   refine ⟨X, ?_⟩;
   intro κ _ M _ x;
@@ -651,16 +651,16 @@ end GentzenWithCutProvable
 theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1
     ∃ X : FormulaFinset α, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ (Γ ⟹ Δ),
+      ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
     -- condition 2
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ (Γ ⟹ Δ),
+      ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
     -- condition 3
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
-      (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩ (Γ ⟹ Δ),
+      (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩[_] (Γ ⟹ Δ),
     -- condition 4
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
-      (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩ (Γ ⟹ Δ),
+      (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩[_] (Γ ⟹ Δ),
     -- condition 5
     ⊢ᵍ[S] (Γ ⟹[1] Δ),
     -- condition 6

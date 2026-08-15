@@ -187,7 +187,7 @@ open Model Model.World
 -/
 lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
   ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (x : M.World),
-  (∀ n < N, x ⊩ TBB n) → x ⊩ A := by
+  (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A := by
   induction h using LogicA.substlessInductionTBB with
   | GL h =>
     use 0;
@@ -211,13 +211,13 @@ omit [DecidableEq α] in
 `∼□^[N]⊥ 🡒 A`. -/
 lemma root_forces_neg_boxItr_bot_imp
   (h : ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
-    ∀ (x : M.World), (∀ n < N, x ⊩ TBB n) → x ⊩ A)
+    ∀ (x : M.World), (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A)
   : ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-  M.root.1 ⊩ ((∼□^[N]⊥) 🡒 A) := by
+  M.root.1 ⊩[_] ((∼□^[N]⊥) 🡒 A) := by
   obtain ⟨N, hN⟩ := h;
   use N;
   intro κ _ M _;
-  -- Both `x ⊩ ∼□^[N]⊥` and `∀ n < N, x ⊩ TBB n` express `N ≤ x.rank`.
+  -- Both `x ⊩[M] ∼□^[N]⊥` and `∀ n < N, x ⊩[M] TBB n` express `N ≤ x.rank`.
   haveI : Fintype M.World := Fintype.ofFinite _;
   by_contra hC;
   obtain ⟨h₁, h₂⟩ := Model.World.not_forces_imp.mp hC;
@@ -265,7 +265,7 @@ lemma not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA (h : A ∉ LogicA) :
 -/
 lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
   ∃ (κ : Type u) (_ : Nonempty κ) (M : RootedModel κ α) (_ : M.IsFiniteGL),
-  M.root.1 ⊮ A ∧ ∃ r : M.World, M.root.1 ≺ r ∧ r ⊩ ⋀A.subfmlsS := by
+  M.root.1 ⊮[_] A ∧ ∃ r : M.World, M.root.1 ≺ r ∧ r ⊩[_] ⋀A.subfmlsS := by
   have := (LogicGL.iff_forces_root (A := (◇(⋀A.subfmlsS)) 🡒 A)).not.mp
     (not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA h);
   push Not at this;
@@ -286,7 +286,8 @@ theorem provability_TFAE : [
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ A
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
@@ -301,7 +302,7 @@ theorem provability_TFAE : [
     obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ :=
       exists_reflexive_countermodel_of_not_mem_LogicA hA;
     haveI := hne; haveI := hfgl;
-    have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩ ((□B) 🡒 B) := by
+    have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
       intro B hB;
       exact Model.World.forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
@@ -319,7 +320,8 @@ theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ A) :=
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A) :=
   LogicA.provability_TFAE.out 0 2
 
 end LogicA
@@ -362,22 +364,22 @@ lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
   simpa using rank_eq (a := a) (axiomDCountermodel n a).root.1;
 
 lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < x) :
-  x ⊩ (□(#a) : Formula α) := by grind
+  x ⊩[_] (□(#a) : Formula α) := by grind
 
-lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩ (□(#a) : Formula α) :=
+lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩[_] (□(#a) : Formula α) :=
   Model.World.not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
 lemma root_not_forces_axiomD_consequent :
-  ¬(axiomDCountermodel n a).root.1 ⊩ ((□(#a) : Formula α) ⋎ □(#a)) :=
+  ¬(axiomDCountermodel n a).root.1 ⊩[_] ((□(#a) : Formula α) ⋎ □(#a)) :=
   Model.World.not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
 
 lemma root_forces_axiomD_antecedent :
-  (axiomDCountermodel n a).root.1 ⊩ (□((□(#a) : Formula α) ⋎ □(#a))) :=
+  (axiomDCountermodel n a).root.1 ⊩[_] (□((□(#a) : Formula α) ⋎ □(#a))) :=
   Model.World.forces_box.mpr fun _ hy =>
     Model.World.forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
 
 lemma root_forces_neg_boxItr_bot :
-  (axiomDCountermodel n a).root.1 ⊩ (∼(□^[n]⊥) : Formula α) := by
+  (axiomDCountermodel n a).root.1 ⊩[_] (∼(□^[n]⊥) : Formula α) := by
   apply Model.World.forces_neg.mpr;
   intro hc;
   have h := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;

@@ -141,7 +141,8 @@ lemma exists_original_of_embed_rel {x : M.World} {y : (M.extendRoot n).World}
   obtain ⟨i, rfl⟩ := exists_tail_of_not_original_world h;
   exact not_rel_original_tail (x := x) (n := n);
 
-lemma same_forces_embed {x : M.World} : Model.World.Forces (M := M.extendRoot n |>.toModel) (embed x) A ↔ x ⊩ A := by
+lemma same_forces_embed {A : Formula α} {x : M.World} :
+    embed x ⊩[(M.extendRoot n).toModel] A ↔ x ⊩[M.toModel] A := by
   induction A generalizing x with
   | box A ihA =>
     constructor;
@@ -209,7 +210,7 @@ variable {M : Model κ α} {A : Formula α} {l : List M.World}
 /-- In an irreflexive transitive model, at most one point on a chain refutes the axiom T
 instance `□A 🡒 A`. -/
 lemma atmost_one_not_forces_axiomT_in_chain [IsTrans _ M.Rel] (l_chain : List.IsChain (· ≺ ·) l) :
-    (∀ x ∈ l, x ⊩ (□A 🡒 A)) ∨ (∃! x, x ∈ l ∧ ¬(x ⊩ (□A 🡒 A))) := by
+    (∀ x ∈ l, x ⊩[_] (□A 🡒 A)) ∨ (∃! x, x ∈ l ∧ ¬(x ⊩[_] (□A 🡒 A))) := by
   apply or_iff_not_imp_left.mpr;
   push Not;
   rintro ⟨x, x_l, hx⟩;
@@ -224,7 +225,7 @@ lemma atmost_one_not_forces_axiomT_in_chain [IsTrans _ M.Rel] (l_chain : List.Is
 
 lemma card_not_forces_axiomT_in_chain [IsTrans _ M.Rel]
     (l_chain : List.IsChain (· ≺ ·) l) :
-    (l.toFinset.filter (λ x => ¬(x ⊩ (□A 🡒 A)))).card ≤ 1 := by
+    (l.toFinset.filter (λ x => ¬(x ⊩[_] (□A 🡒 A)))).card ≤ 1 := by
   apply Finset.card_le_one.mpr;
   intro a ha b hb;
   simp only [Finset.mem_filter, List.mem_toFinset] at ha hb;
@@ -240,16 +241,16 @@ lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
     [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Γ : FormulaFinset α}
     (l_length : Γ.card < l.length)
     (l_chain : List.IsChain (· ≺ ·) l) :
-    ∃ x ∈ l, ∀ B ∈ Γ, x ⊩ (□B 🡒 B) := by
-  let t₁ : Finset M.World := l.toFinset.filter (λ x => ∃ B ∈ Γ, ¬(x ⊩ (□B 🡒 B)));
+    ∃ x ∈ l, ∀ B ∈ Γ, x ⊩[_] (□B 🡒 B) := by
+  let t₁ : Finset M.World := l.toFinset.filter (λ x => ∃ B ∈ Γ, ¬(x ⊩[_] (□B 🡒 B)));
   let t₂ : Finset M.World := l.toFinset;
   have ht₁ : t₁.card ≤ Γ.card := calc
-    t₁.card = (Finset.biUnion Γ (λ B => l.toFinset.filter (λ x => ¬(x ⊩ (□B 🡒 B))))).card := by
+    t₁.card = (Finset.biUnion Γ (λ B => l.toFinset.filter (λ x => ¬(x ⊩[_] (□B 🡒 B))))).card := by
       congr 1;
       ext x;
       simp only [t₁, Finset.mem_filter, Finset.mem_biUnion, List.mem_toFinset];
       tauto;
-    _ ≤ ∑ B ∈ Γ, (l.toFinset.filter (λ x => ¬(x ⊩ (□B 🡒 B)))).card := Finset.card_biUnion_le
+    _ ≤ ∑ B ∈ Γ, (l.toFinset.filter (λ x => ¬(x ⊩[_] (□B 🡒 B)))).card := Finset.card_biUnion_le
     _ ≤ Γ.card * 1 := Finset.sum_le_card (fun B _ => card_not_forces_axiomT_in_chain l_chain)
     _ = Γ.card := by omega;
   have ht₂ : t₂.card = l.length := by
@@ -282,7 +283,7 @@ instance [M.IsFiniteGL] : (M.extendRoot n).IsFiniteGL where
 -/
 lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
     {Γ : FormulaFinset α} (hn : Γ.card < n) :
-    ∃ i : Fin n, ∀ B ∈ Γ, Forces (M := (M.extendRoot n).toModel) (.inr i) (□B 🡒 B) := by
+    ∃ i : Fin n, ∀ B ∈ Γ, (.inr i : (M.extendRoot n).World) ⊩[(M.extendRoot n).toModel] (□B 🡒 B) := by
   obtain ⟨x, hx, h⟩ := exists_forces_axiomT_set_in_chain
     (M := (M.extendRoot n).toModel) (l := extendRoot.tail M n)
     (by simpa using hn) tail_isChain;
@@ -293,7 +294,7 @@ lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
 /-- Forcing of the boxdot translation of a formula agrees between every chain point and
 the original root. -/
 lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula α} :
-    Forces (M := (M.extendRoot n).toModel) (.inr i) (Aᵇ) ↔ M.root.1 ⊩ (Aᵇ) := by
+    (.inr i : (M.extendRoot n).World) ⊩[(M.extendRoot n).toModel] (Aᵇ) ↔ M.root.1 ⊩[M.toModel] (Aᵇ) := by
   induction A generalizing i with
   | atom a => exact Iff.rfl;
   | bot => exact Iff.rfl;

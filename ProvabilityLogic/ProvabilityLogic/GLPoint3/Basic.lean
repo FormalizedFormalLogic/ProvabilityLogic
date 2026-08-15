@@ -382,7 +382,7 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   obtain ⟨κ, _, M, _, hM⟩ := hA;
   haveI : Fintype M.World := Fintype.ofFinite _;
   -- `H a`: the set of ranks at which the atom `a` is forced
-  let H : α → Finset ℕ := fun a => (Finset.univ.filter fun y : M.World => y ⊩ (#a : Formula α)).image World.rank;
+  let H : α → Finset ℕ := fun a => (Finset.univ.filter fun y : M.World => y ⊩[_] (#a : Formula α)).image World.rank;
   -- `ψ*` of the paper: a consistency form whose spectrum is exactly `H a`
   let ψ : α → LetterlessFormula := fun a => rankDisj (H a).toList;
   have hspec : ∀ a, spectrum (ψ a) = ↑(H a) := by
@@ -390,8 +390,8 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
     rw [show ψ a = rankDisj (H a).toList by rfl, spectrum_rankDisj];
     ext i;
     simp;
-  -- in a linear model the rank determines the world, so `x ⊩ a ↔ x.rank ∈ H a`
-  have hatom : ∀ (a : α) (x : M.World), x.rank ∈ H a ↔ x ⊩ (#a : Formula α) := by
+  -- in a linear model the rank determines the world, so `x ⊩[_] a ↔ x.rank ∈ H a`
+  have hatom : ∀ (a : α) (x : M.World), x.rank ∈ H a ↔ x ⊩[_] (#a : Formula α) := by
     intro a x;
     constructor;
     . intro h;
@@ -401,19 +401,19 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
     . intro h;
       exact Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_univ x, h⟩);
   -- substituting `ψ*` for the atoms does not change forcing anywhere in `M`
-  have hsubst : ∀ B (x : M.World), x ⊩ B⟦fun a => ψ a⟧ ↔ x ⊩ B := by
+  have hsubst : ∀ B (x : M.World), x ⊩[_] B⟦fun a => ψ a⟧ ↔ x ⊩[_] B := by
     intro B;
     induction B with
     | atom a =>
       intro x;
       calc
-        x ⊩ ψ a ↔ x.rank ∈ spectrum (ψ a) := Model.iff_forces_lift_rank_mem_spectrum
-        _       ↔ x.rank ∈ H a            := by rw [hspec a]; rfl;
-        _       ↔ x ⊩ #a                  := hatom a x
+        x ⊩[_] ψ a ↔ x.rank ∈ spectrum (ψ a) := Model.iff_forces_lift_rank_mem_spectrum
+        _          ↔ x.rank ∈ H a            := by rw [hspec a]; rfl;
+        _          ↔ x ⊩[_] #a               := hatom a x
     | _ => grind;
   -- the letterless substitution instance `B₀` is not forced at the root
   set B₀ : LetterlessFormula := A.substLetterless ψ with hB₀;
-  have hroot : M.root.1 ⊮ (LetterlessFormula.lift B₀ : Formula α) := by
+  have hroot : M.root.1 ⊮[_] (LetterlessFormula.lift B₀ : Formula α) := by
     rw [hB₀, Formula.lift_substLetterless];
     exact fun h => hM ((hsubst A M.root.1).mp h);
   -- hence the height of `M` is missing from the spectrum of `B₀`, and `GL ⊢ B₀ 🡒 TBB n`

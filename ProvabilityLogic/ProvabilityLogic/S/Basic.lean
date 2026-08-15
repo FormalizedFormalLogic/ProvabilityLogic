@@ -94,7 +94,7 @@ theorem arithmetical_completeness [DecidableEq α]
   obtain ⟨κ, _, M, _, hA⟩ := H;
   haveI : Fintype M.World := Fintype.ofFinite _;
   obtain ⟨hA₁, hA₂⟩ := not_forces_imp.mp hA;
-  have ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩ ((□B) 🡒 B) := by
+  have ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[_] ((□B) 🡒 B) := by
     intro B hB;
     apply forces_fconj.mp hA₁;
     simp only [Formula.subfmlsS, Finset.mem_image];

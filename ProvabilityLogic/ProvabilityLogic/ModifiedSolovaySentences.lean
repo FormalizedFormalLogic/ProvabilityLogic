@@ -73,16 +73,16 @@ variable (κ : Type u) [Nonempty κ] [Fintype κ] [DecidableEq α] (A : _root_.F
 -/
 structure StrongReflexiveCountermodel extends RootedModel κ α where
   [isFiniteGL : toModel.IsFiniteGL]
-  root_refutes : root.1 ⊮ A
+  root_refutes : root.1 ⊮[_] A
   r : toModel.World
   root_rel_r : root.1 ≺ r
-  r_reflexive : r ⊩ ⋀A.subfmlsS
+  r_reflexive : r ⊩[_] ⋀A.subfmlsS
   rel_r : ∀ z : toModel.World, z ≺ r → z = root.1
   rank_lt_rank_r : ∀ z : toModel.World, z ≠ root.1 → z ≠ r →
     Model.World.rank z < Model.World.rank r
   r₁ : toModel.World
   r_rel_r₁ : r ≺ r₁
-  r₁_forces_iff : ∀ B ∈ A.subfmls, ((r₁ ⊩ B) ↔ (r ⊩ B))
+  r₁_forces_iff : ∀ B ∈ A.subfmls, ((r₁ ⊩[_] B) ↔ (r ⊩[_] B))
 
 attribute [instance] StrongReflexiveCountermodel.isFiniteGL
 
@@ -180,7 +180,7 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L]
 
 /-- The Solovay realization: `f(p) := ⋁_{z ⊩ p} Λ z`. -/
 noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realization α 𝔅 :=
-  ⟨fun a ↦ ⩖ i ∈ { i : X.N.World | i ⊩ (.atom a) }, S.Λ i⟩
+  ⟨fun a ↦ ⩖ i ∈ { i : X.N.World | i ⊩[_] (.atom a) }, S.Λ i⟩
 
 /--
   For every world `i` other than the root of the extended model and every subformula
@@ -191,8 +191,8 @@ noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realiza
 -/
 private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
     ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
-      (i ⊩ B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization)) ∧
-      (i ⊮ B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization)) := by
+      (i ⊩[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization)) ∧
+      (i ⊮[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization)) := by
   haveI := X.isFiniteGL;
   haveI hN : (X.extendRoot 1).IsFiniteGL := inferInstance;
   haveI : IsTrans X.N.World X.N.Rel := hN.toIsTrans;
@@ -247,10 +247,10 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
         subst hir;
         apply C!_trans S.SC3r;
         apply 𝔅.mono';
-        have hrB : X.rN ⊩ B := by
-          have h₁ : X.r ⊩ (□B) 🡒 B := Model.World.forces_fconj.mp X.r_reflexive _
+        have hrB : X.rN ⊩[X.N.toModel] B := by
+          have h₁ : X.r ⊩[X.toModel] (□B) 🡒 B := Model.World.forces_fconj.mp X.r_reflexive _
             (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hBox));
-          have h₂ : X.r ⊩ □B := same_forces_embed.mp h;
+          have h₂ : X.r ⊩[X.toModel] □B := same_forces_embed.mp h;
           exact same_forces_embed.mpr (h₁ h₂);
         apply left_A!_intro;
         . exact (ihB rN_ne_root hBm).1 hrB;
@@ -270,7 +270,7 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
       obtain ⟨j, Rij, hB⟩ := Model.World.not_forces_box.mp h;
       -- If the only refuting successor is `r` itself, replace it by the twin `r₁`.
       obtain ⟨j', Rij', hB', hj'r⟩ :
-          ∃ j' : X.N.World, i ≺ j' ∧ j' ⊮ B ∧ j' ≠ X.rN := by
+          ∃ j' : X.N.World, i ≺ j' ∧ j' ⊮[X.N.toModel] B ∧ j' ≠ X.rN := by
         by_cases hjr : j = X.rN;
         . subst hjr;
           use embed X.r₁;
@@ -291,11 +291,11 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
       exact C!_trans (S.SC2 i j' Rij' hj'r) this;
 
 theorem mainlemma {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊩ B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization) :=
+    (hB : B ∈ A.subfmls) : i ⊩[_] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization) :=
   (mainlemma_aux hi hB).1
 
 theorem mainlemma_neg {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊮ B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization) :=
+    (hB : B ∈ A.subfmls) : i ⊮[_] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization) :=
   (mainlemma_aux hi hB).2
 
 

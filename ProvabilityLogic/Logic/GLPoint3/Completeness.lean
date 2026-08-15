@@ -167,9 +167,9 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   A ∈ LogicGLPoint3,
   ⊢ᵍ[GLPoint3] (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩ A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A,
   ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGLPoint3] → M ⊧ A,
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩ A
+  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
 ].TFAE := by
   tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
   tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
@@ -209,7 +209,7 @@ finite rooted linear GL model.
 -/
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩ A :=
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 3
 
 theorem iff_forces_concrete [DecidableEq α] {A : Formula α} :
@@ -219,31 +219,31 @@ theorem iff_forces_concrete [DecidableEq α] {A : Formula α} :
 
 theorem iff_forces_root_concrete [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩ A :=
+  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
 /-- A rooted concrete (`Fin n`-indexed) finite `GL.3`-model witnessing `A` not forced at its root
 shows `A` is not a `GL.3`-theorem. -/
 theorem not_mem_of_concrete_root_not_forces [DecidableEq α] {A : Formula α} {n : ℕ} [NeZero n]
-    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : M.root.1 ⊮ A) : A ∉ LogicGLPoint3 :=
+    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : M.root.1 ⊮[_] A) : A ∉ LogicGLPoint3 :=
   fun hA => h <| iff_forces_root_concrete.mp hA n M
 
 /-- If `A` is a `GL.3`-theorem, it is forced at the root of every rooted concrete finite
 `GL.3`-model. -/
 theorem concrete_root_forces_of_mem [DecidableEq α] {A : Formula α} {n : ℕ} [NeZero n]
-    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) : M.root.1 ⊩ A :=
+    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) : M.root.1 ⊩[_] A :=
   iff_forces_root_concrete.mp h n M
 
 /-- A concrete finite `GL.3`-model with a world not forcing `A` shows `A` is not a
 `GL.3`-theorem. -/
 theorem not_mem_of_concrete_not_forces [DecidableEq α] {A : Formula α} {n : ℕ} [NeZero n]
-    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] {x : M.World} (h : x ⊮ A) : A ∉ LogicGLPoint3 :=
+    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] {x : M.World} (h : x ⊮[M] A) : A ∉ LogicGLPoint3 :=
   fun hA => h <| iff_forces_concrete.mp hA n M x
 
 /-- If `A` is a `GL.3`-theorem, it is forced at every world of every concrete finite
 `GL.3`-model. -/
 theorem concrete_forces_of_mem [DecidableEq α] {A : Formula α} {n : ℕ} [NeZero n]
-    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) (x : M.World) : x ⊩ A :=
+    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) (x : M.World) : x ⊩[M] A :=
   iff_forces_concrete.mp h n M x
 
 end LogicGLPoint3

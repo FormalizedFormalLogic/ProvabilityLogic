@@ -1,7 +1,7 @@
 module
 
 public import ProvabilityLogic.Logic.GL.Basic
-meta import ProvabilityLogic.Logic.GL.Basic -- shake: keep
+meta import ProvabilityLogic.Logic.GL.Basic
 
 @[expose]
 public section
@@ -86,15 +86,15 @@ theorem weakPoint3_dichotomy :
   obtain ⟨z, hxz, hzB⟩ := forces_dia.mp hAB'.2;
   rcases forces_or.mp h with h1 | h2;
   · have hz := forces_box.mp h1 z hxz;
-    by_cases hzA : z ⊩ A;
+    by_cases hzA : z ⊩[_] A;
     · exact forces_or.mpr (Or.inl (forces_or.mpr (Or.inl
         (forces_dia.mpr ⟨z, hxz, forces_and.mpr ⟨hzA, hzB⟩⟩))));
-    · have hnbd : ¬ z ⊩ (⊡(∼A)) := by
+    · have hnbd : ¬ z ⊩[_] (⊡(∼A)) := by
         intro hc;
         rcases forces_imp.mp hz with hc' | hb;
         · exact hc' hc;
         · exact absurd hzB (forces_neg.mp hb);
-      obtain ⟨w, hzw, hwA⟩ : ∃ w, z ≺ w ∧ w ⊩ A := by
+      obtain ⟨w, hzw, hwA⟩ : ∃ w, z ≺ w ∧ w ⊩[_] A := by
         by_contra hcon;
         push Not at hcon;
         exact hnbd (forces_boxdot.mpr
@@ -102,15 +102,15 @@ theorem weakPoint3_dichotomy :
       exact forces_or.mpr (Or.inr (forces_dia.mpr
         ⟨z, hxz, forces_and.mpr ⟨hzB, forces_dia.mpr ⟨w, hzw, hwA⟩⟩⟩));
   · have hy := forces_box.mp h2 y hxy;
-    by_cases hyB : y ⊩ B;
+    by_cases hyB : y ⊩[_] B;
     · exact forces_or.mpr (Or.inl (forces_or.mpr (Or.inl
         (forces_dia.mpr ⟨y, hxy, forces_and.mpr ⟨hyA, hyB⟩⟩))));
-    · have hnbd : ¬ y ⊩ (⊡(∼B)) := by
+    · have hnbd : ¬ y ⊩[_] (⊡(∼B)) := by
         intro hc;
         rcases forces_imp.mp hy with hc' | hb;
         · exact hc' hc;
         · exact absurd hyA (forces_neg.mp hb);
-      obtain ⟨w, hyw, hwB⟩ : ∃ w, y ≺ w ∧ w ⊩ B := by
+      obtain ⟨w, hyw, hwB⟩ : ∃ w, y ≺ w ∧ w ⊩[_] B := by
         by_contra hcon;
         push Not at hcon;
         exact hnbd (forces_boxdot.mpr
