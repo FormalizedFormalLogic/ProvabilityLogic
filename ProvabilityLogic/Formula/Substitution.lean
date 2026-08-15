@@ -133,6 +133,9 @@ notation:95 A "⟦" p " ↦ " B "⟧" => Formula.subst (Formula.Substitution.sin
 
 @[simp, grind =] lemma subst_single_atom_of_ne (h : a ≠ p) : (#a)⟦p ↦ B⟧ = #a := by simp [h]
 
+/-- Substituting `p` for itself is the identity. -/
+@[simp, grind =] lemma subst_single_self : A⟦p ↦ #p⟧ = A := subst_eq_self_of_forall_atoms (by grind)
+
 lemma subst_single_eq_self_of_not_mem_atoms (h : p ∉ A.atoms) : A⟦p ↦ B⟧ = A := by
   induction A <;> grind [atoms]
 
