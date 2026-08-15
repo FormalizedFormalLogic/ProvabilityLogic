@@ -18,8 +18,7 @@ statement `∼□^[n]⊥`. This file develops:
   iff `GL` proves `∼□^[n]⊥ 🡒 A` for some `n`;
 - ω-model completeness, `LogicA.iff_provable_forces_graftOmega_root`, where the ω-models
   are the models `M.graftOmega a` built from finite rooted `GL` models;
-- `LogicA_ssubset_LogicD`: `LogicA` is a proper sublogic of Dzhaparidze's `LogicD`, the
-  axiom `D` being refuted on a finite chain.
+- `LogicA_ssubset_LogicD`: `LogicA` is a proper sublogic of Dzhaparidze's `LogicD`.
 -/
 
 @[expose]
@@ -43,11 +42,9 @@ protected inductive substlessTBB : Logic α
 
 variable {A : Formula α}
 
-/-- Every theorem of `LogicGL` is a theorem of `LogicA`. -/
 @[grind →]
 lemma provable_of_provable_GL (h : A ∈ LogicGL) : A ∈ LogicA := Logic.sumQuasiNormal.mem₁ h
 
-/-- Every instance `TBB n` of the axiom scheme is a theorem of `LogicA`. -/
 lemma provable_axiomTBB (n : ℕ) : (TBB n : Formula α) ∈ LogicA :=
   Logic.sumQuasiNormal.mem₂ ⟨TBB n, ⟨n, by simp, rfl⟩, by simp⟩
 
@@ -104,7 +101,6 @@ end
 
 variable [DecidableEq α] {A B : Formula α} {n : ℕ}
 
-/-- `LogicA` proves the iterated consistency statement `∼□^[n]⊥` for every `n`. -/
 lemma provable_neg_boxItr_bot : ∼□^[n]⊥ ∈ @LogicA α := by
   induction n with
   | zero =>
@@ -281,9 +277,8 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
 
 /--
   ω-model completeness of `LogicA`: provability, the deduction-theorem form
-  `GL ⊢ ∼□^[n]⊥ 🡒 A`, and forcing at the root of every ω-model are equivalent. The
-  ω-models are realized as `M.graftOmega a` for finite rooted `GL` models `M` and points
-  `a` above the root.
+  `GL ⊢ ∼□^[n]⊥ 🡒 A`, and forcing at the root of every ω-model `M.graftOmega a` (for finite
+  rooted `GL` models `M` and points `a` above the root) are equivalent.
 
   - [Bek90, Lemma 5]
 -/
@@ -330,13 +325,7 @@ theorem iff_provable_forces_graftOmega_root :
 
 end LogicA
 
-/--
-  `LogicA` (Artemov's `GLαω`) is contained in `LogicD`: by the deduction-theorem
-  characterization every theorem of `LogicA` follows in `LogicGL` from some iterated
-  consistency statement `∼□^[n]⊥`, and `LogicD` proves all of those; a routine consequence
-  of the axiomatizations of `LogicA` and `LogicD` rather than a numbered result cited from a
-  specific source.
--/
+/-- `LogicA` is contained in `LogicD`; folklore, with no source cited. -/
 theorem LogicA_subset_LogicD [DecidableEq α] : (LogicA : Logic α) ⊆ LogicD := by
   intro A hA;
   obtain ⟨n, h⟩ := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp hA;
@@ -351,17 +340,10 @@ open Model Model.World
 
 variable {a : α} {n : ℕ}
 
-/-- The single point immediately below the root, at which `a` is false. -/
 abbrev axiomDCountermodel.bad (n : ℕ) : Fin (n + 2) := ⟨1, by omega⟩
 
-/--
-  The chain `0 ≺ 1 ≺ ⋯ ≺ n + 1` on `Fin (n + 2)`, refuting axiom `D` at `A = B = #a`:
-  `a` is false exactly at the single point immediately below the root
-  (`axiomDCountermodel.bad n`) and true everywhere else. Every point other than the root
-  therefore forces `□a` — its successors, if any, all lie strictly below that point — so the
-  root forces the antecedent `□(□a ⋎ □a)`, while the root itself sees that point directly
-  and hence refutes the consequent `□a ⋎ □a`.
--/
+/-- The chain `0 ≺ 1 ≺ ⋯ ≺ n + 1` on `Fin (n + 2)`, with `a` false exactly at
+`axiomDCountermodel.bad n` and true everywhere else. -/
 abbrev axiomDCountermodel (n : ℕ) (_a : α) : RootedModel (Fin (n + 2)) α where
   Rel' := (· < ·)
   Val' x _ := x ≠ axiomDCountermodel.bad n
@@ -374,36 +356,27 @@ instance : (axiomDCountermodel n a).IsFiniteGL where
   finite := inferInstance
 instance : (axiomDCountermodel n a).IsGL := Model.instIsGLOfIsFiniteGL
 
-/-- The rank of a point is its distance to the endpoint of the chain: the frame is that of
-`finiteLineModel (n + 1)`, only the valuation differing. -/
 lemma rank_eq (x : (axiomDCountermodel n a).World) : x.rank = (n + 1) - x :=
   finiteLineModel.rank_eq (n := n + 1) x
 
-/-- The root of the chain has rank `n + 1`. -/
 lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
   simpa using rank_eq (a := a) (axiomDCountermodel n a).root.1;
 
-/-- Every point other than the root forces `□a`: all of its successors lie strictly below
-`bad n`, hence none of them is `bad n` itself. -/
 lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < x) :
   x ⊩ (□(#a) : Formula α) := by grind
 
-/-- The root fails `□a`: it sees `bad n` directly, at which `a` is false. -/
 lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩ (□(#a) : Formula α) :=
   Model.World.not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
-/-- The root fails the consequent `□a ⋎ □a` of axiom `D` at `A = B = a`. -/
 lemma root_not_forces_axiomD_consequent :
   ¬(axiomDCountermodel n a).root.1 ⊩ ((□(#a) : Formula α) ⋎ □(#a)) :=
   Model.World.not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
 
-/-- The root forces the antecedent `□(□a ⋎ □a)` of axiom `D` at `A = B = a`. -/
 lemma root_forces_axiomD_antecedent :
   (axiomDCountermodel n a).root.1 ⊩ (□((□(#a) : Formula α) ⋎ □(#a))) :=
   Model.World.forces_box.mpr fun _ hy =>
     Model.World.forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
 
-/-- The root forces `∼□^[n]⊥`, since it has rank `n + 1`. -/
 lemma root_forces_neg_boxItr_bot :
   (axiomDCountermodel n a).root.1 ⊩ (∼(□^[n]⊥) : Formula α) := by
   apply Model.World.forces_neg.mpr;
@@ -414,12 +387,8 @@ lemma root_forces_neg_boxItr_bot :
 
 end axiomDCountermodel
 
-/--
-  Axiom `D` (`□(□A ⋎ □B) 🡒 (□A ⋎ □B)`), specialized to `A = B = #a`, is not a theorem of
-  `LogicA`: for every `n`, `axiomDCountermodel n a` refutes
-  `(∼□^[n]⊥) 🡒 (□(□a ⋎ □a) 🡒 (□a ⋎ □a))` at its root. The countermodel is `ULift`-lifted
-  into the universe `u` of `α`, over which `LogicGL.iff_forces_root` quantifies.
--/
+/-- Axiom `D` (`□(□A ⋎ □B) 🡒 (□A ⋎ □B)`), specialized to `A = B = #a`, is not a theorem of
+`LogicA`. -/
 theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
   ((□((□#a) ⋎ □#a)) 🡒 ((□#a) ⋎ □#a)) ∉ @LogicA α := by
   rw [LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp];
@@ -432,15 +401,11 @@ theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
   · exact axiomDCountermodel.root_not_forces_axiomD_consequent <|
       RootedModel.forces_uLift_root_iff.mp h;
 
-/-- `LogicD` is not contained in `LogicA` (Artemov's `GLαω`), since the axiom `D` is a
-theorem of the former but not of the latter. -/
 theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ LogicA) := by
   intro h;
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
 
-/-- `LogicA` (Artemov's `GLαω`) is a proper sublogic of `LogicD`: the inclusion is strict
-because the axiom `D` is a theorem of `LogicD` only; a routine consequence of the two
-inclusion/refutation lemmas above rather than a numbered result cited from a specific source. -/
+/-- `LogicA` is a proper sublogic of `LogicD`; folklore, with no source cited. -/
 theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD :=
   ⟨LogicA_subset_LogicD, not_LogicD_subset_LogicA (a := default)⟩
 
