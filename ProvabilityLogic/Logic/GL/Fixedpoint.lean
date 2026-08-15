@@ -38,19 +38,19 @@ variable [Nonempty κ] {M : Model κ α} {p q : α} {A B : Formula α}
 
 section
 
-variable {x : M.World} {D E : Formula α}
+variable {x : M.World}
 
-/-- If `D` and `E` are equivalent at `x` and at all worlds above `x`,
-then substituting either of them for `p` gives the same forcing at `x`. Requires transitivity. -/
+/-- If `p` and `q` have the same valuation at `x` and all worlds above `x`,
+then substituting `q` for `p` does not change forcing at `x`. Requires transitivity. -/
 lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) :
-    ∀ x : M.World, (∀ w : M.World, (w = x ∨ x ≺ w) → (w ⊩ D ↔ w ⊩ E)) →
-      (x ⊩ B⟦p ↦ D⟧ ↔ x ⊩ B⟦p ↦ E⟧) := by
+    ∀ x : M.World, (∀ w : M.World, (w = x ∨ x ≺ w) → (M.Val w p ↔ M.Val w q)) →
+      (x ⊩ B⟦p ↦ #q⟧ ↔ x ⊩ B) := by
   induction B with
   | atom a =>
     intro x h
     by_cases hap : a = p
     . subst hap
-      simpa using h x (.inl rfl)
+      simpa [Forces] using (h x (.inl rfl)).symm
     . simp [hap]
   | bot => simp
   | imp A B ihA ihB =>
@@ -61,7 +61,7 @@ lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) 
   | box A ih =>
     intro x h
     simp only [subst_box, forces_box]
-    have hy : ∀ y : M.World, x ≺ y → ∀ w : M.World, (w = y ∨ y ≺ w) → (w ⊩ D ↔ w ⊩ E) := by
+    have hy : ∀ y : M.World, x ≺ y → ∀ w : M.World, (w = y ∨ y ≺ w) → (M.Val w p ↔ M.Val w q) := by
       intro y Rxy w hw
       apply h w
       rcases hw with rfl | h'
@@ -73,11 +73,11 @@ lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) 
     . intro hf y Rxy
       exact (ih y (hy y Rxy)).mpr (hf y Rxy)
 
-/-- If `p` is modalized in `B` and `D`, `E` are equivalent at all worlds strictly above `x`,
-then substituting either of them for `p` gives the same forcing at `x`. -/
+/-- If `p` is modalized in `B` and `p`, `q` agree at all worlds strictly above `x`,
+then substituting `q` for `p` does not change forcing at `x`. -/
 lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula α)
-    (h : ∀ w : M.World, x ≺ w → (w ⊩ D ↔ w ⊩ E)) (hB : B.ModalizedIn p) :
-    x ⊩ B⟦p ↦ D⟧ ↔ x ⊩ B⟦p ↦ E⟧ := by
+    (h : ∀ w : M.World, x ≺ w → (M.Val w p ↔ M.Val w q)) (hB : B.ModalizedIn p) :
+    x ⊩ B⟦p ↦ #q⟧ ↔ x ⊩ B := by
   induction B with
   | atom a =>
     have : a ≠ p := hB
@@ -90,7 +90,7 @@ lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula
     grind
   | box A _ =>
     simp only [subst_box, forces_box]
-    have hy : ∀ y : M.World, x ≺ y → ∀ w : M.World, (w = y ∨ y ≺ w) → (w ⊩ D ↔ w ⊩ E) := by
+    have hy : ∀ y : M.World, x ≺ y → ∀ w : M.World, (w = y ∨ y ≺ w) → (M.Val w p ↔ M.Val w q) := by
       intro y Rxy w hw
       apply h w
       rcases hw with rfl | h'
@@ -123,8 +123,7 @@ lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
       . exact .inr Ryw
       . exact .inr (IsTrans.trans _ _ _ h' Ryw)
     calc M.Val y p ↔ y ⊩ A := (h₁ y hy).symm
-      _ ↔ y ⊩ A⟦p ↦ #q⟧ := by
-        simpa using forces_subst_single_iff_of_agree_succ (D := #p) (E := #q) A hsucc hA
+      _ ↔ y ⊩ A⟦p ↦ #q⟧ := (forces_subst_single_iff_of_agree_succ A hsucc hA).symm
       _ ↔ M.Val y q := h₂ y hy
 
 end
