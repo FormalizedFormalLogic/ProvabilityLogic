@@ -35,6 +35,7 @@ public import ProvabilityLogic.Kripke.Preservation
 public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Kripke.Rank
 public import ProvabilityLogic.Kripke.ReflexiveWorld
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.Simplification
