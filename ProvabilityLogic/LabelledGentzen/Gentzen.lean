@@ -20,7 +20,7 @@ variable {α : Type u} [DecidableEq α]
 
 /-- Translation of a label-free sequent into a labelled sequent: every formula
 is labelled with `z`, and the relational context is empty. -/
-def LogicGL.Sequent.toLabelled (z : Label) (S : Sequent α) : LabelledSequent α :=
+def Sequent.toLabelled (z : Label) (S : Sequent α) : LabelledSequent α :=
   ∅ ⸴ S.ant.image (z ∶ ·) ⟹ˡ S.suc.image (z ∶ ·)
 
 

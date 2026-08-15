@@ -209,21 +209,6 @@ theorem not_provable_empty : ⊬ᵍ[GL] (∅ ⟹ ∅ : Sequent α) := by
 end ProvableGentzen
 
 
-namespace Sequent
-
-variable {S : Sequent α}
-
-structure Saturated (S : Sequent α) where
-  impL : ∀ {A B}, A 🡒 B ∈ S.1 → A ∈ S.2 ∨ B ∈ S.1
-  impR : ∀ {A B}, A 🡒 B ∈ S.2 → A ∈ S.1 ∧ B ∈ S.2
-
-structure Expanded (BS : Sequent α) (S : Sequent α) extends S.Saturated where
-  subset_subfmls : S.1 ∪ S.2 ⊆ BS.subfmls
-  unprovable     : ⊬ᵍ[GL] S
-
-end Sequent
-
-
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
   saturated         : toSequent.Saturated
   subset_subfmls    : toSequent.1 ∪ toSequent.2 ⊆ BS.subfmls

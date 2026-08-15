@@ -400,7 +400,7 @@ lemma not_exists_modalized_equiv_atom [Nontrivial α] :
     have : d ∈ C.atoms := by simpa [Formula.atoms] using hmem;
     exact hqp (Finset.mem_singleton.mp (hAtoms this));
   -- The de Jongh–Sambin fixed point `E` of `∼C`: `GL ⊢ ∼C(E) 🡘 E`.
-  obtain ⟨E, -, hfp⟩ := LogicGL.fixpointTheorem (Ne.symm hqp) hA hq;
+  obtain ⟨E, -, hfp, -⟩ := LogicGL.fixpointTheorem (Ne.symm hqp) hA hq;
   have hSnCE : ((∼(C⟦a ↦ E⟧)) 🡘 E) ∈ LogicS :=
     LogicS.provable_of_provable_GL (by simpa using hfp);
   -- Substituting `a ↦ E` into `S ⊢ C 🡘 a` gives `S ⊢ C(E) 🡘 E`.
