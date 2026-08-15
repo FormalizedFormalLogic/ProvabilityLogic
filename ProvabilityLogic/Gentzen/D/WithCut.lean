@@ -9,7 +9,7 @@ public import ProvabilityLogic.Gentzen.D.Basic
 Like `LogicD.ProofGentzen`, this is a single inductive on `ThreeLayeredSequent`, a `Sequent`
 tagged with a level `l : Fin 3`: `l = 0` is the GL-sequent, `l = 1` is the S-sequent, and
 `l = 2` is the D-sequent. The constructors encode the source's modal rules `(GL□)` (`boxGL`),
-`(GLtoS)` (`liftUp01`), `(S□left)` (`boxL`), and `(StoD)` (`liftUp12`).
+`(GLtoS)` (`liftUp₀₁`), `(S□left)` (`boxL`), and `(StoD)` (`liftUp₁₂`).
 -/
 
 @[expose]
@@ -29,9 +29,9 @@ inductive LogicD.GentzenWithCutProof : ThreeLayeredSequent α → Type u
 | impL {l Γ Δ A B} : GentzenWithCutProof (Γ ⟹[l] (insert A Δ)) → GentzenWithCutProof (insert B Γ ⟹[l] Δ) → GentzenWithCutProof ((insert (A 🡒 B) Γ) ⟹[l] Δ)
 | impR {l Γ Δ A B} : GentzenWithCutProof ((insert A Γ) ⟹[l] (insert B Δ)) → GentzenWithCutProof (Γ ⟹[l] (insert (A 🡒 B) Δ))
 | boxGL {Γ A}      : GentzenWithCutProof ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) → GentzenWithCutProof (Γ.box ⟹[0] {□A})
-| liftUp01 {Γ Δ}   : GentzenWithCutProof (Γ ⟹[0] Δ) → GentzenWithCutProof (Γ ⟹[1] Δ)
+| liftUp₀₁ {Γ Δ}   : GentzenWithCutProof (Γ ⟹[0] Δ) → GentzenWithCutProof (Γ ⟹[1] Δ)
 | boxL {Γ Δ A}     : GentzenWithCutProof (insert A Γ ⟹[1] Δ) → GentzenWithCutProof (insert (□A) Γ ⟹[1] Δ)
-| liftUp12 {Γ Δ : FormulaFinset α} : GentzenWithCutProof (Γ.box ⟹[1] Δ.box) → GentzenWithCutProof (Γ.box ⟹[2] Δ.box)
+| liftUp₁₂ {Γ Δ : FormulaFinset α} : GentzenWithCutProof (Γ.box ⟹[1] Δ.box) → GentzenWithCutProof (Γ.box ⟹[2] Δ.box)
 | cut  {l Γ₁ Γ₂ Δ₁ Δ₂ A} : GentzenWithCutProof (Γ₁ ⟹[l] insert A Δ₁) → GentzenWithCutProof (insert A Γ₂ ⟹[l] Δ₂) → GentzenWithCutProof (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂)
 
 namespace LogicD
@@ -49,9 +49,9 @@ def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]!
 | .impL h₁ h₂ => .impL (GentzenWithCutProof.ofProofGentzen h₁) (GentzenWithCutProof.ofProofGentzen h₂)
 | .impR h     => .impR (GentzenWithCutProof.ofProofGentzen h)
 | .boxGL h    => .boxGL (GentzenWithCutProof.ofProofGentzen h)
-| .liftUp01 h => .liftUp01 (GentzenWithCutProof.ofProofGentzen h)
+| .liftUp₀₁ h => .liftUp₀₁ (GentzenWithCutProof.ofProofGentzen h)
 | .boxL h     => .boxL (GentzenWithCutProof.ofProofGentzen h)
-| .liftUp12 h => .liftUp12 (GentzenWithCutProof.ofProofGentzen h)
+| .liftUp₁₂ h => .liftUp₁₂ (GentzenWithCutProof.ofProofGentzen h)
 
 namespace GentzenWithCutProvable
 
@@ -70,10 +70,10 @@ lemma wkR (h : ⊢ᵍᶜ[D] (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ') : ⊢ᵍᶜ[D] (Γ
 lemma impL (h₁ : ⊢ᵍᶜ[D] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍᶜ[D] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
   ⟨GentzenWithCutProof.impL h₁.some h₂.some⟩
 lemma impR (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍᶜ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
-lemma liftUp01 (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp01 h.some⟩
+lemma liftUp₀₁ (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.liftUp₀₁ h.some⟩
 lemma boxGL (h : ⊢ᵍᶜ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍᶜ[D] (Γ.box ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
 lemma boxL (h : ⊢ᵍᶜ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
-lemma liftUp12 (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍᶜ[D] (Γ.box ⟹[2] Δ.box) := ⟨GentzenWithCutProof.liftUp12 h.some⟩
+lemma liftUp₁₂ (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍᶜ[D] (Γ.box ⟹[2] Δ.box) := ⟨GentzenWithCutProof.liftUp₁₂ h.some⟩
 lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
@@ -91,15 +91,15 @@ lemma rec
   (impR : ∀ {l Γ Δ A B} (h : ⊢ᵍᶜ[D] ((insert A Γ) ⟹[l] (insert B Δ))),
     motive ((insert A Γ) ⟹[l] (insert B Δ)) h → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR h)
   )
-  (liftUp01 : ∀ {Γ Δ} (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp01 h))
+  (liftUp₀₁ : ∀ {Γ Δ} (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp₀₁ h))
   (boxGL : ∀ {Γ A} (h : ⊢ᵍᶜ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
     motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) h → motive (Γ.box ⟹[0] {□A}) (boxGL h)
   )
   (boxL : ∀ {Γ Δ A} (h : ⊢ᵍᶜ[D] (insert A Γ ⟹[1] Δ)),
     motive (insert A Γ ⟹[1] Δ) h → motive (insert (□A) Γ ⟹[1] Δ) (boxL h)
   )
-  (liftUp12 : ∀ {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)),
-    motive (Γ.box ⟹[1] Δ.box) h → motive (Γ.box ⟹[2] Δ.box) (liftUp12 h)
+  (liftUp₁₂ : ∀ {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ.box ⟹[1] Δ.box)),
+    motive (Γ.box ⟹[1] Δ.box) h → motive (Γ.box ⟹[2] Δ.box) (liftUp₁₂ h)
   )
   (cut : ∀ {l Γ₁ Γ₂ Δ₁ Δ₂ A} (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)),
     motive (Γ₁ ⟹[l] insert A Δ₁) h₁ → motive (insert A Γ₂ ⟹[l] Δ₂) h₂ →
