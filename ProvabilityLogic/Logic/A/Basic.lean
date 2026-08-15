@@ -333,7 +333,9 @@ end LogicA
 /--
   `LogicA` (Artemov's `GLαω`) is contained in `LogicD`: by the deduction-theorem
   characterization every theorem of `LogicA` follows in `LogicGL` from some iterated
-  consistency statement `∼□^[n]⊥`, and `LogicD` proves all of those.
+  consistency statement `∼□^[n]⊥`, and `LogicD` proves all of those; a routine consequence
+  of the axiomatizations of `LogicA` and `LogicD` rather than a numbered result cited from a
+  specific source.
 -/
 theorem LogicA_subset_LogicD [DecidableEq α] : (LogicA : Logic α) ⊆ LogicD := by
   intro A hA;
@@ -437,7 +439,8 @@ theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ L
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
 
 /-- `LogicA` (Artemov's `GLαω`) is a proper sublogic of `LogicD`: the inclusion is strict
-because the axiom `D` is a theorem of `LogicD` only. -/
+because the axiom `D` is a theorem of `LogicD` only; a routine consequence of the two
+inclusion/refutation lemmas above rather than a numbered result cited from a specific source. -/
 theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD :=
   ⟨LogicA_subset_LogicD, not_LogicD_subset_LogicA (a := default)⟩
 
