@@ -341,16 +341,41 @@ theorem provability_TFAE [DecidableEq α] :
       (M.toPseudoTail r o).root.1 ⊩ A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩ (⋀A.subfmlsD 🡒 A),
-    (⋀A.subfmlsD 🡒 A) ∈ LogicGL
+    (⋀A.subfmlsD 🡒 A) ∈ LogicGL,
+    ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] → ∀ r o,
+      (M.toPseudoTail r o).root.1 ⊩ A
   ].TFAE := by
   tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsD_imp;
   tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
+  tfae_have 2 → 5 := by
+    intro h n _ M _ r o;
+    exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
+      h (M.reindex (Equiv.ulift (α := Fin n)).symm) ((Equiv.ulift (α := Fin n)).symm r) o;
+  tfae_have 5 → 2 := by
+    intro h κ _ M _ r o;
+    exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
+      h M.card M.toConcrete (Finite.equivFin κ r) o;
   tfae_finish;
 
 theorem iff_provable_D_provable_GL [DecidableEq α] :
     A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+
+/-- `D`-provability is characterized by forcing at the root (ω) of the pseudo-tail models of
+concrete (`Fin n`-indexed) finite `GL`-models. A re-indexing restatement of the pseudo-tail
+characterization, with no counterpart in the literature. -/
+theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] {A : Formula α} :
+    A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] → ∀ r o,
+      (M.toPseudoTail r o).root.1 ⊩ A :=
+  provability_TFAE.out 0 4
+
+/-- A concrete (`Fin n`-indexed) finite `GL`-model whose pseudo-tail model refutes `A` at its
+root (ω) shows `A` is not a `D`-theorem. -/
+theorem not_mem_of_concrete_pseudoTail_root_not_forces [DecidableEq α] {A : Formula α} {n : ℕ}
+    [NeZero n] (M : ConcreteModel n α) [M.IsFiniteGL] (r : M.World) (o : α → Prop)
+    (h : (M.toPseudoTail r o).root.1 ⊮ A) : A ∉ LogicD :=
+  fun hA => h <| iff_forces_pseudoTail_root_concrete.mp hA n M r o
 
 /--
   The existential, contrapositive form of `provability_TFAE`'s clause 2: a formula not
@@ -388,27 +413,13 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
 
 /-- The reflection axiom `T` (`□a 🡒 a` for an atom `a`) is not a theorem of `D`.
 The ProvabilityLogic analogue of `LO.Modal.D.unprovable_T`. -/
-lemma not_provable_axiomT [DecidableEq α] {a : α} : (□(#a) 🡒 #a : Formula α) ∉ LogicD := by
+lemma not_provable_axiomT [DecidableEq α] {a : α} : (□(#a) 🡒 #a : Formula α) ∉ LogicD :=
   -- Counterexample: the pseudo-tail model of the one-point GL model with empty relation
   -- and everywhere-true valuation, with the root (ω) valuation making `a` false. Every
   -- world accessible from the root forces `a`, so the root forces `□a`, yet the root
   -- itself refutes `a`.
-  apply LogicD.provability_TFAE.out 0 1 |>.not.mpr;
-  push Not;
-  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => True⟩;
-  haveI : M.IsFiniteGL :=
-    { trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
-      finite := inferInstance };
-  use PUnit.{u + 1}, inferInstance, M;
-  constructor;
-  · exact {
-      trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
-      finite := inferInstance
-    };
-  · use PUnit.unit, fun _ => False;
-    grind;
+  not_mem_of_concrete_pseudoTail_root_not_forces (Model.pointModel (fun _ => True)) 0
+    (fun _ => False) (by grind)
 
 end LogicD
 

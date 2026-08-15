@@ -126,19 +126,6 @@ lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS)
     exact ⟨max k₁ k₂, fun n hn =>
       h₁ n (le_trans (le_max_left _ _) hn) (h₂ n (le_trans (le_max_right _ _) hn))⟩;
 
-/-- `LogicS` is consistent: `⊥` is not a theorem. -/
-lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
-  intro h;
-  -- A theorem of `S` is eventually forced on the chain of the tail model of any finite GL
-  -- model, but `⊥` is forced nowhere; take the one-point GL model with the empty relation.
-  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => False⟩;
-  haveI : M.IsFiniteGL :=
-    { trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
-      finite := inferInstance };
-  obtain ⟨k, hk⟩ := eventually_forces_tail_nat_of_provable h M PUnit.unit;
-  exact hk k le_rfl;
-
 /-- From eventual forcing along the tail-model chain, the root of any finite rooted GL model
 forces `⋀A.subfmlsS 🡒 A`. -/
 lemma root_forces_subfmlsS_imp [DecidableEq α]
@@ -229,7 +216,9 @@ theorem provability_TFAE [DecidableEq α] : [
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩ (⋀A.subfmlsS 🡒 A),
     (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
-    ⊢ᵍ[S] (∅ ⟹[1] {A})
+    ⊢ᵍ[S] (∅ ⟹[1] {A}),
+    ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] → ∀ (tail : M.World),
+      ∃ k : ℕ, ∀ m : ℕ, k ≤ m → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint m) A
   ].TFAE := by
   tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsS_imp;
@@ -237,10 +226,37 @@ theorem provability_TFAE [DecidableEq α] : [
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
   tfae_have 4 → 5 := provableGentzen_of_GL_provable;
   tfae_have 5 → 2 := eventually_forces_tail_nat_of_provableGentzen;
+  tfae_have 2 → 6 := by
+    intro h n _ M _ tail;
+    obtain ⟨k, hk⟩ :=
+      h (M.reindex (Equiv.ulift (α := Fin n)).symm) ((Equiv.ulift (α := Fin n)).symm tail);
+    exact ⟨k, fun m hm => Model.forces_toTail_reindex_chainPoint_iff.mp (hk m hm)⟩;
+  tfae_have 6 → 2 := by
+    intro h κ _ M _ tail;
+    obtain ⟨k, hk⟩ := h M.card M.toConcrete (Finite.equivFin κ tail);
+    exact ⟨k, fun m hm => Model.forces_toTail_reindex_chainPoint_iff.mp (hk m hm)⟩;
   tfae_finish;
 
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+
+/-- `S`-provability is characterized by eventual forcing along the chain of the tail models of
+concrete (`Fin n`-indexed) finite `GL`-models. A re-indexing restatement of the tail-model
+characterization, with no counterpart in the literature. -/
+theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
+    A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] →
+      ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
+        Forces (M := (M.toTail tail).toModel) (toTail.chainPoint m) A :=
+  provability_TFAE.out 0 5
+
+/-- `LogicS` is consistent: `⊥` is not a theorem. -/
+lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
+  intro h;
+  -- A theorem of `S` is eventually forced on the chain of the tail model of any finite GL
+  -- model, but `⊥` is forced nowhere; take the one-point GL model with the empty relation.
+  obtain ⟨k, hk⟩ :=
+    iff_eventually_forces_tail_nat_concrete.mp h 1 (Model.pointModel (fun _ => False)) 0;
+  exact hk k le_rfl;
 
 /--
   `S ⊢ A` iff the level-`1` sequent `∅ ⟹[1] {A}` is provable in `LogicS.ProofGentzen`,
