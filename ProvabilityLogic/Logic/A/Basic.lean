@@ -309,6 +309,16 @@ theorem iff_provable_forces_graftOmega_root :
 
 end LogicA
 
+/--
+  `LogicA` (Artemov's `GLαω`) is contained in `LogicD`: by the deduction-theorem
+  characterization every theorem of `LogicA` follows in `LogicGL` from some iterated
+  consistency statement `∼□^[n]⊥`, and `LogicD` proves all of those.
+-/
+theorem LogicA_subset_LogicD [DecidableEq α] : (LogicA : Logic α) ⊆ LogicD := by
+  intro A hA;
+  obtain ⟨n, h⟩ := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp hA;
+  exact Logic.sumQuasiNormal.mdp (LogicD.provable_of_provable_GL h) LogicD.provable_neg_boxItr_bot;
+
 
 section axiomD
 
@@ -401,6 +411,12 @@ since `LogicA.not_provable_axiomD` shows axiom `D` is not a theorem of `LogicA`.
 theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ LogicA) := by
   intro h;
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
+
+/-- `LogicA` (Artemov's `GLαω`) is a proper sublogic of `LogicD`: it is contained in `LogicD`
+(`LogicA_subset_LogicD`), since `LogicD` proves every iterated consistency statement
+`∼□^[n]⊥`, but it does not prove the axiom `D`, which `LogicD` does. -/
+theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD := by
+  sorry
 
 end axiomD
 
