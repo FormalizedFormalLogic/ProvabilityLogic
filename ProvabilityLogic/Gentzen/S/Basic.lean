@@ -9,20 +9,14 @@ open LogicGL
 
 variable {α : Type u} [DecidableEq α]
 
-/--
-  A `Sequent` layered with a level `l : Fin 2`, as used by the two-level sequent calculus
-  `LogicS.ProofGentzen`.
--/
+/-- A `Sequent` with a level `l : Fin 2`, used in the two-level sequent calculus for `S`. -/
 structure TwoLayeredSequent (α : Type u) extends Sequent α where
   level : Fin 2
 notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
 
 /--
-  Sequent calculus for the logic `S` (also called `GLSseq` in the literature, or `𝗚𝐒` in PLPL §2),
-  formulated with a single sequent relation `Γ ⟹[l] Δ` indexed by a level `l : Fin 2`. `l = 0` is
-  the level-1 (GL) sequent, coinciding with `LogicGL.ProofGentzen`; `l = 1` is
-  the level-2 (S) sequent, obtained from the level-1 one by additionally allowing the reflexivity
-  rule `boxL`.
+  Sequent calculus for the logic `S` with levels `l : Fin 2`.
+  Level `0` matches `LogicGL.ProofGentzen`; level `1` adds the reflexivity rule `boxL`.
 
   - [KK23, "GLSseq"]
 -/
@@ -39,16 +33,12 @@ inductive LogicS.ProofGentzen : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped notation:120 "⊢ᵍ[S]! " Seq:121 => ProofGentzen Seq
+scoped prefix:120 "⊢ᵍ[S]! " => ProofGentzen
 
 abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍ[S]! S)
-scoped notation:120 "⊢ᵍ[S] " Seq:121 => ProvableGentzen Seq
+scoped prefix:120 "⊢ᵍ[S] " => ProvableGentzen
 
-/--
-  `LogicS.ProofGentzen` at level `0` coincides syntactically with the plain (level-independent)
-  `ProofGentzen` for `GL`: every rule available for a level-`0` conclusion is exactly a rule of
-  `ProofGentzen`, and `liftUp`/`boxL` can never conclude a level-`0` sequent.
--/
+/-- Embed a level-0 `LogicGL` proof into level-0 `LogicS`. -/
 def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[S]! (Γ ⟹[0] Δ)
 | .axm A    => .axm 0 A
 | .botL     => .botL 0
@@ -58,7 +48,7 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢�
 | .impR h   => .impR (ofProofGentzen h)
 | .boxGL h  => .boxGL (ofProofGentzen h)
 
-/-- The converse translation, by structural recursion on level-`0` `LogicS.ProofGentzen`-proofs. -/
+/-- Extract a level-0 `LogicGL` proof from level-0 `LogicS`. -/
 def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
 | .axm 0 A    => .axm A
 | .botL 0     => .botL
@@ -88,10 +78,6 @@ lemma liftUp (π : ⊢ᵍ[S] (Γ ⟹[0] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) := ⟨Pr
 lemma boxGL (π : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[S] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
 lemma boxL (π : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[S] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
 
-/--
-  Induction principle for `LogicS.ProvableGentzen` at the `Prop` level, mirroring
-  `ProvabilityLogic.Gentzen.ProvableGentzen.rec` for the (level-free) `GL` calculus.
--/
 @[induction_eliminator]
 lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍ[S] S → Prop}
@@ -117,16 +103,15 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-scoped prefix:120 "⊬ᴳ " => λ S => ¬⊢ᵍ[S] S
+scoped prefix:120 "⊬ᵍ[S] " => (¬ ProvableGentzen ·)
 
-lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᴳ S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
+lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᵍ[S] S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
   simp [ProvableGentzen];
 
 /-- Initial sequents with side formulas, at any level. -/
 lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
-/-- `Sequent`-shaped variant of `LogicS.ProvableGentzen.union`. -/
 lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[S] (S.ant ⟹[l] S.suc) :=
   union l A hΓ hΔ
 
@@ -134,8 +119,7 @@ lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grin
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
-/-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then so is the level-`0` one. -/
-lemma not_provable_zero_of_not_provable_one : ⊬ᴳ (Γ ⟹[1] Δ) → ⊬ᴳ (Γ ⟹[0] Δ) := by
+lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[S] (Γ ⟹[1] Δ) → ⊬ᵍ[S] (Γ ⟹[0] Δ) := by
   contrapose!;
   apply liftUp;
 
@@ -143,15 +127,13 @@ end ProvableGentzen
 
 open ProvableGentzen
 
-/-- If a level-`1` sequent is `LogicS.ProvableGentzen`-unprovable then the plain sequent is `ProvableGentzen`-unprovable. -/
-lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᴳ (Γ ⟹[1] Δ)) : ⊬ᵍ[GL] (Γ ⟹ Δ) :=
+lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[S] (Γ ⟹[1] Δ)) : ⊬ᵍ[GL] (Γ ⟹ Δ) :=
   λ hp => ProvableGentzen.not_provable_zero_of_not_provable_one h (iff_provableGentzen_provable_zero.mp hp)
 
 end LogicS
 
 /--
-  `LogicS.ProofGentzen` extended with a level-preserving cut rule (called `Cut^l_l` in PLPL §2).
-  This is the "with cut" calculus alongside which `LogicS.ProofGentzen` is cut-free.
+  `LogicS.ProofGentzen` with a level-preserving cut rule.
 
   - [KK23]
 -/
@@ -169,12 +151,11 @@ inductive LogicS.GentzenWithCutProof : TwoLayeredSequent α → Type u
 
 namespace LogicS
 
-scoped notation:120 "⊢ᵍᶜ[S]! " Seq:121 => GentzenWithCutProof Seq
+scoped prefix:120 "⊢ᵍᶜ[S]! " => GentzenWithCutProof
 
 abbrev GentzenWithCutProvable (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍᶜ[S]! S)
-scoped notation:120 "⊢ᵍᶜ[S] " Seq:121 => GentzenWithCutProvable Seq
+scoped prefix:120 "⊢ᵍᶜ[S] " => GentzenWithCutProvable
 
-/-- Every `LogicS.ProofGentzen`-proof is in particular a `LogicS.GentzenWithCutProof`-proof. -/
 def GentzenWithCutProof.ofProofGentzen {S : TwoLayeredSequent α} : ⊢ᵍ[S]! S → ⊢ᵍᶜ[S]! S
 | .axm l A    => .axm l A
 | .botL l     => .botL l
@@ -191,8 +172,7 @@ namespace GentzenWithCutProvable
 variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
 /--
-  Cut-free provability of `LogicS.ProofGentzen` implies provability of the with-cut calculus
-  `LogicS.GentzenWithCutProof` (a fortiori, adding the cut rule can only add proofs).
+  Cut-free `LogicS` provability implies `LogicS.GentzenWithCutProof` provability.
 
   - [KK23, Theorem 3.1]
 -/
@@ -211,10 +191,6 @@ lemma boxL (h : ⊢ᵍᶜ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[S] (insert (�
 lemma cut (h₁ : ⊢ᵍᶜ[S] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[S] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[S] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
-/--
-  Induction principle for `LogicS.GentzenWithCutProvable` at the `Prop` level, mirroring
-  `ProvabilityLogic.Gentzen.GL.WithCut.GentzenWithCutProvable.rec` for the (level-free) `GL` calculus.
--/
 @[induction_eliminator]
 lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍᶜ[S] S → Prop}
