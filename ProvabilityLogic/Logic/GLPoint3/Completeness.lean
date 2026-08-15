@@ -181,6 +181,11 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
     exact Model.toRootedModel.forces_same_at_root.mp (h (M.toRootedModel x));
   tfae_finish;
 
+theorem iff_forces [DecidableEq α] {A : Formula α} :
+  A ∈ LogicGLPoint3 ↔
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A :=
+  provability_TFAE.out 0 2
+
 /--
 A formula is a theorem of `LogicGLPoint3` iff it is forced at the root of every
 finite rooted linear GL model.
@@ -189,6 +194,31 @@ theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩ A :=
   provability_TFAE.out 0 3
+
+/-- A rooted `Fin n`-indexed finite `GL.3`-model witnessing `A` not forced at its root shows `A`
+is not a `GL.3`-theorem. The `ULift` needed to move the model into `Type u` is handled
+internally, so the caller may hand in a concrete `Fin n`-indexed countermodel directly. -/
+theorem not_mem_of_root_not_forces [DecidableEq α] {A : Formula α} {n : ℕ+}
+    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : M.root.1 ⊮ A) : A ∉ LogicGLPoint3 :=
+  fun hA => h <| RootedModel.forces_uLift_root_iff.mp <| iff_forces_root.mp hA M.uLift.{u}
+
+/-- If `A` is a `GL.3`-theorem, it is forced at the root of every rooted `Fin n`-indexed finite
+`GL.3`-model. -/
+theorem root_forces_of_mem [DecidableEq α] {A : Formula α} {n : ℕ+}
+    (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) : M.root.1 ⊩ A :=
+  RootedModel.forces_uLift_root_iff.mp <| iff_forces_root.mp h M.uLift.{u}
+
+/-- A `Fin n`-indexed finite `GL.3`-model with a world not forcing `A` shows `A` is not a
+`GL.3`-theorem. -/
+theorem not_mem_of_not_forces [DecidableEq α] {A : Formula α} {n : ℕ+}
+    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] {x : M.World} (h : x ⊮ A) : A ∉ LogicGLPoint3 :=
+  fun hA => h <| Model.forces_uLift_iff.mp <| iff_forces.mp hA M.uLift.{u} (ULift.up x)
+
+/-- If `A` is a `GL.3`-theorem, it is forced at every world of every `Fin n`-indexed finite
+`GL.3`-model. -/
+theorem forces_of_mem [DecidableEq α] {A : Formula α} {n : ℕ+}
+    (M : Model (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3) (x : M.World) : x ⊩ A :=
+  Model.forces_uLift_iff.mp <| iff_forces.mp h M.uLift.{u} (ULift.up x)
 
 end LogicGLPoint3
 
