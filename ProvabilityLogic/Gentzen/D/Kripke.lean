@@ -466,13 +466,14 @@ end bottomModel
 
 /--
   Cut-free completeness of `LogicD.ProofGentzen` for level-`2` sequents, restricted to
-  constant ω-extensions of `GL`-models — condition `3 ⇒ 2` of `LogicD.semantical_TFAE`.
+  constant ω-extensions of finite `GL`-models — the hypothesis a finite-model countermodel
+  construction can discharge. `completeness` is the corollary for all `GL`-models.
 
   - [KKIM25, Theorem 5.8]
 -/
-theorem completeness {Γ Δ : FormulaFinset α}
+theorem completeness_finite {Γ Δ : FormulaFinset α}
     (h :
-      ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
+      ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
       ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ)
     ) :
     ⊢ᵍ[D] (Γ ⟹[2] Δ) := by
@@ -502,6 +503,20 @@ theorem completeness {Γ Δ : FormulaFinset α}
   obtain ⟨D, hD, hfD⟩ :=
     hle (fun C hC => (bottomModel.truthlemma_root U T.boxL_closed hant hsuc).1 (hsubU.1 hC));
   exact (bottomModel.truthlemma_root U T.boxL_closed hant hsuc).2 (hsubU.2 hD) hfD;
+
+/--
+  Cut-free completeness of `LogicD.ProofGentzen` for level-`2` sequents, restricted to
+  constant ω-extensions of `GL`-models — condition `3 ⇒ 2` of `LogicD.semantical_TFAE`.
+
+  - [KKIM25, Theorem 5.8]
+-/
+theorem completeness {Γ Δ : FormulaFinset α}
+    (h :
+      ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
+      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ)
+    ) :
+    ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
+  completeness_finite (fun M _ tail o => h M tail o)
 
 end ProvableGentzen.Kripke
 

@@ -2,6 +2,7 @@ module
 
 public import ProvabilityLogic.Logic.S.Basic
 public import ProvabilityLogic.Kripke.PseudoTail
+public import ProvabilityLogic.Gentzen.D.Kripke
 
 @[expose]
 public section
@@ -318,7 +319,14 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   exact h₂ ((transport A (by grind)).mp hA);
 
 
-/-- Characterization of `Logic D` in terms of `GL`. -/
+/--
+  Characterization of `Logic D` in terms of `GL`, together with cut-free provability of `A`
+  in the level-`2` sequent calculus for `D` (`LogicD.ProofGentzen`). The latter equivalence is
+  `[KKIM25]`'s Proposition 3.6, obtained here semantically, via the cut-elimination of
+  `ProvabilityLogic.Gentzen.D.Kripke`, rather than the syntactic argument of the source.
+
+  - [KKIM25, Proposition 3.6]
+-/
 theorem provability_TFAE [DecidableEq α] :
   -- Proved semantically via pseudo-tail models.
   [
@@ -327,12 +335,21 @@ theorem provability_TFAE [DecidableEq α] :
       (M.toPseudoTail r o).root.1 ⊩ A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩ (⋀A.subfmlsD 🡒 A),
-    (⋀A.subfmlsD 🡒 A) ∈ LogicGL
+    (⋀A.subfmlsD 🡒 A) ∈ LogicGL,
+    ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {A})
   ].TFAE := by
   tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsD_imp;
   tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
   tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
+  tfae_have 2 → 5 := fun h =>
+    ProvableGentzen.Kripke.completeness_finite
+      (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL] tail o =>
+        Model.World.forces_singleton_sequent.mpr (h M tail o));
+  tfae_have 5 → 2 := by
+    intro h κ _ M _ r o;
+    exact Model.World.forces_singleton_sequent.mp
+      (GentzenWithCutProvable.soundness (GentzenWithCutProvable.of_without_cut h) M _);
   tfae_finish;
 
 theorem iff_provable_D_provable_GL [DecidableEq α] :
