@@ -57,7 +57,46 @@ namespace GentzenWithCutProvable
 theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.level = 2) :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (V : ℕ∞ → α → Prop),
     (M.toFreeTail V).root.1 ⊩ S.toSequent := by
-  sorry
+  revert hl;
+  induction h using LogicD.GentzenWithCutProvable.rec with
+  | axm l A => intro _ κ _ M _ V; exact Model.World.forces_sequent_axm;
+  | botL l => intro _ κ _ M _ V; exact Model.World.forces_sequent_botL;
+  | wkL h h' ih => intro hl κ _ M _ V; exact Model.World.forces_sequent_wkL (ih hl M V) h';
+  | wkR h h' ih => intro hl κ _ M _ V; exact Model.World.forces_sequent_wkR (ih hl M V) h';
+  | impL h₁ h₂ ih₁ ih₂ =>
+    intro hl κ _ M _ V;
+    exact Model.World.forces_sequent_impL (ih₁ hl M V) (ih₂ hl M V);
+  | impR h ih => intro hl κ _ M _ V; exact Model.World.forces_sequent_impR (ih hl M V);
+  | liftUp₀₁ h ih => intro hl; exact absurd (show (1 : Fin 3) = 2 from hl) (by decide);
+  | boxGL h ih => intro hl; exact absurd (show (0 : Fin 3) = 2 from hl) (by decide);
+  | boxL h ih => intro hl; exact absurd (show (1 : Fin 3) = 2 from hl) (by decide);
+  | liftUp₁₂ h₁ ih =>
+    rename_i Γ Δ;
+    intro _ κ _ M _ V hΓ;
+    have hS := toGentzenWithCutProvableS h₁;
+    obtain ⟨X, hX⟩ := LogicS.GentzenWithCutProvable.soundness hS;
+    have hw : ∀ n : ℕ, (toFreeTail.chainPoint ((n + 1 : ℕ) : ℕ∞) : (M.toFreeTail V).World) ≺
+        toFreeTail.chainPoint ((n : ℕ) : ℕ∞) :=
+      fun n => toFreeTail.rel_chainPoint_chainPoint.mpr (by exact_mod_cast Nat.lt_succ_self n);
+    obtain ⟨i, hi⟩ :=
+      eventually_forces_of_exists_isReflexive_forces
+        (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsGL] => ⟨X, hX M⟩)
+        (M.toFreeTail V).toModel (fun n => toFreeTail.chainPoint (n : ℕ∞)) hw;
+    have hΓ' : ∀ n : ℕ, ∀ C ∈ □Γ,
+        Model.World.Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (n : ℕ∞)) C := by
+      intro n C hC;
+      obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC;
+      exact toFreeTail.forces_box_of_root_forces_box (hΓ _ hC);
+    obtain ⟨D, hD, hfreq⟩ :=
+      exists_mem_forall_exists_ge (Γ' := □Δ)
+        (P := fun D j => Model.World.Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (j : ℕ∞)) D)
+        (i := i) (fun j hj => hi j hj (hΓ' j));
+    obtain ⟨D₀, hD₀, rfl⟩ := Finset.mem_image.mp hD;
+    exact ⟨□D₀, Finset.mem_image.mpr ⟨D₀, hD₀, rfl⟩,
+      toFreeTail.root_forces_box_of_frequently_chainPoint_forces hfreq⟩;
+  | cut h₁ h₂ ih₁ ih₂ =>
+    intro hl κ _ M _ V;
+    exact Model.World.forces_sequent_cut (ih₁ hl M V) (ih₂ hl M V);
 
 /--
   Soundness of `LogicD.GentzenWithCutProof` for level-`2` sequents `Γ ⟹[2] Δ`, against the
@@ -67,8 +106,8 @@ theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.
 -/
 theorem soundness {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (V : ℕ∞ → α → Prop),
-    (M.toFreeTail V).root.1 ⊩ (Γ ⟹ Δ) := by
-  sorry
+    (M.toFreeTail V).root.1 ⊩ (Γ ⟹ Δ) :=
+  soundness_aux h rfl
 
 end GentzenWithCutProvable
 
