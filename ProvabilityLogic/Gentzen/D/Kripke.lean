@@ -357,8 +357,8 @@ variable {t : ExpandedSequent BS} {o : α → Prop} {A : Formula α}
 -/
 lemma forces_embed_iff {x : (countermodelOf BS)↾t} :
     Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.embed x) A ↔
-    Model.World.Forces (M := countermodelOf BS) x.1 A := by
-  sorry
+    Model.World.Forces (M := countermodelOf BS) x.1 A :=
+  toPseudoTail.forces_inl.trans Model.toRootedModel.forces_same_at_cone_point
 
 /--
   Truth lemma for the chain part of `bottomModel`: provided the antecedent of `t` is
