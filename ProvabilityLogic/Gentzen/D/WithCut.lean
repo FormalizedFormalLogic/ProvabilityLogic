@@ -15,6 +15,7 @@ tagged with a level `l : Fin 3`: `l = 0` is the GL-sequent, `l = 1` is the S-seq
 @[expose]
 public section
 
+open scoped LogicS
 open scoped FormulaFinset
 
 variable {α : Type u} [DecidableEq α]
@@ -55,6 +56,20 @@ def GentzenWithCutProof.ofProofGentzen {S : ThreeLayeredSequent α} : ⊢ᵍ[D]!
 | .boxL h     => .boxL (GentzenWithCutProof.ofProofGentzen h)
 | .liftUp₁₂ h => .liftUp₁₂ (GentzenWithCutProof.ofProofGentzen h)
 
+/-- The with-cut variant of `LogicD.toProofGentzenS`, at level `0`.
+
+  - [KKIM25, Theorem 4.2]
+-/
+def GentzenWithCutProof.toGentzenWithCutProofS₀ {Γ Δ : FormulaFinset α} : ⊢ᵍᶜ[D]! (Γ ⟹[0] Δ) → ⊢ᵍᶜ[S]! (Γ ⟹[0] Δ)
+| .axm 0 A    => .axm 0 A
+| .botL 0     => .botL 0
+| .wkL h h'   => .wkL (GentzenWithCutProof.toGentzenWithCutProofS₀ h) h'
+| .wkR h h'   => .wkR (GentzenWithCutProof.toGentzenWithCutProofS₀ h) h'
+| .impL h₁ h₂ => .impL (GentzenWithCutProof.toGentzenWithCutProofS₀ h₁) (GentzenWithCutProof.toGentzenWithCutProofS₀ h₂)
+| .impR h     => .impR (GentzenWithCutProof.toGentzenWithCutProofS₀ h)
+| .boxGL h    => .boxGL (GentzenWithCutProof.toGentzenWithCutProofS₀ h)
+| .cut h₁ h₂  => .cut (GentzenWithCutProof.toGentzenWithCutProofS₀ h₁) (GentzenWithCutProof.toGentzenWithCutProofS₀ h₂)
+
 namespace GentzenWithCutProvable
 
 variable {S : ThreeLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 3}
@@ -76,6 +91,7 @@ lemma liftUp₀₁ (h : ⊢ᵍᶜ[D] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[D] (Γ ⟹[1] �
 lemma boxGL (h : ⊢ᵍᶜ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})) : ⊢ᵍᶜ[D] (□Γ ⟹[0] {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
 lemma boxL (h : ⊢ᵍᶜ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍᶜ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨GentzenWithCutProof.boxL h.some⟩
 lemma liftUp₁₂ (h : ⊢ᵍᶜ[D] (□Γ ⟹[1] □Δ)) : ⊢ᵍᶜ[D] (□Γ ⟹[2] □Δ) := ⟨GentzenWithCutProof.liftUp₁₂ h.some⟩
+
 lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
