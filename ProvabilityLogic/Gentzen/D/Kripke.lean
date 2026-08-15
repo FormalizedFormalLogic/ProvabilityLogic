@@ -476,7 +476,32 @@ theorem completeness {Γ Δ : FormulaFinset α}
       ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ)
     ) :
     ⊢ᵍ[D] (Γ ⟹[2] Δ) := by
-  sorry
+  by_contra hp;
+  haveI : Fact (⊬ᵍ[GL] (Γ ⟹ Δ)) := ⟨not_provable_GL_of_not_provable_2 hp⟩;
+  have hsub : (Γ ⟹ Δ).1 ∪ (Γ ⟹ Δ).2 ⊆ (Γ ⟹ Δ).subfmls := by grind;
+  let U : ExpandedLayeredSequent (Γ ⟹ Δ) := ExpandedLayeredSequent.lindenbaum (Γ ⟹ Δ) (Γ ⟹ Δ) hp hsub;
+  have hsubU : (Γ ⟹ Δ) ⊆ U.toSequent :=
+    ExpandedLayeredSequent.subset_lindenbaum (S₀_unprovable := hp) (S₀sub := hsub);
+  have hS₀ : ¬ LogicS.ProvableGentzen ((□(U.1.1.prebox)) ⟹[1] (□(U.1.2.prebox))) :=
+    not_provable_S_box_prebox_of_not_provable_2 U.unprovable;
+  have hsubS₀ : (□(U.1.1.prebox)) ∪ (□(U.1.2.prebox)) ⊆ (Γ ⟹ Δ).subfmls :=
+    Finset.union_subset
+      (FormulaFinset.box_prebox_subset.trans (Finset.subset_union_left.trans U.subset_subfmls))
+      (FormulaFinset.box_prebox_subset.trans (Finset.subset_union_right.trans U.subset_subfmls));
+  let T : LogicS.ExpandedLayeredSequent (Γ ⟹ Δ) :=
+    LogicS.ExpandedLayeredSequent.lindenbaum (Γ ⟹ Δ) ((□(U.1.1.prebox)) ⟹ (□(U.1.2.prebox))) hS₀ hsubS₀;
+  let t : ExpandedSequent (Γ ⟹ Δ) := T.toExpandedSequent;
+  have hsubT : ((□(U.1.1.prebox)) ⟹ (□(U.1.2.prebox))) ⊆ T.toSequent :=
+    LogicS.ExpandedLayeredSequent.subset_lindenbaum (S₀_unprovable := hS₀) (S₀sub := hsubS₀);
+  have hant : ∀ {C : Formula α}, □C ∈ U.1.1 → □C ∈ t.1.1 := fun hC =>
+    hsubT.1 (Finset.mem_image_of_mem Formula.box (FormulaFinset.iff_mem_prebox_mem.mpr hC));
+  have hsuc : ∀ {C : Formula α}, □C ∈ U.1.2 → □C ∈ t.1.2 := fun hC =>
+    hsubT.2 (Finset.mem_image_of_mem Formula.box (FormulaFinset.iff_mem_prebox_mem.mpr hC));
+  have hle := h ((countermodelOf (Γ ⟹ Δ)).toRootedModel t).toModel
+    ((countermodelOf (Γ ⟹ Δ)).toRootedModel t).root.1 (#· ∈ U.1.1);
+  obtain ⟨D, hD, hfD⟩ :=
+    hle (fun C hC => (bottomModel.truthlemma_root U T.boxL_closed hant hsuc).1 (hsubU.1 hC));
+  exact (bottomModel.truthlemma_root U T.boxL_closed hant hsuc).2 (hsubU.2 hD) hfD;
 
 end ProvableGentzen.Kripke
 
