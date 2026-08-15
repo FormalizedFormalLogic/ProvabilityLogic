@@ -50,6 +50,21 @@ lemma provable_axiomP : (∼□⊥ : Formula α) ∈ LogicD :=
 lemma provable_axiomD {A B : Formula α} : (□(□A ⋎ □B) 🡒 (□A ⋎ □B)) ∈ LogicD :=
   Logic.sumQuasiNormal.mem₂ (Set.mem_insert_iff.mpr (Or.inr ⟨A, B, rfl⟩))
 
+/-- `D` proves every iterated consistency statement `∼□^[n]⊥`: the axiom `P` gives `∼□⊥`, and
+the instance of the axiom `D` at `A = B = □^[n]⊥` lifts `∼□^[n + 1]⊥` to `∼□^[n + 2]⊥`. This is
+a routine consequence of the axiomatization, so no source is cited. -/
+lemma provable_neg_boxItr_bot [DecidableEq α] {n : ℕ} : (∼□^[n]⊥ : Formula α) ∈ LogicD := by
+  match n with
+  | 0 => exact provable_of_provable_GL (LogicGL.iff_forces.mpr (by grind));
+  | n + 1 =>
+    induction n with
+    | zero => simpa [Formula.boxItr_one] using provable_axiomP;
+    | succ n ih =>
+      have h : ((□(□^[n + 1]⊥ ⋎ □^[n + 1]⊥) 🡒 (□^[n + 1]⊥ ⋎ □^[n + 1]⊥)) 🡒
+        (∼□^[n + 1]⊥) 🡒 (∼□^[n + 2]⊥) : Formula α) ∈ LogicGL := LogicGL.iff_forces.mpr (by grind);
+      exact Logic.sumQuasiNormal.mdp
+        (Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_axiomD) ih;
+
 section
 
 /-- The intrinsic definition of `LogicD` that avoids `subst` (used for
