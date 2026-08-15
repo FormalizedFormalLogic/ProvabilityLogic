@@ -370,7 +370,45 @@ lemma forces_embed_iff {x : (countermodelOf BS)↾t} :
 lemma truthlemma_chainPoint (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.1) {n : ℕ} {A : Formula α} :
     (A ∈ t.1.1 → Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) A) ∧
     (A ∈ t.1.2 → ¬ Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) A) := by
-  sorry
+  induction A generalizing n with
+  | atom a =>
+    constructor
+    · intro h
+      show (if ((n : ℕ∞) = (⊤ : ℕ∞)) then o a else _)
+      rw [if_neg (by simp)]
+      exact h
+    · intro h hf
+      revert hf
+      show (if ((n : ℕ∞) = (⊤ : ℕ∞)) then o a else _) → False
+      rw [if_neg (by simp)]
+      exact fun hf => ExpandedSequent.not_mem_both ⟨hf, h⟩
+  | bot =>
+    constructor
+    · intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
+    · intro _ hf; exact hf
+  | imp A B ihA ihB =>
+    constructor
+    · intro h hsA
+      rcases t.saturated.impL h with hA | hB
+      · exact absurd hsA ((ihA (n := n)).2 hA)
+      · exact (ihB (n := n)).1 hB
+    · intro h hf
+      obtain ⟨hA, hB⟩ := t.saturated.impR h
+      exact ((ihB (n := n)).2 hB) (hf ((ihA (n := n)).1 hA))
+  | box A ih =>
+    constructor
+    · intro h
+      rintro (y | m) Rny
+      · rcases y.2 with hy | Rty
+        · exact forces_embed_iff.mpr (by rw [hy]; exact truthlemma_ant (hbox h))
+        · exact forces_embed_iff.mpr (truthlemma_ant (Rty.2 (FormulaFinset.iff_mem_prebox_mem.mpr h)))
+      · have hm : m < (n : ℕ∞) := toPseudoTail.rel_chainPoint_chainPoint.mp Rny
+        obtain ⟨m₀, rfl⟩ := WithTop.ne_top_iff_exists.mp (ne_top_of_lt hm)
+        exact (ih (n := m₀)).1 (hbox h)
+    · intro h hf
+      obtain ⟨y, Rty, hy⟩ := Model.World.not_forces_box.mp (truthlemma_suc (x := t) h)
+      exact (forces_embed_iff.not.mpr hy)
+        (hf (toPseudoTail.embed ⟨y, Or.inr Rty⟩) toPseudoTail.rel_chainPoint_embed)
 
 /--
   Truth lemma for the root of `bottomModel BS t (#· ∈ U.1.1)`, at every level-`2` saturated
