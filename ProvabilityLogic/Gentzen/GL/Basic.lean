@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Formula.Basic
 public import ProvabilityLogic.Gentzen.Sequent
 
 @[expose]
