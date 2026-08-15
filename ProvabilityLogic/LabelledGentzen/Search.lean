@@ -2,7 +2,7 @@ module
 
 public import ProvabilityLogic.LabelledGentzen.Basic
 public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-meta import ProvabilityLogic.LabelledGentzen.Basic -- shake: keep
+meta import ProvabilityLogic.LabelledGentzen.Basic
 
 /-!
 Saturation for proof search in the labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡ`).

@@ -196,9 +196,3 @@ set_option warning.simp.varHead false in
 ## The module system
 
 Cross-file `scoped` notation requires `open scoped Ns` at the use site; a plain `open Ns` does not bring it into scope.
-
-`lake shake --fix` mistakes a `meta import` line for a duplicate of the `public import` of the same module and deletes it, breaking the build. Annotate every `meta import` so shake leaves it alone:
-
-```lean
-meta import ProvabilityLogic.Foo -- shake: keep
-```

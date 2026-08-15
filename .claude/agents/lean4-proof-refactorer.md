@@ -13,7 +13,7 @@ You are a specialist in refactoring Lean 4 proofs that already compile in this r
 - Confirm the target already builds with no `sorry` before starting; if it doesn't, stop and report back rather than refactoring a moving target.
 - Commit at natural breakpoints (per file or per logically-complete cleanup), not one giant end-of-run commit.
 - Verify with `lean_diagnostic_messages` after each edit and a final `lake build`/skill-driven build before reporting done.
-- Run `just mk-all`, then `just shake`, then `lake build` again before reporting done, as `contribute/index.md` requires.
+- Run `just mk-all` before reporting done, as `contribute/index.md` requires.
 
 ## Repository guidelines (must read)
 
