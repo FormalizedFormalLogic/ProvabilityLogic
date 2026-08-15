@@ -216,7 +216,21 @@ lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprova
 
 lemma subfmls_lindenbaum_indexed (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
     (lindenbaum_indexed S₀ S₀_unprovable Γ).1.1 ∪ (lindenbaum_indexed S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
-  sorry
+  induction Γ with
+  | nil => exact S₀sub
+  | cons A Γ ih =>
+    replace ih := ih (by grind);
+    match A with
+    | #a | Formula.box _ | ⊥ => exact ih
+    | (A 🡒 B) =>
+      dsimp only [lindenbaum_indexed];
+      have : (A 🡒 B) ∈ BS.subfmls := hΓ _ (by simp)
+      have : A ∈ BS.subfmls := Sequent.mem_subfmls_subfmls (B := A 🡒 B) ‹_› $ by grind;
+      have : B ∈ BS.subfmls := Sequent.mem_subfmls_subfmls (B := A 🡒 B) ‹_› $ by grind;
+      split_ifs;
+      all_goals
+      . intro;
+        grind;
 
 /--
   Saturation of the level-`2` Lindenbaum construction: the resulting sequent is `impL`- and
