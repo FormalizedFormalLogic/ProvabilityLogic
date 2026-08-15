@@ -1,6 +1,7 @@
 module
 
-public import ProvabilityLogic.Formula.Basic
+public import ProvabilityLogic.Formula.Substitution
+public import ProvabilityLogic.Gentzen.Sequent
 
 @[expose]
 public section
@@ -8,35 +9,6 @@ public section
 variable {α : Type u} [DecidableEq α]
 
 namespace LogicGL
-
-structure Sequent (α : Type u) where
-  ant : FormulaFinset α
-  suc : FormulaFinset α
-
-infix:50 " ⟹ " => Sequent.mk
-
-namespace Sequent
-
-@[grind]
-def subfmls (S : Sequent α) : Finset (Formula α) := S.ant.subfmls ∪ S.suc.subfmls
-
-structure subset (S T : Sequent α) : Prop where
-  ant_subset : S.ant ⊆ T.ant
-  suc_subset : S.suc ⊆ T.suc
-
-instance : HasSubset (Sequent α) := ⟨subset⟩
-
-variable {S : Sequent α}
-
-@[grind .] lemma subset_self_subfmls : S.ant ∪ S.suc ⊆ S.subfmls := by grind;
-
-@[grind →]
-lemma mem_subfmls_subfmls {S : Sequent α} {B C : Formula α} (hB : B ∈ S.subfmls) (hC : C ∈ B.subfmls) : C ∈ S.subfmls := by
-  simp only [Sequent.subfmls, Finset.mem_union] at hB ⊢
-  grind [FormulaFinset.mem_subfmls_subfmls]
-
-end Sequent
-
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
@@ -269,6 +241,14 @@ lemma negL (h : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) : ⊢ᵍ[GL] (insert (∼A) Γ 
 lemma negR (h : ⊢ᵍ[GL] (insert A Γ ⟹ Δ)) : ⊢ᵍ[GL] (Γ ⟹ insert (∼A) Δ) :=
   ⟨ProofGentzen.negR h.some⟩
 
+/-- Introduce `🡘` on the right from both implications. -/
+lemma iffR (h₁ : ⊢ᵍ[GL] (insert A Γ ⟹ {B})) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ {A})) : ⊢ᵍ[GL] (Γ ⟹ {A 🡘 B}) := by
+  have e : ({A 🡘 B} : FormulaFinset α) = insert ((A 🡒 B) ⋏ (B 🡒 A)) ∅ := by rfl
+  rw [e]
+  apply andR
+  . exact impR (by simpa using h₁)
+  . exact impR (by simpa using h₂)
+
 lemma implyK : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨ProofGentzen.implyK⟩
 lemma implyS : ⊢ᵍ[GL] (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨ProofGentzen.implyS⟩
 lemma elimContra : ⊢ᵍ[GL] (∅ ⟹ {(∼A 🡒 ∼B) 🡒 (B 🡒 A)}) := ⟨ProofGentzen.elimContra⟩
@@ -310,6 +290,29 @@ lemma rec
   : ∀ {S : Sequent α} (h : ⊢ᵍ[GL] S), motive S h := by
     rintro S ⟨h⟩;
     induction h <;> grind;
+
+/-- `ProofGentzen` is closed under substitution. -/
+theorem subst (s : Formula.Substitution α α) {S : Sequent α} (h : ⊢ᵍ[GL] S) :
+    ⊢ᵍ[GL] (S.ant.image (·⟦s⟧) ⟹ S.suc.image (·⟦s⟧)) := by
+  induction h with
+  | axm A => simpa using axm (A⟦s⟧)
+  | botL => simpa using botL
+  | wkL h h' ih => exact wkL ih (Finset.image_subset_image h')
+  | wkR h h' ih => exact wkR ih (Finset.image_subset_image h')
+  | impL h₁ h₂ ih₁ ih₂ =>
+    simp only [Finset.image_insert] at ih₁ ih₂ ⊢
+    exact impL ih₁ ih₂
+  | impR h ih =>
+    simp only [Finset.image_insert] at ih ⊢
+    exact impR ih
+  | boxGL h ih =>
+    have e : ∀ Γ : FormulaFinset α,
+        (FormulaFinset.box Γ).image (·⟦s⟧) = FormulaFinset.box (Γ.image (·⟦s⟧)) := by
+      intro Γ
+      simp [FormulaFinset.box, Finset.image_image]
+      rfl
+    simp only [Finset.image_insert, Finset.image_union, e, Finset.image_singleton] at ih ⊢
+    exact boxGL (by simpa using ih)
 
 notation:120 "⊬ᵍ[GL] " S:121 => ¬ ProvableGentzen S
 
