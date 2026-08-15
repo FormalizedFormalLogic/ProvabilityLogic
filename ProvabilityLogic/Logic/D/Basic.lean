@@ -352,17 +352,18 @@ theorem provability_TFAE [DecidableEq α] :
 theorem iff_provable_D_provable_GL [DecidableEq α] :
     A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
 
-/-- If `□A` is a theorem of `D`, then `A` itself is a theorem of `GL`. Original to this
+/-- `□A` is a theorem of `D` if and only if `A` is a theorem of `GL`. Original to this
 formalization. -/
-theorem provable_of_provable_box [DecidableEq α] (h : (□A : Formula α) ∈ LogicD) :
-    A ∈ LogicGL := by
-  apply LogicGL.provable_of_valid;
-  intro κ _ M _ x;
-  have h₀ : (□A : Formula α) ∈ LogicD ↔
-      ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
-      (M.toPseudoTail r o).root.1 ⊩ (□A : Formula α) := provability_TFAE.out 0 1;
-  have h₁ := h₀.mp h M x (fun _ => True);
-  exact toPseudoTail.forces_inl.mp (h₁ (toPseudoTail.embed x) toPseudoTail.rel_chainPoint_embed);
+theorem iff_provable_box_provable_GL [DecidableEq α] :
+    □A ∈ LogicD ↔ A ∈ LogicGL := by
+  constructor;
+  · intro h;
+    apply LogicGL.provable_of_valid;
+    intro κ _ M _ x;
+    have h₁ := forces_pseudoTail_root_of_provable h M x (fun _ => True);
+    exact toPseudoTail.forces_inl.mp (h₁ (toPseudoTail.embed x) toPseudoTail.rel_chainPoint_embed);
+  · intro h;
+    exact provable_of_provable_GL (ProvableHilbert.nec h);
 
 /--
   The existential, contrapositive form of `provability_TFAE`'s clause 2: a formula not
