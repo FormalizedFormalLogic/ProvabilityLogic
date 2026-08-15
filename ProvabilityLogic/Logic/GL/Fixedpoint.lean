@@ -173,44 +173,6 @@ open Formula
 
 variable {Γ Δ : FormulaFinset α} {A B D E : Formula α} {p q : α}
 
-/-! ### Substitution closure (GL.typ, Proposition 1.2) -/
-
-/-- `ProofGentzen` is closed under substitution. -/
-theorem subst (s : Substitution α α) {S : Sequent α} (h : ⊢ᵍ[GL] S) :
-    ⊢ᵍ[GL] (S.ant.image (·⟦s⟧) ⟹ S.suc.image (·⟦s⟧)) := by
-  induction h with
-  | axm A => simpa using axm (A⟦s⟧)
-  | botL => simpa using botL
-  | wkL h h' ih => exact wkL ih (Finset.image_subset_image h')
-  | wkR h h' ih => exact wkR ih (Finset.image_subset_image h')
-  | impL h₁ h₂ ih₁ ih₂ =>
-    simp only [Finset.image_insert] at ih₁ ih₂ ⊢
-    exact impL ih₁ ih₂
-  | impR h ih =>
-    simp only [Finset.image_insert] at ih ⊢
-    exact impR ih
-  | boxGL h ih =>
-    have e : ∀ Γ : FormulaFinset α,
-        (FormulaFinset.box Γ).image (·⟦s⟧) = FormulaFinset.box (Γ.image (·⟦s⟧)) := by
-      intro Γ
-      simp [FormulaFinset.box, Finset.image_image]
-      rfl
-    simp only [Finset.image_insert, Finset.image_union, e, Finset.image_singleton] at ih ⊢
-    exact boxGL (by simpa using ih)
-
-/-! ### Admissibility of Löb's rule (GL.typ, rule Löb) -/
-
-/-- Löb's rule is admissible in `ProofGentzen`. -/
-theorem ruleLoeb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
-  -- via admissibility of cut
-  apply of_with_cut
-  have h₁ : ⊢ᵍᶜ[GL] ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=
-    GentzenWithCutProvable.wkR
-      (GentzenWithCutProvable.wkL (GentzenWithCutProvable.of_without_cut (boxGL h)) (by grind))
-      (by grind)
-  have h₂ : ⊢ᵍᶜ[GL] (insert (□A) (Γ ∪ Γ.box) ⟹ {A}) := GentzenWithCutProvable.of_without_cut h
-  simpa using GentzenWithCutProvable.cut h₁ h₂
-
 /-! ### Removing modalized atoms (GL.typ, Lemma 3.9)
 
 We give a semantic proof: take a finite countermodel of `Γ ⟹ Δ` with
@@ -265,16 +227,6 @@ theorem remove_modalized_atom_suc
   rcases Finset.mem_insert.mp hD with rfl | hD
   . exact Model.overwrite.val_self.mp hfD
   . exact hsuc D hD ((hM' D (hΔ D hD)).mp hfD)
-
-/-! ### Auxiliary sequent-calculus lemmas -/
-
-/-- Introduce `🡘` on the right from both implications. -/
-lemma iffR (h₁ : ⊢ᵍ[GL] (insert A Γ ⟹ {B})) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ {A})) : ⊢ᵍ[GL] (Γ ⟹ {A 🡘 B}) := by
-  have e : ({A 🡘 B} : FormulaFinset α) = insert ((A 🡒 B) ⋏ (B 🡒 A)) ∅ := by rfl
-  rw [e]
-  apply andR
-  . exact impR (by simpa using h₁)
-  . exact impR (by simpa using h₂)
 
 /-! ### Uniqueness of fixed points (GL.typ, Lemma 3.8)
 

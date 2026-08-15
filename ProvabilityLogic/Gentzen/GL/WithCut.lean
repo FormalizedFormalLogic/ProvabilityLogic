@@ -85,7 +85,7 @@ end GentzenWithCutProvable
 
 namespace ProvableGentzen
 
-variable {S : Sequent α} {A B : Formula α}
+variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
 
 /-- Cut-elimination: any sequent provable with the cut rule (`⊢ᵍᶜ[GL]`) is also provable without it (`⊢ᵍ[GL]`). -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[GL] S → ⊢ᵍ[GL] S := by
@@ -112,6 +112,16 @@ theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → �
   replace p : ⊢ᵍᶜ[GL] (insert A ∅ ⟹ {B}) := GentzenWithCutProvable.of_without_cut $ deduction_theorem.mpr p;
   replace q : ⊢ᵍᶜ[GL] (∅ ⟹ insert A ∅) := GentzenWithCutProvable.of_without_cut q;
   exact cut_elimination $ GentzenWithCutProvable.cut q p;
+
+/-- Löb's rule is admissible in `ProofGentzen`. Proved via cut. -/
+theorem ruleLoeb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
+  apply of_with_cut
+  have h₁ : ⊢ᵍᶜ[GL] ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=
+    GentzenWithCutProvable.wkR
+      (GentzenWithCutProvable.wkL (GentzenWithCutProvable.of_without_cut (boxGL h)) (by grind))
+      (by grind)
+  have h₂ : ⊢ᵍᶜ[GL] (insert (□A) (Γ ∪ Γ.box) ⟹ {A}) := GentzenWithCutProvable.of_without_cut h
+  simpa using GentzenWithCutProvable.cut h₁ h₂
 
 end ProvableGentzen
 
