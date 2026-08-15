@@ -288,7 +288,32 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
 noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
     (S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) :
     ExpandedLayeredSequent BS :=
-  sorry
+  letI Γ := BS.subfmls.toList.insertionSort (·.complexity ≤ ·.complexity);
+  letI S := lindenbaum_indexed S₀ S₀_unprovable Γ;
+  haveI hΓsorted : (Γ.map (·.complexity)).SortedLE := by
+    rw [List.map_insertionSort (f := Formula.complexity) (l := BS.subfmls.toList)
+      (r := λ A B => ((A.complexity) ≤ (B.complexity))) (s := (· ≤ ·)) (by grind)];
+    exact List.sortedLE_insertionSort (l := BS.subfmls.toList.map (·.complexity));
+  haveI hsub : S.1.1 ∪ S.1.2 ⊆ BS.subfmls := subfmls_lindenbaum_indexed ‹_› (by
+    intro _ hB;
+    exact Finset.mem_toList.mp $ List.mem_insertionSort _ |>.mp hB);
+  {
+    toSequent := S.1,
+    unprovable := S.2,
+    subset_subfmls := hsub,
+    saturated := {
+      impL := by
+        intro A B h;
+        apply (saturated_lindenbaum_indexed hΓsorted).1 ?_ h;
+        apply List.mem_insertionSort _ |>.mpr;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
+      impR := by
+        intro A B h;
+        apply (saturated_lindenbaum_indexed hΓsorted).2 ?_ h;
+        apply List.mem_insertionSort _ |>.mpr;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inr h;
+    },
+  }
 
 lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)}
     {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} : S₀ ⊆ (lindenbaum BS S₀ S₀_unprovable S₀sub).1 := by
