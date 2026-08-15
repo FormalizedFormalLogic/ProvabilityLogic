@@ -412,6 +412,9 @@ omit [DecidableEq α] in
 @[grind =]
 lemma iff_mem_prebox_mem : A ∈ Γ.prebox ↔ □A ∈ Γ := by simp [FormulaFinset.prebox];
 
+@[grind .]
+lemma box_prebox_subset : □(Γ.prebox) ⊆ Γ := by grind;
+
 end FormulaFinset
 
 /-- Instances of the T axiom `□B 🡒 B` built from the subformulas of `A`. -/
