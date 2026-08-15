@@ -25,6 +25,7 @@ universe u v
 
 variable {α : Type u} [DecidableEq α]
 
+omit [DecidableEq α] in
 /--
   A finite pigeonhole principle: if a predicate `P D j` has a witness `D` in a fixed finite
   set `Γ'` for every `j` beyond some `i`, then some single `D ∈ Γ'` witnesses it cofinally
@@ -35,7 +36,11 @@ variable {α : Type u} [DecidableEq α]
 -/
 private lemma exists_mem_forall_exists_ge {Γ' : FormulaFinset α} {P : Formula α → ℕ → Prop} {i : ℕ}
     (h : ∀ j ≥ i, ∃ D ∈ Γ', P D j) : ∃ D ∈ Γ', ∀ n, ∃ j ≥ n, P D j := by
-  sorry
+  by_contra hcon;
+  push Not at hcon;
+  choose! n_D hn_D using hcon;
+  obtain ⟨D, hD, hPD⟩ := h (max i (Γ'.sup n_D)) (le_max_left _ _);
+  exact hn_D D hD (max i (Γ'.sup n_D)) (le_trans (Finset.le_sup hD) (le_max_right _ _)) hPD;
 
 namespace LogicD
 
