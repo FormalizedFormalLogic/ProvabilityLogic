@@ -226,8 +226,7 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
     . intro h x Rrx;
       exact toFreeTail.forces_inl.mp $ h (toFreeTail.embed x) toFreeTail.rel_chainPoint_embed;
 
--- Re-expose the `toFreeTail` API under the old names, for callers built against
--- `toPseudoTail` before it became a specialization of `toFreeTail`.
+-- The pseudo-tail shares the frame of `toFreeTail`, so it has the same API.
 export toFreeTail (embed chainPoint root_eq rel_embed_embed not_rel_embed_chainPoint
   rel_chainPoint_embed rel_chainPoint_chainPoint pMorphismOriginal modal_equivalent_original
   forces_inl forces_box_of_root_forces_box)
