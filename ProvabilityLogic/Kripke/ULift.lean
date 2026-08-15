@@ -4,10 +4,15 @@ public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.Kripke.Preservation
 
 /-!
-`ULift`-lifting of a model along its world type. Used to turn a `Fin (n + 1)`-indexed
-countermodel (living in `Type 0`) into a countermodel in an arbitrary universe `Type v`, so
-that Gentzen completeness theorems stated for a fixed universe of worlds can be generalized
-to quantify over all universes.
+`ULift`-lifting of a model, and of a rooted model, along its world type. Forcing (at every
+world, resp. at the root) is preserved, and the `GL`/`GLPoint3` finite model classes are
+inherited, so a countermodel may freely be moved between universes.
+
+This turns a concretely indexed countermodel such as a `Fin (n + 1)`-indexed chain (living in
+`Type 0`) into a countermodel in an arbitrary universe `Type v`. Both directions are used:
+completeness theorems stated for a fixed universe of worlds are generalized to quantify over
+all universes, and conversely a small rooted countermodel is transported into the universe of
+the atom type `α`, which is the universe over which `LogicGL.iff_forces_root` quantifies.
 -/
 
 @[expose]
@@ -15,9 +20,11 @@ public section
 
 universe v
 
-variable {κ : Type u} [Nonempty κ] {α : Type w} {M : Model κ α}
+variable {κ : Type u} [Nonempty κ] {α : Type w}
 
 namespace Model
+
+variable {M : Model κ α}
 
 /-- The model obtained from `M` by replacing its world type `κ` with `ULift.{v} κ`, keeping
 the same relation and valuation up to `ULift.down`. -/
@@ -65,5 +72,27 @@ instance [M.IsFiniteGLPoint3] : (M.uLift.{v}).IsFiniteGLPoint3 where
     · exact Or.inr <| Or.inr h;
 
 end Model
+
+namespace RootedModel
+
+variable {M : RootedModel κ α}
+
+/-- The rooted model obtained from `M` by `ULift`-lifting its world type: the frame and the
+valuation are those of `M.toModel.uLift`, and `ULift.up M.root` is again a root. -/
+def uLift (M : RootedModel κ α) : RootedModel (ULift.{v} κ) α where
+  toModel := M.toModel.uLift
+  root := ⟨.up M.root.1, fun x hx => M.root.2 x.down (fun h => hx (congrArg ULift.up h))⟩
+
+instance [M.IsFiniteGL] : (M.uLift.{v}).IsFiniteGL :=
+  inferInstanceAs (M.toModel.uLift.{v}).IsFiniteGL
+
+instance [M.IsFiniteGLPoint3] : (M.uLift.{v}).IsFiniteGLPoint3 :=
+  inferInstanceAs (M.toModel.uLift.{v}).IsFiniteGLPoint3
+
+/-- Forcing at the root is preserved by `ULift`-lifting a rooted model. -/
+lemma forces_uLift_root_iff {A : Formula α} : (M.uLift.{v}).root.1 ⊩ A ↔ M.root.1 ⊩ A :=
+  Model.forces_uLift_iff
+
+end RootedModel
 
 end
