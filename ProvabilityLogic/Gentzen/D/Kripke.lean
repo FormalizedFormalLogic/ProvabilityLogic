@@ -242,7 +242,38 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
     let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
     (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
     (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.2 → A ∈ S.1.1 ∧ B ∈ S.1.2) := by
-  sorry
+  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
+  revert hΓ
+  induction Γ with
+  | nil => intro _; constructor <;> intro A B hmem _ <;> simp at hmem
+  | cons x Γ' ih =>
+    intro hΓ
+    rw [List.pairwise_cons] at hΓ
+    obtain ⟨hhead, htail⟩ := hΓ
+    obtain ⟨ihL, ihR⟩ := ih htail
+    match x with
+    | #a | Formula.box _ | ⊥ =>
+      constructor
+      · intro A B hmem hx
+        refine ihL ?_ hx
+        rcases List.mem_cons.mp hmem with h | h
+        · simp at h
+        · exact h
+      · intro A B hmem hx
+        refine ihR ?_ hx
+        rcases List.mem_cons.mp hmem with h | h
+        · simp at h
+        · exact h
+    | C 🡒 D =>
+      have hunp : ⊬ᵍ[D] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[2]
+          (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
+        (lindenbaum_indexed S₀ S₀_unprovable Γ').2
+      dsimp only [lindenbaum_indexed]
+      split_ifs with h1 h2 h3 <;>
+        refine ⟨?_, ?_⟩ <;>
+        intro A B hmem hx <;>
+        simp only [List.mem_cons] at hmem <;>
+        grind [ProvableGentzen.union']
 
 /--
   Lindenbaum-style saturation for level-`2` sequents of `LogicD.ProofGentzen`: every level-`2`
