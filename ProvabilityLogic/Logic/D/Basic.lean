@@ -1,7 +1,6 @@
 module
 
 public import ProvabilityLogic.Logic.S.Basic
-public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Gentzen.D.Kripke
 
 @[expose]
