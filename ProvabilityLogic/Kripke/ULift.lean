@@ -15,9 +15,11 @@ public section
 
 universe v
 
-variable {κ : Type u} [Nonempty κ] {α : Type w} {M : Model κ α}
+variable {κ : Type u} [Nonempty κ] {α : Type w}
 
 namespace Model
+
+variable {M : Model κ α}
 
 /-- The model obtained from `M` by replacing its world type `κ` with `ULift.{v} κ`, keeping
 the same relation and valuation up to `ULift.down`. -/
@@ -65,5 +67,27 @@ instance [M.IsFiniteGLPoint3] : (M.uLift.{v}).IsFiniteGLPoint3 where
     · exact Or.inr <| Or.inr h;
 
 end Model
+
+namespace RootedModel
+
+variable {M : RootedModel κ α}
+
+/-- The rooted model obtained from `M` by `ULift`-lifting its world type: the frame and the
+valuation are those of `M.toModel.uLift`, and `ULift.up M.root` is again a root. -/
+def uLift (M : RootedModel κ α) : RootedModel (ULift.{v} κ) α where
+  toModel := M.toModel.uLift
+  root := ⟨.up M.root.1, fun x hx => M.root.2 x.down (fun h => hx (congrArg ULift.up h))⟩
+
+instance [M.IsFiniteGL] : (M.uLift.{v}).IsFiniteGL :=
+  inferInstanceAs (M.toModel.uLift.{v}).IsFiniteGL
+
+instance [M.IsFiniteGLPoint3] : (M.uLift.{v}).IsFiniteGLPoint3 :=
+  inferInstanceAs (M.toModel.uLift.{v}).IsFiniteGLPoint3
+
+/-- Forcing at the root is preserved by `ULift`-lifting a rooted model. -/
+lemma forces_uLift_root_iff {A : Formula α} : (M.uLift.{v}).root.1 ⊩ A ↔ M.root.1 ⊩ A :=
+  Model.forces_uLift_iff
+
+end RootedModel
 
 end
