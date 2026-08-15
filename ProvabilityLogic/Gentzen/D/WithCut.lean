@@ -112,6 +112,13 @@ lemma liftUp₁₂ (h : ⊢ᵍᶜ[D] (□Γ ⟹[1] □Δ)) : ⊢ᵍᶜ[D] (□Γ
 lemma cut (h₁ : ⊢ᵍᶜ[D] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[D] (insert A Γ₂ ⟹[l] Δ₂)) : ⊢ᵍᶜ[D] (Γ₁ ∪ Γ₂ ⟹[l] Δ₁ ∪ Δ₂) :=
   ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
 
+/-- `Prop`-level version of `LogicD.GentzenWithCutProof.toGentzenWithCutProofS₁`.
+
+  - [KKIM25, Theorem 4.2]
+-/
+theorem toGentzenWithCutProvableS (h : ⊢ᵍᶜ[D] (Γ ⟹[1] Δ)) : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ) :=
+  ⟨GentzenWithCutProof.toGentzenWithCutProofS₁ h.some⟩
+
 @[induction_eliminator]
 lemma rec
   {motive : (S : ThreeLayeredSequent α) → ⊢ᵍᶜ[D] S → Prop}
