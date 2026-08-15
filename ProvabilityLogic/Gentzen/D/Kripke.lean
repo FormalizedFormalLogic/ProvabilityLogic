@@ -525,7 +525,11 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
       ∀ (V : ℕ∞ → α → Prop), (M.toFreeTail V).root.1 ⊩ (Γ ⟹ Δ)
   ].TFAE := by
-  sorry
+  tfae_have 2 → 1 := GentzenWithCutProvable.of_without_cut;
+  tfae_have 1 → 4 := GentzenWithCutProvable.soundness;
+  tfae_have 4 → 3 := by intro h κ _ M _ tail o; exact h M _;
+  tfae_have 3 → 2 := Kripke.completeness;
+  tfae_finish;
 
 namespace GentzenWithCutProvable
 
@@ -537,8 +541,8 @@ namespace GentzenWithCutProvable
   Original to this formalization: a direct corollary of `semantical_TFAE`, not stated
   separately in the source.
 -/
-theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := by
-  sorry
+theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
+  Kripke.completeness (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsGL] _ _ => soundness h M _)
 
 end GentzenWithCutProvable
 
