@@ -176,8 +176,27 @@ open Classical in
   - [KKIM25, Definition 5.2, Lemma 5.3]
 -/
 noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)) :
-    FormulaList α → { S : Sequent α // ⊬ᵍ[D] (S.ant ⟹[2] S.suc) } :=
-  sorry
+    FormulaList α → { S : Sequent α // ⊬ᵍ[D] (S.ant ⟹[2] S.suc) }
+  | [] => ⟨S₀, S₀_unprovable⟩
+  | (A 🡒 B) :: Γ =>
+    let ⟨S, hS⟩ := lindenbaum_indexed S₀ S₀_unprovable Γ;
+    if h : (A 🡒 B) ∈ S.1 then
+      if h : ⊬ᵍ[D] ((S.1) ⟹[2] (insert A S.2)) then ⟨(S.1) ⟹ (insert A S.2), h⟩
+      else ⟨((insert B S.1) ⟹ S.2), by
+        push Not at h;
+        contrapose! hS;
+        have := ProvableGentzen.impL h hS;
+        rwa [(show insert (A 🡒 B) S.1 = S.1 by grind)] at this;
+      ⟩
+    else if h : (A 🡒 B) ∈ S.2 then ⟨
+      ((insert A S.1) ⟹ (insert B S.2)),
+      by
+        contrapose! hS;
+        have := ProvableGentzen.impR hS;
+        rwa [(show insert (A 🡒 B) S.2 = S.2 by grind)] at this;
+    ⟩
+    else ⟨S, hS⟩
+  | _ :: Γ => lindenbaum_indexed S₀ S₀_unprovable Γ
 
 variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)} {Γ : FormulaList α}
 
