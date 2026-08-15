@@ -316,8 +316,8 @@ noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
   }
 
 lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)}
-    {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} : S₀ ⊆ (lindenbaum BS S₀ S₀_unprovable S₀sub).1 := by
-  sorry
+    {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} : S₀ ⊆ (lindenbaum BS S₀ S₀_unprovable S₀sub).1 :=
+  subset_lindenbaum_indexed
 
 end ExpandedLayeredSequent
 
