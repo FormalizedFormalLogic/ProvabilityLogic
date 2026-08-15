@@ -165,7 +165,8 @@ lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
   exact S.unprovable (ProvableGentzen.union' 2 A h₁ h₂);
 
 lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by
-  sorry
+  intro h;
+  exact S.unprovable (ProvableGentzen.botL_mem 2 h);
 
 open Classical in
 /--
