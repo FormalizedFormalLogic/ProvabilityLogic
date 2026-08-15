@@ -25,13 +25,13 @@ yields a countermodel of `A` in the sense of `StrongReflexiveCountermodel`.
 -/
 noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ]
     {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World]
-    (hnA : M.root.1 ⊮ A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩ ⋀A.subfmlsS) :
+    (hnA : M.root.1 ⊮[_] A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩[_] ⋀A.subfmlsS) :
     StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
   -- Both extra conditions (the reflexive node's unique predecessor being the root, and
   -- rank maximality) are achieved by grafting a chain of copies of `r` of length
   -- `M.height + 2` between the root and `r` (`RootedModel.graft`), which is
   -- forcing-preserving because `r` is `A`-reflexive.
-  have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩ ((□B) 🡒 B) := by
+  have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));

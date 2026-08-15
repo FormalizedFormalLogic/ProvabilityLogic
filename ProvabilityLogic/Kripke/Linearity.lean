@@ -45,7 +45,7 @@ variable {A B : Formula α}
 /-- The weak linearity axiom `.3` (`WeakPoint3`) holds at every world of a linear
 model. -/
 lemma forces_axiomWeakPoint3 [M.IsGLPoint3] {x : M.World} :
-    x ⊩ (□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A)) := by
+    x ⊩[_] (□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A)) := by
   by_contra hC;
   obtain ⟨h₁, h₂⟩ := not_forces_or.mp hC;
   obtain ⟨y, Rxy, hy⟩ := not_forces_box.mp h₁;

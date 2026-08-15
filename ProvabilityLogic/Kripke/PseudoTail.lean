@@ -117,8 +117,6 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toPseudoTa
 
 instance [M.IsGL] : (M.toPseudoTail tail o).IsGL where
 
-open Model.World (Forces)
-
 /-- The embedding of the original model into the pseudo-tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) (o : α → Prop) :
     M →ₚ (M.toPseudoTail tail o).toModel where
@@ -137,13 +135,13 @@ lemma modal_equivalent_original {x : M.World} :
 /-- At an original-model world (`embed x`), forcing in the pseudo-tail model agrees
 with forcing in the original model. -/
 lemma forces_inl {x : M.World} :
-    Forces (M := (M.toPseudoTail tail o).toModel) (toPseudoTail.embed x) A ↔ x ⊩ A :=
+    toPseudoTail.embed x ⊩[(M.toPseudoTail tail o).toModel] A ↔ x ⊩[M] A :=
   modal_equivalent_original.symm
 
 /-- If `□A` holds at the pseudo-tail model's root (ω), it holds at every point. -/
 lemma forces_box_of_root_forces_box {x : (M.toPseudoTail tail o).World}
-  (h : (M.toPseudoTail tail o).root.1 ⊩ (□A)) :
-  x ⊩ (□A) := by
+  (h : (M.toPseudoTail tail o).root.1 ⊩[_] (□A)) :
+  x ⊩[_] (□A) := by
   intro y Rxy;
   apply h;
   match x, y with
@@ -159,9 +157,9 @@ lemma forces_box_of_root_forces_box {x : (M.toPseudoTail tail o).World}
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {o : α → Prop} {S : FormulaFinset α}
   (Sclosed : ∀ B ∈ S, B.subfmls ⊆ S)
-  (hS : ∀ B ∈ S.prebox, M.root.1 ⊩ (□B 🡒 B)) :
-  ∀ B ∈ S, ∀ n : ℕ, M.root.1 ⊩ B ↔
-    Forces (M := (M.toModel.toPseudoTail M.root.1 o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) B := by
+  (hS : ∀ B ∈ S.prebox, M.root.1 ⊩[M.toModel] (□B 🡒 B)) :
+  ∀ B ∈ S, ∀ n : ℕ, M.root.1 ⊩[M.toModel] B ↔
+    toPseudoTail.chainPoint (n : ℕ∞) ⊩[(M.toModel.toPseudoTail M.root.1 o).toModel] B := by
   intro B;
   induction B with
   | atom a =>

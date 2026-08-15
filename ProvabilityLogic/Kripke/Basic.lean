@@ -157,58 +157,57 @@ namespace Model.World
 variable {M : Model κ α} {x : M.World} {A B : Formula α} {n : ℕ}
 
 @[grind]
-def Forces (x : M.World) : Formula α → Prop
+def Forces (M : Model κ α) (x : M.World) : Formula α → Prop
 | #a    => M x a
 | ⊥     => False
-| A 🡒 B => Forces x A → Forces x B
-| □A    => ∀ y, x ≺ y → Forces y A
-infix:55 " ⊩ " => Forces
+| A 🡒 B => Forces M x A → Forces M x B
+| □A    => ∀ y, x ≺ y → Forces M y A
+notation:55 x:56 " ⊩[" M "] " A:56 => Forces M x A
 
-abbrev NotForces (x : M.World) (A : Formula α) : Prop := ¬x ⊩ A
-infix:55 " ⊮ " => NotForces
+abbrev NotForces (M : Model κ α) (x : M.World) (A : Formula α) : Prop := ¬x ⊩[M] A
+notation:55 x:56 " ⊮[" M "] " A:56 => NotForces M x A
 
-@[simp, grind .] lemma forces_top : x ⊩ ⊤ := by grind;
-@[grind =] lemma forces_imp : x ⊩ A 🡒 B ↔ x ⊮ A ∨ x ⊩ B := by grind;
-@[grind =] lemma forces_and : x ⊩ A ⋏ B ↔ x ⊩ A ∧ x ⊩ B := by grind;
-@[grind =] lemma forces_or  : x ⊩ A ⋎ B ↔ x ⊩ A ∨ x ⊩ B := by grind;
-@[grind =] lemma forces_iff : x ⊩ A 🡘 B ↔ (x ⊩ A ↔ x ⊩ B) := by grind;
-@[grind =] lemma forces_neg : x ⊩ ∼A ↔ x ⊮ A := by grind;
-@[grind =] lemma forces_box : x ⊩ □A ↔ ∀ y, x ≺ y → y ⊩ A := by grind;
-@[grind =] lemma forces_dia : x ⊩ ◇A ↔ ∃ y, x ≺ y ∧ y ⊩ A := by grind;
-@[grind =] lemma forces_boxItr : x ⊩ □^[n]A ↔ ∀ y, x ≺^[n] y → y ⊩ A := by induction n generalizing x <;> grind;
-@[grind =] lemma forces_diaItr : x ⊩ ◇^[n]A ↔ ∃ y, x ≺^[n] y ∧ y ⊩ A := by induction n generalizing x <;> grind;
-@[grind =] lemma forces_boxdot : x ⊩ ⊡A ↔ x ⊩ A ∧ ∀ y, x ≺ y → y ⊩ A := by grind;
+@[simp, grind .] lemma forces_top : x ⊩[_] ⊤ := by grind;
+@[grind =] lemma forces_imp : x ⊩[_] A 🡒 B ↔ x ⊮[_] A ∨ x ⊩[_] B := by grind;
+@[grind =] lemma forces_and : x ⊩[_] A ⋏ B ↔ x ⊩[_] A ∧ x ⊩[_] B := by grind;
+@[grind =] lemma forces_or  : x ⊩[_] A ⋎ B ↔ x ⊩[_] A ∨ x ⊩[_] B := by grind;
+@[grind =] lemma forces_iff : x ⊩[_] A 🡘 B ↔ (x ⊩[_] A ↔ x ⊩[_] B) := by grind;
+@[grind =] lemma forces_neg : x ⊩[_] ∼A ↔ x ⊮[_] A := by grind;
+@[grind =] lemma forces_box : x ⊩[_] □A ↔ ∀ y, x ≺ y → y ⊩[_] A := by grind;
+@[grind =] lemma forces_dia : x ⊩[_] ◇A ↔ ∃ y, x ≺ y ∧ y ⊩[_] A := by grind;
+@[grind =] lemma forces_boxItr : x ⊩[_] □^[n]A ↔ ∀ y, x ≺^[n] y → y ⊩[_] A := by induction n generalizing x <;> grind;
+@[grind =] lemma forces_diaItr : x ⊩[_] ◇^[n]A ↔ ∃ y, x ≺^[n] y ∧ y ⊩[_] A := by induction n generalizing x <;> grind;
+@[grind =] lemma forces_boxdot : x ⊩[_] ⊡A ↔ x ⊩[_] A ∧ ∀ y, x ≺ y → y ⊩[_] A := by grind;
 
-@[simp, grind .] lemma not_forces_bot : x ⊮ ⊥ := by grind;
-@[grind =] lemma not_forces_and : x ⊮ A ⋏ B ↔ x ⊮ A ∨ x ⊮ B := by grind;
-@[grind =] lemma not_forces_or  : x ⊮ A ⋎ B ↔ x ⊮ A ∧ x ⊮ B := by grind;
-@[grind =] lemma not_forces_neg : x ⊮ ∼A ↔ x ⊩ A := by grind;
-@[grind =] lemma not_forces_imp : x ⊮ A 🡒 B ↔ x ⊩ A ∧ x ⊮ B := by grind;
-@[grind =] lemma not_forces_box : x ⊮ □A ↔ ∃ y, x ≺ y ∧ y ⊮ A := by grind;
-@[grind =] lemma not_forces_dia : x ⊮ ◇A ↔ ∀ y, x ≺ y → y ⊮ A := by grind;
-@[grind =] lemma not_forces_boxItr : x ⊮ □^[n]A ↔ ∃ y, x ≺^[n] y ∧ y ⊮ A := by induction n generalizing x <;> grind;
-@[grind =] lemma not_forces_diaItr : x ⊮ ◇^[n]A ↔ ∀ y, x ≺^[n] y → y ⊮ A := by induction n generalizing x <;> grind;
+@[simp, grind .] lemma not_forces_bot : x ⊮[_] ⊥ := by grind;
+@[grind =] lemma not_forces_and : x ⊮[_] A ⋏ B ↔ x ⊮[_] A ∨ x ⊮[_] B := by grind;
+@[grind =] lemma not_forces_or  : x ⊮[_] A ⋎ B ↔ x ⊮[_] A ∧ x ⊮[_] B := by grind;
+@[grind =] lemma not_forces_neg : x ⊮[_] ∼A ↔ x ⊩[_] A := by grind;
+@[grind =] lemma not_forces_imp : x ⊮[_] A 🡒 B ↔ x ⊩[_] A ∧ x ⊮[_] B := by grind;
+@[grind =] lemma not_forces_box : x ⊮[_] □A ↔ ∃ y, x ≺ y ∧ y ⊮[_] A := by grind;
+@[grind =] lemma not_forces_dia : x ⊮[_] ◇A ↔ ∀ y, x ≺ y → y ⊮[_] A := by grind;
+@[grind =] lemma not_forces_boxItr : x ⊮[_] □^[n]A ↔ ∃ y, x ≺^[n] y ∧ y ⊮[_] A := by induction n generalizing x <;> grind;
+@[grind =] lemma not_forces_diaItr : x ⊮[_] ◇^[n]A ↔ ∀ y, x ≺^[n] y → y ⊮[_] A := by induction n generalizing x <;> grind;
 
 @[grind]
-def ForcesSet (x : M.World) (Γ : FormulaFinset α) : Prop := ∀ A ∈ Γ, x ⊩ A
-infix:55 " ⊩ " => ForcesSet
+def ForcesSet (M : Model κ α) (x : M.World) (Γ : FormulaFinset α) : Prop := ∀ A ∈ Γ, x ⊩[M] A
 
 @[grind =]
-lemma forces_lconj {Γ : FormulaList α} : x ⊩ ⋀Γ ↔ ∀ A ∈ Γ, x ⊩ A := by
+lemma forces_lconj {Γ : FormulaList α} : x ⊩[_] ⋀Γ ↔ ∀ A ∈ Γ, x ⊩[_] A := by
   match Γ with
   | [] | [A] | A :: B :: Γ => simp [FormulaList.conj, forces_and, forces_lconj];
 
 @[grind =]
-lemma forces_ldisj {Γ : FormulaList α} : x ⊩ ⋁Γ ↔ ∃ A ∈ Γ, x ⊩ A := by
+lemma forces_ldisj {Γ : FormulaList α} : x ⊩[_] ⋁Γ ↔ ∃ A ∈ Γ, x ⊩[_] A := by
   match Γ with
   | [] | [A] | A :: B :: Γ => simp [FormulaList.disj, forces_or, forces_ldisj];
 
 @[grind =]
-lemma forces_fconj {Γ : FormulaFinset α} : x ⊩ ⋀Γ ↔ ∀ A ∈ Γ, x ⊩ A := by
+lemma forces_fconj {Γ : FormulaFinset α} : x ⊩[_] ⋀Γ ↔ ∀ A ∈ Γ, x ⊩[_] A := by
   simp [FormulaFinset.conj, forces_lconj];
 
 @[grind =]
-lemma forces_fdisj {Γ : FormulaFinset α} : x ⊩ ⋁Γ ↔ ∃ A ∈ Γ, x ⊩ A := by
+lemma forces_fdisj {Γ : FormulaFinset α} : x ⊩[_] ⋁Γ ↔ ∃ A ∈ Γ, x ⊩[_] A := by
   simp [FormulaFinset.disj, forces_ldisj];
 
 end Model.World
@@ -218,7 +217,7 @@ end Model.World
 namespace Model
 
 @[grind]
-def Validate (M : Model κ α) (A : Formula α) : Prop := ∀ x : M.World, x ⊩ A
+def Validate (M : Model κ α) (A : Formula α) : Prop := ∀ x : M.World, x ⊩[M] A
 infix:50 " ⊧ " => Model.Validate
 
 end Model
@@ -229,10 +228,10 @@ namespace Model
 /-- Model obtained by composing the valuation with a substitution `s` (the frame is unchanged). -/
 abbrev substModel (M : Model κ α) (s : Formula.Substitution α α) : Model κ α where
   Rel' := M.Rel'
-  Val' x a := Model.World.Forces (M := M) x (s a)
+  Val' x a := x ⊩[M] s a
 
 lemma forces_substModel {s : Formula.Substitution α α} {A : Formula α} {x : M.World} :
-    x ⊩ A⟦s⟧ ↔ Model.World.Forces (M := M.substModel s) x A := by
+    x ⊩[M] A⟦s⟧ ↔ x ⊩[M.substModel s] A := by
   induction A generalizing x with
   | atom a => rw [Formula.subst_atom]; rfl
   | bot => rfl
@@ -256,7 +255,7 @@ variable {β : Type*}
 /-- Forcing only depends on the model through its frame and valuation. -/
 lemma forces_congr {M₁ M₂ : Model κ α} (hR : M₁.Rel' = M₂.Rel')
     (hV : ∀ x a, M₁.Val' x a ↔ M₂.Val' x a) {A : Formula α} {x : κ} :
-    Model.World.Forces (M := M₁) x A ↔ Model.World.Forces (M := M₂) x A := by
+    x ⊩[M₁] A ↔ x ⊩[M₂] A := by
   induction A generalizing x with
   | atom a => exact hV x a
   | bot => exact Iff.rfl
@@ -278,7 +277,7 @@ abbrev mapModel (M : Model κ β) (f : α → β) : Model κ α where
 
 /-- Forcing a renamed formula is forcing in the pulled-back model. -/
 lemma forces_map {M : Model κ β} {f : α → β} {A : Formula α} {x : M.World} :
-    x ⊩ A.map f ↔ Model.World.Forces (M := M.mapModel f) x A := by
+    x ⊩[M] A.map f ↔ x ⊩[M.mapModel f] A := by
   induction A generalizing x <;> grind [Model.World.Forces]
 
 /-- Extending the atom type of a model by a fresh atom which is false everywhere. -/

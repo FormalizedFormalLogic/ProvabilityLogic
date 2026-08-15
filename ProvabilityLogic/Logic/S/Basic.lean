@@ -107,7 +107,7 @@ open Model Model.World
 finite GL model. -/
 lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A := by
+  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A := by
   intro κ _ M _ tail;
   induction h using LogicS.substlessInduction with
   | provable_GL h =>
@@ -116,7 +116,7 @@ lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS)
     obtain ⟨k, hk⟩ := toTail.forces_nat_eventually_stable (M := M) (tail := tail) B;
     use k + 1;
     intro n hn hbox;
-    have hBk : Forces (M := (M.toTail tail).toModel) (toTail.chainPoint k) B :=
+    have hBk : toTail.chainPoint k ⊩[(M.toTail tail).toModel] B :=
       hbox (toTail.chainPoint k)
         (toTail.rel_chainPoint_chainPoint.mpr (by exact_mod_cast Nat.lt_of_succ_le hn));
     exact (hk n (by omega)).mpr hBk;
@@ -143,11 +143,11 @@ lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
 forces `⋀A.subfmlsS 🡒 A`. -/
 lemma root_forces_subfmlsS_imp [DecidableEq α]
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A) :
+       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-  M.root.1 ⊩ (⋀A.subfmlsS 🡒 A) := by
+  M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) := by
   intro κ _ M _ h₁;
-  have hΓ : ∀ B ∈ A.subfmls.prebox, M.root.1 ⊩ (□B 🡒 B) := by
+  have hΓ : ∀ B ∈ A.subfmls.prebox, M.root.1 ⊩[_] (□B 🡒 B) := by
     intro B hB;
     exact forces_fconj.mp h₁ _ (by
       simp only [Formula.subfmlsS, Finset.mem_image];
@@ -163,7 +163,7 @@ lemma root_forces_subfmlsS_imp [DecidableEq α]
 -/
 lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
   {κ : Type v} [Nonempty κ] {M : Model κ α} {x : M.World} :
-  x.IsReflexiveOf (A.subfmls.prebox.box) ↔ x ⊩ ⋀A.subfmlsS := by
+  x.IsReflexiveOf (A.subfmls.prebox.box) ↔ x ⊩[_] ⋀A.subfmlsS := by
   simp [Model.World.IsReflexiveOf, forces_fconj, Formula.subfmlsS, FormulaFinset.box]
 
 /--
@@ -173,7 +173,7 @@ lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
 lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩ ((∅ : FormulaFinset α) ⟹ {A}) := by
+  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] ((∅ : FormulaFinset α) ⟹ {A}) := by
   use A.subfmls.prebox.box;
   intro κ _ M _ x;
   have hHilbert := LogicGL.iff_provableHilbert.mp h;
@@ -198,7 +198,7 @@ sequent `∅ ⟹[1] {A}` yields eventual forcing of `A` along the tail-model cha
 lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
   (h : ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A := by
+  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A := by
   intro κ _ M _ tail;
   have h1 := GentzenWithCutProvable.of_without_cut h;
   obtain ⟨X, hX⟩ := GentzenWithCutProvable.soundness h1;
@@ -225,9 +225,9 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
 theorem provability_TFAE [DecidableEq α] : [
     A ∈ LogicS,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-      ∃ k : ℕ, ∀ n : ℕ, k ≤ n → Forces (M := (M.toTail tail).toModel) (toTail.chainPoint n) A,
+      ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-      M.root.1 ⊩ (⋀A.subfmlsS 🡒 A),
+      M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A),
     (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
     ⊢ᵍ[S] (∅ ⟹[1] {A})
   ].TFAE := by

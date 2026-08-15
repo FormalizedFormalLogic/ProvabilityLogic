@@ -55,7 +55,7 @@ lemma val_of_ne_atom {w : κ} {a : α} (h : a ≠ p) :
 /-- Forcing is unchanged at worlds that neither are `t` nor see `t`. -/
 lemma forces_iff_of_not_rel [IsTrans _ M.Rel] (B : Formula α) :
     ∀ w : κ, w ≠ t → ¬M.Rel w t →
-      (Model.World.Forces (M := M.overwrite t p v) w B ↔ Model.World.Forces (M := M) w B) := by
+      (w ⊩[M.overwrite t p v] B ↔ w ⊩[M] B) := by
   induction B with
   | atom a =>
     intro w hne _

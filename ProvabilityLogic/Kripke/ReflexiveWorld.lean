@@ -18,7 +18,7 @@ variable {κ : Type v} [Nonempty κ] {M : Model κ α}
   `□A ∈ X`.
 -/
 def IsReflexiveOf (X : FormulaFinset α) (x : M.World) : Prop :=
-  ∀ {A}, □A ∈ X → x ⊩ (□A 🡒 A)
+  ∀ {A}, □A ∈ X → x ⊩[_] (□A 🡒 A)
 
 omit [DecidableEq α] in
 /-- `IsReflexiveOf` is antitone in `X`: reflexivity for a larger set implies reflexivity for

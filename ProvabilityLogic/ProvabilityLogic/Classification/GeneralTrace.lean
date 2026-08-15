@@ -18,19 +18,19 @@ variable {n : ℕ} {A B : Formula α}
 @[grind]
 def trace (A : Formula α) : Set ℕ := { n |
   ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL,
-  (M.height = n ∧ M.root.1 ⊮ A)
+  (M.height = n ∧ M.root.1 ⊮[_] A)
 }
 
 @[grind =]
 lemma iff_mem_trace :
   n ∈ A.trace ↔
-  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL, M.height = n ∧ M.root.1 ⊮ A := by
+  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL, M.height = n ∧ M.root.1 ⊮[_] A := by
   grind;
 
 @[grind =]
 lemma iff_mem_not_trace :
   n ∉ A.trace ↔
-  ∀ κ : Type u, ∀ _ : Nonempty κ, ∀ M : RootedModel κ α, ∀ _ : Fintype M.World, ∀ _ : M.IsGL, M.height = n → M.root.1 ⊩ A := by
+  ∀ κ : Type u, ∀ _ : Nonempty κ, ∀ M : RootedModel κ α, ∀ _ : Fintype M.World, ∀ _ : M.IsGL, M.height = n → M.root.1 ⊩[_] A := by
   grind;
 
 variable {α : Type u} {A B : Formula α}
@@ -86,7 +86,7 @@ lemma subset_trace_of_provable_GL (h : A 🡒 B ∈ LogicGL) : B.trace ⊆ A.tra
   have : M.IsFiniteGL := {}
   revert hB;
   contrapose!;
-  show M.root.1 ⊩ A 🡒 B;
+  show M.root.1 ⊩[_] A 🡒 B;
   apply LogicGL.iff_forces_root.mp h;
 
 end Formula
@@ -104,7 +104,7 @@ forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
 -/
 lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
     ∀ {n : ℕ} {Γ : FormulaFinset α}, Γ.card = n → ∀ {x : M.World}, n < x.rank →
-    ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩ ((□B) 🡒 B) := by
+    ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
   intro n;
   induction n with
   | zero =>
@@ -114,7 +114,7 @@ lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
   | succ n ih =>
     intro Γ hΓ x hx;
     obtain ⟨z, Rxz, hz⟩ := Model.of_lt_rank hx;
-    by_cases hall : ∀ B ∈ Γ, z ⊩ ((□B) 🡒 B);
+    by_cases hall : ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B);
     . exact ⟨z, Rxz, hall⟩;
     . push Not at hall;
       obtain ⟨B₀, hB₀, hfail⟩ := hall;
@@ -169,16 +169,16 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
   have : Finite M.World := by infer_instance;
   haveI : M.IsFiniteGL := {};
   have hroot : M.height = Model.World.rank M.root.1 := rfl;
-  have H₁ : M.root.1 ⊩ (∼(□^[A.subfmls.prebox.card + 1]⊥)) := by
+  have H₁ : M.root.1 ⊩[M.toModel] (∼(□^[A.subfmls.prebox.card + 1]⊥)) := by
     apply Model.World.forces_neg.mpr;
     intro hc;
     have := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
     omega;
-  have H₂ : M.root.1 ⊩ ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) := by
+  have H₂ : M.root.1 ⊩[M.toModel] ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) := by
     apply LogicGL.iff_forces_root.mp
       (LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS (A := A));
   obtain ⟨a, Rra, hA⟩ := Model.World.forces_dia.mp (H₂ H₁);
-  have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩ ((□B) 🡒 B) := by
+  have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩[M.toModel] ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hA _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
@@ -626,7 +626,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   haveI := hne; haveI := hfgl;
   haveI : Fintype M₁.World := Fintype.ofFinite _;
   obtain ⟨hconj, hnA⟩ := Model.World.not_forces_imp.mp hroot;
-  have ha : ∀ B, (□B) ∈ A.subfmls → M₁.root.1 ⊩ ((□B) 🡒 B) := by
+  have ha : ∀ B, (□B) ∈ A.subfmls → M₁.root.1 ⊩[M₁.toModel] ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hconj _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
@@ -657,12 +657,12 @@ theorem provable_TBBMinus_of_not_subset_LogicS
       rw [show Sum.inl x = RootedModel.extendRoot.embed (M := M₁) (n := 1) x from rfl,
         RootedModel.extendRoot.Ext1.eq_embed_original_rank_original_rank];
       intro hmem;
-      replace hBx : x ⊩ B := RootedModel.extendRoot.same_forces_embed.mp hBx;
+      replace hBx : x ⊩[M₁.toModel] B := RootedModel.extendRoot.same_forces_embed.mp hBx;
       obtain ⟨hAx, hTx⟩ := Model.World.forces_and.mp hBx;
       by_cases hx : x = M₁.root.1;
       . subst hx; exact hnA hAx;
       . have hlt : Model.World.rank x < M₁.height := RootedModel.rank_lt_height (M₁.root.2 x hx);
-        have : x ⊩ TBB (Model.World.rank x) := by
+        have : x ⊩[M₁.toModel] TBB (Model.World.rank x) := by
           apply Model.World.forces_fconj.mp hTx;
           apply Finset.mem_image_of_mem;
           simp only [R, Set.Finite.mem_toFinset, Set.mem_inter_iff, Finset.coe_range, Set.mem_Iio];

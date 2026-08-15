@@ -84,7 +84,7 @@ This is the "every `(q̄,p)`-redundant point is also `q̄`-redundant" step of th
 -/
 lemma Redundant.insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ α}
   [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α} {w : M.NonRoot}
-  (hred : Redundant M P w) (hbox : M.root.1 ⊩ (□(#p))) :
+  (hred : Redundant M P w) (hbox : M.root.1 ⊩[_] (□(#p))) :
   Redundant M (insert p P) w := by
   -- Every point above the root forces `p` (by `hbox`), so the atomic clause for `p` is
   -- free on every pair of non-root points, and all points involved in a redundancy
@@ -118,7 +118,7 @@ If `□p` is forced at the root, `(P ∪ {p})`-simplicity already implies `P`-si
 -/
 lemma IsSimpleUnder.of_insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ α}
   [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α}
-  (h : M.IsSimpleUnder (insert p P)) (hbox : M.root.1 ⊩ (□(#p))) :
+  (h : M.IsSimpleUnder (insert p P)) (hbox : M.root.1 ⊩[_] (□(#p))) :
   M.IsSimpleUnder P :=
   fun w hred => h w (hred.insert_of_root_forces_box hbox)
 
@@ -202,7 +202,7 @@ end Finite
 theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : Redundant M P a) :
   ∀ {C : Formula α}, C.atoms ⊆ P →
   ∀ x : (M.removeCone a).World,
-  x ⊩ C ↔ x.1 ⊩ C := by
+  x ⊩[(M.removeCone a).toModel] C ↔ x.1 ⊩[M.toModel] C := by
   intro C;
   induction C with
   | atom => tauto;
@@ -224,8 +224,8 @@ theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : R
             . exact absurd (Or.inr hax) hx;
         obtain ⟨y, Bi, hxy, hyna, hnay, hyne, hBiya⟩ := hred x hxa;
         have hynS : ¬ y.IsInConeOf a.1 := by rintro (rfl | h); exacts [hyne rfl, hnay h];
-        have hyB : y ⊩ B := (ihB hC ⟨y, hynS⟩).mp (h ⟨y, hynS⟩ hxy);
-        have haB : a.1 ⊩ B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
+        have hyB : y ⊩[M.toModel] B := (ihB hC ⟨y, hynS⟩).mp (h ⟨y, hynS⟩ hxy);
+        have haB : a.1 ⊩[M.toModel] B := (World.forces_iff_of_pbisimilar Bi hBiya hC).mp hyB;
         rcases hzS with rfl | haz;
         . exact haB;
         . obtain ⟨z', hBiz'z, hyz'⟩ := Bi.back hBiya haz;
@@ -237,7 +237,7 @@ theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : R
               . exact hyne hya;
               . exact hyna hya;
               . exact hnay hya;
-          have hz'B : z' ⊩ B := (ihB hC ⟨z', hz'nS⟩).mp (h ⟨z', hz'nS⟩ hxz');
+          have hz'B : z' ⊩[M.toModel] B := (ihB hC ⟨z', hz'nS⟩).mp (h ⟨z', hz'nS⟩ hxz');
           exact (World.forces_iff_of_pbisimilar Bi hBiz'z hC).mp hz'B;
       . exact (ihB hC ⟨z, hzS⟩).mp (h ⟨z, hzS⟩ hxz);
     . intro h ⟨z, hz⟩ hxz;
@@ -263,7 +263,7 @@ theorem exists_simplificationUnder :
     Fintype.card M.World = n →
   ∃ (κ' : Type u) (_ : Nonempty κ') (M' : RootedModel κ' α) (_ : Fintype M'.World)
     (_ : M'.IsFiniteGL), M'.IsTree ∧ IsSimpleUnder M' P ∧
-  ∀ C : Formula α, C.atoms ⊆ P → (M.root.1 ⊩ C ↔ M'.root.1 ⊩ C) := by
+  ∀ C : Formula α, C.atoms ⊆ P → (M.root.1 ⊩[M.toModel] C ↔ M'.root.1 ⊩[M'.toModel] C) := by
   intro n;
   -- Iterate removal of redundant cones; this terminates since the model is finite.
   induction n using Nat.strong_induction_on with
@@ -449,9 +449,12 @@ def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
 lemma graftOmega.removeCone_root_forces_iff {M : RootedModel κ α} [M.IsGL]
   {a : M.NonRoot} {m : M.World} [(M.graftOmega a).IsGL]
   (hm : m ≠ M.root.1) (hma : ¬ a.1.IsInConeOf m) {C : Formula α} :
-  ((M.graftOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).root.1 ⊩ C ↔
+  ((M.graftOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).root.1
+    ⊩[((M.graftOmega a).removeCone ⟨Sum.inl m, inl_ne_root hm⟩).toModel] C ↔
   ((M.removeCone ⟨m, hm⟩).graftOmega
-    ⟨⟨a.1, hma⟩, fun h => a.2 (congrArg Subtype.val h)⟩).root.1 ⊩ C :=
+    ⟨⟨a.1, hma⟩, fun h => a.2 (congrArg Subtype.val h)⟩).root.1
+    ⊩[((M.removeCone ⟨m, hm⟩).graftOmega
+      ⟨⟨a.1, hma⟩, fun h => a.2 (congrArg Subtype.val h)⟩).toModel] C :=
   (removeConePseudoEpimorphism hm hma).modal_equivalence _ (A := C)
 
 open Classical in
@@ -478,8 +481,9 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
     ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a'.1) ∧
   IsSimpleUnder (M'.graftOmega a') P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔
-    (M'.graftOmega a').root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+    ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
+    (M'.graftOmega a').root.1 ⊩[(M'.graftOmega a').toModel] C) := by
   intro n;
   -- Strong induction on the cardinality of the underlying finite tree `M`: `M'` is
   -- obtained from `M` by finitely many `removeCone` steps.
@@ -539,8 +543,9 @@ theorem exists_simplificationUnder_omega' [DecidableEq α] {κ : Type u} [Nonemp
     ∀ x : M'.World, M'.root.1 ≺ x → x.IsInConeOf a'.1) ∧
   IsSimpleUnder (M'.graftOmega a') P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔
-    (M'.graftOmega a').root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+    ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
+    (M'.graftOmega a').root.1 ⊩[(M'.graftOmega a').toModel] C) := by
   haveI : Fintype M.World := Fintype.ofFinite _;
   exact exists_simplificationUnder_omega_aux (Fintype.card M.World) M a Rra hcov rfl;
 
@@ -557,7 +562,8 @@ theorem exists_simplificationUnder_omega [DecidableEq α] {κ : Type u} [Nonempt
   ∃ (κ' : Type u) (_ : Nonempty κ') (M' : RootedModel κ' α) (_ : M'.IsGL),
   M'.IsTree ∧ IsSimpleUnder M' P ∧
   ∀ C : Formula α, C.atoms ⊆ P →
-  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C ↔ M'.root.1 ⊩ C) := by
+  ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+    ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔ M'.root.1 ⊩[M'.toModel] C) := by
   obtain ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov', -, hSimple', hEq'⟩ :=
     exists_simplificationUnder_omega' Rra hcov P;
   haveI := hNe'; haveI := hGL'; haveI := hTree';

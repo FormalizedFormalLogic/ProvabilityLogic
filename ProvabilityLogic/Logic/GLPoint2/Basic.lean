@@ -116,7 +116,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x;
     apply Model.World.forces_imp.mpr;
-    by_cases h : x ⊩ ◇□⊥;
+    by_cases h : x ⊩[_] ◇□⊥;
     . right;
       obtain ⟨y, hxy, hy⟩ := Model.World.forces_dia.mp h;
       apply Model.World.forces_dia.mpr;
@@ -157,19 +157,19 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
     apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x hL h4 hdia;
     obtain ⟨y, hxy, hyD⟩ := Model.World.forces_dia.mp hdia;
-    by_cases hbox : x ⊩ □(∼(C ⋏ □C));
+    by_cases hbox : x ⊩[_] □(∼(C ⋏ □C));
     . grind;
-    . have hx : x ⊮ □(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) := fun h => hbox (hL h);
+    . have hx : x ⊮[_] □(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) := fun h => hbox (hL h);
       obtain ⟨w, hxw, hw⟩ := Model.World.not_forces_box.mp hx;
       obtain ⟨hw₁, hw₂⟩ := Model.World.not_forces_imp.mp hw;
       obtain ⟨hwC, hwBC⟩ := Model.World.forces_and.mp (Model.World.not_forces_neg.mp hw₂);
-      have hwBBC : w ⊩ □□C := Model.World.forces_box.mp h4 w hxw hwBC;
+      have hwBBC : w ⊩[_] □□C := Model.World.forces_box.mp h4 w hxw hwBC;
       apply Model.World.forces_dia.mpr;
       use w, hxw;
       refine Model.World.forces_and.mpr ⟨?_, hwC⟩
       apply Model.World.forces_box.mpr;
       intro z hwz;
-      have hzD : z ⊩ C ⋏ □C := Model.World.forces_and.mpr
+      have hzD : z ⊩[_] C ⋏ □C := Model.World.forces_and.mpr
         ⟨Model.World.forces_box.mp hwBC z hwz, Model.World.forces_box.mp hwBBC z hwz⟩;
       exact absurd hzD (Model.World.forces_neg.mp (Model.World.forces_box.mp hw₁ z hwz));
   have h₁ : (◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α :=

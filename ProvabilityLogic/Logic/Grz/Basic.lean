@@ -29,7 +29,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ᵍ[Grz] (∅ ⟹ {A}),
   ⊢ᵍᶜ[Grz] (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩ A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A
 ].TFAE := by
   tfae_have 1 ↔ 2 := by grind;
   tfae_have 2 → 3 := ProvableGentzen.of_provableHilbert;
@@ -65,7 +65,7 @@ theorem iff_forces [DecidableEq α] {A : Formula α} :
   provability_TFAE.out 0 4
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩ A :=
+    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
 end LogicGrz

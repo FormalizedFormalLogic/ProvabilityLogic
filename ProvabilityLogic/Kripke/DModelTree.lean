@@ -293,8 +293,8 @@ pseudo-tail model (model-theoretic core).
 - [Bek90, Lemma 3]
 -/
 lemma graftOmega_root_forces_iff {C : Formula α} :
-  ((M.dModelTree r o).graftOmega tailPoint).root.1 ⊩ C ↔
-  (M.toPseudoTail r o).root.1 ⊩ C :=
+  ((M.dModelTree r o).graftOmega tailPoint).root.1 ⊩[((M.dModelTree r o).graftOmega tailPoint).toModel] C ↔
+  (M.toPseudoTail r o).root.1 ⊩[(M.toPseudoTail r o).toModel] C :=
   (graftOmegaPseudoEpimorphism M r o).modal_equivalence
     ((M.dModelTree r o).graftOmega tailPoint).root.1 (A := C)
 

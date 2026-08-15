@@ -166,7 +166,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   A ∈ LogicGLPoint3,
   ⊢ᵍ[GLPoint3] (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩ A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
 ].TFAE := by
   tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
   tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
@@ -187,7 +187,7 @@ finite rooted linear GL model.
 -/
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩ A :=
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 3
 
 end LogicGLPoint3

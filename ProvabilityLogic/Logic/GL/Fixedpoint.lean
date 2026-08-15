@@ -34,7 +34,7 @@ variable {x : M.World}
 then substituting `q` for `p` does not change forcing at `x`. Requires transitivity. -/
 lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) :
     ∀ x : M.World, (∀ w : M.World, (w = x ∨ x ≺ w) → (M.Val w p ↔ M.Val w q)) →
-      (x ⊩ B⟦p ↦ #q⟧ ↔ x ⊩ B) := by
+      (x ⊩[_] B⟦p ↦ #q⟧ ↔ x ⊩[_] B) := by
   induction B with
   | atom a =>
     intro x h
@@ -67,7 +67,7 @@ lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) 
 then substituting `q` for `p` does not change forcing at `x`. -/
 lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula α)
     (h : ∀ w : M.World, x ≺ w → (M.Val w p ↔ M.Val w q)) (hB : B.ModalizedIn p) :
-    x ⊩ B⟦p ↦ #q⟧ ↔ x ⊩ B := by
+    x ⊩[_] B⟦p ↦ #q⟧ ↔ x ⊩[_] B := by
   induction B with
   | atom a =>
     have : a ≠ p := hB
@@ -99,8 +99,8 @@ then `p` and `q` agree at `x` and hereditarily above `x`.
 - [SV82, Lemma 4.3]
 -/
 lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
-    (h₁ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A ↔ M.Val y p))
-    (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩ A⟦p ↦ #q⟧ ↔ M.Val y q)) :
+    (h₁ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩[_] A ↔ M.Val y p))
+    (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩[_] A⟦p ↦ #q⟧ ↔ M.Val y q)) :
     ∀ y : M.World, (y = x ∨ x ≺ y) → (M.Val y p ↔ M.Val y q) := by
   intro y
   induction y using WellFounded.induction (IsConverseWellFounded.cwf (rel := M.Rel)) with
@@ -112,8 +112,8 @@ lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
       rcases hy with rfl | h'
       . exact .inr Ryw
       . exact .inr (IsTrans.trans _ _ _ h' Ryw)
-    calc M.Val y p ↔ y ⊩ A := (h₁ y hy).symm
-      _ ↔ y ⊩ A⟦p ↦ #q⟧ := (forces_subst_single_iff_of_agree_succ A hsucc hA).symm
+    calc M.Val y p ↔ y ⊩[_] A := (h₁ y hy).symm
+      _ ↔ y ⊩[_] A⟦p ↦ #q⟧ := (forces_subst_single_iff_of_agree_succ A hsucc hA).symm
       _ ↔ M.Val y q := h₂ y hy
 
 end
@@ -127,7 +127,7 @@ omit [DecidableEq α] in
 Requires transitivity and irreflexivity: `t` is never reachable from itself. -/
 lemma forces_iff_of_modalized [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (B : Formula α)
     (hB : B.ModalizedIn p) :
-    Model.World.Forces (M := M.overwrite t p v) t B ↔ Model.World.Forces (M := M) t B := by
+    t ⊩[M.overwrite t p v] B ↔ t ⊩[M] B := by
   induction B with
   | atom a => exact val_of_ne_atom hB
   | bot => simp [Model.World.Forces]
@@ -180,8 +180,8 @@ theorem remove_modalized_atom_ant
   by_contra hsuc
   push Not at hsuc
   let M' := M.overwrite x p True
-  have hM' : ∀ C, C.ModalizedIn p →
-      (Model.World.Forces (M := M') x C ↔ Model.World.Forces (M := M) x C) :=
+  have hM' : ∀ C : Formula α, C.ModalizedIn p →
+      (x ⊩[M'] C ↔ x ⊩[M] C) :=
     fun C hC => Model.overwrite.forces_iff_of_modalized C hC
   obtain ⟨D, hD, hfD⟩ := Kripke.finite_soundness h M' x (by
     intro C hC
@@ -202,8 +202,8 @@ theorem remove_modalized_atom_suc
   by_contra hsuc
   push Not at hsuc
   let M' := M.overwrite x p False
-  have hM' : ∀ C, C.ModalizedIn p →
-      (Model.World.Forces (M := M') x C ↔ Model.World.Forces (M := M) x C) :=
+  have hM' : ∀ C : Formula α, C.ModalizedIn p →
+      (x ⊩[M'] C ↔ x ⊩[M] C) :=
     fun C hC => Model.overwrite.forces_iff_of_modalized C hC
   obtain ⟨D, hD, hfD⟩ := Kripke.finite_soundness h M' x
     (fun C hC => (hM' C (hΓ C hC)).mpr (hant C hC))
@@ -224,8 +224,8 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
     ⊢ᵍ[GL] ({⊡(A 🡘 #p), ⊡((A⟦p ↦ #q⟧) 🡘 #q)} ⟹ {(#p : Formula α) 🡘 #q}) := by
   apply Kripke.completeness
   intro κ _ M _ x hant
-  have h₁ : x ⊩ ⊡(A 🡘 #p) := hant _ (by simp)
-  have h₂ : x ⊩ ⊡((A⟦p ↦ #q⟧) 🡘 #q) := hant _ (by simp)
+  have h₁ : x ⊩[_] ⊡(A 🡘 #p) := hant _ (by simp)
+  have h₂ : x ⊩[_] ⊡((A⟦p ↦ #q⟧) 🡘 #q) := hant _ (by simp)
   use (#p : Formula α) 🡘 #q, by simp
   have hval := Model.World.val_iff_of_fixpoints (x := x) (q := q) hA
     (by
@@ -278,12 +278,12 @@ lemma fixpoint_premise (hA : A.ModalizedIn p) :
   intro κ _ M _ x hant
   by_contra hsuc
   push Not at hsuc
-  have hxp : x ⊩ (#p : Formula α) := hant _ (by simp)
-  have hxA : x ⊩ A := hant _ (by simp)
-  have hbox₁ : x ⊩ □(A 🡘 #p) := hant _ (by simp)
-  have hbox₂ : x ⊩ □((A⟦p ↦ #q⟧) 🡘 #q) := hant _ (by simp)
-  have hxq : ¬x ⊩ (#q : Formula α) := hsuc _ (by simp)
-  have hxA' : ¬x ⊩ A⟦p ↦ #q⟧ := hsuc _ (by simp)
+  have hxp : x ⊩[_] (#p : Formula α) := hant _ (by simp)
+  have hxA : x ⊩[_] A := hant _ (by simp)
+  have hbox₁ : x ⊩[_] □(A 🡘 #p) := hant _ (by simp)
+  have hbox₂ : x ⊩[_] □((A⟦p ↦ #q⟧) 🡘 #q) := hant _ (by simp)
+  have hxq : ¬x ⊩[_] (#q : Formula α) := hsuc _ (by simp)
+  have hxA' : ¬x ⊩[_] A⟦p ↦ #q⟧ := hsuc _ (by simp)
   have hval := Model.World.val_iff_of_fixpoints (x := x) (q := q) hA
     (by
       intro y hy

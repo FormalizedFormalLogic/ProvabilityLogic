@@ -88,7 +88,7 @@ variable [IsTrans _ M.Rel]
 
 open Model.World (Forces)
 
-lemma forces_same_of_isInConeOf (hx : x.IsInConeOf r) : Forces (M := toRootedModel M r |>.toModel) ⟨x, hx⟩ A ↔ x ⊩ A := by
+lemma forces_same_of_isInConeOf (hx : x.IsInConeOf r) : ⟨x, hx⟩ ⊩[toRootedModel M r |>.toModel] A ↔ x ⊩[M] A := by
   induction A generalizing x with
   | atom a => simp [Forces, toRootedModel];
   | box A ihA =>
@@ -103,10 +103,11 @@ lemma forces_same_of_isInConeOf (hx : x.IsInConeOf r) : Forces (M := toRootedMod
       grind;
   | _ => grind;
 
-lemma forces_same_at_cone_point {x : (toRootedModel M r).World} : Forces x A ↔ Forces (M := M) x A :=
+lemma forces_same_at_cone_point {x : (toRootedModel M r).World} :
+    x ⊩[toRootedModel M r |>.toModel] A ↔ x ⊩[M] A :=
   forces_same_of_isInConeOf x.property
 
-lemma forces_same_at_root : Forces (M := toRootedModel M r |>.toModel) ⟨r, by grind⟩ A ↔ Forces (M := M) r A :=
+lemma forces_same_at_root : ⟨r, by grind⟩ ⊩[toRootedModel M r |>.toModel] A ↔ r ⊩[M] A :=
   forces_same_of_isInConeOf (by grind)
 
 end toRootedModel
