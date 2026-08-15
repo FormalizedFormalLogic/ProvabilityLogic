@@ -4,10 +4,15 @@ public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.Kripke.Preservation
 
 /-!
-`ULift`-lifting of a model along its world type. Used to turn a `Fin (n + 1)`-indexed
-countermodel (living in `Type 0`) into a countermodel in an arbitrary universe `Type v`, so
-that Gentzen completeness theorems stated for a fixed universe of worlds can be generalized
-to quantify over all universes.
+`ULift`-lifting of a model, and of a rooted model, along its world type. Forcing (at every
+world, resp. at the root) is preserved, and the `GL`/`GLPoint3` finite model classes are
+inherited, so a countermodel may freely be moved between universes.
+
+This turns a concretely indexed countermodel such as a `Fin (n + 1)`-indexed chain (living in
+`Type 0`) into a countermodel in an arbitrary universe `Type v`. Both directions are used:
+completeness theorems stated for a fixed universe of worlds are generalized to quantify over
+all universes, and conversely a small rooted countermodel is transported into the universe of
+the atom type `α`, which is the universe over which `LogicGL.iff_forces_root` quantifies.
 -/
 
 @[expose]

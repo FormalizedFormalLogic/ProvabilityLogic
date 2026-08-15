@@ -51,8 +51,7 @@ lemma provable_axiomD {A B : Formula α} : (□(□A ⋎ □B) 🡒 (□A ⋎ �
   Logic.sumQuasiNormal.mem₂ (Set.mem_insert_iff.mpr (Or.inr ⟨A, B, rfl⟩))
 
 /-- `D` proves every iterated consistency statement `∼□^[n]⊥`: the axiom `P` gives `∼□⊥`, and
-the instance of the axiom `D` at `A = B = □^[n]⊥` lifts `∼□^[n + 1]⊥` to `∼□^[n + 2]⊥`. This is
-a routine consequence of the axiomatization, so no source is cited. -/
+the instance of the axiom `D` at `A = B = □^[n]⊥` lifts `∼□^[n + 1]⊥` to `∼□^[n + 2]⊥`. -/
 lemma provable_neg_boxItr_bot [DecidableEq α] {n : ℕ} : (∼□^[n]⊥ : Formula α) ∈ LogicD := by
   match n with
   | 0 => exact provable_of_provable_GL (LogicGL.iff_forces.mpr (by grind));
