@@ -120,8 +120,8 @@ namespace ProvableGentzen
   - [KKIM25, Theorem 5.8]
 -/
 lemma not_provable_GL_of_not_provable_2 {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[D] (Γ ⟹[2] Δ)) :
-    ⊬ᵍ[GL] (Γ ⟹ Δ) := by
-  sorry
+    ⊬ᵍ[GL] (Γ ⟹ Δ) :=
+  fun hGL => h (provable_2_of_provableGentzen_GL hGL)
 
 /--
   If a level-`2` sequent is `LogicD.ProvableGentzen`-unprovable then the boxed sequent
