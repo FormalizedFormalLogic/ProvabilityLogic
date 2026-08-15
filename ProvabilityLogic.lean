@@ -16,6 +16,7 @@ public import ProvabilityLogic.Gentzen.Grz.Kripke
 public import ProvabilityLogic.Gentzen.Grz.WithCut
 public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
+public import ProvabilityLogic.Gentzen.Sequent
 public import ProvabilityLogic.Hilbert.GL.Basic
 public import ProvabilityLogic.Hilbert.GL.Letterless
 public import ProvabilityLogic.Hilbert.Grz.Basic

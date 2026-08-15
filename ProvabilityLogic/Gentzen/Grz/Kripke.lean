@@ -81,7 +81,7 @@ instance : trivial_Grz_model (α := α) |>.IsFiniteGrz where
 
 open LogicGL
 
-noncomputable def _root_.LogicGL.Sequent.subfmlsGrz (S : Sequent α) : FormulaFinset α :=
+noncomputable def _root_.Sequent.subfmlsGrz (S : Sequent α) : FormulaFinset α :=
   S.subfmls
     ∪ (FormulaFinset.prebox S.subfmls |>.image (λ C => C 🡒 □C))
     ∪ (FormulaFinset.prebox S.subfmls |>.image (λ C => □(C 🡒 □C)))

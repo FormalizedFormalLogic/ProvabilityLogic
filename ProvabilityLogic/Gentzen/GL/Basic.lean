@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Formula.Basic
+public import ProvabilityLogic.Gentzen.Sequent
 
 @[expose]
 public section
@@ -8,35 +9,6 @@ public section
 variable {α : Type u} [DecidableEq α]
 
 namespace LogicGL
-
-structure Sequent (α : Type u) where
-  ant : FormulaFinset α
-  suc : FormulaFinset α
-
-infix:50 " ⟹ " => Sequent.mk
-
-namespace Sequent
-
-@[grind]
-def subfmls (S : Sequent α) : Finset (Formula α) := S.ant.subfmls ∪ S.suc.subfmls
-
-structure subset (S T : Sequent α) : Prop where
-  ant_subset : S.ant ⊆ T.ant
-  suc_subset : S.suc ⊆ T.suc
-
-instance : HasSubset (Sequent α) := ⟨subset⟩
-
-variable {S : Sequent α}
-
-@[grind .] lemma subset_self_subfmls : S.ant ∪ S.suc ⊆ S.subfmls := by grind;
-
-@[grind →]
-lemma mem_subfmls_subfmls {S : Sequent α} {B C : Formula α} (hB : B ∈ S.subfmls) (hC : C ∈ B.subfmls) : C ∈ S.subfmls := by
-  simp only [Sequent.subfmls, Finset.mem_union] at hB ⊢
-  grind [FormulaFinset.mem_subfmls_subfmls]
-
-end Sequent
-
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
