@@ -500,18 +500,21 @@ theorem fixpoint_unique (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.ato
     GentzenWithCutProvable.cut (hbd hE) (by simpa using h₁);
   simpa using h₂;
 
-/-- The fixed point theorem for GL (GL.typ, final theorem):
-for `p` modalized in `A` and a fresh atom `q`, there effectively exists a fixed point `D`
-of `A` containing only atoms of `A` other than `p`.
+/-- The fixed point theorem for GL: for `p` modalized in `A` and a fresh atom `q`, there
+effectively exists a fixed point `D` of `A` containing only atoms of `A` other than `p`,
+and it is the unique fixed point of `A` up to GL-provable equivalence.
 
-- [SV82, Theorem 4.4]
+- [SV82, Lemma 4.3, Theorem 4.4]
 -/
 theorem fixpointTheorem
     (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
-    ∃ D : Formula α, D.atoms ⊆ A.atoms \ {p} ∧ ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL :=
-  ⟨ProvableGentzen.fixpointFormula hpq hA hq,
-    ProvableGentzen.fixpointFormula_atoms hpq hA hq,
-    LogicGL.iff_provableGentzen.mpr (ProvableGentzen.fixpoint_existence hpq hA hq)⟩
+    ∃ D : Formula α, D.atoms ⊆ A.atoms \ {p} ∧ ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL ∧
+      ∀ E : Formula α, ((A⟦p ↦ E⟧) 🡘 E) ∈ LogicGL → (D 🡘 E) ∈ LogicGL := by
+  have h₁ := ProvableGentzen.fixpointFormula_atoms hpq hA hq;
+  have h₂ := iff_provableGentzen.mpr (ProvableGentzen.fixpoint_existence hpq hA hq);
+  have h₃ : q ∉ (ProvableGentzen.fixpointFormula hpq hA hq).atoms :=
+    fun h => hq (Finset.mem_sdiff.mp (h₁ h)).1;
+  exact ⟨_, h₁, h₂, fun E hE => fixpoint_unique hpq hA hq h₃ h₂ hE⟩;
 
 end LogicGL
 
