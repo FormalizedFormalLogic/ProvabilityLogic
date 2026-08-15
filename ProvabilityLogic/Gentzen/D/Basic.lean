@@ -16,6 +16,7 @@ public section
 
 open LogicGL
 open scoped LogicS
+open scoped FormulaFinset
 
 variable {α : Type u} [DecidableEq α]
 
@@ -41,10 +42,10 @@ inductive LogicD.ProofGentzen : ThreeLayeredSequent α → Type u
 | wkR  {l Γ Δ Δ'}  : ProofGentzen (Γ ⟹[l] Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹[l] Δ')
 | impL {l Γ Δ A B} : ProofGentzen (Γ ⟹[l] (insert A Δ)) → ProofGentzen (insert B Γ ⟹[l] Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹[l] Δ)
 | impR {l Γ Δ A B} : ProofGentzen ((insert A Γ) ⟹[l] (insert B Δ)) → ProofGentzen (Γ ⟹[l] (insert (A 🡒 B) Δ))
-| boxGL {Γ A}      : ProofGentzen ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) → ProofGentzen (Γ.box ⟹[0] {□A})
+| boxGL {Γ : FormulaFinset α} {A} : ProofGentzen ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A}) → ProofGentzen (□Γ ⟹[0] {□A})
 | liftUp₀₁ {Γ Δ}   : ProofGentzen (Γ ⟹[0] Δ) → ProofGentzen (Γ ⟹[1] Δ)
 | boxL {Γ Δ A}     : ProofGentzen (insert A Γ ⟹[1] Δ) → ProofGentzen (insert (□A) Γ ⟹[1] Δ)
-| liftUp₁₂ {Γ Δ : FormulaFinset α} : ProofGentzen (Γ.box ⟹[1] Δ.box) → ProofGentzen (Γ.box ⟹[2] Δ.box)
+| liftUp₁₂ {Γ Δ : FormulaFinset α} : ProofGentzen (□Γ ⟹[1] □Δ) → ProofGentzen (□Γ ⟹[2] □Δ)
 
 namespace LogicD
 
@@ -134,7 +135,7 @@ def liftUp₀₂ {Γ Δ : FormulaFinset α} : ⊢ᵍ[D]! (Γ ⟹[0] Δ) → ⊢�
 | .impR h       => .impR (liftUp₀₂ h)
 | .boxGL (Γ := Γ) (A := A) π => by
     have h := ProofGentzen.liftUp₀₁ (ProofGentzen.boxGL π);
-    rw [(show ({□A} : FormulaFinset α) = ({A} : FormulaFinset α).box by grind)] at h ⊢;
+    rw [(show ({□A} : FormulaFinset α) = □({A} : FormulaFinset α) by grind)] at h ⊢;
     exact ProofGentzen.liftUp₁₂ h;
 
 end ProofGentzen
@@ -151,9 +152,9 @@ lemma impL (π₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[D] (inser
   ⟨ProofGentzen.impL π₁.some π₂.some⟩
 lemma impR (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
 lemma liftUp₀₁ (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp₀₁ π.some⟩
-lemma boxGL (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[D] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
+lemma boxGL (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})) : ⊢ᵍ[D] (□Γ ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
 lemma boxL (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
-lemma liftUp₁₂ (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)) : ⊢ᵍ[D] (Γ.box ⟹[2] Δ.box) := ⟨ProofGentzen.liftUp₁₂ π.some⟩
+lemma liftUp₁₂ (π : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)) : ⊢ᵍ[D] (□Γ ⟹[2] □Δ) := ⟨ProofGentzen.liftUp₁₂ π.some⟩
 
 @[induction_eliminator]
 lemma rec
@@ -170,14 +171,14 @@ lemma rec
     motive ((insert A Γ) ⟹[l] (insert B Δ)) π → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR π)
   )
   (liftUp₀₁ : ∀ {Γ Δ} (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp₀₁ π))
-  (boxGL : ∀ {Γ A} (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
-    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) π → motive (Γ.box ⟹[0] {□A}) (boxGL π)
+  (boxGL : ∀ {Γ : FormulaFinset α} {A} (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})),
+    motive ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A}) π → motive (□Γ ⟹[0] {□A}) (boxGL π)
   )
   (boxL : ∀ {Γ Δ A} (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)),
     motive (insert A Γ ⟹[1] Δ) π → motive (insert (□A) Γ ⟹[1] Δ) (boxL π)
   )
-  (liftUp₁₂ : ∀ {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (Γ.box ⟹[1] Δ.box)),
-    motive (Γ.box ⟹[1] Δ.box) π → motive (Γ.box ⟹[2] Δ.box) (liftUp₁₂ π)
+  (liftUp₁₂ : ∀ {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)),
+    motive (□Γ ⟹[1] □Δ) π → motive (□Γ ⟹[2] □Δ) (liftUp₁₂ π)
   )
   : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍ[D] S), motive S h := by
     rintro S ⟨h⟩;
@@ -232,13 +233,13 @@ lemma axiomD {A B : Formula α} : ⊢ᵍ[D] (∅ ⟹[2] {□(□A ⋎ □B) 🡒
   have h₃ : ⊢ᵍ[D] ({□A ⋎ □B} ⟹[1] {□A, □B}) := orL (Γ := ∅) h₁ h₂;
   have h₄ : ⊢ᵍ[D] ({□(□A ⋎ □B)} ⟹[1] {□A, □B}) := boxL (A := □A ⋎ □B) (Γ := ∅) h₃;
   rw [
-    (show ({□(□A ⋎ □B)}) = ({□A ⋎ □B} : FormulaFinset α).box by grind),
-    (show ({□A, □B}) = ({A, B} : FormulaFinset α).box by grind)
+    (show ({□(□A ⋎ □B)}) = □({□A ⋎ □B} : FormulaFinset α) by grind),
+    (show ({□A, □B}) = □({A, B} : FormulaFinset α) by grind)
   ] at h₄;
   have h₅ := liftUp₁₂ h₄;
   rw [
-    (show ({□A ⋎ □B} : FormulaFinset α).box = {□(□A ⋎ □B)} by grind),
-    (show ({A, B} : FormulaFinset α).box = {□A, □B} by grind)
+    (show □({□A ⋎ □B} : FormulaFinset α) = {□(□A ⋎ □B)} by grind),
+    (show □({A, B} : FormulaFinset α) = {□A, □B} by grind)
   ] at h₅;
   exact impR (orR (Δ := ∅) h₅);
 
@@ -252,13 +253,13 @@ lemma axiomP : ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {∼□⊥}) := by
   have h₁ : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[1] ∅) := botL 1;
   have h₂ : ⊢ᵍ[D] ({□⊥} ⟹[1] ∅) := boxL (A := ⊥) (Γ := ∅) h₁;
   rw [
-    (show ({□(⊥ : Formula α)} : FormulaFinset α) = ({⊥} : FormulaFinset α).box by grind),
-    (show ∅ = (∅ : FormulaFinset α).box by grind)
+    (show ({□(⊥ : Formula α)} : FormulaFinset α) = □({⊥} : FormulaFinset α) by grind),
+    (show ∅ = □(∅ : FormulaFinset α) by grind)
   ] at h₂;
   have h₃ := liftUp₁₂ h₂;
   rw [
-    (show ({⊥} : FormulaFinset α).box = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
-    (show (∅ : FormulaFinset α).box = ∅ by grind)
+    (show □({⊥} : FormulaFinset α) = ({□(⊥ : Formula α)} : FormulaFinset α) by grind),
+    (show □(∅ : FormulaFinset α) = ∅ by grind)
   ] at h₃;
   exact negR (Δ := ∅) h₃;
 
