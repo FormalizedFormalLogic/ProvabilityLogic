@@ -171,7 +171,7 @@ namespace ProvableGentzen
 
 open Formula
 
-variable {Γ Δ : FormulaFinset α} {A B D : Formula α} {p q : α}
+variable {Γ Δ : FormulaFinset α} {A B D E : Formula α} {p q : α}
 
 /-! ### Substitution closure (GL.typ, Proposition 1.2) -/
 
@@ -308,6 +308,33 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
       . have := Model.World.forces_boxdot.mp h₂ |>.2 y hy; grind)
     x (.inl rfl)
   grind
+
+/-- Fixed points are unique, for arbitrary fixed points `D` and `E` in place of the atoms
+`p` and `q`. Obtained from `fixpoint_uniqueness` by substituting `p ↦ D` first and `q ↦ E`
+afterwards, so that no freshness assumption on `E` is needed.
+
+- [SV82, Lemma 4.3]
+-/
+theorem fixpoint_unique (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms)
+    (hqD : q ∉ D.atoms) :
+    ⊢ᵍ[GL] ({⊡((A⟦p ↦ D⟧) 🡘 D), ⊡((A⟦p ↦ E⟧) 🡘 E)} ⟹ {D 🡘 E}) := by
+  have hpA : p ∉ (A⟦p ↦ #q⟧).atoms := by
+    intro h;
+    rcases Finset.mem_union.mp (atoms_subst_single_subset h) with h | h;
+    . simp at h;
+    . simp [atoms] at h; exact hpq h;
+  have hqA : q ∉ (A⟦p ↦ D⟧).atoms := by
+    intro h;
+    rcases Finset.mem_union.mp (atoms_subst_single_subset h) with h | h;
+    . exact hq (Finset.mem_sdiff.mp h).1;
+    . exact hqD h;
+  -- substitute `p ↦ D` first, so that `E` may contain `p` freely
+  have h₁ : ⊢ᵍ[GL] ({⊡((A⟦p ↦ D⟧) 🡘 D), ⊡((A⟦p ↦ #q⟧) 🡘 #q)} ⟹ {D 🡘 (#q : Formula α)}) := by
+    have := subst (Substitution.single p D) (fixpoint_uniqueness (q := q) hA);
+    simpa [Finset.image_insert, subst_single_eq_self_of_not_mem_atoms hpA, hpq.symm] using this;
+  have := subst (Substitution.single q E) h₁;
+  simpa [Finset.image_insert, subst_single_eq_self_of_not_mem_atoms hqA,
+    subst_single_eq_self_of_not_mem_atoms hqD, subst_single_subst_single hq] using this;
 
 /-! ### Existence of fixed points (GL.typ, Lemma 3.10)
 
