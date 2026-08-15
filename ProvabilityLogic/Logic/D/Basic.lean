@@ -423,18 +423,12 @@ lemma LogicD_ssubset_LogicS [Inhabited α] [DecidableEq α] : (LogicD : Logic α
     · exact LogicS.provable_axiomT;
     · exact LogicD.not_provable_axiomT;
 
-/-- The one-point model with empty relation, used to show `P` is not a `GL`-theorem. -/
-abbrev axiomPCountermodel : Model (Fin 1) α := ⟨fun _ _ => False, fun _ _ => True⟩
-
-instance : (axiomPCountermodel (α := α)).IsFiniteGL where
-  trans := fun _ _ _ hf _ => hf.elim
-  irrefl := fun _ hf => hf
-  finite := inferInstance
-
 /-- The axiom `P` (`∼□⊥`) is not a theorem of `GL`. -/
 lemma LogicGL.not_provable_axiomP [DecidableEq α] : (∼□⊥ : Formula α) ∉ LogicGL :=
-  -- Its unique world has no successor, so `□⊥` holds there vacuously and `∼□⊥` fails.
-  LogicGL.not_mem_of_concrete_not_forces axiomPCountermodel (x := 0) (by grind)
+  -- The unique world of the one-point model has no successor, so `□⊥` holds there vacuously
+  -- and `∼□⊥` fails.
+  LogicGL.not_mem_of_concrete_not_forces (Model.pointModel (α := α) (fun _ => True)) (x := 0)
+    (by grind)
 
 /-- `GL` is a proper sublogic of `D`: it is contained in `D`
 (`LogicD.provable_of_provable_GL`) but does not prove the axiom `P` (`∼□⊥`), which `D`

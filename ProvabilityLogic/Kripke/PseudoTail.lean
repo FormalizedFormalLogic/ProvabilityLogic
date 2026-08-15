@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Kripke.Preservation
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import Mathlib.Data.ENat.Basic
 
@@ -192,6 +193,42 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
       exact forces_inl.mp $ h (toPseudoTail.embed x) rel_chainPoint_embed;
 
 end toPseudoTail
+
+
+section Reindex
+
+open Model.World (Forces)
+
+variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {o : α → Prop} {e : κ ≃ κ'}
+
+/-- Re-indexing the base model along `e` does not change the pseudo-tail construction, up to
+transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
+the literature. -/
+lemma forces_toPseudoTail_reindex_iff {x : (M.toPseudoTail tail o).World} :
+  Forces (M := ((M.reindex e).toPseudoTail (e tail) o).toModel) (Sum.map e id x) A ↔
+  Forces (M := (M.toPseudoTail tail o).toModel) x A := by
+  have h : Forces (M := ((M.reindex e).toPseudoTail (e tail) o).toModel) (Sum.map e id x) A ↔
+      Forces (M := (M.toPseudoTail tail o).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞)))
+        (Sum.map e id x) A := by
+    apply Model.forces_congr;
+    · funext y z;
+      rcases y with y | i <;> rcases z with z | j <;> rfl;
+    · rintro (y | i) a <;> simp [Model.reindex];
+  rw [h];
+  exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
+
+/-- Forcing at a chain point is unaffected by re-indexing the base model. -/
+lemma forces_toPseudoTail_reindex_chainPoint_iff {i : ℕ∞} :
+  Forces (M := ((M.reindex e).toPseudoTail (e tail) o).toModel) (toPseudoTail.chainPoint i) A ↔
+  Forces (M := (M.toPseudoTail tail o).toModel) (toPseudoTail.chainPoint i) A :=
+  forces_toPseudoTail_reindex_iff (x := toPseudoTail.chainPoint i)
+
+/-- Forcing at the root (ω) is unaffected by re-indexing the base model. -/
+lemma forces_toPseudoTail_reindex_root_iff :
+  ((M.reindex e).toPseudoTail (e tail) o).root.1 ⊩ A ↔ (M.toPseudoTail tail o).root.1 ⊩ A :=
+  forces_toPseudoTail_reindex_chainPoint_iff (i := ⊤)
+
+end Reindex
 
 end Model
 

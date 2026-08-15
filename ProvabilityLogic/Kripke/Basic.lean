@@ -119,6 +119,18 @@ instance [M.IsFiniteGL] : M.IsGL where
 
 instance [M.IsGL] : Std.Irrefl M.Rel := ConverseWellFounded.irrefl
 
+/-- The one-point model with empty accessibility and valuation `v`. It is the smallest finite
+`GL`-model, and being indexed by `Fin 1` it is concrete. This is routine infrastructure with no
+counterpart in the literature. -/
+abbrev pointModel (v : α → Prop) : Model (Fin 1) α where
+  Rel' _ _ := False
+  Val' _ := v
+
+instance (v : α → Prop) : (pointModel v).IsFiniteGL where
+  trans := by tauto;
+  irrefl := by tauto;
+  finite := inferInstance
+
 /-- A `Grz` frame: reflexive, transitive, and weakly converse well-founded (the converse
 of the irreflexive part of the relation is well-founded). This is the standard semantic
 characterization of `Grz` frames; folklore, mirroring `Model.IsGL` above. -/

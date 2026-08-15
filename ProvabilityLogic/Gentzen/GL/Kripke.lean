@@ -15,20 +15,6 @@ variable {κ : Type u} [Nonempty κ]
 
 open LogicGL
 
-namespace LogicGL
-
-abbrev trivial_GL_model {α} : Model (Fin 1) α where
-  Rel' := λ _ _ => False
-  Val' := λ _ _ => False
-
-instance : trivial_GL_model (α := α) |>.IsFiniteGL where
-  finite := inferInstance;
-  trans  := by tauto;
-  irrefl := by tauto;
-
-end LogicGL
-
-
 namespace Model.World
 
 variable {M : Model κ α} {x : M.World}
@@ -203,7 +189,8 @@ end Kripke
 @[simp, grind .]
 theorem not_provable_empty : ⊬ᵍ[GL] (∅ ⟹ ∅ : Sequent α) := by
   by_contra h;
-  have : (0 : trivial_GL_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_GL_model 0;
+  have : (0 : (Model.pointModel (α := α) (fun _ => False)).World) ⊩ (∅ ⟹ ∅) :=
+    Kripke.finite_soundness h _ 0;
   grind;
 
 end ProvableGentzen
