@@ -160,7 +160,9 @@ attribute [grind .] saturated subset_subfmls unprovable
 variable {BS : Sequent α} {S : ExpandedLayeredSequent BS} {A B : Formula α}
 
 lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
-  sorry
+  push Not;
+  intro h₁ h₂;
+  exact S.unprovable (ProvableGentzen.union' 2 A h₁ h₂);
 
 lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by
   sorry
