@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Kripke.ULift
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
@@ -319,23 +320,17 @@ variable {a : α} {n : ℕ}
 abbrev axiomDCountermodel.bad (n : ℕ) : Fin (n + 2) := ⟨1, by omega⟩
 
 /--
-  The `ULift`-lifted chain frame `Fin (n + 2)` refuting `∼□^[n]⊥ 🡒 (□(□a ⋎ □a) 🡒 (□a ⋎ □a))`:
-  `a` is false exactly at the single point immediately below the root (`axiomDCountermodel.bad n`)
-  and true everywhere else, so every point other than the root forces `□a` (its successors,
-  if any, all lie strictly below that single point), while the root itself sees that point
-  directly and hence fails `□a`. Lifted to `ULift.{u} (Fin (n + 2))` (as in
-  `uLiftFiniteLineModel`) so it can be plugged into `LogicGL.iff_forces_root` at any `α : Type u`.
+  The chain `0 ≺ 1 ≺ ⋯ ≺ n + 1` on `Fin (n + 2)`, refuting axiom `D` at `A = B = #a`:
+  `a` is false exactly at the single point immediately below the root
+  (`axiomDCountermodel.bad n`) and true everywhere else. Every point other than the root
+  therefore forces `□a` — its successors, if any, all lie strictly below that point — so the
+  root forces the antecedent `□(□a ⋎ □a)`, while the root itself sees that point directly
+  and hence refutes the consequent `□a ⋎ □a`.
 -/
-abbrev axiomDCountermodel (n : ℕ) (_a : α) : RootedModel (ULift.{u} (Fin (n + 2))) α where
-  Rel' x y := x.down < y.down
-  Val' x _ := x.down ≠ axiomDCountermodel.bad n
-  root := ⟨ULift.up 0, by
-    rintro ⟨x⟩ hx;
-    apply Fin.pos_of_ne_zero;
-    intro h;
-    apply hx;
-    congr 1;
-  ⟩
+abbrev axiomDCountermodel (n : ℕ) (_a : α) : RootedModel (Fin (n + 2)) α where
+  Rel' := (· < ·)
+  Val' x _ := x ≠ axiomDCountermodel.bad n
+  root := ⟨0, fun _ hx => Fin.pos_of_ne_zero hx⟩
 
 namespace axiomDCountermodel
 
@@ -344,84 +339,62 @@ instance : (axiomDCountermodel n a).IsFiniteGL where
   finite := inferInstance
 instance : (axiomDCountermodel n a).IsGL := Model.instIsGLOfIsFiniteGL
 
-/-- The universe-lifting equivalence between the worlds of `finiteLineModel (n + 1)` and
-`axiomDCountermodel n a`, carrying the frame relation `<` to `≺`. -/
-def worldEquiv : (finiteLineModel (n + 1)).World ≃ (axiomDCountermodel n a).World := Equiv.ulift.symm
-
-lemma worldEquiv_rel_iff {i j : (finiteLineModel (n + 1)).World} :
-  i < j ↔ (worldEquiv (a := a) i : (axiomDCountermodel n a).World) ≺ worldEquiv j := Iff.rfl
-
-lemma rank_eq (x : (axiomDCountermodel n a).World) : x.rank = (n + 1) - x.down := by
-  haveI : IsConverseWellFounded (finiteLineModel (n + 1)).World (finiteLineModel (n + 1)).Rel :=
-    ⟨(inferInstance : (finiteLineModel (n + 1)).IsGL).cwf⟩;
-  haveI : IsConverseWellFounded (axiomDCountermodel n a).World (axiomDCountermodel n a).Rel :=
-    ⟨(inferInstance : (axiomDCountermodel n a).IsGL).cwf⟩;
-  obtain ⟨i, rfl⟩ := worldEquiv.surjective x;
-  show cwfHeight (axiomDCountermodel n a).Rel (worldEquiv i) = (n + 1 - i);
-  rw [← cwfHeight_congr (R := (finiteLineModel (n + 1)).Rel) worldEquiv (fun a b => worldEquiv_rel_iff) i];
-  exact finiteLineModel.rank_eq i;
+/-- The rank of a point is its distance to the endpoint of the chain: the frame is that of
+`finiteLineModel (n + 1)`, only the valuation differing. -/
+lemma rank_eq (x : (axiomDCountermodel n a).World) : x.rank = (n + 1) - x :=
+  finiteLineModel.rank_eq (n := n + 1) x
 
 lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
   simpa using rank_eq (a := a) (axiomDCountermodel n a).root.1;
 
-/-- Every point other than the root forces `□a`: any of its successors has `down`-value
-strictly past `bad n`, hence is not `bad n` itself. -/
-lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < x.down) :
-    x ⊩ (□(#a) : Formula α) := by
-  apply Model.World.forces_box.mpr;
-  intro z hz;
-  show z.down ≠ bad n;
-  intro hzbad;
-  replace hz : x.down < z.down := hz;
-  rw [hzbad] at hz;
-  simp only [bad, Fin.lt_def] at hx hz;
-  omega;
+/-- Every point other than the root forces `□a`: all of its successors lie strictly below
+`bad n`, hence none of them is `bad n` itself. -/
+lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < x) :
+  x ⊩ (□(#a) : Formula α) := by grind
 
 /-- The root fails `□a`: it sees `bad n` directly, at which `a` is false. -/
-lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩ (□(#a) : Formula α) := by
-  apply Model.World.not_forces_box.mpr;
-  refine ⟨ULift.up (bad n), ?_, ?_⟩;
-  . show (0 : Fin (n + 2)) < bad n;
-    simp [bad];
-  . show ¬(bad n ≠ bad n);
-    simp;
+lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩ (□(#a) : Formula α) :=
+  Model.World.not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
 /-- The root fails the consequent `□a ⋎ □a` of axiom `D` at `A = B = a`. -/
 lemma root_not_forces_axiomD_consequent :
-    ¬(axiomDCountermodel n a).root.1 ⊩ ((□(#a) : Formula α) ⋎ □(#a)) := by
-  apply Model.World.not_forces_or.mpr;
-  exact ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩;
+  ¬(axiomDCountermodel n a).root.1 ⊩ ((□(#a) : Formula α) ⋎ □(#a)) :=
+  Model.World.not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
 
 /-- The root forces the antecedent `□(□a ⋎ □a)` of axiom `D` at `A = B = a`. -/
 lemma root_forces_axiomD_antecedent :
-    (axiomDCountermodel n a).root.1 ⊩ (□((□(#a) : Formula α) ⋎ □(#a))) := by
-  apply Model.World.forces_box.mpr;
-  intro y hy;
-  apply Model.World.forces_or.mpr;
-  left;
-  apply forces_box_atom_of_ne_root;
-  exact hy;
+  (axiomDCountermodel n a).root.1 ⊩ (□((□(#a) : Formula α) ⋎ □(#a))) :=
+  Model.World.forces_box.mpr fun _ hy =>
+    Model.World.forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
+
+/-- The root forces `∼□^[n]⊥`, since it has rank `n + 1`. -/
+lemma root_forces_neg_boxItr_bot :
+  (axiomDCountermodel n a).root.1 ⊩ (∼(□^[n]⊥) : Formula α) := by
+  apply Model.World.forces_neg.mpr;
+  intro hc;
+  have h := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
+  rw [root_rank_eq] at h;
+  omega;
 
 end axiomDCountermodel
 
 /--
   Axiom `D` (`□(□A ⋎ □B) 🡒 (□A ⋎ □B)`), specialized to `A = B = #a`, is not a theorem of
   `LogicA`: for every `n`, `axiomDCountermodel n a` refutes `(∼□^[n]⊥) 🡒 axiomD(a, a)` at
-  its root.
+  its root. Its world type is `ULift`-lifted so that it lands in the universe `u` of `α`,
+  over which `LogicGL.iff_forces_root` quantifies.
 -/
-theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} : ((□((□#a) ⋎ □#a)) 🡒 ((□#a) ⋎ □#a)) ∉ @LogicA α := by
+theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
+  ((□((□#a) ⋎ □#a)) 🡒 ((□#a) ⋎ □#a)) ∉ @LogicA α := by
   rw [LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp];
   rintro ⟨n, hGL⟩;
-  have hant : (axiomDCountermodel n a).root.1 ⊩ (∼(□^[n]⊥ : Formula α)) := by
-    apply Model.World.forces_neg.mpr;
-    intro hc;
-    have hlt := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
-    rw [axiomDCountermodel.root_rank_eq] at hlt;
-    omega;
-  have hcons := (LogicGL.iff_forces_root.mp hGL (M := axiomDCountermodel n a)) hant;
-  rcases Model.World.forces_imp.mp hcons with h | h;
-  · exact h axiomDCountermodel.root_forces_axiomD_antecedent;
-  · exact axiomDCountermodel.root_not_forces_axiomD_consequent h;
+  have h := LogicGL.iff_forces_root.mp hGL ((axiomDCountermodel n a).uLift.{u}) <|
+    RootedModel.forces_uLift_root_iff.mpr axiomDCountermodel.root_forces_neg_boxItr_bot;
+  rcases Model.World.forces_imp.mp h with h | h;
+  · exact h <| RootedModel.forces_uLift_root_iff.mpr
+      axiomDCountermodel.root_forces_axiomD_antecedent;
+  · exact axiomDCountermodel.root_not_forces_axiomD_consequent <|
+      RootedModel.forces_uLift_root_iff.mp h;
 
 /-- `LogicD`, which proves axiom `D`, is not contained in `LogicA` (Artemov's `GLαω`),
 since `LogicA.not_provable_axiomD` shows axiom `D` is not a theorem of `LogicA`. -/
