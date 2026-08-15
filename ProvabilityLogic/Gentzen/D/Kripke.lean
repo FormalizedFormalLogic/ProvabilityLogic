@@ -132,8 +132,10 @@ lemma not_provable_GL_of_not_provable_2 {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[D
   - [KKIM25, Theorem 5.8]
 -/
 lemma not_provable_S_box_prebox_of_not_provable_2 {Γ Δ : FormulaFinset α} (h : ⊬ᵍ[D] (Γ ⟹[2] Δ)) :
-    ¬ LogicS.ProvableGentzen ((□(Γ.prebox)) ⟹[1] (□(Δ.prebox))) := by
-  sorry
+    ¬ LogicS.ProvableGentzen ((□(Γ.prebox)) ⟹[1] (□(Δ.prebox))) :=
+  fun hS => h (wkR
+    (wkL (liftUp₁₂ (iff_provableGentzenS_provable_1.mp hS)) FormulaFinset.box_prebox_subset)
+    FormulaFinset.box_prebox_subset)
 
 end ProvableGentzen
 
