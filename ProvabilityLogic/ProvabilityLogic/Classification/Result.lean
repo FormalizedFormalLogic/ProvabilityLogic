@@ -363,7 +363,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
       intro κ _ M _;
       haveI : Fintype M.World := Fintype.ofFinite _;
       apply Model.World.forces_imp.mpr;
-      by_cases hx : M.root.1 ⊩ ⋀(hCf.toFinset.image (TBB : ℕ → Formula α));
+      by_cases hx : M.root.1 ⊩[_] ⋀(hCf.toFinset.image (TBB : ℕ → Formula α));
       . right;
         apply Model.iff_forces_lift_rank_mem_spectrum.mpr;
         rw [LetterlessFormula.spectrum_fconj];
@@ -371,7 +371,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
         intro B hB;
         obtain ⟨n, hn, rfl⟩ := Finset.mem_image.mp hB;
         rw [LetterlessFormula.spectrum_TBB];
-        have : M.root.1 ⊩ (TBB n : Formula α) :=
+        have : M.root.1 ⊩[_] (TBB n : Formula α) :=
           Model.World.forces_fconj.mp hx _ (Finset.mem_image_of_mem _ hn);
         simpa using Model.iff_forces_TBB_neq_rank.mp this;
       . left; exact hx;

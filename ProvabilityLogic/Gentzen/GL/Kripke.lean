@@ -34,42 +34,42 @@ namespace Model.World
 variable {M : Model κ α} {x : M.World}
 
 @[grind]
-def ForcesSequent (x : M.World) (S : Sequent α) : Prop := (∀ C ∈ S.ant, x ⊩ C) → (∃ D ∈ S.suc, x ⊩ D)
-infix:55 " ⊩ " => ForcesSequent
+def ForcesSequent (M : Model κ α) (x : M.World) (S : Sequent α) : Prop := (∀ C ∈ S.ant, x ⊩[M] C) → (∃ D ∈ S.suc, x ⊩[M] D)
+notation:55 x:56 " ⊩[" M "] " S:56 => ForcesSequent M x S
 
-omit [DecidableEq α] in lemma forces_ctx_singleton_sequent : x ⊩ (Γ ⟹ {A}) ↔ (∀ C ∈ Γ, x ⊩ C) → x ⊩ A := by grind;
-omit [DecidableEq α] in lemma forces_singleton_sequent : x ⊩ (∅ ⟹ {A}) ↔ (x ⊩ A) := by grind;
+omit [DecidableEq α] in lemma forces_ctx_singleton_sequent : x ⊩[_] (Γ ⟹ {A}) ↔ (∀ C ∈ Γ, x ⊩[_] C) → x ⊩[_] A := by grind;
+omit [DecidableEq α] in lemma forces_singleton_sequent : x ⊩[_] (∅ ⟹ {A}) ↔ (x ⊩[_] A) := by grind;
 
 variable {Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α}
 
-omit [DecidableEq α] in lemma forces_sequent_axm : x ⊩ ({A} ⟹ {A}) := by
+omit [DecidableEq α] in lemma forces_sequent_axm : x ⊩[_] ({A} ⟹ {A}) := by
   intro h;
   use A;
   constructor;
   . grind;
   . exact h _ (by grind);
 
-omit [DecidableEq α] in lemma forces_sequent_botL : x ⊩ (({⊥} : FormulaFinset α) ⟹ ∅) := by
+omit [DecidableEq α] in lemma forces_sequent_botL : x ⊩[_] (({⊥} : FormulaFinset α) ⟹ ∅) := by
   simp [Model.World.ForcesSequent];
 
-omit [DecidableEq α] in lemma forces_sequent_wkL (h : x ⊩ (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ' := by grind) : x ⊩ (Γ' ⟹ Δ) := by
+omit [DecidableEq α] in lemma forces_sequent_wkL (h : x ⊩[_] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ' := by grind) : x ⊩[_] (Γ' ⟹ Δ) := by
   intro h';
   apply h;
   grind;
 
-omit [DecidableEq α] in lemma forces_sequent_wkR (h : x ⊩ (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ' := by grind) : x ⊩ (Γ ⟹ Δ') := by
+omit [DecidableEq α] in lemma forces_sequent_wkR (h : x ⊩[_] (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ' := by grind) : x ⊩[_] (Γ ⟹ Δ') := by
   intro hΓ;
   obtain ⟨D, hD₁, hD₂⟩ := h hΓ;
   grind;
 
-lemma forces_sequent_impL (h₁ : x ⊩ (Γ ⟹ insert A Δ)) (h₂ : x ⊩ (insert B Γ ⟹ Δ)) : x ⊩ (insert (A 🡒 B) Γ ⟹ Δ) := by
+lemma forces_sequent_impL (h₁ : x ⊩[_] (Γ ⟹ insert A Δ)) (h₂ : x ⊩[_] (insert B Γ ⟹ Δ)) : x ⊩[_] (insert (A 🡒 B) Γ ⟹ Δ) := by
   intro h;
   simp only [Finset.mem_insert, forall_eq_or_imp] at h;
   grind;
 
-lemma forces_sequent_impR (h : x ⊩ (insert A Γ ⟹ insert B Δ)) : x ⊩ (Γ ⟹ insert (A 🡒 B) Δ) := by
+lemma forces_sequent_impR (h : x ⊩[_] (insert A Γ ⟹ insert B Δ)) : x ⊩[_] (Γ ⟹ insert (A 🡒 B) Δ) := by
   intro hΓ;
-  by_cases x ⊩ A;
+  by_cases x ⊩[_] A;
   . obtain ⟨D, hD₁, hD₂⟩ := h $ by grind;
     simp at hD₁;
     rcases hD₁ with (rfl | hD₁);
@@ -78,7 +78,7 @@ lemma forces_sequent_impR (h : x ⊩ (insert A Γ ⟹ insert B Δ)) : x ⊩ (Γ 
   . use A 🡒 B;
     grind;
 
-lemma forces_sequent_cut (h₁ : x ⊩ (Γ₁ ⟹ insert A Δ₁)) (h₂ : x ⊩ (insert A Γ₂ ⟹ Δ₂)) : x ⊩ (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) := by
+lemma forces_sequent_cut (h₁ : x ⊩[_] (Γ₁ ⟹ insert A Δ₁)) (h₂ : x ⊩[_] (insert A Γ₂ ⟹ Δ₂)) : x ⊩[_] (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) := by
   intro h;
   obtain ⟨D, hD, hDx⟩ := h₁ (fun C hC => h C (by grind));
   rcases Finset.mem_insert.mp hD with rfl | hD;
@@ -95,7 +95,7 @@ namespace Model
 omit [DecidableEq α]
 
 @[grind]
-def ValidateSequent (M : Model κ α) (S : Sequent α) : Prop := ∀ x : M.World, x ⊩ S
+def ValidateSequent (M : Model κ α) (S : Sequent α) : Prop := ∀ x : M.World, x ⊩[M] S
 infix:50 " ⊧ " => ValidateSequent
 
 variable {M : Model κ α} {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α}
@@ -135,7 +135,7 @@ lemma validate_gentzen_impL [DecidableEq α] (hA : M ⊧ (Γ ⟹ insert A Δ)) (
 
 lemma validate_gentzen_impR [DecidableEq α] (h : M ⊧ ((insert A Γ) ⟹ (insert B Δ))) : M ⊧ (Γ ⟹ (insert (A 🡒 B) Δ)) := by
   intro x hΓ;
-  by_cases x ⊩ A;
+  by_cases x ⊩[_] A;
   . obtain ⟨D, hD₁, hD₂⟩ := h x $ by grind;
     simp at hD₁;
     rcases hD₁ with (rfl | hD₁);
@@ -155,7 +155,7 @@ lemma validate_gentzen_boxGL [DecidableEq α] [M.IsGL] (h : M ⊧ ((insert (□A
   constructor;
   . by_contra hC;
     obtain ⟨z, Ryz, hz⟩ := Model.World.not_forces_box.mp hC;
-    let ⟨t, ⟨Ryt, hntA⟩, ht₂⟩ := M.terminalOf ({z | y ≺ z ∧ z ⊮ A}) ⟨z, ⟨Ryz, hz⟩⟩;
+    let ⟨t, ⟨Ryt, hntA⟩, ht₂⟩ := M.terminalOf ({z | y ≺ z ∧ z ⊮[M] A}) ⟨z, ⟨Ryz, hz⟩⟩;
     apply hntA;
     apply forces_ctx_singleton_sequent.mp $ h t;
     simp;
@@ -203,7 +203,7 @@ end Kripke
 @[simp, grind .]
 theorem not_provable_empty : ⊬ᵍ[GL] (∅ ⟹ ∅ : Sequent α) := by
   by_contra h;
-  have : (0 : trivial_GL_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_GL_model 0;
+  have : (0 : trivial_GL_model.World) ⊩[_] (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_GL_model 0;
   grind;
 
 end ProvableGentzen
@@ -462,7 +462,7 @@ instance : (countermodelOf BS).IsFiniteGL where
 variable {x : (countermodelOf BS).World} {A : Formula α}
 
 lemma truthlemma :
-  (A ∈ x.1.1 → x ⊩ A) ∧ (A ∈ x.1.2 → ¬x ⊩ A)
+  (A ∈ x.1.1 → x ⊩[_] A) ∧ (A ∈ x.1.2 → ¬x ⊩[_] A)
   := by
   induction A generalizing x with
   | box A ih =>
@@ -532,8 +532,8 @@ lemma truthlemma :
       obtain ⟨hA, hB⟩ := x.saturated.impR h
       exact (ihB.2 hB) (hf (ihA.1 hA))
 
-lemma truthlemma_ant : A ∈ x.1.1 → x ⊩ A := truthlemma.1
-lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩ A := truthlemma.2
+lemma truthlemma_ant : A ∈ x.1.1 → x ⊩[_] A := truthlemma.1
+lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩[_] A := truthlemma.2
 
 theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S) : ⊢ᵍ[GL] S := by
   contrapose! h;

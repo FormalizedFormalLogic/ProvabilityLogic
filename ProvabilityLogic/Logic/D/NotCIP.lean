@@ -62,7 +62,6 @@ lemma provable_counterexample_imp :
 end
 
 open Model
-open Model.World (Forces)
 
 section
 
@@ -106,7 +105,7 @@ open Model.World
 lemma forces_congr_atoms
     (hR : M₁.Rel' = M₂.Rel') {A : Formula α} {x : κ}
     (hV : ∀ x a, a ∈ A.atoms → (M₁.Val' x a ↔ M₂.Val' x a)) :
-    Forces (M := M₁) x A ↔ Forces (M := M₂) x A := by
+    x ⊩[M₁] A ↔ x ⊩[M₂] A := by
   induction A generalizing x with
   | atom a => exact hV x a (by simp [Formula.atoms])
   | bot => exact Iff.rfl
@@ -169,8 +168,8 @@ lemma interpolant_root_forces_iff
     (hCsuc : (C 🡒 counterexampleCIP_B (#a) (#c)) ∈ LogicD)
     (hCatoms : C.atoms ⊆ {a})
     (M : RootedModel κ α) [M.IsFiniteGL] (o : α → Prop) :
-    Forces (M := (M.toModel.toPseudoTail M.root.1 o).toModel)
-      (M.toModel.toPseudoTail M.root.1 o).root.1 C ↔ M.Val M.root.1 a := by
+    (M.toModel.toPseudoTail M.root.1 o).root.1
+      ⊩[(M.toModel.toPseudoTail M.root.1 o).toModel] C ↔ M.Val M.root.1 a := by
   have hCp : ∀ e ∈ C.atoms, e = a := fun e ha => Finset.mem_singleton.mp (hCatoms ha);
   constructor;
   . -- If the root forces `C`, then `a` holds on the tail scale; by contradiction.
@@ -179,7 +178,7 @@ lemma interpolant_root_forces_iff
     -- Flip `c` to hold exactly off the root and apply soundness to `D ⊢ C 🡒 B`.
     have hB := forces_pseudoTail_root_of_provable hCsuc (flipModel M c) M.root.1 o;
     -- `C` does not contain `c`, so its root-forcing transfers to the flipped model.
-    have hC' : Forces (M := ((flipModel M c).toPseudoTail M.root.1 o).toModel) (toPseudoTail.chainPoint ⊤) C :=
+    have hC' : toPseudoTail.chainPoint ⊤ ⊩[((flipModel M c).toPseudoTail M.root.1 o).toModel] C :=
       (forces_congr_atoms
         (M₁ := (M.toModel.toPseudoTail M.root.1 o).toModel)
         (M₂ := ((flipModel M c).toPseudoTail M.root.1 o).toModel)
@@ -187,8 +186,8 @@ lemma interpolant_root_forces_iff
         (fun x e ha => by rw [hCp e ha]; exact val_toPseudoTail_flipModel hac x)).mp hC;
     have hBf := hB hC';
     -- The root forces `□(a 🡒 □c)` in the flipped pseudo-tail.
-    have hant : Forces (M := ((flipModel M c).toPseudoTail M.root.1 o).toModel)
-        (toPseudoTail.chainPoint ⊤) (□((#a) 🡒 □(#c))) := by
+    have hant : toPseudoTail.chainPoint ⊤ ⊩[((flipModel M c).toPseudoTail M.root.1 o).toModel]
+        (□((#a) 🡒 □(#c))) := by
       rintro (x | m) hy;
       . -- Worlds of `M`: all their successors avoid the root, where `c` holds.
         intro _;
@@ -209,8 +208,7 @@ lemma interpolant_root_forces_iff
         ) := hpm;
         grind;
     -- But `□c` fails at the root: `c` is false at the chain world `chainPoint 0`.
-    have hc0 : ¬Forces (M := ((flipModel M c).toPseudoTail M.root.1 o).toModel)
-        (toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞)) (#c) := by
+    have hc0 : ¬(toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞) ⊩[((flipModel M c).toPseudoTail M.root.1 o).toModel] (#c)) := by
       show ¬(if ((0 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o c else
         if c = c then M.root.1 ≠ M.root.1 else M.toModel.Val' M.root.1 c);
       rw [if_neg (ENat.coe_lt_top 0).ne, if_pos rfl];
@@ -222,12 +220,12 @@ lemma interpolant_root_forces_iff
     -- Flip `b` to hold exactly off the root and apply soundness to `D ⊢ ∼A 🡒 C`.
     have hA := forces_pseudoTail_root_of_provable hCant (flipModel M b) M.root.1 o;
     -- The root of the flipped pseudo-tail forces `∼A`.
-    have hnA : Forces (M := ((flipModel M b).toPseudoTail M.root.1 o).toModel)
-        (toPseudoTail.chainPoint ⊤) (∼(counterexampleCIP_A (#a) (#b))) := by
+    have hnA : toPseudoTail.chainPoint ⊤ ⊩[((flipModel M b).toPseudoTail M.root.1 o).toModel]
+        (∼(counterexampleCIP_A (#a) (#b))) := by
       intro hAf;
       -- The root forces `□(□b ⋎ a)`.
-      have hante : Forces (M := ((flipModel M b).toPseudoTail M.root.1 o).toModel)
-          (toPseudoTail.chainPoint ⊤) (□(□(#b) ⋎ (#a))) := by
+      have hante : toPseudoTail.chainPoint ⊤ ⊩[((flipModel M b).toPseudoTail M.root.1 o).toModel]
+          (□(□(#b) ⋎ (#a))) := by
         rintro (x | m) hy;
         . -- Worlds of `M`: all their successors avoid the root, so `□b` holds.
           apply forces_or.mpr;
@@ -248,8 +246,7 @@ lemma interpolant_root_forces_iff
           );
           grind;
       -- But `□b` fails at the root: `b` is false at the chain world `chainPoint 0`.
-      have hb0 : ¬Forces (M := ((flipModel M b).toPseudoTail M.root.1 o).toModel)
-          (toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞)) (#b) := by
+      have hb0 : ¬(toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞) ⊩[((flipModel M b).toPseudoTail M.root.1 o).toModel] (#b)) := by
         show ¬(if ((0 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o b else
           if b = b then M.root.1 ≠ M.root.1 else M.toModel.Val' M.root.1 b);
         rw [if_neg (ENat.coe_lt_top 0).ne, if_pos rfl];
@@ -286,7 +283,7 @@ variable {κ : Type u} [Nonempty κ] {C : Formula α} {M : Model κ α}
 forcing of `A` at `x` (the replaced atoms were false, i.e. equivalent to `⊥`). -/
 lemma forces_modalize {x : κ}
   (h : ∀ a ∈ A.atoms, ¬M x a) :
-  Forces (M := M) x A.modalize ↔ Forces (M := M) x A := by
+  x ⊩[M] A.modalize ↔ x ⊩[M] A := by
   induction A <;> grind;
 
 omit [DecidableEq α] in
@@ -294,8 +291,8 @@ omit [DecidableEq α] in
 valuation at the root `chainPoint ⊤`; forcing at any other world is unaffected by `o`. -/
 lemma forces_pseudoTail_ne_root_o_indep (A : Formula α) :
     ∀ z : (M.toPseudoTail r o).World, z ≠ toPseudoTail.chainPoint ⊤ →
-      (Forces (M := (M.toPseudoTail r o).toModel) z A ↔
-        Forces (M := (M.toPseudoTail r o').toModel) z A) := by
+      (z ⊩[(M.toPseudoTail r o).toModel] A ↔
+        z ⊩[(M.toPseudoTail r o').toModel] A) := by
   -- No successor is the root `chainPoint ⊤` (used in the `box` case).
   have hsucc : ∀ z y : (M.toPseudoTail r o).World,
       (M.toPseudoTail r o).Rel z y → y ≠ toPseudoTail.chainPoint ⊤ := by
@@ -325,8 +322,8 @@ omit [DecidableEq α] in
 valuation `o`: its atoms occur only under boxes, and all successors of the root lie
 outside the root, where the two pseudo-tails agree. -/
 lemma forces_root_modalized_o_indep {A : Formula α} (hA : A.Modalized) :
-    Forces (M := (M.toPseudoTail r o).toModel) (toPseudoTail.chainPoint ⊤) A ↔
-      Forces (M := (M.toPseudoTail r o').toModel) (toPseudoTail.chainPoint ⊤) A := by
+    toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] A ↔
+      toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o').toModel] A := by
   have hsucc : ∀ y : (M.toPseudoTail r o).World,
       (M.toPseudoTail r o).Rel (toPseudoTail.chainPoint ⊤) y → y ≠ toPseudoTail.chainPoint ⊤ := by
     rintro y hy rfl;
@@ -359,8 +356,8 @@ valuation `o`, then there is a modalized formula `C'` (concretely `C.modalize`) 
 lemma exists_modalized_equiv_of_indep
     (hindep : ∀ {κ : Type u} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL]
         (r : M.World) (o o' : α → Prop),
-      (M.toPseudoTail r o).root.1 ⊩ C ↔
-        (M.toPseudoTail r o').root.1 ⊩ C) :
+      (M.toPseudoTail r o).root.1 ⊩[(M.toPseudoTail r o).toModel] C ↔
+        (M.toPseudoTail r o').root.1 ⊩[(M.toPseudoTail r o').toModel] C) :
     ∃ C', C'.Modalized ∧ (C 🡘 C') ∈ LogicD ∧ C'.atoms ⊆ C.atoms := by
   use C.modalize, Formula.modalized_modalize, ?_, Formula.atoms_modalize_subset;
   -- By the semantic characterization of `D`, it suffices to force `C 🡘 C.modalize` at the
@@ -376,8 +373,8 @@ lemma exists_modalized_equiv_of_indep
     rw [if_pos rfl];
     exact not_false;
   -- Chain: `𝒳_o ⊩ C ↔ 𝒳_{o₀} ⊩ C ↔ 𝒳_{o₀} ⊩ C.modalize ↔ 𝒳_o ⊩ C.modalize`.
-  have key : Forces (M := (M.toPseudoTail r o).toModel) (toPseudoTail.chainPoint ⊤) C ↔
-      Forces (M := (M.toPseudoTail r o).toModel) (toPseudoTail.chainPoint ⊤) (C.modalize) :=
+  have key : toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] C ↔
+      toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] (C.modalize) :=
     (hindep M r o o₀).trans ((forces_modalize h0).symm.trans
       (forces_root_modalized_o_indep Formula.modalized_modalize));
   exact Model.World.forces_iff.mpr key;
@@ -451,15 +448,15 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
     intro κ _ M _ hant;
     -- Each `□E 🡒 E` with `□E` a subformula of `C' 🡘 a` holds at the root.
     have hΓ : ∀ E ∈ (C.modalize 🡘 #a).subfmls.prebox,
-        M.root.1 ⊩ (□E 🡒 E) := by
+        M.root.1 ⊩[M.toModel] (□E 🡒 E) := by
       intro E hE;
       exact Model.World.forces_fconj.mp hant _ (by
         simp only [Formula.subfmlsS, Finset.mem_image];
         exact ⟨E, hE, rfl⟩);
     have hC'mem : C.modalize ∈ (C.modalize 🡘 #a).subfmls := by grind;
     -- Root-forcing of `C'` transfers to the root of the tail model.
-    have hstep1 : M.root.1 ⊩ C.modalize ↔
-        Forces (M := (M.toModel.toTail M.root.1).toModel) (toTail.chainPoint ⊤)
+    have hstep1 : M.root.1 ⊩[M.toModel] C.modalize ↔
+        toTail.chainPoint ⊤ ⊩[(M.toModel.toTail M.root.1).toModel]
           (C.modalize) := by
       constructor;
       . intro h;
@@ -471,10 +468,10 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
         exact (toTail.root_forces_iff_forces_nat (fun E hE => Formula.subfmls_trans hE) hΓ
           (C.modalize) hC'mem k).mpr (hk k le_rfl);
     -- The tail model is the pseudo-tail whose lower valuation is that of the root.
-    have hstep2 : Forces (M := (M.toModel.toTail M.root.1).toModel)
-        (toTail.chainPoint ⊤) (C.modalize) ↔
-        Forces (M := (M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel)
-          (toPseudoTail.chainPoint ⊤) (C.modalize) :=
+    have hstep2 : toTail.chainPoint ⊤ ⊩[(M.toModel.toTail M.root.1).toModel]
+        (C.modalize) ↔
+        toPseudoTail.chainPoint ⊤
+          ⊩[(M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel] (C.modalize) :=
       Model.forces_congr
         (M₁ := (M.toModel.toTail M.root.1).toModel)
         (M₂ := (M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel)
@@ -496,7 +493,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
       exact not_false;
     -- Chain of equivalences (steps 3 and 4 are `o`-independence and de-modalization),
     -- ending in Lemma 10.
-    have hiff : M.root.1 ⊩ C.modalize ↔ M.Val M.root.1 a :=
+    have hiff : M.root.1 ⊩[M.toModel] C.modalize ↔ M.Val M.root.1 a :=
       hstep1.trans (hstep2.trans
         ((forces_root_modalized_o_indep hC'mod).trans
           ((forces_modalize h0).trans

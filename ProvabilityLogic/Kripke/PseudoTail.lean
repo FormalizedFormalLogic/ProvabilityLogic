@@ -125,8 +125,6 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toFreeTail
 
 instance [M.IsGL] : (M.toFreeTail V).IsGL where
 
-open Model.World (Forces)
-
 /-- The embedding of the original model into the free-tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (V : ℕ∞ → α → Prop) :
     M →ₚ (M.toFreeTail V).toModel where
@@ -145,13 +143,13 @@ lemma modal_equivalent_original {x : M.World} :
 /-- At an original-model world (`embed x`), forcing in the free-tail model agrees
 with forcing in the original model. -/
 lemma forces_inl {x : M.World} :
-    Forces (M := (M.toFreeTail V).toModel) (toFreeTail.embed x) A ↔ x ⊩ A :=
+    toFreeTail.embed x ⊩[(M.toFreeTail V).toModel] A ↔ x ⊩[M] A :=
   modal_equivalent_original.symm
 
 /-- If `□A` holds at the free-tail model's root (ω), it holds at every point. -/
 lemma forces_box_of_root_forces_box {x : (M.toFreeTail V).World}
-  (h : (M.toFreeTail V).root.1 ⊩ (□A)) :
-  x ⊩ (□A) := by
+  (h : (M.toFreeTail V).root.1 ⊩[_] (□A)) :
+  x ⊩[_] (□A) := by
   intro y Rxy;
   apply h;
   match x, y with
@@ -165,8 +163,8 @@ lemma forces_box_of_root_forces_box {x : (M.toFreeTail V).World}
   - [KKIM25, Theorem 5.7]
 -/
 lemma root_forces_box_of_frequently_chainPoint_forces
-  (h : ∀ n : ℕ, ∃ j ≥ n, Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (j : ℕ∞)) (□A)) :
-  (M.toFreeTail V).root.1 ⊩ (□A) := by
+  (h : ∀ n : ℕ, ∃ j ≥ n, toFreeTail.chainPoint (j : ℕ∞) ⊩[(M.toFreeTail V).toModel] (□A)) :
+  (M.toFreeTail V).root.1 ⊩[_] (□A) := by
   rintro (y | m) Rry;
   . obtain ⟨j, -, hj⟩ := h 0;
     exact hj _ (rel_chainPoint_embed (i := (j : ℕ∞)));
@@ -181,8 +179,6 @@ namespace toPseudoTail
 
 variable {tail : M.World} {o : α → Prop}
 
-open Model.World (Forces)
-
 /--
   If `S` is closed under subformulas and the root forces `□B 🡒 B` for every `□B ∈ S`,
   then forcing of every formula in `S` at the root agrees with forcing at every chain
@@ -191,9 +187,9 @@ open Model.World (Forces)
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {o : α → Prop} {S : FormulaFinset α}
   (Sclosed : ∀ B ∈ S, B.subfmls ⊆ S)
-  (hS : ∀ B ∈ S.prebox, M.root.1 ⊩ (□B 🡒 B)) :
-  ∀ B ∈ S, ∀ n : ℕ, M.root.1 ⊩ B ↔
-    Forces (M := (M.toModel.toPseudoTail M.root.1 o).toModel) (toFreeTail.chainPoint (n : ℕ∞)) B := by
+  (hS : ∀ B ∈ S.prebox, M.root.1 ⊩[M.toModel] (□B 🡒 B)) :
+  ∀ B ∈ S, ∀ n : ℕ, M.root.1 ⊩[M.toModel] B ↔
+    toFreeTail.chainPoint (n : ℕ∞) ⊩[(M.toModel.toPseudoTail M.root.1 o).toModel] B := by
   intro B;
   induction B with
   | atom a =>

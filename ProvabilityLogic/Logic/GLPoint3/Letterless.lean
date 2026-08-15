@@ -38,7 +38,7 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
     apply iff_GL_proves_spectrum_univ.mpr;
     rw [Set.eq_univ_iff_forall];
     intro n;
-    have hforces : (finiteLineModel n).root.1 ⊩ A :=
+    have hforces : (finiteLineModel n).root.1 ⊩[_] A :=
       LogicGLPoint3.sound (M := (finiteLineModel n).toModel) h _;
     have := Model.iff_forces_rank_mem_spectrum.mp hforces;
     rwa [show ((finiteLineModel n).root.1).rank = n from finiteLineModel.height_eq] at this;

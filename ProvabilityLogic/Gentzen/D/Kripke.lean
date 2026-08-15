@@ -55,7 +55,7 @@ namespace GentzenWithCutProvable
 -/
 theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.level = 2) :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (V : ℕ∞ → α → Prop),
-    (M.toFreeTail V).root.1 ⊩ S.toSequent := by
+    (M.toFreeTail V).root.1 ⊩[_] S.toSequent := by
   revert hl;
   induction h using LogicD.GentzenWithCutProvable.rec with
   | axm l A => intro _ κ _ M _ V; exact Model.World.forces_sequent_axm;
@@ -82,13 +82,13 @@ theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.
         (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsGL] => ⟨X, hX M⟩)
         (M.toFreeTail V).toModel (fun n => toFreeTail.chainPoint (n : ℕ∞)) hw;
     have hΓ' : ∀ n : ℕ, ∀ C ∈ □Γ,
-        Model.World.Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (n : ℕ∞)) C := by
+        toFreeTail.chainPoint (n : ℕ∞) ⊩[(M.toFreeTail V).toModel] C := by
       intro n C hC;
       obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC;
       exact toFreeTail.forces_box_of_root_forces_box (hΓ _ hC);
     obtain ⟨D, hD, hfreq⟩ :=
       exists_mem_forall_exists_ge (Γ' := □Δ)
-        (P := fun D j => Model.World.Forces (M := (M.toFreeTail V).toModel) (toFreeTail.chainPoint (j : ℕ∞)) D)
+        (P := fun D j => toFreeTail.chainPoint (j : ℕ∞) ⊩[(M.toFreeTail V).toModel] D)
         (i := i) (fun j hj => hi j hj (hΓ' j));
     obtain ⟨D₀, hD₀, rfl⟩ := Finset.mem_image.mp hD;
     exact ⟨□D₀, Finset.mem_image.mpr ⟨D₀, hD₀, rfl⟩,
@@ -105,7 +105,7 @@ theorem soundness_aux {S : ThreeLayeredSequent α} (h : ⊢ᵍᶜ[D] S) (hl : S.
 -/
 theorem soundness {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (V : ℕ∞ → α → Prop),
-    (M.toFreeTail V).root.1 ⊩ (Γ ⟹ Δ) :=
+    (M.toFreeTail V).root.1 ⊩[_] (Γ ⟹ Δ) :=
   soundness_aux h rfl
 
 end GentzenWithCutProvable
@@ -346,8 +346,7 @@ variable {t : ExpandedSequent BS} {o : α → Prop} {A : Formula α}
   - [KKIM25, Theorem 5.8]
 -/
 lemma forces_embed_iff {x : (countermodelOf BS)↾t} :
-    Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.embed x) A ↔
-    Model.World.Forces (M := countermodelOf BS) x.1 A :=
+    toPseudoTail.embed x ⊩[(bottomModel BS t o).toModel] A ↔ x.1 ⊩[countermodelOf BS] A :=
   toPseudoTail.forces_inl.trans Model.toRootedModel.forces_same_at_cone_point
 
 /--
@@ -358,8 +357,8 @@ lemma forces_embed_iff {x : (countermodelOf BS)↾t} :
   - [KKIM25, Theorem 5.8]
 -/
 lemma truthlemma_chainPoint (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.1) {n : ℕ} {A : Formula α} :
-    (A ∈ t.1.1 → Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) A) ∧
-    (A ∈ t.1.2 → ¬ Model.World.Forces (M := (bottomModel BS t o).toModel) (toPseudoTail.chainPoint (n : ℕ∞)) A) := by
+    (A ∈ t.1.1 → toPseudoTail.chainPoint (n : ℕ∞) ⊩[(bottomModel BS t o).toModel] A) ∧
+    (A ∈ t.1.2 → toPseudoTail.chainPoint (n : ℕ∞) ⊮[(bottomModel BS t o).toModel] A) := by
   induction A generalizing n with
   | atom a =>
     constructor
@@ -412,9 +411,9 @@ lemma truthlemma_root (U : ExpandedLayeredSequent BS)
     (hant : ∀ {C : Formula α}, □C ∈ U.1.1 → □C ∈ t.1.1)
     (hsuc : ∀ {C : Formula α}, □C ∈ U.1.2 → □C ∈ t.1.2) {A : Formula α} :
     (A ∈ U.1.1 →
-      Model.World.Forces (M := (bottomModel BS t (#· ∈ U.1.1)).toModel) (bottomModel BS t (#· ∈ U.1.1)).root.1 A) ∧
+      (bottomModel BS t (#· ∈ U.1.1)).root.1 ⊩[(bottomModel BS t (#· ∈ U.1.1)).toModel] A) ∧
     (A ∈ U.1.2 →
-      ¬ Model.World.Forces (M := (bottomModel BS t (#· ∈ U.1.1)).toModel) (bottomModel BS t (#· ∈ U.1.1)).root.1 A) := by
+      (bottomModel BS t (#· ∈ U.1.1)).root.1 ⊮[(bottomModel BS t (#· ∈ U.1.1)).toModel] A) := by
   induction A with
   | atom a =>
     constructor
@@ -463,7 +462,7 @@ end bottomModel
 theorem completeness_finite {Γ Δ : FormulaFinset α}
     (h :
       ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
-      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ)
+      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩[_] (Γ ⟹ Δ)
     ) :
     ⊢ᵍ[D] (Γ ⟹[2] Δ) := by
   by_contra hp;
@@ -502,7 +501,7 @@ theorem completeness_finite {Γ Δ : FormulaFinset α}
 theorem completeness {Γ Δ : FormulaFinset α}
     (h :
       ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ)
+      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩[_] (Γ ⟹ Δ)
     ) :
     ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
   completeness_finite (fun M _ tail o => h M tail o)
@@ -522,10 +521,10 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     ⊢ᵍ[D] (Γ ⟹[2] Δ),
     -- condition 3
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩ (Γ ⟹ Δ),
+      ∀ (tail : M.World) (o : α → Prop), (M.toPseudoTail tail o).root.1 ⊩[_] (Γ ⟹ Δ),
     -- condition 4
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∀ (V : ℕ∞ → α → Prop), (M.toFreeTail V).root.1 ⊩ (Γ ⟹ Δ)
+      ∀ (V : ℕ∞ → α → Prop), (M.toFreeTail V).root.1 ⊩[_] (Γ ⟹ Δ)
   ].TFAE := by
   tfae_have 2 → 1 := GentzenWithCutProvable.of_without_cut;
   tfae_have 1 → 4 := GentzenWithCutProvable.soundness;

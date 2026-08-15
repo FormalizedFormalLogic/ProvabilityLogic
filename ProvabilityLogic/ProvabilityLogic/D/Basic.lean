@@ -95,7 +95,7 @@ theorem arithmetical_completeness
   obtain ⟨κ, _, M, _, hA⟩ := H;
   haveI : Fintype M.World := Fintype.ofFinite _;
   obtain ⟨hA₁, hA₂⟩ := not_forces_imp.mp hA;
-  have ha : ∀ Γ ⊆ A.subfmls.prebox, M.root.1 ⊩ (Formula.box (⋁Γ.box) 🡒 ⋁Γ.box) := by
+  have ha : ∀ Γ ⊆ A.subfmls.prebox, M.root.1 ⊩[_] (Formula.box (⋁Γ.box) 🡒 ⋁Γ.box) := by
     intro Γ hΓ;
     exact forces_fconj.mp hA₁ _
       (by simp only [Formula.subfmlsD, Finset.mem_image, Finset.mem_powerset]; exact ⟨Γ, hΓ, rfl⟩);

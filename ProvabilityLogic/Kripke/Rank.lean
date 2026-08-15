@@ -76,13 +76,13 @@ lemma not_rel_over_rank (h : x.rank < n) : ¬x ≺^[n] y := by
   exact terminal_rel_terminal Rxz y $ Model.relItr_unwrap_trans_pos (by omega) Rzy;
 
 @[grind =]
-lemma iff_rank_lt_forces_boxItr_bot : x.rank < n ↔ x ⊩ (□^[n]⊥) := by grind;
+lemma iff_rank_lt_forces_boxItr_bot : x.rank < n ↔ x ⊩[_] (□^[n]⊥) := by grind;
 
 omit [Fintype M.World] [M.IsGL] in
 /-- Forcing of `□^[n]⊥` is monotone in `n`: a world with no outgoing chain of length
 `n` has none of length `m ≥ n` either. -/
-lemma World.forces_boxItr_bot_mono {n m : ℕ} (hnm : n ≤ m) (h : x ⊩ (□^[n]⊥)) :
-  x ⊩ (□^[m]⊥) := by
+lemma World.forces_boxItr_bot_mono {n m : ℕ} (hnm : n ≤ m) (h : x ⊩[_] (□^[n]⊥)) :
+  x ⊩[_] (□^[m]⊥) := by
   apply forces_boxItr.mpr;
   intro y hy;
   rw [show m = n + (m - n) by omega] at hy;
@@ -90,9 +90,9 @@ lemma World.forces_boxItr_bot_mono {n m : ℕ} (hnm : n ≤ m) (h : x ⊩ (□^[
   exact forces_boxItr.mp h z hz;
 
 @[grind =>]
-lemma pos_rank_of_forces_dia (h : x ⊩ ◇A) : 0 < x.rank := by grind;
+lemma pos_rank_of_forces_dia (h : x ⊩[_] ◇A) : 0 < x.rank := by grind;
 
-lemma iff_forces_dia_top_pos_rank : (x ⊩ ◇⊤) ↔ 0 < x.rank := by
+lemma iff_forces_dia_top_pos_rank : (x ⊩[_] ◇⊤) ↔ 0 < x.rank := by
   constructor;
   . exact pos_rank_of_forces_dia;
   . intro h;
@@ -102,17 +102,17 @@ lemma iff_forces_dia_top_pos_rank : (x ⊩ ◇⊤) ↔ 0 < x.rank := by
     grind;
 
 @[grind =>]
-lemma lt_rank_of_forces_diaItr (h : x ⊩ ◇^[n + 1]A) : n < x.rank := by
+lemma lt_rank_of_forces_diaItr (h : x ⊩[_] ◇^[n + 1]A) : n < x.rank := by
   induction n generalizing A x with
   | zero => grind;
   | succ n ih =>
-    replace h : x ⊩ ◇◇^[n + 1]A := by grind [Formula.diaItr_comp];
+    replace h : x ⊩[_] ◇◇^[n + 1]A := by grind [Formula.diaItr_comp];
     obtain ⟨y, Rxy, hy⟩ := Model.World.forces_dia.mp h;
     have : n < y.rank := ih hy;
     have : y.rank < x.rank := rank_lt_of_rel Rxy;
     omega;
 
-lemma iff_forces_diaItr_top_lt_rank : (x ⊩ ◇^[n + 1]⊤) ↔ n < x.rank := by
+lemma iff_forces_diaItr_top_lt_rank : (x ⊩[_] ◇^[n + 1]⊤) ↔ n < x.rank := by
   constructor;
   . exact lt_rank_of_forces_diaItr;
   . intro h;
@@ -123,32 +123,32 @@ lemma iff_forces_diaItr_top_lt_rank : (x ⊩ ◇^[n + 1]⊤) ↔ n < x.rank := b
     . exact Model.relItr_reduce_trans_pos (by omega) (by omega) (by omega) Rxy;
     . grind;
 
-lemma iff_not_forces_diaItr_top_le_rank : (x ⊮ ◇^[n + 1]⊤) ↔ x.rank ≤ n := by
+lemma iff_not_forces_diaItr_top_le_rank : (x ⊮[_] ◇^[n + 1]⊤) ↔ x.rank ≤ n := by
   grind [iff_forces_diaItr_top_lt_rank]
 
-omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.forces_TBB : x ⊩ (TBB n) ↔ x ⊩ (◇^[n + 1]⊤) ∨ x ⊮ (◇^[n]⊤) := by grind
-omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.not_forces_TBB : x ⊮ (TBB n) ↔ x ⊮ (◇^[n + 1]⊤) ∧ x ⊩ (◇^[n]⊤) := by grind
+omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.forces_TBB : x ⊩[_] (TBB n) ↔ x ⊩[_] (◇^[n + 1]⊤) ∨ x ⊮[_] (◇^[n]⊤) := by grind
+omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.not_forces_TBB : x ⊮[_] (TBB n) ↔ x ⊮[_] (◇^[n + 1]⊤) ∧ x ⊩[_] (◇^[n]⊤) := by grind
 
-lemma iff_forces_TBB_zero_neq_rank : x ⊩ (TBB 0) ↔ x.rank ≠ 0 := by grind [iff_forces_diaItr_top_lt_rank];
+lemma iff_forces_TBB_zero_neq_rank : x ⊩[_] (TBB 0) ↔ x.rank ≠ 0 := by grind [iff_forces_diaItr_top_lt_rank];
 
-lemma iff_not_forces_TBB_zero_eq_rank_zero : x ⊮ (TBB 0) ↔ x.rank = 0 := by grind [iff_forces_TBB_zero_neq_rank];
+lemma iff_not_forces_TBB_zero_eq_rank_zero : x ⊮[_] (TBB 0) ↔ x.rank = 0 := by grind [iff_forces_TBB_zero_neq_rank];
 
-lemma iff_forces_TBB_pos_neq_rank : x ⊩ (TBB (n + 1)) ↔ x.rank ≠ (n + 1) := by
+lemma iff_forces_TBB_pos_neq_rank : x ⊩[_] (TBB (n + 1)) ↔ x.rank ≠ (n + 1) := by
   apply Iff.trans World.forces_TBB;
   rw [iff_forces_diaItr_top_lt_rank, iff_not_forces_diaItr_top_le_rank];
   omega;
 
-lemma iff_not_forces_TBB_pos_eq_rank : x ⊮ (TBB (n + 1)) ↔ x.rank = (n + 1) := by
+lemma iff_not_forces_TBB_pos_eq_rank : x ⊮[_] (TBB (n + 1)) ↔ x.rank = (n + 1) := by
   grind [iff_forces_TBB_pos_neq_rank];
 
 @[grind =]
-lemma iff_forces_TBB_neq_rank : x ⊩ (TBB n) ↔ x.rank ≠ n := by
+lemma iff_forces_TBB_neq_rank : x ⊩[_] (TBB n) ↔ x.rank ≠ n := by
   match n with
   | 0     => exact iff_forces_TBB_zero_neq_rank;
   | n + 1 => exact iff_forces_TBB_pos_neq_rank;
 
 @[grind =]
-lemma iff_not_forces_TBB_eq_rank : x ⊮ (TBB n) ↔ x.rank = n := by grind;
+lemma iff_not_forces_TBB_eq_rank : x ⊮[_] (TBB n) ↔ x.rank = n := by grind;
 
 section FrameBisimulation
 
@@ -209,10 +209,10 @@ lemma iff_eq_rank_height_is_root : x.rank = M.height ↔ x = M.root.1 := by
     grind;
   . tauto;
 
-lemma root_not_forces_TBB_height : M.root.1 ⊮ (TBB M.height) := by grind;
+lemma root_not_forces_TBB_height : M.root.1 ⊮[_] (TBB M.height) := by grind;
 
 @[grind =]
-lemma iff_height_lt_root_forces_boxItr_bot : M.height < n ↔ M.root.1 ⊩ (□^[n]⊥) := iff_rank_lt_forces_boxItr_bot
+lemma iff_height_lt_root_forces_boxItr_bot : M.height < n ↔ M.root.1 ⊩[_] (□^[n]⊥) := iff_rank_lt_forces_boxItr_bot
 
 namespace extendRoot
 

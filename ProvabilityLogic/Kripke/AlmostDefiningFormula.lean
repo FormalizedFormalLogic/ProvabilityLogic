@@ -91,19 +91,19 @@ structure AlmostDefines [DecidableEq α]
   (P : Finset α) (M : RootedModel κ α) (A : Formula α) : Prop where
   atoms_subset : A.atoms ⊆ P
   modalized : A.Modalized
-  root_forces : M.root.1 ⊩ A
+  root_forces : M.root.1 ⊩[_] A
   almost_unique : ∀ {κ' : Type u} [Nonempty κ'] (N : RootedModel κ' α), [N.IsFiniteGLTree] →
     ∀ c : N.World, (Rrc : N.root.1 ≺ c) →
     (∀ x : N.World, x.IsProperPredecessorOf c → x = N.root.1) →
     (N.graftOmega ⟨c, fun h => Std.Irrefl.irrefl _ (h ▸ Rrc)⟩).IsSimpleUnder P →
-    (N.graftOmega ⟨c, fun h => Std.Irrefl.irrefl _ (h ▸ Rrc)⟩).root.1 ⊩ A →
+    (N.graftOmega ⟨c, fun h => Std.Irrefl.irrefl _ (h ▸ Rrc)⟩).root.1 ⊩[_] A →
     Nonempty (StabilizedBisimulationUnder P M
       (N.graftOmega ⟨c, fun h => Std.Irrefl.irrefl _ (h ▸ Rrc)⟩))
 
 namespace graftOmega
 
 open Model Model.World
-open Model.World (IsInConeOf IsProperPredecessorOf Forces)
+open Model.World (IsInConeOf IsProperPredecessorOf)
 
 variable {M : RootedModel κ α} {a : M.NonRoot}
 
@@ -122,9 +122,9 @@ noncomputable local instance instFintypeConeOfIsFiniteGL {M' : RootedModel κ α
 of the ω-grafted model. -/
 lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL] [Fintype M.World]
   {x : M.World} (hx : x ≠ M.root.1) :
-  Forces (M := (M.graftOmega a).toModel) (.inl x) (x.charFormulaUnder P) := by
+  (.inl x) ⊩[(M.graftOmega a).toModel] (x.charFormulaUnder P) := by
   suffices h : ∀ n (x : M.World), x.rank = n → x ≠ M.root.1 →
-      Forces (M := (M.graftOmega a).toModel) (.inl x) (x.charFormulaUnder P) from
+      (.inl x) ⊩[(M.graftOmega a).toModel] (x.charFormulaUnder P) from
     h x.rank x rfl hx;
   intro n;
   induction n using Nat.strong_induction_on with
@@ -146,7 +146,7 @@ variable [M.IsFiniteGL] [Fintype M.World]
 /-- Depth characterization of embedded non-root points of the ω-grafted model:
 `Sum.inl x` forces `□^[k]⊥` iff `x.rank < k`. -/
 lemma inl_forces_boxItr_bot_iff {x : M.World} (hx : x ≠ M.root.1) {k : ℕ} :
-  Forces (M := (M.graftOmega a).toModel) (.inl x) (□^[k]⊥) ↔ x.rank < k := by
+  (.inl x) ⊩[(M.graftOmega a).toModel] (□^[k]⊥) ↔ x.rank < k := by
   constructor;
   . intro h;
     by_contra hk;
@@ -186,7 +186,7 @@ lemma relItr_from_inr_le (Rra : M.root.1 ≺ a.1) {i n : ℕ} {w : (M.graftOmega
 /-- Depth characterization of chain points of the ω-grafted model: `chainPoint i`
 forces `□^[k]⊥` iff `i + 1 + a.1.rank < k`. -/
 lemma inr_forces_boxItr_bot_iff (Rra : M.root.1 ≺ a.1) {i k : ℕ} :
-  Forces (M := (M.graftOmega a).toModel) (.inr i) (□^[k]⊥) ↔ i + 1 + a.1.rank < k := by
+  (.inr i) ⊩[(M.graftOmega a).toModel] (□^[k]⊥) ↔ i + 1 + a.1.rank < k := by
   constructor;
   . intro h;
     by_contra hk;
@@ -224,8 +224,8 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
   ∃ w : (M.graftOmega a).World,
   (M.graftOmega a).root.1 ≺ w ∧
   (∀ j : ℕ, m ≤ j + a.1.rank → (Sum.inr j : (M.graftOmega a).World) ≺ w) ∧
-  ¬ Forces (M := (M.graftOmega a).toModel) w (□^[m]⊥) ∧
-  Forces (M := (M.graftOmega a).toModel) w (□^[m + 1]⊥) := by
+  w ⊮[_] (□^[m]⊥) ∧
+  w ⊩[_] (□^[m + 1]⊥) := by
   have hane : a.1 ≠ M.root.1 := graft.ne_root_of_rel Rra;
   -- for `m ≤ a.1.rank` the witness lies in the cone of `a`, otherwise it is
   -- `chainPoint (m - a.1.rank - 1)`
@@ -233,11 +233,11 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
   . obtain ⟨y, Ray, hy⟩ := of_lt_rank hm;
     have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Ray);
     refine ⟨.inl y, root_rel_inl_of_isInConeOf Rra (Or.inr Ray), fun j _ => Or.inr Ray, ?_, ?_⟩ <;>
-      rw [inl_forces_boxItr_bot_iff hyne] <;>
+      simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;>
       omega;
   . subst hm;
     refine ⟨.inl a.1, Rra, fun j _ => Or.inl rfl, ?_, ?_⟩ <;>
-      rw [inl_forces_boxItr_bot_iff hane] <;>
+      simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hane] <;>
       omega;
   . refine ⟨.inr (m - a.1.rank - 1), ?_, ?_, ?_, ?_⟩;
     . show M.root.1 = M.root.1;
@@ -245,7 +245,7 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
     . intro j hj;
       show m - a.1.rank - 1 < j;
       omega;
-    . rw [inr_forces_boxItr_bot_iff Rra];
+    . simp only [Model.World.NotForces, inr_forces_boxItr_bot_iff Rra];
       omega;
     . rw [inr_forces_boxItr_bot_iff Rra];
       omega;
@@ -255,13 +255,15 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
 lemma exists_exact_depth_of_ne_root (Rra : M.root.1 ≺ a.1)
   {v : (M.graftOmega a).World} (hv : v ≠ (M.graftOmega a).root.1) :
   ∃ m : ℕ,
-  ¬ Forces (M := (M.graftOmega a).toModel) v (□^[m]⊥) ∧
-  Forces (M := (M.graftOmega a).toModel) v (□^[m + 1]⊥) := by
+  v ⊮[_] (□^[m]⊥) ∧
+  v ⊩[_] (□^[m + 1]⊥) := by
   -- `m` is `x.rank` if embedded, `i + 1 + a.1.rank` if the chain point `chainPoint i`
   rcases v with x | j;
   . have hx : x ≠ M.root.1 := fun h => hv (congrArg Sum.inl h);
-    refine ⟨x.rank, ?_, ?_⟩ <;> rw [inl_forces_boxItr_bot_iff hx] <;> omega;
-  . refine ⟨j + 1 + a.1.rank, ?_, ?_⟩ <;> rw [inr_forces_boxItr_bot_iff Rra] <;> omega;
+    refine ⟨x.rank, ?_, ?_⟩ <;>
+      simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hx] <;> omega;
+  . refine ⟨j + 1 + a.1.rank, ?_, ?_⟩ <;>
+      simp only [Model.World.NotForces, inr_forces_boxItr_bot_iff Rra] <;> omega;
 
 /--
   **Exact-depth successor** in the ω-grafted model: any point refuting `□^[m+1]⊥` has
@@ -271,10 +273,10 @@ lemma exists_exact_depth_of_ne_root (Rra : M.root.1 ≺ a.1)
   together with the cone of `a` realizes every exact depth.
 -/
 lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).World} {m : ℕ}
-  (hv : ¬ Forces (M := (M.graftOmega a).toModel) v (□^[m + 1]⊥)) :
+  (hv : v ⊮[_] (□^[m + 1]⊥)) :
   ∃ w, v ≺ w ∧
-  ¬ Forces (M := (M.graftOmega a).toModel) w (□^[m]⊥) ∧
-  Forces (M := (M.graftOmega a).toModel) w (□^[m + 1]⊥) := by
+  w ⊮[_] (□^[m]⊥) ∧
+  w ⊩[_] (□^[m + 1]⊥) := by
   obtain ⟨w, hroot, hchain, hw₁, hw₂⟩ := exists_exact_depth Rra m;
   rcases v with x | j;
   . by_cases hx : x = M.root.1;
@@ -285,7 +287,8 @@ lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).Worl
         omega;
       obtain ⟨y, Rxy, hy⟩ := of_lt_rank hv;
       have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Rxy);
-      refine ⟨.inl y, Rxy, ?_, ?_⟩ <;> rw [inl_forces_boxItr_bot_iff hyne] <;> omega;
+      refine ⟨.inl y, Rxy, ?_, ?_⟩ <;>
+        simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;> omega;
   . refine ⟨w, hchain j ?_, hw₁, hw₂⟩;
     have := (inr_forces_boxItr_bot_iff Rra (i := j) (k := m + 1)).not.mp hv;
     omega;
@@ -317,10 +320,10 @@ noncomputable abbrev phi0 (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.Worl
   - [Bek90, Lemma 9.1 (§4, D-model case, first half)]
 -/
 lemma forces_dia_and_valuationConj_of_not_forces_boxItr
-  (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
+  (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {w : (N.graftOmega c).World} (Rrw : (N.graftOmega c).root.1 ≺ w)
-  (hw : ¬ Forces (M := (N.graftOmega c).toModel) w (□^[a.1.rank + 1]⊥)) :
-  Forces (M := (N.graftOmega c).toModel) w (◇(a.1.charFormulaUnder P) ⋏ a.1.valuationConj P) :=
+  (hw : w ⊮[(N.graftOmega c).toModel] (□^[a.1.rank + 1]⊥)) :
+  w ⊩[(N.graftOmega c).toModel] (◇(a.1.charFormulaUnder P) ⋏ a.1.valuationConj P) :=
   (forces_and.mp hAroot).1 w Rrw (forces_neg.mpr hw)
 
 /--
@@ -332,10 +335,10 @@ lemma forces_dia_and_valuationConj_of_not_forces_boxItr
   - [Bek90, Lemma 9.1 (§4, D-model case, second half)]
 -/
 lemma forces_fdisj_charFormulaUnder_of_forces_boxItr
-  (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
+  (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {w : (N.graftOmega c).World} (Rrw : (N.graftOmega c).root.1 ≺ w)
-  (hw : Forces (M := (N.graftOmega c).toModel) w (□^[a.1.rank + 1]⊥)) :
-  Forces (M := (N.graftOmega c).toModel) w
+  (hw : w ⊩[(N.graftOmega c).toModel] (□^[a.1.rank + 1]⊥)) :
+  w ⊩[(N.graftOmega c).toModel]
     (⋁(Finset.univ.image fun y : M.toModel↾a.1 => y.1.charFormulaUnder P)) :=
   (forces_and.mp hAroot).2 w Rrw hw
 
@@ -347,7 +350,7 @@ lemma forces_fdisj_charFormulaUnder_of_forces_boxItr
 
   - [Bek90, Lemma 9 (p.263, proof)]
 -/
-lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P) {q : α}
+lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P) {q : α}
   (hq : q ∈ P) : M.Val a.1 q ↔ N.Val c.1 q := by
   have Rrw : (N.graftOmega c).root.1 ≺ (Sum.inr a.1.rank : (N.graftOmega c).World) := by
     show (N.root.1 = N.root.1);
@@ -358,7 +361,8 @@ lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P) 
       (Sum.inr a.1.rank) (Sum.inl c.1) :=
     Model.relItr_comp (graftOmega.inr_relItr_inr_zero (M := N) (a := c) (n := a.1.rank))
       (Model.relItr_one.mpr (Or.inl rfl));
-  have hw : ¬ Forces (M := (N.graftOmega c).toModel) (Sum.inr a.1.rank) (□^[a.1.rank + 1]⊥) :=
+  have hw : (Sum.inr a.1.rank : (N.graftOmega c).World) ⊮[(N.graftOmega c).toModel]
+      (□^[a.1.rank + 1]⊥) :=
     fun h => forces_boxItr.mp h (Sum.inl c.1) hpath;
   -- hence, by the first conjunct of `Φ₀`, this point carries `a`'s valuation; but every
   -- chain point of `N.graftOmega c` carries exactly `c`'s valuation by construction,
@@ -376,11 +380,11 @@ lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P) 
 -/
 lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
-  (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
+  (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {v : (N.graftOmega c).World} (Rrv : (N.graftOmega c).root.1 ≺ v)
-  (hv : ¬ Forces (M := (N.graftOmega c).toModel) v (□^[a.1.rank + 1]⊥))
+  (hv : v ⊮[(N.graftOmega c).toModel] (□^[a.1.rank + 1]⊥))
   {x : M.World} (hx : x.IsInConeOf a.1) :
-  ∃ w, v ≺ w ∧ Forces (M := (N.graftOmega c).toModel) w (x.charFormulaUnder P) := by
+  ∃ w, v ≺ w ∧ w ⊩[(N.graftOmega c).toModel] (x.charFormulaUnder P) := by
   haveI hGL : (N.graftOmega c).IsGL := isGL Rrc;
   haveI := hGL.toIsTrans;
   obtain ⟨w₀, Rvw₀, hw₀⟩ := forces_dia.mp
@@ -395,16 +399,17 @@ lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL] [Fintyp
 cone of `a` (through the grafted chain, which is unboundedly deep). -/
 lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
-  (hAroot : (N.graftOmega c).root.1 ⊩ phi0 M a.1 P)
+  (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {x : M.World} (hx : x.IsInConeOf a.1) :
   ∃ w, (N.graftOmega c).root.1 ≺ w ∧
-  Forces (M := (N.graftOmega c).toModel) w (x.charFormulaUnder P) := by
+  w ⊩[(N.graftOmega c).toModel] (x.charFormulaUnder P) := by
   haveI hGL : (N.graftOmega c).IsGL := isGL Rrc;
   haveI := hGL.toIsTrans;
   have Rrv : (N.graftOmega c).root.1 ≺ (Sum.inr a.1.rank : (N.graftOmega c).World) := by
     show N.root.1 = N.root.1;
     rfl;
-  have hv : ¬ Forces (M := (N.graftOmega c).toModel) (Sum.inr a.1.rank) (□^[a.1.rank + 1]⊥) :=
+  have hv : (Sum.inr a.1.rank : (N.graftOmega c).World) ⊮[(N.graftOmega c).toModel]
+      (□^[a.1.rank + 1]⊥) :=
     (inr_forces_boxItr_bot_iff Rrc).not.mpr (by omega);
   obtain ⟨w, Rvw, hw⟩ := exists_forces_charFormulaUnder_of_not_forces_boxItr Rrc hAroot Rrv hv hx;
   exact ⟨w, IsTrans.trans _ _ _ Rrv Rvw, hw⟩;
@@ -509,10 +514,10 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
         (u = (M.graftOmega a).root.1 ∧ v = (N.graftOmega c').root.1) ∨
         (u ≠ (M.graftOmega a).root.1 ∧ v ≠ (N.graftOmega c').root.1 ∧
           match u with
-          | .inl x => Forces (M := (N.graftOmega c').toModel) v (x.charFormulaUnder P)
+          | .inl x => v ⊩[(N.graftOmega c').toModel] (x.charFormulaUnder P)
           | .inr i =>
-            ¬ Forces (M := (N.graftOmega c').toModel) v (□^[i + 1 + a.1.rank]⊥) ∧
-            Forces (M := (N.graftOmega c').toModel) v (□^[i + 1 + a.1.rank + 1]⊥))
+            v ⊮[(N.graftOmega c').toModel] (□^[i + 1 + a.1.rank]⊥) ∧
+            v ⊩[(N.graftOmega c').toModel] (□^[i + 1 + a.1.rank + 1]⊥))
       root_rel := Or.inl ⟨rfl, rfl⟩
       root_reflect := by
         rintro u v (⟨rfl, rfl⟩ | ⟨hu, hv, -⟩);
@@ -525,7 +530,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
           . exact (forces_charFormulaUnder_iff.mp hC).1 q hq;
           . -- a chain point carries `a`'s valuation; `v` is deep, so it forces
             -- `p̄^{(a)}` by the first conjunct of `Φ₀`
-            have hdeep : ¬ Forces (M := (N.graftOmega c').toModel) v (□^[a.1.rank + 1]⊥) :=
+            have hdeep : v ⊮[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥) :=
               fun h => hC.1 (forces_boxItr_bot_mono (by omega) h);
             have h := forces_dia_and_valuationConj_of_not_forces_boxItr hAroot
               ((N.graftOmega c').root.2 v hv) hdeep;
@@ -556,7 +561,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                 rcases hy with rfl | hay;
                 . exact hane;
                 . exact fun h => not_rel_root (h ▸ hay);
-              have hdeep : ¬ Forces (M := (N.graftOmega c').toModel) v (□^[a.1.rank + 1]⊥) :=
+              have hdeep : v ⊮[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥) :=
                 fun h => hC.1 (forces_boxItr_bot_mono (by omega) h);
               obtain ⟨w, Rvw, hw⟩ := exists_forces_charFormulaUnder_of_not_forces_boxItr
                 Rrc hAroot ((N.graftOmega c').root.2 v hv) hdeep hy;
@@ -567,7 +572,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
               exact ⟨w, Or.inr ⟨inr_ne_root, fun h => not_rel_root (h ▸ Rvw), hw₁, hw₂⟩, Rvw⟩;
       back := by
         rintro u v v' (⟨rfl, rfl⟩ | ⟨hu, hv, hC⟩) Rvv';
-        . by_cases hsh : Forces (M := (N.graftOmega c').toModel) v' (□^[a.1.rank + 1]⊥);
+        . by_cases hsh : v' ⊩[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥);
           . -- a shallow point forces some `φ_t`, `t` in the cone of `a`, by the
             -- second conjunct of `Φ₀`
             obtain ⟨B, hB, hv'B⟩ :=
@@ -598,7 +603,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
           rcases u with x | i;
           . obtain ⟨y, Rxy, hy⟩ := (forces_charFormulaUnder_iff.mp hC).2.2 v' Rvv';
             exact ⟨.inl y, Or.inr ⟨inl_ne_root (fun h => not_rel_root (h ▸ Rxy)), hv'ne, hy⟩, Rxy⟩;
-          . by_cases hsh : Forces (M := (N.graftOmega c').toModel) v' (□^[a.1.rank + 1]⊥);
+          . by_cases hsh : v' ⊩[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥);
             . obtain ⟨B, hB, hv'B⟩ := forces_fdisj.mp
                 (forces_fdisj_charFormulaUnder_of_forces_boxItr hAroot
                   ((N.graftOmega c').root.2 v' hv'ne) hsh);
@@ -619,7 +624,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                 exact hsh (forces_boxItr_bot_mono (by omega) hm₂);
               have hlt : m < i + 1 + a.1.rank := by
                 by_contra hle;
-                have hstep : Forces (M := (N.graftOmega c').toModel) v'
+                have hstep : v' ⊩[(N.graftOmega c').toModel]
                     (□^[i + 1 + a.1.rank]⊥) := by
                   apply forces_boxItr.mpr;
                   intro z hz;
@@ -736,8 +741,8 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
   {C : Formula α} (hC : C.Modalized) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
-  (Forces (M := (coneTail M a).toModel) (Sum.inr (n : ℕ∞)) C ↔
-    (M.graftOmega a).root.1 ⊩ C) := by
+  (Sum.inr (n : ℕ∞) ⊩[(coneTail M a).toModel] C ↔
+    (M.graftOmega a).root.1 ⊩[(M.graftOmega a).toModel] C) := by
   induction C with
   | atom q => exact (hC q rfl).elim;
   | bot => exact ⟨0, fun n _ => Iff.rfl⟩;
@@ -752,7 +757,7 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
     . intro h ha; exact hB.mp (h (hA.mpr ha));
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A ihA =>
-    by_cases h : (M.graftOmega a).root.1 ⊩ (□A);
+    by_cases h : (M.graftOmega a).root.1 ⊩[(M.graftOmega a).toModel] (□A);
     . refine ⟨0, ?_⟩;
       intro n _;
       refine iff_of_true ?_ h;

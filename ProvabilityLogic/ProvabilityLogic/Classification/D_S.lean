@@ -59,14 +59,14 @@ theorem RootedModel.StabilizedBisimulationUnder.forces_iff_subst_pIffOn [Decidab
     {κ₁ κ₂ : Type u} [Nonempty κ₁] [Nonempty κ₂]
     {M₁ : RootedModel κ₁ α} {M₂ : RootedModel κ₂ α} {P : Finset α} {p : α}
     (Bi : RootedModel.StabilizedBisimulationUnder P M₁ M₂)
-    (hp_box : M₂.root.1 ⊩ (□(#p))) (hp_root : M₂.root.1 ⊮ (#p)) {γ : Finset α}
+    (hp_box : M₂.root.1 ⊩[M₂.toModel] (□(#p))) (hp_root : M₂.root.1 ⊮[M₂.toModel] (#p)) {γ : Finset α}
     (hγ_root : ∀ q ∈ P, (q ∈ γ ↔ ¬ (M₁.Val M₁.root.1 q ↔ M₂.Val M₂.root.1 q))) :
     ∀ {x₁ : M₁.World} {x₂ : M₂.World}, Bi x₁ x₂ →
-      ∀ {C : Formula α}, C.atoms ⊆ P → (x₁ ⊩ C ↔ x₂ ⊩ C⟦.pIffOn p γ⟧) := by
-  -- Away from the roots, `M₂`'s root forces `□p`, so `x₂ ⊩ p` holds outright
+      ∀ {C : Formula α}, C.atoms ⊆ P → (x₁ ⊩[M₁.toModel] C ↔ x₂ ⊩[M₂.toModel] C⟦.pIffOn p γ⟧) := by
+  -- Away from the roots, `M₂`'s root forces `□p`, so `x₂ ⊩[M₂.toModel] p` holds outright
   -- (`x₂ ≠ M₂.root.1`), making the substituted atom `p ↔ q` forcing-equivalent to plain
   -- `q`, so the bisimulation's atomic clause suffices directly. At the roots themselves
-  -- `x₂ ⊩ p` is not `True` in general (`M₂`'s root additionally satisfies `¬p` by
+  -- `x₂ ⊩[M₂.toModel] p` is not `True` in general (`M₂`'s root additionally satisfies `¬p` by
   -- hypothesis), so the compensating substitution is exactly needed there, and `γ` is
   -- defined precisely to make it work out.
   intro x₁ x₂ Bx₁x₂ C;
@@ -74,7 +74,7 @@ theorem RootedModel.StabilizedBisimulationUnder.forces_iff_subst_pIffOn [Decidab
   | atom q =>
     intro hq;
     replace hq : q ∈ P := hq (Finset.mem_singleton_self q);
-    show (M₁.Val x₁ q ↔ x₂ ⊩ (Formula.Substitution.pIffOn p γ q));
+    show (M₁.Val x₁ q ↔ x₂ ⊩[M₂.toModel] (Formula.Substitution.pIffOn p γ q));
     simp only [Formula.Substitution.pIffOn];
     split;
     case isTrue hqγ =>
@@ -172,7 +172,7 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α] (hA : 
       M.root.1 ≺ a ∧
       (∀ x : M.World, x.IsProperPredecessorOf a → x = M.root.1) ∧
       (∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a) ∧
-      (M.graftOmega a).root.1 ⊮ A := by
+      (M.graftOmega a).root.1 ⊮[_] A := by
   -- Obtained by combining the pseudo-tail semantics of `D` (`LogicD.provability_TFAE`)
   -- with the D-model tree realization (`Model.dModelTree`).
   obtain ⟨κ, hne, M, hgl, r, o, hno⟩ := LogicD.exists_not_forces_toPseudoTail_of_not_mem hA;
@@ -195,7 +195,7 @@ theorem LogicD.exists_graftOmega_countermodel_of_not_mem [DecidableEq α] (hA : 
 lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
     {κ : Type u} [Nonempty κ] {M : RootedModel κ α} [M.IsFiniteGL] {a : M.NonRoot}
     (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
-    {C : Formula α} (hmod : C.Modalized) (hC : (M.graftOmega a).root.1 ⊩ C) :
+    {C : Formula α} (hmod : C.Modalized) (hC : (M.graftOmega a).root.1 ⊩[_] C) :
     (∼C) ∉ LogicS := by
   -- The stabilization of the D-model is a tail model, on whose chain the formula is
   -- eventually forced (realized by
@@ -241,7 +241,7 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
   haveI := hne₂; haveI := hgl₂; haveI := htree₂;
   haveI : Fintype M₂.World := Fintype.ofFinite _;
   have hlat₂ := hlatimp₂ hlat₁;
-  have hnA₂ : (M₂.graftOmega a₂).root.1 ⊮ A :=
+  have hnA₂ : (M₂.graftOmega a₂).root.1 ⊮[(M₂.graftOmega a₂).toModel] A :=
     fun h => hnA₁ ((htrans₂ A (Finset.Subset.refl _)).mpr h);
   -- **Lemma 9**: the almost defining formula of the simplified D-model.
   obtain ⟨B, hBatoms, hBmod, hBroot, hBdef⟩ :=
@@ -272,11 +272,11 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
     have hpin : ((#p : Formula α)).atoms ⊆ insert p A.atoms := by
       simp [Formula.atoms];
     have hΔ := (htrans₄ _ Formula.atoms_deltaPIff_subset).mp hΔT;
-    have hBL : (L.graftOmega c₄).root.1 ⊩ B :=
+    have hBL : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] B :=
       (htrans₄ B (hBatoms.trans (Finset.subset_insert _ _))).mp (not_forces_neg.mp hnBT);
-    have hboxp : (L.graftOmega c₄).root.1 ⊩ (□(#p)) :=
+    have hboxp : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (□(#p)) :=
       (htrans₄ (□(#p)) (by rwa [Formula.atoms_box])).mp hboxT;
-    have hnp : (L.graftOmega c₄).root.1 ⊮ (#p) :=
+    have hnp : (L.graftOmega c₄).root.1 ⊮[(L.graftOmega c₄).toModel] (#p) :=
       fun hc => hnpT ((htrans₄ (#p) hpin).mpr hc);
     -- `□p` at the root downgrades `(A.atoms ∪ {p})`-simplicity to `A.atoms`-simplicity.
     have hsimpleP : (L.graftOmega c₄).IsSimpleUnder A.atoms :=
@@ -296,7 +296,7 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
     have htransport :=
       Bi.forces_iff_subst_pIffOn hboxp hnp hγ_root Bi.root_rel (Finset.Subset.refl A.atoms);
     -- The `γ`-conjunct of `Δ` is forced at the root, contradiction.
-    have hconj : (L.graftOmega c₄).root.1 ⊩ (A⟦Formula.Substitution.pIffOn p γ⟧) := by
+    have hconj : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (A⟦Formula.Substitution.pIffOn p γ⟧) := by
       apply forces_fconj.mp hΔ;
       exact Finset.mem_image_of_mem _ (Finset.mem_powerset.mpr (Finset.filter_subset _ _));
     exact hnA₂ (htransport.mpr hconj);
@@ -407,7 +407,7 @@ theorem provable_reflection_of_mem_not_LogicD :
       intro κ _ M _;
       haveI : Fintype M.World := Fintype.ofFinite _;
       apply Model.World.forces_imp.mpr;
-      by_cases hx : M.root.1 ⊩ ⋀(pf.toFinset.image (TBB : ℕ → Formula (Option α)));
+      by_cases hx : M.root.1 ⊩[_] ⋀(pf.toFinset.image (TBB : ℕ → Formula (Option α)));
       . right;
         apply Model.iff_forces_lift_rank_mem_spectrum.mpr;
         rw [LetterlessFormula.spectrum_fconj];
@@ -415,7 +415,7 @@ theorem provable_reflection_of_mem_not_LogicD :
         intro B hB;
         obtain ⟨n, hn, rfl⟩ := Finset.mem_image.mp hB;
         rw [LetterlessFormula.spectrum_TBB];
-        have : M.root.1 ⊩ (TBB n : Formula (Option α)) :=
+        have : M.root.1 ⊩[_] (TBB n : Formula (Option α)) :=
           Model.World.forces_fconj.mp hx _ (Finset.mem_image_of_mem _ hn);
         simpa using Model.iff_forces_TBB_neq_rank.mp this;
       . left; exact hx;

@@ -50,7 +50,7 @@ formulas are witnessed, antecedent members are forced and succedent members are 
 at their labels. -/
 lemma countermodel_truthlemma (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)
   {A : Formula α} {w : S.countermodel.World} :
-  ((w.1 ∶ A) ∈ S.ant → w ⊩ A) ∧ ((w.1 ∶ A) ∈ S.suc → ¬w ⊩ A) := by
+  ((w.1 ∶ A) ∈ S.ant → w ⊩[_] A) ∧ ((w.1 ∶ A) ∈ S.suc → ¬w ⊩[_] A) := by
   induction A generalizing w with
   | atom a =>
     constructor;
@@ -106,7 +106,7 @@ lemma not_validate_countermodel (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)
     rw [countermodelAssignment_val (fst_mem_labels_of_mem_rel hp'),
       countermodelAssignment_val (snd_mem_labels_of_mem_rel hp')];
     exact hp';
-  have hvant : ∀ lf ∈ S₀.ant, S.countermodelAssignment lf.label ⊩ lf.formula := by
+  have hvant : ∀ lf ∈ S₀.ant, S.countermodelAssignment lf.label ⊩[_] lf.formula := by
     intro lf hlf;
     apply countermodel_truthlemma hsat hbox (A := lf.formula)
       (w := S.countermodelAssignment lf.label) |>.1;

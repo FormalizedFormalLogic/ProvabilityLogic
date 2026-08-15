@@ -42,7 +42,7 @@ end Bisimulation
 section ModalEquivalent
 
 def World.ModalEquivalent {M₁ : Model κ₁ α} {M₂ : Model κ₂ α} (x₁ : M₁.World) (x₂ : M₂.World) : Prop :=
-  ∀ {A : Formula α}, x₁ ⊩ A ↔ x₂ ⊩ A
+  ∀ {A : Formula α}, x₁ ⊩[M₁] A ↔ x₂ ⊩[M₂] A
 infix:50 " ↭ " => World.ModalEquivalent
 
 variable {M₁ : Model κ₁ α} {M₂ : Model κ₂ α} {x₁ : M₁.World} {x₂ : M₂.World}
@@ -209,7 +209,7 @@ variable {x₁ : M₁.World} {x₂ : M₂.World}
   (the ω-analogue of `World.modal_equivalent_of_bisimilar`).
 -/
 lemma World.forces_iff_of_pbisimilar (Bi : M₁ ⇄[P] M₂) (bisx : Bi x₁ x₂) :
-    ∀ {A : Formula α}, A.atoms ⊆ P → (x₁ ⊩ A ↔ x₂ ⊩ A) := by
+    ∀ {A : Formula α}, A.atoms ⊆ P → (x₁ ⊩[M₁] A ↔ x₂ ⊩[M₂] A) := by
   intro A;
   induction A generalizing x₁ x₂ with
   | atom a => intro hp; exact Bi.atomic (hp (Finset.mem_singleton_self a)) bisx;
@@ -307,7 +307,7 @@ lemma FrameBisimulation.forth_iterate (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x�
   atomic-condition-free analogue of `World.modal_equivalent_of_bisimilar`).
 -/
 lemma World.letterless_modal_equivalent_of_frameBisimilar (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) :
-  ∀ {B : LetterlessFormula}, x₁ ⊩ (B.lift : Formula α₁) ↔ x₂ ⊩ (B.lift : Formula α₂) := by
+  ∀ {B : LetterlessFormula}, x₁ ⊩[M₁] (B.lift : Formula α₁) ↔ x₂ ⊩[M₂] (B.lift : Formula α₂) := by
   intro B;
   induction B generalizing x₁ x₂ with
   | atom a => exact a.elim;
@@ -366,7 +366,7 @@ def bisimulation : M₁ ⇄ᶠ M₂ where
     exact ⟨u, rfl, Rwu⟩;
 
 lemma letterless_modal_equivalence (w : M₁.World) {B : LetterlessFormula} :
-  w ⊩ (B.lift : Formula α₁) ↔ f w ⊩ (B.lift : Formula α₂) :=
+  w ⊩[M₁] (B.lift : Formula α₁) ↔ f w ⊩[M₂] (B.lift : Formula α₂) :=
   World.letterless_modal_equivalent_of_frameBisimilar f.bisimulation rfl
 
 end FramePseudoEpimorphism

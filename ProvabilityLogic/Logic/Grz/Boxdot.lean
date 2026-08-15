@@ -19,7 +19,7 @@ abbrev irreflGen (M : Model κ α) : Model κ α := ⟨Rel.IrreflGen M.Rel, M.Va
 variable {M : Model κ α}
 
 lemma World.irreflGen_forces_boxdot [M.IsGrz]
-  : (Forces (M := M.irreflGen) x (Aᵇ)) ↔ (Forces (M := M) x A) := by
+  : (x ⊩[M.irreflGen] (Aᵇ)) ↔ (x ⊩[M] A) := by
   induction A generalizing x with
   | box A ihA =>
     constructor;
@@ -45,12 +45,12 @@ well-founded induction on the accessibility relation; this is the folklore seman
 underlying the Hilbert-style derivation `boxdotGrz_of_L` in the modal-logic literature on
 the Grzegorczyk axiom. -/
 lemma World.forces_boxdotGrz [M.IsGL] {B : Formula α} {x : M.World} :
-    x ⊩ (⊡(⊡(B 🡒 ⊡B) 🡒 B) 🡒 B) := by
+    x ⊩[_] (⊡(⊡(B 🡒 ⊡B) 🡒 B) 🡒 B) := by
   induction x using WellFounded.induction (IsConverseWellFounded.cwf (rel := M.Rel)) with
   | _ x ih =>
     intro hxD;
     obtain ⟨h1, h2⟩ := Model.World.forces_boxdot.mp hxD;
-    have key : ∀ z, x ≺ z → z ⊩ B := by
+    have key : ∀ z, x ≺ z → z ⊩[_] B := by
       intro z hxz;
       apply ih z hxz;
       apply Model.World.forces_boxdot.mpr;

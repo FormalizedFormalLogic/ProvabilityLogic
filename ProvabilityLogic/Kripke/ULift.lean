@@ -48,7 +48,7 @@ def uLiftBisimulation (M : Model κ α) : M ⇄ M.uLift.{v} where
 /-- Forcing is preserved by `ULift`-lifting a model: a formula is forced at `ULift.up x` in
 `M.uLift` iff it is forced at `x` in `M`. -/
 lemma forces_uLift_iff {x : M.World} {A : Formula α} :
-    Model.World.Forces (M := M.uLift.{v}) (ULift.up x) A ↔ Model.World.Forces (M := M) x A :=
+    (ULift.up x) ⊩[M.uLift.{v}] A ↔ x ⊩[M] A :=
   (World.modal_equivalent_of_bisimilar M.uLiftBisimulation.{v} rfl).symm
 
 instance [IsTrans _ M.Rel] : IsTrans _ (M.uLift.{v}).Rel where
@@ -90,7 +90,8 @@ instance [M.IsFiniteGLPoint3] : (M.uLift.{v}).IsFiniteGLPoint3 :=
   inferInstanceAs (M.toModel.uLift.{v}).IsFiniteGLPoint3
 
 /-- Forcing at the root is preserved by `ULift`-lifting a rooted model. -/
-lemma forces_uLift_root_iff {A : Formula α} : (M.uLift.{v}).root.1 ⊩ A ↔ M.root.1 ⊩ A :=
+lemma forces_uLift_root_iff {A : Formula α} :
+  (M.uLift.{v}).root.1 ⊩[(M.uLift.{v}).toModel] A ↔ M.root.1 ⊩[M.toModel] A :=
   Model.forces_uLift_iff
 
 end RootedModel

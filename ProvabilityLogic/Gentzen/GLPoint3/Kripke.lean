@@ -39,18 +39,18 @@ of `x` refutes exactly a nonempty `S ⊆ Δ`, while forcing `□A` for every `A 
 `□A` for every `A ∈ Δ \ S`. This is the witness driving the soundness of `boxGLPoint3`: at `w`
 the premise sequent for `S` is falsified. -/
 lemma exists_linear_witness [M.IsGLPoint3] :
-  ∀ {Δ : FormulaFinset α}, Δ.Nonempty → (∀ A ∈ Δ, x ⊮ □A) →
-  ∃ w, x ≺ w ∧ ∃ S ⊆ Δ, S.Nonempty ∧ (∀ A ∈ S, w ⊮ A ∧ w ⊩ □A) ∧ (∀ A ∈ Δ \ S, w ⊮ □A) := by
+  ∀ {Δ : FormulaFinset α}, Δ.Nonempty → (∀ A ∈ Δ, x ⊮[_] □A) →
+  ∃ w, x ≺ w ∧ ∃ S ⊆ Δ, S.Nonempty ∧ (∀ A ∈ S, w ⊮[_] A ∧ w ⊩[_] □A) ∧ (∀ A ∈ Δ \ S, w ⊮[_] □A) := by
   intro Δ;
   induction Δ using Finset.strongInductionOn with
   | _ Δ ih =>
   intro hΔne hx;
   obtain ⟨D, hD⟩ := hΔne;
   -- The successor of `x` refuting `D` deepest along `≺` also forces `□D`.
-  have terminalBoxRefuter (D : Formula α) (hxD : x ⊮ □D) :
-    ∃ z, x ≺ z ∧ z ⊮ D ∧ z ⊩ □D := by
+  have terminalBoxRefuter (D : Formula α) (hxD : x ⊮[_] □D) :
+    ∃ z, x ≺ z ∧ z ⊮[_] D ∧ z ⊩[_] □D := by
     obtain ⟨z₀, hxz₀, hz₀⟩ := Model.World.not_forces_box.mp hxD;
-    obtain ⟨z, ⟨hxz, hzD⟩, hzterm⟩ := M.terminalOf {z | x ≺ z ∧ z ⊮ D} ⟨z₀, hxz₀, hz₀⟩;
+    obtain ⟨z, ⟨hxz, hzD⟩, hzterm⟩ := M.terminalOf {z | x ≺ z ∧ z ⊮[_] D} ⟨z₀, hxz₀, hz₀⟩;
     refine ⟨z, hxz, hzD, ?_⟩;
     intro z' hzz';
     by_contra hz'D;
@@ -58,7 +58,7 @@ lemma exists_linear_witness [M.IsGLPoint3] :
   by_cases hΔ' : (Δ.erase D).Nonempty;
   · obtain ⟨w', hxw', S', hS'sub, hS'ne, hS', hDS'⟩ :=
       ih (Δ.erase D) (Finset.erase_ssubset hD) hΔ' (fun A hA => hx A (Finset.mem_of_mem_erase hA));
-    by_cases hD1 : w' ⊮ □D;
+    by_cases hD1 : w' ⊮[_] □D;
     · -- `D` joins the already-refuted complement, `S'` is unchanged.
       refine ⟨w', hxw', S', hS'sub.trans (Finset.erase_subset _ _), hS'ne, hS', ?_⟩;
       intro A hA;
@@ -67,7 +67,7 @@ lemma exists_linear_witness [M.IsGLPoint3] :
       · subst hAD; exact hD1;
       · exact hDS' A (Finset.mem_sdiff.mpr ⟨Finset.mem_erase.mpr ⟨hAD, hAΔ⟩, hAS'⟩);
     · push Not at hD1;
-      by_cases hD2 : w' ⊮ D;
+      by_cases hD2 : w' ⊮[_] D;
       · -- `w'` also refutes `D`, so `D` joins `S'`.
         refine ⟨w', hxw', insert D S',
           Finset.insert_subset_iff.mpr ⟨hD, hS'sub.trans (Finset.erase_subset _ _)⟩,
@@ -123,9 +123,9 @@ lemma validate_gentzen_boxGLPoint3 [M.IsGLPoint3] (hΔ : Δ.Nonempty)
   intro x hxante;
   by_contra hcon;
   push Not at hcon;
-  have hx : ∀ A ∈ Δ, x ⊮ □A := fun A hA => hcon (□A) (Finset.mem_image_of_mem _ hA);
+  have hx : ∀ A ∈ Δ, x ⊮[_] □A := fun A hA => hcon (□A) (Finset.mem_image_of_mem _ hA);
   obtain ⟨w, hxw, S, hSsub, hSne, hSforces, hcompl⟩ := exists_linear_witness hΔ hx;
-  have hwante : ∀ C ∈ Γ.box ∪ Γ ∪ S.box, w ⊩ C := by
+  have hwante : ∀ C ∈ Γ.box ∪ Γ ∪ S.box, w ⊩[_] C := by
     intro C hC;
     rcases Finset.mem_union.mp hC with hC | hCS;
     rcases Finset.mem_union.mp hC with hCΓbox | hCΓ;
@@ -745,8 +745,8 @@ The atom/`⊥`/imp cases mirror the `GL` truth lemma
 since it is discharged via the propagation lemmas above instead of constructing a fresh world on
 the spot. -/
 theorem truthLemma (c : Chain BS S₀) (A : Formula α) (i : Fin (c.n + 1)) :
-    (A ∈ (c.seq i).toSequent.ant → Model.World.Forces (M := c.chainModel) i A) ∧
-    (A ∈ (c.seq i).toSequent.suc → ¬ Model.World.Forces (M := c.chainModel) i A) := by
+    (A ∈ (c.seq i).toSequent.ant → i ⊩[c.chainModel] A) ∧
+    (A ∈ (c.seq i).toSequent.suc → ¬ i ⊩[c.chainModel] A) := by
   induction A generalizing i with
   | atom a =>
     constructor
@@ -792,7 +792,7 @@ has a finite rooted `LogicGLPoint3` countermodel, refuting `S` right at the root
 statement, since `LogicGLPoint3.iff_forces_root` only ever assumes forcing at the root of a model. -/
 theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
     ∃ (n : ℕ) (M : RootedModel (Fin (n + 1)) α) (_ : M.toModel.IsFiniteGLPoint3),
-      (∀ A ∈ S.ant, M.root.1 ⊩ A) ∧ (∀ A ∈ S.suc, ¬ M.root.1 ⊩ A) := by
+      (∀ A ∈ S.ant, M.root.1 ⊩[_] A) ∧ (∀ A ∈ S.suc, ¬ M.root.1 ⊩[_] A) := by
   obtain ⟨c⟩ := LogicGLPoint3.exists_chain h h Sequent.subset_self_subfmls
   refine ⟨c.n, c.chainRootedModel, (inferInstanceAs c.chainModel.IsFiniteGLPoint3), ?_, ?_⟩
   · intro A hA
