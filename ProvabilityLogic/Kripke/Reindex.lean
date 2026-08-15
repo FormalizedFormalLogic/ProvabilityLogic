@@ -12,9 +12,8 @@ worlds — in particular by a type in another universe.
 
 Specializing the equivalence to `Finite.equivFin` presents every finite model as a *concrete*
 model, one whose worlds are literally `Fin n`. Since a concrete model lives in `Type 0`, it can
-in turn be re-indexed into an arbitrary universe, which is what makes it a usable normal form:
-`Model.uLift` handles only the special case `Equiv.ulift`, whereas re-indexing composes the two
-directions in one step.
+in turn be re-indexed into an arbitrary universe (take `Equiv.ulift`), which is what makes it a
+usable normal form.
 
 This is routine infrastructure with no counterpart in the literature.
 -/

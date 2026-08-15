@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import ProvabilityLogic.Kripke.Preservation
 
@@ -177,6 +178,19 @@ lemma FramePseudoEpimorphism.rank_eq (f : M₁ →ᶠ M₂) (w : M₁.World) : (
 
 end FramePseudoEpimorphism
 
+
+section Reindex
+
+variable {κ' : Type*} [Nonempty κ'] [Fintype κ'] {M : Model κ α} [Fintype M.World] [M.IsGL]
+  {e : M.World ≃ κ'} [(M.reindex e).IsGL]
+
+/-- Rank is invariant under re-indexing a model: `e x` has in `M.reindex e` the rank that `x`
+has in `M`. This is routine infrastructure with no counterpart in the literature. -/
+lemma rank_reindex (x : M.World) : World.rank (M := M.reindex e) (e x) = x.rank :=
+  Eq.symm <| cwfHeight_congr (R := M.Rel) e (fun _ _ => by simp [Model.Rel, Model.reindex]) x
+
+end Reindex
+
 end Model
 
 
@@ -213,6 +227,18 @@ lemma root_not_forces_TBB_height : M.root.1 ⊮ (TBB M.height) := by grind;
 
 @[grind =]
 lemma iff_height_lt_root_forces_boxItr_bot : M.height < n ↔ M.root.1 ⊩ (□^[n]⊥) := iff_rank_lt_forces_boxItr_bot
+
+section Reindex
+
+variable {κ' : Type*} [Nonempty κ'] [Fintype κ'] {e : M.World ≃ κ'} [(M.reindex e).IsGL]
+
+/-- Height is invariant under re-indexing a rooted model. This is routine infrastructure with
+no counterpart in the literature. -/
+lemma height_reindex : (M.reindex e).height = M.height := by
+  haveI : (M.toModel.reindex e).IsGL := inferInstanceAs (M.reindex e).IsGL;
+  exact Model.rank_reindex _;
+
+end Reindex
 
 namespace extendRoot
 

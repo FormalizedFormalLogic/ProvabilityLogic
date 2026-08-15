@@ -40,7 +40,6 @@ public import ProvabilityLogic.Kripke.RootExtension
 public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.Simplification
 public import ProvabilityLogic.Kripke.Tail
-public import ProvabilityLogic.Kripke.ULift
 public import ProvabilityLogic.Kripke.Unravelling
 public import ProvabilityLogic.LabelledGentzen.Basic
 public import ProvabilityLogic.LabelledGentzen.Completeness

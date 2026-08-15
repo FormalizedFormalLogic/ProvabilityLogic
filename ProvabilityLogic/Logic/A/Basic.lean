@@ -1,6 +1,5 @@
 module
 
-public import ProvabilityLogic.Kripke.ULift
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
