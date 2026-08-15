@@ -201,7 +201,18 @@ noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬�
 variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[D] (S₀.ant ⟹[2] S₀.suc)} {Γ : FormulaList α}
 
 lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprovable Γ).1 := by
-  sorry
+  induction Γ with
+  | nil => exact ⟨Finset.Subset.refl _, Finset.Subset.refl _⟩
+  | cons A Γ ih =>
+    match A with
+    | #a | Formula.box _ | ⊥ => exact ih
+    | A 🡒 B =>
+      dsimp only [lindenbaum_indexed];
+      split_ifs;
+      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      · exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
+      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
+      · exact ⟨ih.1, ih.2⟩;
 
 lemma subfmls_lindenbaum_indexed (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
     (lindenbaum_indexed S₀ S₀_unprovable Γ).1.1 ∪ (lindenbaum_indexed S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
