@@ -425,7 +425,42 @@ lemma truthlemma_root (U : ExpandedLayeredSequent BS)
       Model.World.Forces (M := (bottomModel BS t (#· ∈ U.1.1)).toModel) (bottomModel BS t (#· ∈ U.1.1)).root.1 A) ∧
     (A ∈ U.1.2 →
       ¬ Model.World.Forces (M := (bottomModel BS t (#· ∈ U.1.1)).toModel) (bottomModel BS t (#· ∈ U.1.1)).root.1 A) := by
-  sorry
+  induction A with
+  | atom a =>
+    constructor
+    · intro h
+      simp only [Model.World.Forces, bottomModel, toPseudoTail, toFreeTail]
+      exact h
+    · intro h hf
+      simp only [Model.World.Forces, bottomModel, toPseudoTail, toFreeTail] at hf
+      exact ExpandedLayeredSequent.not_mem_both ⟨hf, h⟩
+  | bot =>
+    constructor
+    · intro h; exact absurd h ExpandedLayeredSequent.not_mem_bot_ant
+    · intro _ hf; exact hf
+  | imp A B ihA ihB =>
+    constructor
+    · intro h hsA
+      rcases U.saturated.impL h with hA | hB
+      · exact absurd hsA (ihA.2 hA)
+      · exact ihB.1 hB
+    · intro h hf
+      obtain ⟨hA, hB⟩ := U.saturated.impR h
+      exact (ihB.2 hB) (hf (ihA.1 hA))
+  | box C _ =>
+    constructor
+    · intro h
+      rintro (y | m) Rny
+      · rcases y.2 with hy | Rty
+        · exact forces_embed_iff.mpr (by rw [hy]; exact truthlemma_ant (hbox (hant h)))
+        · exact forces_embed_iff.mpr (truthlemma_ant (Rty.2 (FormulaFinset.iff_mem_prebox_mem.mpr (hant h))))
+      · have hm : m < (⊤ : ℕ∞) := toPseudoTail.rel_chainPoint_chainPoint.mp Rny
+        obtain ⟨m₀, rfl⟩ := WithTop.ne_top_iff_exists.mp (ne_top_of_lt hm)
+        exact (truthlemma_chainPoint hbox (n := m₀)).1 (hbox (hant h))
+    · intro h hf
+      obtain ⟨y, Rty, hy⟩ := Model.World.not_forces_box.mp (truthlemma_suc (hsuc h))
+      exact (forces_embed_iff.not.mpr hy)
+        (hf (toPseudoTail.embed ⟨y, Or.inr Rty⟩) toPseudoTail.rel_chainPoint_embed)
 
 end bottomModel
 
