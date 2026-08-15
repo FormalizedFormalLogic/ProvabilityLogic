@@ -37,7 +37,7 @@ variable {A B : Formula α}
 /-- The weak convergence axiom `.2` (`WeakPoint2`) holds at every world of a
 piecewise convergent model. -/
 lemma forces_axiomWeakPoint2 [M.IsGLPoint2] {x : M.World} :
-    x ⊩ (◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B) := by
+    x ⊩[_] (◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B) := by
   intro h;
   obtain ⟨y, Rxy, hy⟩ := forces_dia.mp h;
   obtain ⟨hyA, hyB⟩ := forces_and.mp hy;

@@ -191,7 +191,6 @@ notation:55 x:56 " ⊮[" M "] " A:56 => NotForces M x A
 
 @[grind]
 def ForcesSet (M : Model κ α) (x : M.World) (Γ : FormulaFinset α) : Prop := ∀ A ∈ Γ, x ⊩[M] A
-notation:55 x:56 " ⊩[" M "] " Γ:56 => ForcesSet M x Γ
 
 @[grind =]
 lemma forces_lconj {Γ : FormulaList α} : x ⊩[_] ⋀Γ ↔ ∀ A ∈ Γ, x ⊩[_] A := by

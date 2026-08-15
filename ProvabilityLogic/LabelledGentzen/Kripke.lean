@@ -57,8 +57,8 @@ some succedent formula holds under `L`. -/
 @[grind]
 def ValidateLabelled (M : Model κ α) (L : M.LabelMap) (S : LabelledSequent α) : Prop :=
   (∀ p ∈ S.rel, L p.1 ≺ L p.2) →
-  (∀ lf ∈ S.ant, L lf.label ⊩ lf.formula) →
-  ∃ lf ∈ S.suc, L lf.label ⊩ lf.formula
+  (∀ lf ∈ S.ant, L lf.label ⊩[_] lf.formula) →
+  ∃ lf ∈ S.suc, L lf.label ⊩[_] lf.formula
 
 notation:50 M " ⊧ˡ[" L "] " S:51 => Model.ValidateLabelled M L S
 
@@ -105,7 +105,7 @@ lemma validate_labelled_impR
   (h : M ⊧ˡ[L] (R ⸴ insert (x ∶ A) Γ ⟹ˡ insert (x ∶ B) Δ))
   : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ insert (x ∶ A 🡒 B) Δ) := by
   intro hrel hant;
-  by_cases hA : L x ⊩ A;
+  by_cases hA : L x ⊩[_] A;
   . obtain ⟨lf, hlf, hf⟩ := h hrel (by grind);
     rcases Finset.mem_insert.mp hlf with rfl | hlf;
     . exact ⟨x ∶ A 🡒 B, by grind, by grind⟩;
@@ -140,9 +140,9 @@ lemma validate_labelled_boxRLob [M.IsGL]
   have hyx : y ≠ x := by
     rintro rfl;
     exact hfresh $ label_mem_labels_of_mem_suc (lf := y ∶ □A) (by grind);
-  have hxA : L x ⊮ □A := hC (x ∶ □A) (by grind);
+  have hxA : L x ⊮[_] □A := hC (x ∶ □A) (by grind);
   obtain ⟨z, Rxz, hz⟩ := Model.World.not_forces_box.mp hxA;
-  obtain ⟨t, ⟨Rxt, hntA⟩, ht⟩ := M.terminalOf {w | L x ≺ w ∧ w ⊮ A} ⟨z, Rxz, hz⟩;
+  obtain ⟨t, ⟨Rxt, hntA⟩, ht⟩ := M.terminalOf {w | L x ≺ w ∧ w ⊮[_] A} ⟨z, Rxz, hz⟩;
   have hrel' : ∀ p ∈ (insert (x, y) R : Finset LabelRel),
       Function.update L y t p.1 ≺ Function.update L y t p.2 := by
     rintro p hp;
@@ -162,10 +162,10 @@ lemma validate_labelled_boxRLob [M.IsGL]
         rwa [heq] at this;
       simpa [Function.update_of_ne h₁, Function.update_of_ne h₂] using hrel p hp';
   have hant' : ∀ lf ∈ insert (y ∶ □A) Γ,
-      Function.update L y t lf.label ⊩ lf.formula := by
+      Function.update L y t lf.label ⊩[_] lf.formula := by
     rintro lf hlf;
     rcases Finset.mem_insert.mp hlf with rfl | hlf';
-    . show Function.update L y t y ⊩ □A;
+    . show Function.update L y t y ⊩[_] □A;
       rw [Function.update_self];
       intro u Rtu;
       by_contra hu;
@@ -180,7 +180,7 @@ lemma validate_labelled_boxRLob [M.IsGL]
   obtain ⟨lf, hlf, hf⟩ := h (Function.update L y t) hrel' hant';
   rcases Finset.mem_insert.mp hlf with rfl | hlf';
   . apply hntA;
-    have : Function.update L y t y ⊩ A := hf;
+    have : Function.update L y t y ⊩[_] A := hf;
     rwa [Function.update_self] at this;
   . have hly : lf.label ≠ y := by
       intro hly;

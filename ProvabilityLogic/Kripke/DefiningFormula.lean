@@ -17,7 +17,7 @@ for each world `x` (by well-founded recursion on `World.rank`) take
 `χ_x := p̄^(x) ⋏ ⋀_{x ≺ y} ◇χ_y ⋏ □(⋁_{x ≺ y} χ_y)`
 
 where `p̄^(x)` (`World.valuationConj`) pins down `x`'s valuation on `P`. The relation
-`fun x w => w ⊩ χ_x` is then a bisimulation-under-`P` against an *arbitrary* model
+`fun x w => w ⊩[N] χ_x` is then a bisimulation-under-`P` against an *arbitrary* model
 (`Model.charBisimulationUnder`), so no simpleness or tree-ness hypotheses are needed
 anywhere.
 
@@ -60,7 +60,7 @@ lemma World.atoms_valuationConj : (x.valuationConj P).atoms ⊆ P := by
 /-- A world `w` (of any model) forces `x.valuationConj P` iff it agrees with `x` on `P`. -/
 @[grind =]
 lemma World.forces_valuationConj {w : N.World} :
-  w ⊩ x.valuationConj P ↔ ∀ a ∈ P, (M.Val x a ↔ N.Val w a) := by
+  w ⊩[N] x.valuationConj P ↔ ∀ a ∈ P, (M.Val x a ↔ N.Val w a) := by
   constructor;
   · intro h a ha;
     have := World.forces_fconj.mp h _ (Finset.mem_image_of_mem _ ha);
@@ -135,10 +135,10 @@ lemma World.atoms_charFormulaUnder : (x.charFormulaUnder P).atoms ⊆ P := by
   respect to the characteristic-formula relation.
 -/
 lemma World.forces_charFormulaUnder_iff {w : N.World} :
-  w ⊩ x.charFormulaUnder P ↔
+  w ⊩[N] x.charFormulaUnder P ↔
   (∀ a ∈ P, (M.Val x a ↔ N.Val w a)) ∧
-  (∀ y : M.World, x ≺ y → ∃ v : N.World, w ≺ v ∧ v ⊩ y.charFormulaUnder P) ∧
-  (∀ v : N.World, w ≺ v → ∃ y : M.World, x ≺ y ∧ v ⊩ y.charFormulaUnder P) := by
+  (∀ y : M.World, x ≺ y → ∃ v : N.World, w ≺ v ∧ v ⊩[N] y.charFormulaUnder P) ∧
+  (∀ v : N.World, w ≺ v → ∃ y : M.World, x ≺ y ∧ v ⊩[N] y.charFormulaUnder P) := by
   rw [World.charFormulaUnder_def, World.forces_and, World.forces_and];
   constructor;
   · rintro ⟨⟨h1, h2⟩, h3⟩;
@@ -168,8 +168,8 @@ lemma World.forces_charFormulaUnder_iff {w : N.World} :
 
 /-- Every world forces its own characteristic formula. -/
 @[grind .]
-lemma World.forces_charFormulaUnder_self : x ⊩ x.charFormulaUnder P := by
-  suffices h : ∀ n (x : M.World), x.rank = n → x ⊩ x.charFormulaUnder P from
+lemma World.forces_charFormulaUnder_self : x ⊩[_] x.charFormulaUnder P := by
+  suffices h : ∀ n (x : M.World), x.rank = n → x ⊩[_] x.charFormulaUnder P from
     h x.rank x rfl;
   intro n;
   induction n using Nat.strong_induction_on with
@@ -185,14 +185,14 @@ lemma World.forces_charFormulaUnder_self : x ⊩ x.charFormulaUnder P := by
 end
 
 /--
-  The characteristic-formula relation `fun x w => w ⊩ x.charFormulaUnder P` is a
+  The characteristic-formula relation `fun x w => w ⊩[N] x.charFormulaUnder P` is a
   bisimulation-under-`P` between a finite GL-model `M` and an *arbitrary* model `N`:
   the atomic/forth/back conditions are exactly the three components of
   `World.forces_charFormulaUnder_iff`.
 -/
 def charBisimulationUnder (P : Finset α) (M : Model κ α) [Fintype M.World] [M.IsGL]
   (N : Model κ' α) : M ⇄[P] N where
-  toRel x w := w ⊩ x.charFormulaUnder P
+  toRel x w := w ⊩[N] x.charFormulaUnder P
   atomic ha h := (World.forces_charFormulaUnder_iff.mp h).1 _ ha
   forth h Rxy := by
     obtain ⟨v, Rwv, hv⟩ := (World.forces_charFormulaUnder_iff.mp h).2.1 _ Rxy;
@@ -220,9 +220,9 @@ open scoped Model
 -/
 structure IsDefiningFormula (P : Finset α) (M : RootedModel κ α) (A : Formula α) : Prop where
   atoms_subset : A.atoms ⊆ P
-  root_forces : M.root.1 ⊩ A
+  root_forces : M.root.1 ⊩[_] A
   unique_up_to_bisim : ∀ {κ' : Type u} [Nonempty κ'] (N : RootedModel κ' α) [N.IsFiniteGL],
-    N.IsSimpleUnder P → N.root.1 ⊩ A →
+    N.IsSimpleUnder P → N.root.1 ⊩[N.toModel] A →
     ∃ Bi : M.toModel ⇄[P] N.toModel, Bi M.root.1 N.root.1
 
 /--

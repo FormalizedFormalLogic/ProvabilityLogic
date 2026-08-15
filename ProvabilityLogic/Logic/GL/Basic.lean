@@ -21,8 +21,8 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ᵍᶜ[GL] (∅ ⟹ {A}),
   ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩ A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A
 ].TFAE
   := by
   tfae_have 1 ↔ 2 := by grind;
@@ -69,7 +69,7 @@ theorem iff_forces [DecidableEq α] {A : Formula α} :
   provability_TFAE.out 0 5
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩ A :=
+    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 6
 
 /-- GL-provability is characterized by validity over the (smaller) class of finite
@@ -77,7 +77,7 @@ GL *tree* models (`IsFiniteGLTree`): it suffices to check finite GL-models that
 are trees. -/
 theorem iff_forces_root_tree [DecidableEq α] {A : Formula α} :
     A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] →
-      M.root.1 ⊩ A :=
+      M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 7
 
 theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :

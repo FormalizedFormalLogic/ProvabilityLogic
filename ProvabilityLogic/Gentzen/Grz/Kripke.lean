@@ -27,7 +27,7 @@ section
 variable {x : M.World}
 
 omit [DecidableEq α] in
-private lemma not_forces_box_of_not_forces [Std.Refl M.Rel] (h : x ⊮ A) : x ⊮ □A :=
+private lemma not_forces_box_of_not_forces [Std.Refl M.Rel] (h : x ⊮[_] A) : x ⊮[_] □A :=
   fun hx => h (hx x (Std.Refl.refl x))
 
 end
@@ -41,15 +41,15 @@ lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ
   apply forces_box.mpr;
   intro y Rxy;
   by_contra hy;
-  have h₁ : ∀ z, x ≺ z → ∀ C ∈ Γ.box, z ⊩ C := by
+  have h₁ : ∀ z, x ≺ z → ∀ C ∈ Γ.box, z ⊩[_] C := by
     intro z Rxz C hC;
     obtain ⟨D, hD, rfl⟩ := Finset.mem_image.mp hC;
     intro w Rzw;
     exact hΓ (□D) (Finset.mem_image_of_mem _ hD) w (_root_.trans Rxz Rzw);
   obtain ⟨v, ⟨Rxv, hv⟩, hmax⟩ :=
-    WeaklyConverseWellFounded.has_max (r := M.Rel) {z | x ≺ z ∧ z ⊮ □A}
+    WeaklyConverseWellFounded.has_max (r := M.Rel) {z | x ≺ z ∧ z ⊮[_] □A}
       ⟨y, Rxy, not_forces_box_of_not_forces hy⟩;
-  replace hmax : ∀ z, x ≺ z → z ⊮ □A → v ≺ z → v = z := by
+  replace hmax : ∀ z, x ≺ z → z ⊮[_] □A → v ≺ z → v = z := by
     intro z Rxz hz Rvz;
     by_contra hne;
     exact hmax z ⟨Rxz, hz⟩ ⟨Rvz, hne⟩;
@@ -497,7 +497,7 @@ variable {x : (countermodelOf BS).World} {A : Formula α}
 Truth lemma for the `Grz` countermodel: membership in the antecedent of an expanded sequent
 forces the formula, and membership in the succedent refutes it. -/
 lemma truthlemma :
-  (A ∈ x.1.1 → x ⊩ A) ∧ (A ∈ x.1.2 → ¬x ⊩ A) := by
+  (A ∈ x.1.1 → x ⊩[_] A) ∧ (A ∈ x.1.2 → ¬x ⊩[_] A) := by
   induction A generalizing x with
   | atom a =>
     constructor
@@ -562,8 +562,8 @@ lemma truthlemma :
           · exact hAsuc h6;
           · exact ExpandedSequent.not_mem_both ⟨h6, h⟩;
 
-lemma truthlemma_ant : A ∈ x.1.1 → x ⊩ A := truthlemma.1
-lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩ A := truthlemma.2
+lemma truthlemma_ant : A ∈ x.1.1 → x ⊩[_] A := truthlemma.1
+lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩[_] A := truthlemma.2
 
 /-- Kripke completeness of the cut-free `LogicGrz.ProofGentzen`: a sequent valid in every
 finite `Grz` model is provable. -/
@@ -607,7 +607,7 @@ end Kripke
 @[simp, grind .]
 theorem not_provable_empty : ⊬ᵍ[Grz] (∅ ⟹ ∅ : Sequent α) := by
   by_contra! h;
-  have : (0 : trivial_Grz_model.World) ⊩ (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_Grz_model 0;
+  have : (0 : trivial_Grz_model.World) ⊩[_] (∅ ⟹ ∅) := Kripke.finite_soundness h trivial_Grz_model 0;
   grind;
 
 end ProvableGentzen

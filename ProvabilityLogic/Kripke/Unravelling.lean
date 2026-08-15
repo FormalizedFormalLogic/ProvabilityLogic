@@ -273,8 +273,10 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
 tree unravelling counterpart. -/
 lemma graftOmega_root_forces_iff [M.IsGL] {a : M.World} (Rra : M.root.1 ≺ a)
   {C : Formula α} :
-  ((M.unravelling).graftOmega (coverPoint Rra)).root.1 ⊩ C ↔
-  (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩ C := by
+  ((M.unravelling).graftOmega (coverPoint Rra)).root.1
+    ⊩[((M.unravelling).graftOmega (coverPoint Rra)).toModel] C ↔
+  (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
+    ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C := by
   have h := (graftOmegaPseudoEpimorphism M Rra).modal_equivalence
     ((M.unravelling).graftOmega (coverPoint Rra)).root.1 (A := C);
   rwa [show (graftOmegaPseudoEpimorphism M Rra).toFun

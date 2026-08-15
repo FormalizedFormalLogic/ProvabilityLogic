@@ -169,11 +169,11 @@ variable
   {M : Model κ Empty} [Fintype M.World] [M.IsGL]
   {x : M.World} {A : LetterlessFormula}
 
-lemma iff_forces_rank_mem_spectrum : x ⊩ A ↔ x.rank ∈ (spectrum A) := by
+lemma iff_forces_rank_mem_spectrum : x ⊩[_] A ↔ x.rank ∈ (spectrum A) := by
   induction A generalizing x with
   | box A ih =>
     calc
-      _ ↔ ∀ y, x ≺ y → y ⊩ A := by grind;
+      _ ↔ ∀ y, x ≺ y → y ⊩[_] A := by grind;
       _ ↔ ∀ y, x ≺ y → y.rank ∈ (LetterlessFormula.spectrum A) := by simp [ih];
       _ ↔ ∀ i < x.rank, i ∈ (spectrum A) := by
         constructor;
@@ -183,7 +183,7 @@ lemma iff_forces_rank_mem_spectrum : x ⊩ A ↔ x.rank ∈ (spectrum A) := by
       _ ↔ x.rank ∈ spectrum (□A) := by grind;
   | _ => grind;
 
-lemma iff_not_forces_rank_mem_trace : x ⊮ A ↔ x.rank ∈ (trace A) := by
+lemma iff_not_forces_rank_mem_trace : x ⊮[_] A ↔ x.rank ∈ (trace A) := by
   grind [iff_forces_rank_mem_spectrum];
 
 /--
@@ -193,17 +193,17 @@ lemma iff_not_forces_rank_mem_trace : x ⊮ A ↔ x.rank ∈ (trace A) := by
 lemma iff_forces_lift_rank_mem_spectrum
     {α : Type*} {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
     {x : M.World} {B : LetterlessFormula} :
-    x ⊩ (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
+    x ⊩[_] (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
   induction B generalizing x with
   | atom a => exact a.elim;
   | bot => simp [LetterlessFormula.lift];
   | imp B C ihB ihC =>
-    show ((x ⊩ (LetterlessFormula.lift B : Formula α)) → (x ⊩ (LetterlessFormula.lift C : Formula α))) ↔ _;
+    show ((x ⊩[_] (LetterlessFormula.lift B : Formula α)) → (x ⊩[_] (LetterlessFormula.lift C : Formula α))) ↔ _;
     rw [ihB, ihC, LetterlessFormula.spectrum_imp];
     grind;
   | box B ihB =>
     calc
-      _ ↔ ∀ y, x ≺ y → y ⊩ (LetterlessFormula.lift B : Formula α) := by
+      _ ↔ ∀ y, x ≺ y → y ⊩[_] (LetterlessFormula.lift B : Formula α) := by
         exact Model.World.forces_box (A := (LetterlessFormula.lift B : Formula α));
       _ ↔ ∀ y, x ≺ y → Model.World.rank y ∈ LetterlessFormula.spectrum B := by simp [ihB];
       _ ↔ ∀ i < x.rank, i ∈ LetterlessFormula.spectrum B := by
@@ -223,10 +223,10 @@ variable {α : Type u} {A B : LetterlessFormula}
 
 lemma spectrum_TFAE : [
   n ∈ spectrum A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [Fintype M.World] → [M.IsGL] → M.height = n → M.root.1 ⊩ A,
-  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL, M.height = n ∧ M.root.1 ⊩ A,
-  ∀ {κ : Type 0}, [Nonempty κ] → [Fintype κ] → ∀ M : Model κ Empty, [M.IsGL] → ∀ x : M.World, x.rank = n → x ⊩ A,
-  ∃ κ : Type 0, ∃ _ : Nonempty κ, ∃ _ : Fintype κ, ∃ M : Model κ Empty, ∃ _ : M.IsGL, ∃ x : M.World, x.rank = n ∧ x ⊩ A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [Fintype M.World] → [M.IsGL] → M.height = n → M.root.1 ⊩[_] A,
+  ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL, M.height = n ∧ M.root.1 ⊩[_] A,
+  ∀ {κ : Type 0}, [Nonempty κ] → [Fintype κ] → ∀ M : Model κ Empty, [M.IsGL] → ∀ x : M.World, x.rank = n → x ⊩[_] A,
+  ∃ κ : Type 0, ∃ _ : Nonempty κ, ∃ _ : Fintype κ, ∃ M : Model κ Empty, ∃ _ : M.IsGL, ∃ x : M.World, x.rank = n ∧ x ⊩[_] A,
 ].TFAE := by
   tfae_have 1 → 2 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 2 → 3 := by
@@ -256,7 +256,7 @@ variable {n : ℕ}
 lemma iff_mem_trace_rootedModel {B : LetterlessFormula} :
   n ∈ LetterlessFormula.trace B ↔
   ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL,
-    M.height = n ∧ M.root.1 ⊮ (LetterlessFormula.lift B : Formula α) := by
+    M.height = n ∧ M.root.1 ⊮[_] (LetterlessFormula.lift B : Formula α) := by
   have h := spectrum_TFAE (n := n) (A := B) (α := α) |>.out 0 1;
   unfold LetterlessFormula.trace;
   rw [Set.mem_compl_iff, h];
