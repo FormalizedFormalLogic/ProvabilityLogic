@@ -121,8 +121,7 @@ theorem iff_provableGentzenS_provable_1 :
 
 namespace ProofGentzen
 
-/-- Lift a level-`0` `LogicD.ProofGentzen`-proof to level `2`, by applying `(GLtoS)` and
-  `(StoD)` at the `(GL□)` step and recursing through the other rules.
+/-- Lift a level-`0` `LogicD.ProofGentzen`-proof to level `2`.
 
   - [KKIM25, Theorem 4.3]
 -/
@@ -262,8 +261,8 @@ open ProvableGentzen
 variable {Γ Δ : FormulaFinset α}
 
 /--
-  Every `GL_seq`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same sequent at the
-  top D-sequent level.
+  Every `LogicGL.ProvableGentzen`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same
+  sequent at the top D-sequent level.
 
   - [KKIM25, Theorem 4.3]
 -/
@@ -271,8 +270,8 @@ theorem provable_2_of_provableGentzen_GL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) : ⊢ᵍ[D
   ProvableGentzen.liftUp02 ⟨ofProofGentzen h.some⟩
 
 /--
-  Every `GL_seq`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same sequent at the
-  S-sequent level.
+  Every `LogicGL.ProvableGentzen`-proof lifts to a `LogicD.ProvableGentzen`-proof of the same
+  sequent at the S-sequent level.
 
   - [KKIM25, Theorem 4.3]
 -/
