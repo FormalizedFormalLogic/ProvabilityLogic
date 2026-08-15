@@ -393,9 +393,7 @@ theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
   ((□((□#a) ⋎ □#a)) 🡒 ((□#a) ⋎ □#a)) ∉ @LogicA α := by
   rw [LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp];
   rintro ⟨n, hGL⟩;
-  have hpos : 0 < n + 2 := by omega;
-  have h := @LogicGL.root_forces_of_mem α _ _ ⟨n + 2, hpos⟩ (axiomDCountermodel n a)
-    (inferInstance : (axiomDCountermodel n a).IsFiniteGL) hGL
+  have h := LogicGL.concrete_root_forces_of_mem (axiomDCountermodel n a) hGL
     axiomDCountermodel.root_forces_neg_boxItr_bot;
   rcases Model.World.forces_imp.mp h with h | h;
   · exact h axiomDCountermodel.root_forces_axiomD_antecedent;

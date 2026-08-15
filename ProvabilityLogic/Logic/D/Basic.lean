@@ -434,8 +434,7 @@ instance : (axiomPCountermodel (α := α)).IsFiniteGL where
 /-- The axiom `P` (`∼□⊥`) is not a theorem of `GL`. -/
 lemma LogicGL.not_provable_axiomP [DecidableEq α] : (∼□⊥ : Formula α) ∉ LogicGL :=
   -- Its unique world has no successor, so `□⊥` holds there vacuously and `∼□⊥` fails.
-  @LogicGL.not_mem_of_not_forces α _ _ 1 axiomPCountermodel
-    (inferInstance : axiomPCountermodel.IsFiniteGL) 0 (by grind)
+  LogicGL.not_mem_of_concrete_not_forces axiomPCountermodel (x := 0) (by grind)
 
 /-- `GL` is a proper sublogic of `D`: it is contained in `D`
 (`LogicD.provable_of_provable_GL`) but does not prove the axiom `P` (`∼□⊥`), which `D`
