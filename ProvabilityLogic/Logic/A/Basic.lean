@@ -415,8 +415,8 @@ theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ L
 /-- `LogicA` (Artemov's `GLαω`) is a proper sublogic of `LogicD`: it is contained in `LogicD`
 (`LogicA_subset_LogicD`), since `LogicD` proves every iterated consistency statement
 `∼□^[n]⊥`, but it does not prove the axiom `D`, which `LogicD` does. -/
-theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD := by
-  sorry
+theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD :=
+  ⟨LogicA_subset_LogicD, not_LogicD_subset_LogicA (a := default)⟩
 
 end axiomD
 
