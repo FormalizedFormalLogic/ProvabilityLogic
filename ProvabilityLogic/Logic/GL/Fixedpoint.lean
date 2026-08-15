@@ -473,13 +473,40 @@ end ProvableGentzen
 
 open Formula
 
+variable {A D E : Formula α} {p q : α}
+
+/-- Fixed points of a formula in which `p` is modalized are unique up to GL-provable
+equivalence: any two of them are GL-equivalent.
+
+- [SV82, Lemma 4.3]
+-/
+theorem fixpoint_unique (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms)
+    (hqD : q ∉ D.atoms)
+    (hD : ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL) (hE : ((A⟦p ↦ E⟧) 🡘 E) ∈ LogicGL) :
+    (D 🡘 E) ∈ LogicGL := by
+  have hbd : ∀ {C : Formula α}, C ∈ LogicGL → ⊢ᵍᶜ[GL] ((∅ : FormulaFinset α) ⟹ insert (⊡C) ∅) := by
+    intro C h;
+    have h₁ : ⊢ᵍ[GL] ((∅ : FormulaFinset α) ⟹ insert C ∅) := by
+      simpa using iff_provableGentzen.mp h;
+    have h₂ : ⊢ᵍ[GL] ((∅ : FormulaFinset α) ⟹ insert (□C) ∅) := by
+      simpa using ProvableGentzen.nec (iff_provableGentzen.mp h);
+    exact GentzenWithCutProvable.of_without_cut (ProvableGentzen.andR h₁ h₂);
+  apply iff_provableGentzen.mpr;
+  apply ProvableGentzen.of_with_cut;
+  have h₀ := GentzenWithCutProvable.of_without_cut
+    (ProvableGentzen.fixpoint_unique (E := E) hpq hA hq hqD);
+  have h₁ := GentzenWithCutProvable.cut (hbd hD) h₀;
+  have h₂ : ⊢ᵍᶜ[GL] (((∅ : FormulaFinset α) ∪ ∅) ⟹ ((∅ : FormulaFinset α) ∪ {D 🡘 E})) :=
+    GentzenWithCutProvable.cut (hbd hE) (by simpa using h₁);
+  simpa using h₂;
+
 /-- The fixed point theorem for GL (GL.typ, final theorem):
 for `p` modalized in `A` and a fresh atom `q`, there effectively exists a fixed point `D`
 of `A` containing only atoms of `A` other than `p`.
 
 - [SV82, Theorem 4.4]
 -/
-theorem fixpointTheorem {A : Formula α} {p q : α}
+theorem fixpointTheorem
     (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
     ∃ D : Formula α, D.atoms ⊆ A.atoms \ {p} ∧ ((A⟦p ↦ D⟧) 🡘 D) ∈ LogicGL :=
   ⟨ProvableGentzen.fixpointFormula hpq hA hq,
