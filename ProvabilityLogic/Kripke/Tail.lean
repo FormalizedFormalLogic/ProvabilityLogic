@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Kripke.Preservation
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import Mathlib.Data.ENat.Basic
 
@@ -257,6 +258,41 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
       exact forces_inl.mp $ h (toTail.embed x) rel_chainPoint_embed;
 
 end toTail
+
+
+section Reindex
+
+variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {e : κ ≃ κ'}
+
+/-- Re-indexing the base model along `e` does not change the tail construction, up to
+transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
+the literature. -/
+lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
+  Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  x ⊩[(M.toTail tail).toModel] A := by
+  have h :
+      Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+      Sum.map e id x ⊩[(M.toTail tail).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞))] A := by
+    apply Model.forces_congr;
+    · funext y z;
+      rcases y with y | i <;> rcases z with z | j <;> rfl;
+    · rintro (y | i) a <;> simp [Model.reindex];
+  rw [h];
+  exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
+
+/-- Forcing at a chain point is unaffected by re-indexing the base model. -/
+lemma forces_toTail_reindex_chainPoint_iff {i : ℕ∞} :
+  toTail.chainPoint i ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  toTail.chainPoint i ⊩[(M.toTail tail).toModel] A :=
+  forces_toTail_reindex_iff (x := toTail.chainPoint i)
+
+/-- Forcing at the root is unaffected by re-indexing the base model. -/
+lemma forces_toTail_reindex_root_iff :
+  ((M.reindex e).toTail (e tail)).root.1 ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
+  (M.toTail tail).root.1 ⊩[(M.toTail tail).toModel] A :=
+  forces_toTail_reindex_chainPoint_iff (i := ⊤)
+
+end Reindex
 
 end Model
 

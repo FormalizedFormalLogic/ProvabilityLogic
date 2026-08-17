@@ -9,7 +9,7 @@ public section
 open LogicGL
 
 /-- The finite line model is a finite linear GL model, being a strict linear order. -/
-instance {n : ℕ} : (finiteLineModel n).toModel.IsFiniteGLPoint3 where
+instance {n : ℕ} {α : Type*} : (finiteLineModel n α).toModel.IsFiniteGLPoint3 where
   toIsFiniteGL := inferInstance
   linear _ _ := lt_trichotomy _ _
 
@@ -38,10 +38,10 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
     apply iff_GL_proves_spectrum_univ.mpr;
     rw [Set.eq_univ_iff_forall];
     intro n;
-    have hforces : (finiteLineModel n).root.1 ⊩[_] A :=
-      LogicGLPoint3.sound (M := (finiteLineModel n).toModel) h _;
+    have hforces : (finiteLineModel n Empty).root.1 ⊩[_] A :=
+      LogicGLPoint3.sound (M := (finiteLineModel n Empty).toModel) h _;
     have := Model.iff_forces_rank_mem_spectrum.mp hforces;
-    rwa [show ((finiteLineModel n).root.1).rank = n from finiteLineModel.height_eq] at this;
+    rwa [show ((finiteLineModel n Empty).root.1).rank = n from finiteLineModel.height_eq] at this;
   . exact provable_of_provable_GL;
 
 /-- On letterless formulas lifted into an arbitrary `α`, `LogicGLPoint3` proves exactly what `LogicGL` proves.
