@@ -82,21 +82,20 @@ private lemma exists_countermodel {Γ Δ : FormulaFinset α}
     fun _ hD => truthlemma_suc (ExpandedSequent.subset_lindenbaum.2 hD)⟩;
 
 open Model.toRootedModel RootedModel.graftOmega in
-/-- Completeness of level-`1` cut-free `LogicA`-Gentzen provability w.r.t. `graftOmega`
-semantics: if a sequent is forced at the root of every ω-graft extension of every finite
-rooted `GL` model, it is cut-free provable. -/
-theorem completeness {Γ Δ : FormulaFinset α}
+/-- `graftOmega` forcing of `Γ ⟹ Δ` yields `GL`-provability of `Γ ⟹ insert (□^[n]⊥) Δ` for
+every `n` exceeding the number of boxed subformulas of `Γ ⟹ Δ`. -/
+private lemma provableGentzenGL_of_forces_graftOmega {Γ Δ : FormulaFinset α}
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] (Γ ⟹ Δ)) :
-  ⊢ᵍ[A] (Γ ⟹[1] Δ) := by
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] (Γ ⟹ Δ))
+  {n : ℕ} (hn : (FormulaFinset.prebox (Γ ⟹ Δ : Sequent α).subfmls).card < n) :
+  ⊢ᵍ[GL] (Γ ⟹ insert (□^[n]⊥) Δ) := by
   by_contra hnp;
   set N := (FormulaFinset.prebox (Γ ⟹ Δ : Sequent α).subfmls).card with hN;
-  obtain ⟨_, _, M₀, _, x, hΓ, hΔ⟩ := exists_countermodel (Γ := Γ) (Δ := insert (□^[N + 1]⊥) Δ)
-    (fun hp => hnp (of_provableGentzen_insert_boxItr_bot hp));
+  obtain ⟨_, _, M₀, _, x, hΓ, hΔ⟩ := exists_countermodel hnp;
   haveI : Fintype M₀.World := Fintype.ofFinite _;
   have h₁ : N < x.rank := by
-    have : ¬(x.rank < N + 1) := fun hc =>
+    have : ¬(x.rank < n) := fun hc =>
       hΔ _ (Finset.mem_insert_self _ _) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
     omega;
   obtain ⟨z, Rxz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank (hN ▸ h₁);
@@ -112,6 +111,17 @@ theorem completeness {Γ Δ : FormulaFinset α}
   exact hΔ D (Finset.mem_insert_of_mem hD) <| forces_same_at_root.mp <|
     (key (Sequent.subset_self_subfmls (Finset.mem_union_right _ hD))).2 _ |>.mp hfD;
 
+/-- Completeness of level-`1` cut-free `LogicA`-Gentzen provability w.r.t. `graftOmega`
+semantics: if a sequent is forced at the root of every ω-graft extension of every finite
+rooted `GL` model, it is cut-free provable. -/
+theorem completeness {Γ Δ : FormulaFinset α}
+  (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
+    ∀ (a : M.World) (Rra : M.root.1 ≺ a),
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] (Γ ⟹ Δ)) :
+  ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
+  of_provableGentzen_insert_boxItr_bot
+    (provableGentzenGL_of_forces_graftOmega h (Nat.lt_succ_self _))
+
 end LogicA.ProvableGentzen
 
 /-- `Γ ⟹ Δ` is a theorem of level-`1` `LogicA.ProofGentzen`, in each of four equivalent senses:
@@ -125,7 +135,13 @@ theorem LogicA.sequent_TFAE {Γ Δ : FormulaFinset α} : [
       (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] (Γ ⟹ Δ),
     ∃ n : ℕ, ⊢ᵍ[GL] (Γ ⟹ insert (□^[n]⊥) Δ)
   ].TFAE := by
-  sorry
+  tfae_have 2 → 1 := GentzenWithCutProvable.of_without_cut;
+  tfae_have 1 → 3 := GentzenWithCutProvable.soundness_graftOmega;
+  tfae_have 3 → 2 := ProvableGentzen.completeness;
+  tfae_have 3 → 4 := fun h =>
+    ⟨_, ProvableGentzen.provableGentzenGL_of_forces_graftOmega h (Nat.lt_succ_self _)⟩;
+  tfae_have 4 → 2 := fun ⟨_, h⟩ => ProvableGentzen.of_provableGentzen_insert_boxItr_bot h;
+  tfae_finish;
 
 namespace LogicA.GentzenWithCutProvable
 
