@@ -287,8 +287,7 @@ theorem provability_TFAE : [
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A,
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A,
   ⊢ᵍᶜ[A] (∅ ⟹[1] {A})
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
@@ -301,14 +300,12 @@ theorem provability_TFAE : [
   tfae_have 3 → 1 := by
     intro h;
     by_contra hA;
-    obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ :=
-      exists_reflexive_countermodel_of_not_mem_LogicA hA;
-    haveI := hne; haveI := hfgl;
+    obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ := exists_reflexive_countermodel_of_not_mem_LogicA hA;
+    apply hroot;
     have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
       intro B hB;
       exact Model.World.forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
-    apply hroot;
     exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
   tfae_have 1 → 4 := by
@@ -336,8 +333,7 @@ theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A) :=
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
   LogicA.provability_TFAE.out 0 2
 
 /--
@@ -350,8 +346,7 @@ theorem iff_provable_provableGentzenWithCut :
 
 end LogicA
 
-/-- `LogicA` is contained in `LogicD`; folklore, with no source cited. -/
-theorem LogicA_subset_LogicD [DecidableEq α] : (LogicA : Logic α) ⊆ LogicD := by
+theorem LogicA_subset_LogicD [DecidableEq α] : @LogicA α ⊆ LogicD := by
   intro A hA;
   obtain ⟨n, h⟩ := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp hA;
   exact Logic.sumQuasiNormal.mdp (LogicD.provable_of_provable_GL h) LogicD.provable_neg_boxItr_bot;
@@ -376,7 +371,6 @@ abbrev axiomDCountermodel (n : ℕ) (_a : α) : RootedModel (Fin (n + 2)) α whe
 
 namespace axiomDCountermodel
 
-instance : Fintype (axiomDCountermodel n a).World := inferInstance
 instance : (axiomDCountermodel n a).IsFiniteGL where
   finite := inferInstance
 instance : (axiomDCountermodel n a).IsGL := Model.instIsGLOfIsFiniteGL
@@ -429,7 +423,7 @@ theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ L
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
 
 /-- `LogicA` is a proper sublogic of `LogicD`; folklore, with no source cited. -/
-theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD :=
+theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : @LogicA α ⊂ LogicD :=
   ⟨LogicA_subset_LogicD, not_LogicD_subset_LogicA (a := default)⟩
 
 end axiomD
