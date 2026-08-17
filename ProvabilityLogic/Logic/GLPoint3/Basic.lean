@@ -164,23 +164,9 @@ namespace LogicGL
 
 open ProvableHilbert
 
-public section diamondCombinators
+public section thetaCombinators
 
-variable {α : Type u} {A B C : Formula α}
-
-lemma and_congr_right (h : (B 🡒 C) ∈ LogicGL) : ((A ⋏ B) 🡒 (A ⋏ C)) ∈ LogicGL :=
-  ctxAndIntroRule andL (impTrans andR h)
-
-lemma dia_neg_imp_not_box : (◇(∼A) 🡒 ∼□A) ∈ LogicGL := contra (boxImp dni)
-
-lemma not_box_imp_dia_neg : (∼□A 🡒 ◇(∼A)) ∈ LogicGL := contra (boxImp dne)
-
-lemma dia_of_not_box_imp_not_box : (◇(∼□A) 🡒 ∼□A) ∈ LogicGL :=
-  impTrans (diaImp not_box_imp_dia_neg) (impTrans dia4 dia_neg_imp_not_box)
-
-section
-
-variable [DecidableEq α] {S T : FormulaFinset α} {D : Formula α}
+variable {α : Type u} [DecidableEq α] {S T : FormulaFinset α} {D : Formula α}
 
 lemma theta_join_complement :
   ((LogicGLPoint3.theta S T ⋏ ∼□D) 🡒 LogicGLPoint3.theta S (insert D T)) ∈ LogicGL := by
@@ -197,9 +183,7 @@ lemma theta_join_S :
     (impTrans (ctxAndIntroRule andR (impTrans andL andL)) imp_fconj_insert)
     (impTrans andL andR);
 
-end
-
-end diamondCombinators
+end thetaCombinators
 
 end LogicGL
 
@@ -514,56 +498,6 @@ family of Hilbert-level premises for `boxGLPoint3`, derive the rule's conclusion
 `LogicGLPoint3`.
 -/
 
-namespace LogicGL
-
-open ProvableHilbert
-
-universe u
-variable {α : Type u}
-
-section boxUnionToolbox
-
-variable [DecidableEq α] {Γ : FormulaFinset α}
-
-lemma imp_fconj_box_box : (⋀Γ.box 🡒 ⋀Γ.box.box) ∈ LogicGL := by
-  apply imp_fconj_of_forall;
-  intro C hC;
-  obtain ⟨B', hB', rfl⟩ := Finset.mem_image.mp hC;
-  obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hB';
-  exact impTrans (imp_fconj_of_mem (Finset.mem_image_of_mem _ hB)) modal4;
-
-lemma imp_box_conj_box : (⋀Γ.box 🡒 □⋀Γ.box) ∈ LogicGL :=
-  impTrans imp_fconj_box_box imp_conj_box
-
-lemma imp_box_union : (⋀Γ.box 🡒 □(⋀(Γ.box ∪ Γ))) ∈ LogicGL :=
-  impTrans (impTrans (ctxAndIntroRule imp_box_conj_box imp_conj_box) imp_box_and)
-    (boxImp (imp_fconj_union Γ.box Γ))
-
-end boxUnionToolbox
-
-section notDisjToolbox
-
-variable {Q : FormulaFinset α} {B : Formula α}
-
-lemma imp_not_fdisj_of_forall (h : ∀ A ∈ Q, (B 🡒 ∼A) ∈ LogicGL) : (B 🡒 ∼(⋁ Q)) ∈ LogicGL :=
-  impTrans dni (contra (imp_fdisj_elim (fun A hA => impTrans dni (contra (h A hA)))))
-
-section
-
-variable [DecidableEq α]
-
-lemma imp_not_fdisj_fconj_not : (∼(⋁ Q) 🡒 ⋀ (Q.image (fun A => ∼A))) ∈ LogicGL := by
-  apply imp_fconj_of_forall;
-  intro C hC;
-  obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hC;
-  exact contra (imp_mem_fdisj hA);
-
-end
-
-end notDisjToolbox
-
-end LogicGL
-
 namespace LogicGLPoint3
 
 universe u
@@ -692,7 +626,7 @@ theorem boxGLPoint3 (hΔ : Δ.Nonempty)
   have himg : (Δ.box).image (fun A => ∼A) = Δ.image (fun A => ∼□A) := by
     simp only [FormulaFinset.box, Finset.image_image, Function.comp_def];
   have hdemorgan : (∼(⋁ Δ.box) 🡒 ⋀ (Δ.image (fun A => ∼□A))) ∈ LogicGL := by
-    have h0 := LogicGL.imp_not_fdisj_fconj_not (Q := Δ.box);
+    have h0 := LogicGL.imp_not_fdisj_fconj_not (Δ := Δ.box);
     rwa [himg] at h0;
   have hstep : ((⋀Γ.box) ⋏ ∼(⋁ Δ.box)) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
     impTrans (imp_and_congr_right' (of_GL hdemorgan)) hantecedent
