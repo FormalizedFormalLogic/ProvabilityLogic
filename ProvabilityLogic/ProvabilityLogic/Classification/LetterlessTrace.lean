@@ -231,21 +231,19 @@ lemma spectrum_TFAE : [
   tfae_have 1 → 2 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 2 → 3 := by
     intro h;
-    have e : (finiteLineModel n (α := α)).World ≃ ULift.{u} (Fin (n + 1)) := Equiv.ulift.symm;
-    have h₁ : ((finiteLineModel n (α := α)).reindex e).height = n :=
+    have e : (finiteLineModel n α).World ≃ ULift.{u} (Fin (n + 1)) := Equiv.ulift.symm;
+    have h₁ : ((finiteLineModel n α).reindex e).height = n :=
       RootedModel.height_reindex.trans finiteLineModel.height_eq;
-    use ULift.{u} (Fin (n + 1)), inferInstance, (finiteLineModel n (α := α)).reindex e,
-      inferInstance, inferInstance;
+    use ULift.{u} (Fin (n + 1)), inferInstance, (finiteLineModel n α).reindex e, inferInstance,
+      inferInstance;
     exact ⟨h₁, h _ h₁⟩;
   tfae_have 3 → 1 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 1 → 4 := by grind [Model.iff_forces_rank_mem_spectrum];
   tfae_have 4 → 5 := by
     intro h;
-    use Fin (n + 1), inferInstance, inferInstance, (finiteLineModel n).toModel, inferInstance, (finiteLineModel n).root.1;
-    constructor;
-    . exact finiteLineModel.height_eq;
-    . apply h;
-      exact finiteLineModel.height_eq;
+    use Fin (n + 1), inferInstance, inferInstance, (finiteLineModel n Empty).toModel, inferInstance,
+      (finiteLineModel n Empty).root.1;
+    exact ⟨finiteLineModel.height_eq, h _ _ finiteLineModel.height_eq⟩;
   tfae_have 5 → 1 := by grind [Model.iff_forces_rank_mem_spectrum];
   tfae_finish;
 

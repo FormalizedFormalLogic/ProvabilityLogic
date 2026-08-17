@@ -146,11 +146,10 @@ lemma forces_toConcrete_iff' {x : M.toConcrete.World} :
 /-- Validity is preserved by presenting a finite model as a concrete one. -/
 lemma validate_toConcrete_iff : M.toConcrete ⊧ A ↔ M ⊧ A := validate_reindex_iff
 
-instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL :=
-  inferInstanceAs (M.reindex (Finite.equivFin κ)).IsFiniteGL
+instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL := inferInstanceAs (M.reindex _).IsFiniteGL
 
 instance [M.IsFiniteGLPoint3] : M.toConcrete.IsFiniteGLPoint3 :=
-  inferInstanceAs (M.reindex (Finite.equivFin κ)).IsFiniteGLPoint3
+  inferInstanceAs (M.reindex _).IsFiniteGLPoint3
 
 end Model
 
@@ -162,11 +161,10 @@ variable {M : RootedModel κ α} {A : Formula α}
 noncomputable def toConcrete (M : RootedModel κ α) : RootedModel (Fin M.card) α :=
   M.reindex (Finite.equivFin κ)
 
-instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL :=
-  inferInstanceAs (M.reindex (Finite.equivFin κ)).IsFiniteGL
+instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL := inferInstanceAs (M.reindex _).IsFiniteGL
 
 instance [M.IsFiniteGLPoint3] : M.toConcrete.IsFiniteGLPoint3 :=
-  inferInstanceAs (M.reindex (Finite.equivFin κ)).IsFiniteGLPoint3
+  inferInstanceAs (M.reindex _).IsFiniteGLPoint3
 
 /-- Forcing at the root is preserved by presenting a finite rooted model as a concrete one. -/
 lemma forces_toConcrete_root_iff :
