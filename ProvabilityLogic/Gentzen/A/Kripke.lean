@@ -19,7 +19,7 @@ theorem soundness_zero {Γ Δ : FormulaFinset α}
   (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → M ⊧ (Γ ⟹ Δ) := by
   obtain ⟨p⟩ := h;
-  exact LogicGL.ProvableGentzen.Kripke.soundness (LogicGL.ProvableGentzen.of_with_cut ⟨p.toGentzenWithCutProofGL⟩)
+  exact LogicGL.ProvableGentzen.Kripke.soundness (LogicGL.ProvableGentzen.of_with_cut ⟨p.toGentzenWithCutProofGL⟩);
 
 /-- Soundness of level-`1` `LogicA`-with-cut proofs at the root of every ω-graft model built
 from a finite rooted `GL` model. -/
