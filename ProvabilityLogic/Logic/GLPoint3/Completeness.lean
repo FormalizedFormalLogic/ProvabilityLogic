@@ -3,45 +3,22 @@ module
 public import ProvabilityLogic.Logic.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
 
-/-!
-# Soundness and Kripke completeness of `LogicGLPoint3`
-
-This file bundles: the translation from `GL.3` Gentzen-provability to `LogicGLPoint3`-membership
-(Step M, `LogicGLPoint3.of_provableGentzen`/`of_provableGentzen_formula`); the soundness of
-`LogicGLPoint3` over finite linear GL models (`LogicGLPoint3.sound`); and, combining both with the
-sequent calculus results of `ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`, the packaged Kripke completeness
-theorem `LogicGLPoint3.provability_TFAE` and its corollary `LogicGLPoint3.iff_forces_root`.
--/
-
 @[expose]
 public section
 
 open LogicGL
 
-/-!
-# Step M: from `GL.3` Gentzen-provability to `LogicGLPoint3`-membership
-
-This is the `GL.3` counterpart of `ProvableHilbert.of_provableGentzen`
-(`ProvabilityLogic/Hilbert/Basic.lean`): every sequent provable in the combinatorial `GL.3` Gentzen
-calculus `⊢ᵍ[GLPoint3]` (`ProvabilityLogic/Gentzen/GLPoint3/Basic.lean`) translates into a `LogicGLPoint3`
-membership statement. The proof is an induction on `⊢ᵍ[GLPoint3]` via
-`LogicGLPoint3.ProvableGentzen.rec`, mirroring `ProvableHilbert.of_provableGentzen` case by case;
-the only new case is `boxGLPoint3`, discharged by `LogicGLPoint3.boxGLPoint3`.
--/
-
-namespace LogicGL.ProvableHilbert
+namespace LogicGL
 
 universe u
 variable {α : Type u} {A B C D : Formula α}
 
-/-- Packaged (implication) form of `bridge_impL`: instead of taking the two premises
-`ha, hb` as separately `⊢ʰ[GL]`-provable facts, this bundles them into a single antecedent
-conjunction, so that it can be applied via `mdp'` to two `LogicGLPoint3`-membership facts. -/
+open ProvableHilbert
+
 private lemma bridge_impL_imp :
-    ⊢ʰ[GL] ((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D) := by
+  (((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D)) ∈ LogicGL := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `X = {(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)}`, goal `D`
   have hHab : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α)
       ⊢ʰ[GL] (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D) := DeducibleHilbert.ofContext (by grind);
   have ha : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] C 🡒 (A ⋎ D) :=
@@ -56,7 +33,6 @@ private lemma bridge_impL_imp :
     DeducibleHilbert.mdp ha hC;
   have hAtoD : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] A 🡒 D := by
     apply DeducibleHilbert.deduction_theorem.mp;
-    -- context now additionally holds `A`
     have hmem' : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
         ⊢ʰ[GL] (A 🡒 B) ⋏ C := DeducibleHilbert.of_subset_ctx (by grind) hmem;
     have hb' : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
@@ -76,13 +52,10 @@ private lemma bridge_impL_imp :
     DeducibleHilbert.ofProvable impId;
   exact DeducibleHilbert.orElim hAtoD hDtoD hAD;
 
-/-- Packaged (implication) form of `bridge_impR`: the single premise `h` is bundled as an
-antecedent, so that it can be applied via `mdp'` to a `LogicGLPoint3`-membership fact. -/
 private lemma bridge_impR_imp :
-    ⊢ʰ[GL] ((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D)) := by
+  (((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D))) ∈ LogicGL := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `X = {C, (A ⋏ C) 🡒 (B ⋎ D)}`, goal `(A 🡒 B) ⋎ D`
   have hh : ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α) ⊢ʰ[GL] (A ⋏ C) 🡒 (B ⋎ D) :=
     DeducibleHilbert.ofContext (by grind);
   have hCc : ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α) ⊢ʰ[GL] C := DeducibleHilbert.ofContext (by grind);
@@ -99,7 +72,7 @@ private lemma bridge_impR_imp :
     exact DeducibleHilbert.mdp hh' hAC;
   exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable imp_push_disj) hAB_D;
 
-end LogicGL.ProvableHilbert
+end LogicGL
 
 namespace LogicGLPoint3
 
@@ -116,18 +89,14 @@ theorem of_provableGentzen {S : Sequent α} (h : ⊢ᵍ[GLPoint3] S) :
   | wkR _ hΔ ih =>
     exact LogicGLPoint3.impTrans ih (LogicGLPoint3.of_GL (ProvableHilbert.imp_fdisj_fdisj_of_subset (by grind)))
   | impL h₁ h₂ ih₁ ih₂ =>
-    -- ih₁ : ⋀Γ 🡒 ⋁(insert A Δ) ∈ L,  ih₂ : ⋀(insert B Γ) 🡒 ⋁Δ ∈ L
-    -- goal : ⋀(insert (A 🡒 B) Γ) 🡒 ⋁Δ ∈ L
     have e₁ := LogicGLPoint3.impTrans ih₁ (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert)
     have e₂ := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert) ih₂
-    have ebridge := LogicGLPoint3.mdp' ProvableHilbert.bridge_impL_imp (LogicGLPoint3.andIntro' e₁ e₂)
+    have ebridge := LogicGLPoint3.mdp' bridge_impL_imp (LogicGLPoint3.andIntro' e₁ e₂)
     exact LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fconj) ebridge
   | impR h ih =>
-    -- ih : ⋀(insert A Γ) 🡒 ⋁(insert B Δ) ∈ L
-    -- goal : ⋀Γ 🡒 ⋁(insert (A 🡒 B) Δ) ∈ L
     have e := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert)
       (LogicGLPoint3.impTrans ih (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert))
-    have ebridge := LogicGLPoint3.mdp' ProvableHilbert.bridge_impR_imp e
+    have ebridge := LogicGLPoint3.mdp' bridge_impR_imp e
     exact LogicGLPoint3.impTrans ebridge (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fdisj)
   | boxGLPoint3 hΔ h ih =>
     exact LogicGLPoint3.boxGLPoint3 hΔ ih
