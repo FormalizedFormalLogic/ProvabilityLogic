@@ -102,6 +102,30 @@ lemma of_gentzenGL {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ᵍ[GLPoint3] S := b
     rw [e1, e2]
     exact ih
 
+@[induction_eliminator]
+lemma rec
+  {motive : (S : Sequent α) → ⊢ᵍ[GLPoint3] S → Prop}
+  (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableGentzen.axm A))
+  (botL : motive ({⊥} ⟹ (∅ : FormulaFinset α)) ProvableGentzen.botL)
+  (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
+  (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
+  (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint3] (insert B Γ ⟹ Δ)),
+    motive (Γ ⟹ insert A Δ) h₁ → motive (insert B Γ ⟹ Δ) h₂ → motive ((insert (A 🡒 B) Γ) ⟹ Δ) (impL h₁ h₂)
+  )
+  (impR : ∀ {Γ Δ A B} (h : ⊢ᵍ[GLPoint3] ((insert A Γ) ⟹ (insert B Δ))),
+    motive ((insert A Γ) ⟹ (insert B Δ)) h → motive (Γ ⟹ (insert (A 🡒 B) Δ)) (impR h)
+  )
+  (boxGLPoint3 : ∀ {Γ Δ} (hΔ : Δ.Nonempty)
+    (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
+      ⊢ᵍ[GLPoint3] ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))),
+    (∀ S hS hSne, motive _ (h S hS hSne)) → motive (Γ.box ⟹ Δ.box) (boxGLPoint3 hΔ h)
+  )
+  : ∀ {S : Sequent α} (h : ⊢ᵍ[GLPoint3] S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h with
+    | boxGLPoint3 hΔ h ih => exact boxGLPoint3 hΔ (fun S hS hSne => ⟨h S hS hSne⟩) ih;
+    | _ => grind;
+
 end ProvableGentzen
 
 end LogicGLPoint3
