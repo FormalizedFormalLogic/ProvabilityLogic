@@ -98,8 +98,9 @@ such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` 
 theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicA)
     {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
-    ∃ (n : ℕ) (f : StandardRealization α T),
-      𝗜𝚺₁ ⊢ (f (((∼(□^[n]⊥)) ⋏ A : Formula α))) 🡒 ((T.standardProvability σ) 🡒 σ) := by
+    ∃ (n : ℕ) (f : Realization α ℒₒᵣ),
+      𝗜𝚺₁ ⊢ (((∼(□^[n]⊥)) ⋏ A : Formula α).standardInterpret f T)
+        🡒 ((T.standardProvability σ) 🡒 σ) := by
   -- Obtained by the Solovay construction on the countermodel given by
   -- `StrongReflexiveCountermodel.ofReflexive`, modified so that the limit jumps from
   -- the root to the `A`-reflexive node `r` as soon as a witness of `σ` is found.
@@ -112,10 +113,9 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
   use Model.World.rank X.r, S.realization;
   have h := S.reflection;
   unfold LO.FirstOrder.ProvabilityAbstraction.Provability.conItr at h;
-  have e : (Formula.interpret S.realization
-        (((∼(□^[Model.World.rank X.r]⊥)) ⋏ A : Formula α)))
+  have e : (((∼(□^[Model.World.rank X.r]⊥)) ⋏ A : Formula α).standardInterpret S.realization T)
       = ((((T.standardProvability^[Model.World.rank X.r] ⊥) 🡒 ⊥)
-          🡒 ((Formula.interpret S.realization A) 🡒 ⊥)) 🡒 ⊥) := by
+          🡒 ((A.standardInterpret S.realization T) 🡒 ⊥)) 🡒 ⊥) := by
     simp [Formula.interpret];
   rw [e];
   cl_prover [h];
@@ -166,10 +166,10 @@ theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
     . -- the axiom `D`: its interpretation is a `𝚺₁`-reflection instance.
       intro f;
       exact provable_sigma1_reflection_of_mem_not_LogicA hT hAL hAA
-        (f (((□C) ⋎ (□D) : Formula α)))
+        (((□C) ⋎ (□D) : Formula α).standardInterpret f T)
         (by simp [Formula.interpret, Arithmetic.standardProvability_def]);
   | mdp _ _ ih₁ ih₂ => exact provabilityLogic_mdp ih₁ ih₂;
-  | subst _ ih => intro f; rw [Formula.interpret_subst]; exact ih _;
+  | subst _ ih => intro f; simp only [Formula.interpret_subst]; exact ih _;
 
 /--
 No provability logic lies strictly between `LogicA` and `D`.

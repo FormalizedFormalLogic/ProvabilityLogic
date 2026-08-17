@@ -12,27 +12,33 @@ variable {α : Type*}
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T U : FirstOrder.Theory L} {𝔅 : Provability T₀ T}
 
 /-- A realization mapping modal propositional variables to first-order sentences. -/
-structure Realization (α : Type*) (𝔅 : Provability T₀ T) where
+structure Realization (α : Type*) (L : FirstOrder.Language) where
   val : α → FirstOrder.Sentence L
-
-abbrev StandardRealization (α : Type*) (T : FirstOrder.ArithmeticTheory) [T.Δ₁] := Realization α T.standardProvability
 
 
 namespace Formula
 
+-- `{T₀ T}` are bound after `f` so that the coercion below can be `interpret` itself: routing it
+-- through a lambda leaves a beta-redex in every statement written as `f 𝔅 A`.
 @[grind]
-def interpret (f : Realization α 𝔅) : Formula α → FirstOrder.Sentence L
+def interpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 : Provability T₀ T) :
+  Formula α → FirstOrder.Sentence L
   | #a    => f.val a
   | ⊥     => ⊥
-  | A 🡒 B => (A.interpret f) 🡒 (B.interpret f)
-  | □A    => 𝔅 (A.interpret f)
+  | A 🡒 B => (A.interpret f 𝔅) 🡒 (B.interpret f 𝔅)
+  | □A    => 𝔅 (A.interpret f 𝔅)
 
-instance : CoeFun (Realization α 𝔅) (fun _ ↦ Formula α → FirstOrder.Sentence L) := ⟨interpret⟩
+instance : CoeFun (Realization α L)
+  (fun _ ↦ ∀ {T₀ T : FirstOrder.Theory L}, Provability T₀ T → Formula α → FirstOrder.Sentence L) :=
+  ⟨interpret⟩
 
-variable {f : Realization α 𝔅} {A : Formula α}
+noncomputable abbrev standardInterpret (f : Realization α _) (T : FirstOrder.ArithmeticTheory)
+  [T.Δ₁] := interpret f T.standardProvability
+
+variable {f : Realization α L} {A : Formula α}
 
 @[simp, grind =]
-lemma interpret_boxItr {n : ℕ} : (□^[n]A).interpret f = 𝔅^[n] (f A) := by
+lemma interpret_boxItr {n : ℕ} : f 𝔅 (□^[n]A) = 𝔅^[n] (f 𝔅 A) := by
   induction n with
   | zero => simp [Formula.boxItr];
   | succ n ih => simp only [boxItr, Function.iterate_succ_apply', interpret, ih];
@@ -45,8 +51,8 @@ section interpret_map
 variable {β : Type*}
 
 /-- Interpreting a renamed formula is interpreting under the pulled-back realization. -/
-lemma Formula.interpret_map {f : Realization β 𝔅} {g : α → β} {A : Formula α} :
-    Formula.interpret f (A.map g) = Formula.interpret (⟨f.val ∘ g⟩ : Realization α 𝔅) A := by
+lemma Formula.interpret_map {f : Realization β L} {g : α → β} {A : Formula α} :
+  f 𝔅 (A.map g) = (⟨f.val ∘ g⟩ : Realization α L) 𝔅 A := by
   induction A with
   | atom a => rfl
   | bot => rfl
@@ -54,9 +60,9 @@ lemma Formula.interpret_map {f : Realization β 𝔅} {g : α → β} {A : Formu
   | box A ih => simp only [Formula.subst_box, Formula.interpret, ih]
 
 /-- Two realizations agreeing on the atoms of `A` interpret `A` identically. -/
-lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α 𝔅} {A : Formula α}
+lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α L} {A : Formula α}
     (h : ∀ a ∈ A.atoms, f₁.val a = f₂.val a) :
-    Formula.interpret f₁ A = Formula.interpret f₂ A := by
+    f₁ 𝔅 A = f₂ 𝔅 A := by
   induction A with
   | atom a => exact h a (by simp [Formula.atoms])
   | bot => rfl
@@ -70,43 +76,43 @@ lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α
 
 /-- Interpreting a substituted formula is interpreting under the realization composed with
 the substitution's own interpretation. -/
-lemma Formula.interpret_subst {f : Realization α 𝔅} {s : Formula.Substitution α α} {A : Formula α} :
-    Formula.interpret f (A⟦s⟧) = Formula.interpret (⟨fun a => Formula.interpret f (s a)⟩ : Realization α 𝔅) A := by
+lemma Formula.interpret_subst {f : Realization α L} {s : Formula.Substitution α α} {A : Formula α} :
+  f 𝔅 (A⟦s⟧) = (⟨fun a ↦ f 𝔅 (s a)⟩ : Realization α L) 𝔅 A := by
   induction A with
   | atom a => rfl
   | _ => simp_all [Formula.interpret, Formula.subst_imp, Formula.subst_box]
 
 /-- Realizations that agree on every atom up to `T₀`-provable equivalence interpret every
 formula equivalently. -/
-lemma Formula.interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α 𝔅}
+lemma Formula.interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α L}
     (h : ∀ a, T₀ ⊢ (f₁.val a) 🡘 (f₂.val a)) (A : Formula α) :
-    T₀ ⊢ (f₁ A) 🡘 (f₂ A) := by
+    T₀ ⊢ (f₁ 𝔅 A) 🡘 (f₂ 𝔅 A) := by
   induction A with
   | atom a => exact h a
   | bot => dsimp [Formula.interpret]; cl_prover
   | imp A B ihA ihB => dsimp [Formula.interpret]; cl_prover [ihA, ihB]
   | box A ih => exact 𝔅.ext' ih
 
-/-- The interpretation of `⊡A` is `T`-provably equivalent to `(f A) ⋏ 𝔅 (f A)`. -/
-lemma Formula.interpret_boxdot_inside [L.DecidableEq] {f : Realization α 𝔅} {A : Formula α} :
-    T ⊢ f (⊡A) 🡘 (f A) ⋏ 𝔅 (f A) := by
+/-- The interpretation of `⊡A` is `T`-provably equivalent to `(f 𝔅 A) ⋏ 𝔅 (f 𝔅 A)`. -/
+lemma Formula.interpret_boxdot_inside [L.DecidableEq] {f : Realization α L} {A : Formula α} :
+    T ⊢ f 𝔅 (⊡A) 🡘 (f 𝔅 A) ⋏ 𝔅 (f 𝔅 A) := by
   dsimp [Formula.interpret];
   cl_prover;
 
 end interpret_map
 
 
-abbrev LetterlessRealization (𝔅 : Provability T₀ T) := Realization Empty 𝔅
+abbrev LetterlessRealization (L) := Realization Empty L
 
 namespace LetterlessFormula
 
-variable {A B : LetterlessFormula} {f f₁ f₂ : LetterlessRealization 𝔅}
+variable {A B : LetterlessFormula} {f f₁ f₂ : LetterlessRealization L}
 
 @[grind .]
-lemma eq_interpret : f₁ A = f₂ A := by induction A <;> grind;
+lemma eq_interpret : f₁ 𝔅 A = f₂ 𝔅 A := by induction A <;> grind;
 
 @[grind .]
-lemma iff_provable_interpret : T ⊢ f₁ A ↔ T ⊢ f₂ A := by
+lemma iff_provable_interpret : T ⊢ f₁ 𝔅 A ↔ T ⊢ f₂ 𝔅 A := by
   rw [eq_interpret];
 
 end LetterlessFormula
@@ -114,7 +120,8 @@ end LetterlessFormula
 
 
 @[grind]
-def LO.FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := {A | ∀ f : StandardRealization α T, U ⊢ f A}
+def LO.FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α :=
+  {A | ∀ f : Realization α ℒₒᵣ, U ⊢ A.standardInterpret f T}
 
 abbrev LO.FirstOrder.ArithmeticTheory.provabilityLogic (T : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := T.provabilityLogicRelativeTo T
 

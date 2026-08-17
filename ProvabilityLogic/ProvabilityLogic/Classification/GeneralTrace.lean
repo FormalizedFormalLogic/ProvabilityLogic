@@ -469,7 +469,7 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences T (M.extendRoot 1);
   -- Each Solovay sentence implies the interpretation of `A 🡒 TBB M.height`.
   have key : ∀ i : (M.extendRoot 1).World,
-      𝗜𝚺₁ ⊢ S.σ i 🡒 ((A 🡒 TBB M.height).interpret S.realization) := by
+      𝗜𝚺₁ ⊢ S.σ i 🡒 ((A 🡒 TBB M.height).standardInterpret S.realization T) := by
     rintro (x | i);
     . -- original world: use the main lemma with the semantic claim
       apply S.mainlemma (i := Sum.inl x) (by simp [RootedModel.extendRoot, Fin.posLast]);
@@ -485,7 +485,7 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
       have b₁ : 𝗜𝚺₁ ⊢ S.σ (Sum.inr i) 🡒 T.standardProvability.dia (S.σ (Sum.inl M.root.1)) :=
         S.SC2 _ _ (by simp [Model.Rel]);
       have b₂ : 𝗜𝚺₁ ⊢ S.σ (Sum.inl M.root.1) 🡒
-          ∼((□^[M.height]⊥ : Formula α).interpret S.realization) := by
+          ∼((□^[M.height]⊥ : Formula α).standardInterpret S.realization T) := by
         apply S.mainlemma_neg (by simp [RootedModel.extendRoot, Fin.posLast]);
         apply Model.iff_rank_lt_forces_boxItr_bot.not.mp;
         rw [show (Sum.inl M.root.1 : (M.extendRoot 1).World)
@@ -493,27 +493,31 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
           RootedModel.extendRoot.Ext1.eq_embed_original_rank_original_rank];
         exact lt_irrefl _;
       have b₃ : 𝗜𝚺₁ ⊢ T.standardProvability.dia (S.σ (Sum.inl M.root.1)) 🡒
-          ∼(T.standardProvability ((□^[M.height]⊥ : Formula α).interpret S.realization)) :=
+          ∼(T.standardProvability
+            ((□^[M.height]⊥ : Formula α).standardInterpret S.realization T)) :=
         contra! $ T.standardProvability.mono' $ CN!_of_CN!_right b₂;
-      have b₄ : (□^[M.height + 1]⊥ : Formula α).interpret S.realization
-          = T.standardProvability ((□^[M.height]⊥ : Formula α).interpret S.realization) := by
+      have b₄ : (□^[M.height + 1]⊥ : Formula α).standardInterpret S.realization T
+          = T.standardProvability
+            ((□^[M.height]⊥ : Formula α).standardInterpret S.realization T) := by
         simp only [Formula.interpret_boxItr, Function.iterate_succ_apply'];
       simp only [Formula.interpret, TBB, b₄];
       cl_prover [b₁, b₃];
-  have main : 𝗜𝚺₁ ⊢ ((A 🡒 TBB M.height).interpret S.realization) := by
+  have main : 𝗜𝚺₁ ⊢ ((A 🡒 TBB M.height).standardInterpret S.realization T) := by
     have := left_Udisj!_intro _ key;
     cl_prover [this, S.SC4];
   intro f;
-  have h₃ : U ⊢ ((TBB M.height : Formula α).interpret S.realization) := by
-    have h₁ : U ⊢ (A.interpret S.realization) 🡒 ((TBB M.height : Formula α).interpret S.realization) :=
+  have h₃ : U ⊢ ((TBB M.height : Formula α).standardInterpret S.realization T) := by
+    have h₁ : U ⊢ (A.standardInterpret S.realization T) 🡒
+        ((TBB M.height : Formula α).standardInterpret S.realization T) :=
       WeakerThan.pbl main;
     exact h₁ ⨀ (hA_L S.realization);
-  have e : ∀ g : StandardRealization α T,
-      (TBB M.height : Formula α).interpret g
+  have e : ∀ g : Realization α ℒₒᵣ,
+      (TBB M.height : Formula α).standardInterpret g T
       = LetterlessFormula.interpret T.standardProvability (TBB M.height) := by
     intro g;
-    rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
-  show U ⊢ (TBB M.height : Formula α).interpret f;
+    rw [← LetterlessFormula.eq_lift_TBB (α := α)];
+    simp only [LetterlessFormula.interpret_lift];
+  show U ⊢ (TBB M.height : Formula α).standardInterpret f T;
   rw [e f];
   rw [e S.realization] at h₃;
   exact h₃;
@@ -544,7 +548,7 @@ theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
       exact (ihAB f) ⨀ (ihA f);
     | subst _ ihA =>
       intro f;
-      rw [Formula.interpret_subst];
+      simp only [Formula.interpret_subst];
       exact ihA _;
 
 /--
@@ -647,7 +651,9 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences T (M₁.extendRoot 1);
   -- Each Solovay sentence implies the interpretation of `B 🡒 lift (TBBMinus L.traceᶜ)`.
   have key : ∀ i : (M₁.extendRoot 1).World,
-      𝗜𝚺₁ ⊢ S.σ i 🡒 ((B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α)).interpret S.realization) := by
+      𝗜𝚺₁ ⊢ S.σ i 🡒
+        ((B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α)).standardInterpret
+          S.realization T) := by
     rintro (x | i);
     . -- original worlds: semantic claim through the main lemma
       apply S.mainlemma (i := Sum.inl x) (by simp [RootedModel.extendRoot, Fin.posLast]);
@@ -669,7 +675,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
           exact ⟨hlt, hmem⟩;
         exact Model.iff_forces_TBB_neq_rank.mp this rfl;
     . -- the new root: the reflexive main lemma kills `A`, hence `B`
-      have H₁ : 𝗜𝚺₁ ⊢ S.σ (Sum.inr i) 🡒 ∼(A.interpret S.realization) := by
+      have H₁ : 𝗜𝚺₁ ⊢ S.σ (Sum.inr i) 🡒 ∼(A.standardInterpret S.realization T) := by
         rw [show (Sum.inr i : (M₁.extendRoot 1).World) = (M₁.extendRoot 1).root.1 by
           congr 1;
           apply Fin.ext;
@@ -679,22 +685,27 @@ theorem provable_TBBMinus_of_not_subset_LogicS
         exact SolovaySentences.rfl_mainlemma ha (Formula.mem_subfmls_self) |>.2 hnA;
       simp only [B, Formula.interpret];
       cl_prover [H₁];
-  have main : 𝗜𝚺₁ ⊢ ((B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α)).interpret S.realization) := by
+  have main : 𝗜𝚺₁ ⊢
+      ((B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α)).standardInterpret
+        S.realization T) := by
     have := left_Udisj!_intro _ key;
     cl_prover [this, S.SC4];
   -- Conclude membership in `L` via letterless independence of the realization.
   intro f;
-  have h₃ : U ⊢ ((LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).interpret S.realization) := by
-    have h₁ : U ⊢ (B.interpret S.realization) 🡒
-        ((LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).interpret S.realization) :=
+  have h₃ : U ⊢
+      ((LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).standardInterpret
+        S.realization T) := by
+    have h₁ : U ⊢ (B.standardInterpret S.realization T) 🡒
+        ((LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).standardInterpret
+          S.realization T) :=
       WeakerThan.pbl main;
     exact h₁ ⨀ (hB S.realization);
-  have e : ∀ g : StandardRealization α T,
-      (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).interpret g
+  have e : ∀ g : Realization α ℒₒᵣ,
+      (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).standardInterpret g T
       = LetterlessFormula.interpret T.standardProvability (TBBMinus _ hcof) := by
     intro g;
-    rw [LetterlessFormula.interpret_lift];
-  show U ⊢ (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).interpret f;
+    simp only [LetterlessFormula.interpret_lift];
+  show U ⊢ (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α).standardInterpret f T;
   rw [e f];
   rw [e S.realization] at h₃;
   exact h₃;
@@ -724,7 +735,7 @@ theorem eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS
       exact provabilityLogic_mdp ihAB ihA;
     | subst _ ihA =>
       intro f;
-      rw [Formula.interpret_subst];
+      simp only [Formula.interpret_subst];
       exact ihA _;
 
 end
@@ -763,7 +774,7 @@ theorem subset_LogicA_of_univ_trace :
     exact (ihAB f) ⨀ (ihA f);
   | subst _ ihA =>
     intro f;
-    rw [Formula.interpret_subst];
+    simp only [Formula.interpret_subst];
     exact ihA _;
 
 

@@ -128,7 +128,8 @@ variable {N : Set ℕ}
 lemma provable_TBB_addTBB_of_mem {n : ℕ} (hn : n ∈ N) :
     (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo (T.addTBB U N) : Logic α) := by
   intro f;
-  rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
+  rw [← LetterlessFormula.eq_lift_TBB (α := α)];
+  simp only [LetterlessFormula.interpret_lift];
   apply Entailment.by_axm;
   simp only [Set.mem_union];
   exact Or.inr ⟨n, hn, rfl⟩;
@@ -151,8 +152,8 @@ lemma imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB (hN : N.Finite) :
       ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α) 🡒 A) ∈ L := by
   intro A hA f;
   obtain ⟨⟨s, hs_sub⟩, hs⟩ := LO.FirstOrder.Theory.compact_add_right (hA f);
-  show U ⊢ (Formula.interpret f (LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α))
-    🡒 (Formula.interpret f A);
+  show U ⊢ ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α).standardInterpret f T)
+    🡒 (A.standardInterpret f T);
   apply Entailment.C!_trans ?_ hs;
   apply right_Fconj!_intro;
   intro σ hσ;
@@ -165,11 +166,12 @@ lemma imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB (hN : N.Finite) :
       (Finset.singleton_subset_iff.mpr (Finset.mem_image_of_mem _ (hN.mem_toFinset.mpr hn)));
     rwa [show ((⋀({TBB n} : LetterlessFormulaFinset)) : LetterlessFormula) = TBB n by simp]
       at this;
-  have hU : U ⊢ Formula.interpret f
-      ((LetterlessFormula.lift ((⋀(hN.toFinset.image TBB)) 🡒 TBB n) : Formula α)) :=
+  have hU : U ⊢ (LetterlessFormula.lift ((⋀(hN.toFinset.image TBB)) 🡒 TBB n) :
+      Formula α).standardInterpret f T :=
     WeakerThan.pbl (LogicGL.arithmetical_soundness hGL);
-  have e : Formula.interpret f (LetterlessFormula.lift ((⋀(hN.toFinset.image TBB)) 🡒 TBB n) : Formula α)
-      = (Formula.interpret f (LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α))
+  have e : (LetterlessFormula.lift ((⋀(hN.toFinset.image TBB)) 🡒 TBB n) :
+        Formula α).standardInterpret f T
+      = ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α).standardInterpret f T)
         🡒 (LetterlessFormula.standardInterpret T (TBB n)) := by
     rw [show (LetterlessFormula.lift ((⋀(hN.toFinset.image TBB)) 🡒 TBB n) : Formula α)
       = (LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α) 🡒 (LetterlessFormula.lift (TBB n)) from rfl];
@@ -564,10 +566,12 @@ lemma models_standardInterpret_TBB_iff {n : ℕ} :
 -/
 lemma mem_provabilityLogicRelativeTo_TA_TBB_iff {n : ℕ} :
     (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ↔ T.height ≠ n := by
-  have e : ∀ f : StandardRealization α T,
-      Formula.interpret f (TBB n) = LetterlessFormula.standardInterpret T (TBB n) := by
+  have e : ∀ f : Realization α ℒₒᵣ,
+      (TBB n : Formula α).standardInterpret f T
+      = LetterlessFormula.standardInterpret T (TBB n) := by
     intro f;
-    rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
+    rw [← LetterlessFormula.eq_lift_TBB (α := α)];
+    simp only [LetterlessFormula.interpret_lift];
   constructor;
   . intro h;
     rw [← models_standardInterpret_TBB_iff, ← e ⟨fun _ => ⊥⟩];
@@ -658,7 +662,7 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
   | axiomP =>
     intro f;
     apply Arithmetic.TA.provable_iff.mpr;
-    have e : Formula.interpret f (∼□⊥ : Formula α)
+    have e : (∼□⊥ : Formula α).standardInterpret f T
         = (T.standardProvability (⊥ : ArithmeticSentence)) 🡒 ⊥ := by
       simp [Formula.interpret];
     rw [e, Semantics.Imp.models_imply];
@@ -668,7 +672,8 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
   | @axiomD B C =>
     intro f;
     apply Arithmetic.TA.provable_iff.mpr;
-    have hσ : LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1 (f (((□B) ⋎ (□C) : Formula α))) := by
+    have hσ : LO.FirstOrder.Arithmetic.Hierarchy 𝚺 1
+        (((□B) ⋎ (□C) : Formula α).standardInterpret f T) := by
       simp [Formula.interpret, Arithmetic.standardProvability_def];
     have hrfl := models_standardProvability_imp_of_soundOnHierarchy (T := T) hσ;
     simpa [Formula.interpret] using hrfl;
@@ -683,7 +688,7 @@ lemma bot_notMem_provabilityLogicRelativeTo_TA :
     (⊥ : Formula α) ∉ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
   intro h;
   exact not_models_standardProvability_bot (T := T)
-    (Arithmetic.TA.provable_iff.mp (h (⟨fun _ => ⊥⟩ : StandardRealization α T)));
+    (Arithmetic.TA.provable_iff.mp (h (⟨fun _ => ⊥⟩ : Realization α ℒₒᵣ)));
 
 section
 
@@ -912,11 +917,13 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     have hnTBB : (∼(TBB n) : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       intro f;
       apply Arithmetic.TA.provable_iff.mpr;
-      show ℕ↓[ℒₒᵣ] ⊧ ((Formula.interpret f (TBB n) : ArithmeticSentence) 🡒 ⊥);
+      show ℕ↓[ℒₒᵣ] ⊧ (((TBB n : Formula α).standardInterpret f T : ArithmeticSentence) 🡒 ⊥);
       rw [Semantics.Imp.models_imply];
       intro hcontra;
-      have e : Formula.interpret f (TBB n) = LetterlessFormula.standardInterpret T (TBB n) := by
-        rw [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift];
+      have e : (TBB n : Formula α).standardInterpret f T
+          = LetterlessFormula.standardInterpret T (TBB n) := by
+        rw [← LetterlessFormula.eq_lift_TBB (α := α)];
+        simp only [LetterlessFormula.interpret_lift];
       rw [e] at hcontra;
       exact ((models_standardInterpret_TBB_iff.mp hcontra) hn).elim;
     -- `L ⊄ S`, otherwise both `TBB n` and `∼TBB n` would be theorems of `S`,

@@ -16,13 +16,19 @@ namespace LogicGL
 
 section
 
+axiom uniform_arithmetical_completeness (α : Type*)
+  (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T] :
+  ∃ f : Realization α ℒₒᵣ, ∀ A, T ⊢ A.standardInterpret f T ↔ A ∈ LogicGL
+
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 
-axiom uniform_arithmetical_completeness : ∃ f : StandardRealization α T, ∀ A, T ⊢ f A ↔ A ∈ LogicGL
+protected noncomputable def uniformRealization
+  (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T] : Realization α ℒₒᵣ :=
+  (uniform_arithmetical_completeness α T).choose
 
-protected noncomputable def uniformRealization (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T] : StandardRealization α T := uniform_arithmetical_completeness.choose
-
-lemma uniformRealization_spec : ∀ A : Formula α, T ⊢ LogicGL.uniformRealization T A ↔ A ∈ LogicGL := uniform_arithmetical_completeness.choose_spec
+lemma uniformRealization_spec :
+  ∀ A : Formula α, T ⊢ A.standardInterpret (LogicGL.uniformRealization T) T ↔ A ∈ LogicGL :=
+  (uniform_arithmetical_completeness α T).choose_spec
 
 end
 

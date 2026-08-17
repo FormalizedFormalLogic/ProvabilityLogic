@@ -179,7 +179,7 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L]
          {S : 𝔅.ModifiedSolovaySentences X σ}
 
 /-- The Solovay realization: `f(p) := ⋁_{z ⊩ p} Λ z`. -/
-noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realization α 𝔅 :=
+noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realization α L :=
   ⟨fun a ↦ ⩖ i ∈ { i : X.N.World | i ⊩[_] (.atom a) }, S.Λ i⟩
 
 /--
@@ -191,8 +191,8 @@ noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realiza
 -/
 private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
     ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
-      (i ⊩[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization)) ∧
-      (i ⊮[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization)) := by
+      (i ⊩[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅)) ∧
+      (i ⊮[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅)) := by
   haveI := X.isFiniteGL;
   haveI hN : (X.extendRoot 1).IsFiniteGL := inferInstance;
   haveI : IsTrans X.N.World X.N.Rel := hN.toIsTrans;
@@ -286,16 +286,16 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
             have : X.r₁ = X.r := by simpa [rN, embed] using hc;
             exact Std.Irrefl.irrefl _ (this ▸ X.r_rel_r₁);
         . exact ⟨j, Rij, hB, hjr⟩;
-      have : T₀ ⊢ 𝔅.dia (S.Λ j') 🡒 ∼(𝔅 (B.interpret S.realization)) :=
+      have : T₀ ⊢ 𝔅.dia (S.Λ j') 🡒 ∼(𝔅 (B.interpret S.realization 𝔅)) :=
         contra! $ 𝔅.mono' $ CN!_of_CN!_right $ (ihB (hne_root_of_rel Rij') hBm).2 hB';
       exact C!_trans (S.SC2 i j' Rij' hj'r) this;
 
 theorem mainlemma {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊩[_] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization) :=
+    (hB : B ∈ A.subfmls) : i ⊩[_] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅) :=
   (mainlemma_aux hi hB).1
 
 theorem mainlemma_neg {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊮[_] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization) :=
+    (hB : B ∈ A.subfmls) : i ⊮[_] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅) :=
   (mainlemma_aux hi hB).2
 
 
@@ -409,11 +409,11 @@ lemma provable_b (S : 𝔅.ModifiedSolovaySentences X σ) :
 -/
 theorem reflection (S : 𝔅.ModifiedSolovaySentences X σ) :
     T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒
-      (A.interpret S.realization) 🡒 ((𝔅 σ) 🡒 σ) := by
+      (A.interpret S.realization 𝔅) 🡒 ((𝔅 σ) 🡒 σ) := by
   -- Combines Lemma 1.8 with Lemma 2 at the old root (which refutes `A`).
   haveI := X.isFiniteGL;
   have h₁ := S.provable_b;
-  have h₂ : T₀ ⊢ S.Λ (embed X.root.1) 🡒 ∼(A.interpret S.realization) :=
+  have h₂ : T₀ ⊢ S.Λ (embed X.root.1) 🡒 ∼(A.interpret S.realization 𝔅) :=
     S.mainlemma_neg b_ne_root Formula.mem_subfmls_self
       ((same_forces_embed (x := X.root.1)).not.mpr X.root_refutes);
   cl_prover [h₁, h₂];
