@@ -53,7 +53,6 @@ public import ProvabilityLogic.LabelledGentzen.GLPoint3.Basic
 public import ProvabilityLogic.LabelledGentzen.GLPoint3.Kripke
 public import ProvabilityLogic.LabelledGentzen.Sequent
 public import ProvabilityLogic.Logic.A.Basic
-public import ProvabilityLogic.Logic.A.Gentzen
 public import ProvabilityLogic.Logic.Basic
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.Logic.D.NotCIP

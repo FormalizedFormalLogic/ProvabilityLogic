@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Gentzen.A.Kripke
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
@@ -287,7 +288,8 @@ theorem provability_TFAE : [
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A
+      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A,
+  ⊢ᵍᶜ[A] (∅ ⟹[1] {A})
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
@@ -309,6 +311,20 @@ theorem provability_TFAE : [
     apply hroot;
     exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
+  tfae_have 1 → 4 := by
+    intro h;
+    clear tfae_1_to_2 tfae_2_to_3 tfae_3_to_1;
+    induction h using LogicA.substlessInductionGP with
+    | GL h =>
+      apply GentzenWithCutProvable.liftUp;
+      apply GentzenWithCutProvable.of_without_cut;
+      exact LogicA.iff_provableGentzen_provable_zero.mp (LogicGL.iff_provableGentzen.mp h);
+    | GP n => exact GentzenWithCutProvable.neg_boxItr_bot n;
+    | mdp ihAB ihA => exact GentzenWithCutProvable.mdp ihAB ihA;
+  tfae_have 4 → 3 := by
+    intro h κ _ M _ a Rra;
+    exact Model.World.forces_singleton_sequent.mp
+      (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
   tfae_finish;
 
 /--
@@ -323,6 +339,14 @@ theorem iff_provable_forces_graftOmega_root :
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
       ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A) :=
   LogicA.provability_TFAE.out 0 2
+
+/--
+  `LogicA`-provability is characterized by provability in the with-cut two-layered
+  sequent calculus for `A`, at level `1`.
+-/
+theorem iff_provable_provableGentzenWithCut :
+  A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
+  LogicA.provability_TFAE.out 0 3
 
 end LogicA
 

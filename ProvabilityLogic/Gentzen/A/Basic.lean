@@ -211,6 +211,23 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
+/-- The axiom `∼□^[n]⊥` is with-cut-provable at level `1`. -/
+lemma neg_boxItr_bot (n : ℕ) : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {∼□^[n]⊥}) := by
+  show ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {□^[n]⊥ 🡒 ⊥});
+  rw [← Finset.insert_empty];
+  apply impR;
+  apply boxGP (n := n);
+  apply wkR (axm 1 (□^[n]⊥));
+  grind;
+
+/-- Modus ponens for level-`1` with-cut provability, via the `cut` rule. -/
+lemma mdp (hAB : ⊢ᵍᶜ[A] (∅ ⟹[1] {A 🡒 B})) (hA : ⊢ᵍᶜ[A] (∅ ⟹[1] {A})) : ⊢ᵍᶜ[A] (∅ ⟹[1] {B}) := by
+  have h₁ : ⊢ᵍᶜ[A] ((insert (A 🡒 B) (∅ : FormulaFinset α)) ⟹[1] {B}) :=
+    impL (wkR hA (by grind)) (wkL (axm 1 B) (by grind));
+  have h₂ : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] insert (A 🡒 B) (∅ : FormulaFinset α)) := by
+    rwa [Finset.insert_empty];
+  simpa using cut h₂ h₁;
+
 end GentzenWithCutProvable
 
 end LogicA
