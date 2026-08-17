@@ -148,8 +148,8 @@ namespace LogicA.GentzenWithCutProvable
 /-- Semantic cut elimination for level-`1` `LogicA`-Gentzen provability: every with-cut
 proof yields a cut-free proof. -/
 theorem cutElimination {Γ Δ : FormulaFinset α}
-  (h : ⊢ᵍᶜ[A] (Γ ⟹[1] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) := by
-  sorry
+  (h : ⊢ᵍᶜ[A] (Γ ⟹[1] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
+  sequent_TFAE.out 0 1 |>.mp h
 
 end LogicA.GentzenWithCutProvable
 
