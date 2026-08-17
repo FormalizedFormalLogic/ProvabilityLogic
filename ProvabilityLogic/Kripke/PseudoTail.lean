@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Kripke.Preservation
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import Mathlib.Data.ENat.Basic
 
@@ -225,6 +226,43 @@ export toFreeTail (embed chainPoint root_eq rel_embed_embed not_rel_embed_chainP
   forces_inl forces_box_of_root_forces_box)
 
 end toPseudoTail
+
+
+section Reindex
+
+variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {o : α → Prop} {e : κ ≃ κ'}
+
+/-- Re-indexing the base model along `e` does not change the pseudo-tail construction, up to
+transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
+the literature. -/
+lemma forces_toPseudoTail_reindex_iff {x : (M.toPseudoTail tail o).World} :
+  Sum.map e id x ⊩[((M.reindex e).toPseudoTail (e tail) o).toModel] A ↔
+  x ⊩[(M.toPseudoTail tail o).toModel] A := by
+  have h :
+      Sum.map e id x ⊩[((M.reindex e).toPseudoTail (e tail) o).toModel] A ↔
+      Sum.map e id x
+        ⊩[(M.toPseudoTail tail o).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞))] A := by
+    apply Model.forces_congr;
+    · funext y z;
+      rcases y with y | i <;> rcases z with z | j <;> rfl;
+    · rintro (y | i) a <;> simp [Model.reindex];
+  rw [h];
+  exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
+
+/-- Forcing at a chain point is unaffected by re-indexing the base model. -/
+lemma forces_toPseudoTail_reindex_chainPoint_iff {i : ℕ∞} :
+  toPseudoTail.chainPoint i ⊩[((M.reindex e).toPseudoTail (e tail) o).toModel] A ↔
+  toPseudoTail.chainPoint i ⊩[(M.toPseudoTail tail o).toModel] A :=
+  forces_toPseudoTail_reindex_iff (x := toPseudoTail.chainPoint i)
+
+/-- Forcing at the root (ω) is unaffected by re-indexing the base model. -/
+lemma forces_toPseudoTail_reindex_root_iff :
+  ((M.reindex e).toPseudoTail (e tail) o).root.1
+    ⊩[((M.reindex e).toPseudoTail (e tail) o).toModel] A ↔
+  (M.toPseudoTail tail o).root.1 ⊩[(M.toPseudoTail tail o).toModel] A :=
+  forces_toPseudoTail_reindex_chainPoint_iff (i := ⊤)
+
+end Reindex
 
 end Model
 

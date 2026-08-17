@@ -346,7 +346,9 @@ theorem provability_TFAE [DecidableEq α] :
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩[_] (⋀A.subfmlsD 🡒 A),
     (⋀A.subfmlsD 🡒 A) ∈ LogicGL,
-    ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {A})
+    ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {A}),
+    ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
+      (M.toPseudoTail r o).root.1 ⊩[_] A
   ].TFAE := by
   tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
   tfae_have 2 → 3 := root_forces_subfmlsD_imp;
@@ -360,6 +362,14 @@ theorem provability_TFAE [DecidableEq α] :
     intro h κ _ M _ r o;
     exact Model.World.forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness (GentzenWithCutProvable.of_without_cut h) M _);
+  tfae_have 2 → 6 := by
+    intro h n _ M _ r o;
+    exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
+      h (M.reindex (Equiv.ulift (α := Fin n)).symm) ((Equiv.ulift (α := Fin n)).symm r) o;
+  tfae_have 6 → 2 := by
+    intro h κ _ M _ r o;
+    exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
+      h M.card M.toConcrete (Finite.equivFin κ r) o;
   tfae_finish;
 
 theorem iff_provable_D_provable_GL [DecidableEq α] :
@@ -377,6 +387,20 @@ theorem iff_provable_box_provable_GL [DecidableEq α] :
     exact toPseudoTail.forces_inl.mp (h₁ (toPseudoTail.embed x) toPseudoTail.rel_chainPoint_embed);
   · intro h;
     exact provable_of_provable_GL (ProvableHilbert.nec h);
+
+/-- `D`-provability is characterized by forcing at the root (ω) of the pseudo-tail models of
+concrete finite `GL`-models. -/
+theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] :
+    A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
+      (M.toPseudoTail r o).root.1 ⊩[_] A :=
+  provability_TFAE.out 0 5
+
+/-- A concrete finite `GL`-model whose pseudo-tail model refutes `A` at its root (ω) shows `A`
+is not a `D`-theorem. -/
+theorem not_mem_of_concrete_pseudoTail_root_not_forces [DecidableEq α] {n : ℕ} [NeZero n]
+    (M : Model (Fin n) α) [M.IsFiniteGL] (r : M.World) (o : α → Prop)
+    (h : (M.toPseudoTail r o).root.1 ⊮[_] A) : A ∉ LogicD :=
+  fun hA => h <| iff_forces_pseudoTail_root_concrete.mp hA n M r o
 
 /--
   The existential, contrapositive form of `provability_TFAE`'s clause 2: a formula not
@@ -416,27 +440,13 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
 
 /-- The reflection axiom `T` (`□a 🡒 a` for an atom `a`) is not a theorem of `D`.
 The ProvabilityLogic analogue of `LO.Modal.D.unprovable_T`. -/
-lemma not_provable_axiomT [DecidableEq α] {a : α} : (□(#a) 🡒 #a : Formula α) ∉ LogicD := by
+lemma not_provable_axiomT [DecidableEq α] {a : α} : (□(#a) 🡒 #a : Formula α) ∉ LogicD :=
   -- Counterexample: the pseudo-tail model of the one-point GL model with empty relation
   -- and everywhere-true valuation, with the root (ω) valuation making `a` false. Every
   -- world accessible from the root forces `a`, so the root forces `□a`, yet the root
   -- itself refutes `a`.
-  apply LogicD.provability_TFAE.out 0 1 |>.not.mpr;
-  push Not;
-  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => True⟩;
-  haveI : M.IsFiniteGL :=
-    { trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
-      finite := inferInstance };
-  use PUnit.{u + 1}, inferInstance, M;
-  constructor;
-  · exact {
-      trans := fun _ _ _ hf _ => hf.elim
-      irrefl := fun _ hf => hf
-      finite := inferInstance
-    };
-  · use PUnit.unit, fun _ => False;
-    grind;
+  not_mem_of_concrete_pseudoTail_root_not_forces (Model.pointModel (fun _ => True)) 0
+    (fun _ => False) (by grind)
 
 end LogicD
 
@@ -452,22 +462,11 @@ lemma LogicD_ssubset_LogicS [Inhabited α] [DecidableEq α] : (LogicD : Logic α
     · exact LogicD.not_provable_axiomT;
 
 /-- The axiom `P` (`∼□⊥`) is not a theorem of `GL`. -/
-lemma LogicGL.not_provable_axiomP [DecidableEq α] : (∼□⊥ : Formula α) ∉ LogicGL := by
-  -- Counterexample: the one-point model with empty relation. Its unique world has no
-  -- successor, so `□⊥` holds there vacuously and `∼□⊥` fails.
-  apply LogicGL.iff_forces.not.mpr;
-  push Not;
-  let M : Model PUnit.{u + 1} α := ⟨fun _ _ => False, fun _ _ => True⟩;
-  use PUnit.{u + 1}, inferInstance, M;
-  constructor;
-  · exact {
-      trans := by grind;
-      irrefl := by grind;
-      finite := inferInstance
-    };
-  · by_contra hC;
-    have := hC PUnit.unit;
-    grind;
+lemma LogicGL.not_provable_axiomP [DecidableEq α] : (∼□⊥ : Formula α) ∉ LogicGL :=
+  -- The unique world of the one-point model has no successor, so `□⊥` holds there vacuously
+  -- and `∼□⊥` fails.
+  LogicGL.not_mem_of_concrete_not_forces (Model.pointModel (α := α) (fun _ => True)) (x := 0)
+    (by grind)
 
 /-- `GL` is a proper sublogic of `D`: it is contained in `D`
 (`LogicD.provable_of_provable_GL`) but does not prove the axiom `P` (`∼□⊥`), which `D`

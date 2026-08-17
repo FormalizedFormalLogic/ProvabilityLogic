@@ -2,6 +2,7 @@ module
 
 public import ProvabilityLogic.Logic.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
+public import ProvabilityLogic.Kripke.Reindex
 
 @[expose]
 public section
@@ -11,66 +12,19 @@ open LogicGL
 namespace LogicGL
 
 universe u
-variable {α : Type u} {A B C D : Formula α}
-
-open ProvableHilbert
+variable {α : Type u} [DecidableEq α] {A B C D : Formula α}
 
 private lemma bridge_impL_imp :
   (((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D)) ∈ LogicGL := by
-  apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
-  apply DeducibleHilbert.deduction_theorem.mp;
-  have hHab : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α)
-      ⊢ʰ[GL] (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D) := DeducibleHilbert.ofContext (by grind);
-  have ha : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] C 🡒 (A ⋎ D) :=
-    DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andL) hHab;
-  have hb : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] (B ⋏ C) 🡒 D :=
-    DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hHab;
-  have hmem : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] (A 🡒 B) ⋏ C :=
-    DeducibleHilbert.ofContext (by grind);
-  have hC : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] C :=
-    DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hmem;
-  have hAD : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] A ⋎ D :=
-    DeducibleHilbert.mdp ha hC;
-  have hAtoD : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] A 🡒 D := by
-    apply DeducibleHilbert.deduction_theorem.mp;
-    have hmem' : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] (A 🡒 B) ⋏ C := DeducibleHilbert.of_subset_ctx (by grind) hmem;
-    have hb' : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] (B ⋏ C) 🡒 D := DeducibleHilbert.of_subset_ctx (by grind) hb;
-    have hAB : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] A 🡒 B := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andL) hmem';
-    have hCi : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] C := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hmem';
-    have hA : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] A := DeducibleHilbert.ofContext (by grind);
-    have hB : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] B := DeducibleHilbert.mdp hAB hA;
-    have hBC : (insert A ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α))
-        ⊢ʰ[GL] B ⋏ C := DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andIntro) hB) hCi;
-    exact DeducibleHilbert.mdp hb' hBC;
-  have hDtoD : ({(A 🡒 B) ⋏ C, (C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)} : FormulaSet α) ⊢ʰ[GL] D 🡒 D :=
-    DeducibleHilbert.ofProvable impId;
-  exact DeducibleHilbert.orElim hAtoD hDtoD hAD;
+  apply LogicGL.iff_forces.mpr;
+  intro κ _ M _ x;
+  grind;
 
 private lemma bridge_impR_imp :
   (((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D))) ∈ LogicGL := by
-  apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
-  apply DeducibleHilbert.deduction_theorem.mp;
-  have hh : ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α) ⊢ʰ[GL] (A ⋏ C) 🡒 (B ⋎ D) :=
-    DeducibleHilbert.ofContext (by grind);
-  have hCc : ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α) ⊢ʰ[GL] C := DeducibleHilbert.ofContext (by grind);
-  have hAB_D : ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α) ⊢ʰ[GL] A 🡒 (B ⋎ D) := by
-    apply DeducibleHilbert.deduction_theorem.mp;
-    have hh' : (insert A ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α)) ⊢ʰ[GL] (A ⋏ C) 🡒 (B ⋎ D) :=
-      DeducibleHilbert.of_subset_ctx (by grind) hh;
-    have hCc' : (insert A ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α)) ⊢ʰ[GL] C :=
-      DeducibleHilbert.of_subset_ctx (by grind) hCc;
-    have hA : (insert A ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α)) ⊢ʰ[GL] A :=
-      DeducibleHilbert.ofContext (by grind);
-    have hAC : (insert A ({C, (A ⋏ C) 🡒 (B ⋎ D)} : FormulaSet α)) ⊢ʰ[GL] A ⋏ C :=
-      DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andIntro) hA) hCc';
-    exact DeducibleHilbert.mdp hh' hAC;
-  exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable imp_push_disj) hAB_D;
+  apply LogicGL.iff_forces.mpr;
+  intro κ _ M _ x;
+  grind;
 
 end LogicGL
 
@@ -124,39 +78,94 @@ lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
   | mdp ihAB ihA => exact fun x => (ihAB x) (ihA x);
   | nec ih => exact fun x y _ => ih y;
 
+variable [DecidableEq α] {A : Formula α}
+
 /--
 Kripke completeness: a formula is provable in `LogicGLPoint3` iff it is valid over all finite `GL.3` models
 iff it is provable in the `GL.3` sequent calculus `⊢ᵍ[GLPoint3]` iff it is forced at the root of all finite rooted `GL.3` models.
 
 - [VS83, Theorem 10, Theorem 11(b), Theorem 11(c)]
 -/
-theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
+theorem provability_TFAE : [
   A ∈ LogicGLPoint3,
   ⊢ᵍ[GLPoint3] (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A,
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A,
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
 ].TFAE := by
   tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
   tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
-  tfae_have 3 → 2 := by
+  tfae_have 5 → 2 := by
     intro h;
-    apply LogicGLPoint3.ProvableGentzen.Kripke.completeness_universe;
-    intro κ _ M _;
-    exact Model.validateSequent_singleton_iff.mpr (h M);
+    apply LogicGLPoint3.ProvableGentzen.Kripke.completeness;
+    intro n _ M _;
+    exact Model.validateSequent_singleton_iff.mpr (h n M);
   tfae_have 3 → 4 := fun h {κ} _ M _ => h M.toModel M.root.1;
   tfae_have 4 → 3 := by
     intro h κ _ M _ x;
     exact Model.toRootedModel.forces_same_at_root.mp (h (M.toRootedModel x));
+  tfae_have 3 → 5 := by
+    intro h n _ M _;
+    exact Model.validate_reindex_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
+  tfae_have 5 → 3 := by
+    intro h κ _ M _;
+    haveI : Finite κ := (inferInstance : Finite M.World);
+    exact Model.validate_toConcrete_iff.mp <| h M.card M.toConcrete;
+  tfae_have 4 → 6 := by
+    intro h n _ M _;
+    exact RootedModel.forces_reindex_root_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
+  tfae_have 6 → 4 := by
+    intro h κ _ M _;
+    haveI : Finite κ := (inferInstance : Finite M.World);
+    exact RootedModel.forces_toConcrete_root_iff.mp <| h M.card M.toConcrete;
   tfae_finish;
+
+theorem iff_forces : A ∈ LogicGLPoint3 ↔
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A :=
+  provability_TFAE.out 0 2
 
 /--
 A formula is a theorem of `LogicGLPoint3` iff it is forced at the root of every
 finite rooted linear GL model.
 -/
-theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-  A ∈ LogicGLPoint3 ↔
+theorem iff_forces_root : A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 3
+
+theorem iff_forces_concrete : A ∈ LogicGLPoint3 ↔
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A :=
+  provability_TFAE.out 0 4
+
+theorem iff_forces_root_concrete : A ∈ LogicGLPoint3 ↔
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
+  provability_TFAE.out 0 5
+
+variable {n : ℕ} [NeZero n]
+
+/-- A rooted concrete finite `GL.3`-model refuting `A` at its root shows `A` is not a
+`GL.3`-theorem. -/
+theorem not_mem_of_concrete_root_not_forces (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3]
+  (h : M.root.1 ⊮[_] A) : A ∉ LogicGLPoint3 :=
+  fun hA => h <| iff_forces_root_concrete.mp hA n M
+
+/-- If `A` is a `GL.3`-theorem, it is forced at the root of every rooted concrete finite
+`GL.3`-model. -/
+theorem concrete_root_forces_of_mem (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3]
+  (h : A ∈ LogicGLPoint3) : M.root.1 ⊩[_] A :=
+  iff_forces_root_concrete.mp h n M
+
+/-- A concrete finite `GL.3`-model with a world not forcing `A` shows `A` is not a
+`GL.3`-theorem. -/
+theorem not_mem_of_concrete_not_forces (M : Model (Fin n) α) [M.IsFiniteGLPoint3] {x : M.World}
+  (h : x ⊮[M] A) : A ∉ LogicGLPoint3 :=
+  fun hA => h <| iff_forces_concrete.mp hA n M x
+
+/-- If `A` is a `GL.3`-theorem, it is forced at every world of every concrete finite
+`GL.3`-model. -/
+theorem concrete_forces_of_mem (M : Model (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3)
+  (x : M.World) : x ⊩[M] A :=
+  iff_forces_concrete.mp h n M x
 
 end LogicGLPoint3
 

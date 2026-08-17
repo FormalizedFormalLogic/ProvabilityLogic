@@ -2,7 +2,7 @@ module
 
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
-public import ProvabilityLogic.Kripke.ULift
+public import ProvabilityLogic.Kripke.Reindex
 
 /-!
 Kripke semantics for `LogicGLPoint3`: soundness of `boxGLPoint3` (`Model.validate_gentzen_boxGLPoint3`)
@@ -800,28 +800,16 @@ theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
   · intro A hA
     exact (c.truthLemma A 0).2 (c.subset_head.suc_subset hA)
 
-/-- Gentzen completeness for `LogicGLPoint3`: a sequent valid in every finite `LogicGLPoint3` model is provable.
-Proved by contraposition, from the rooted finite countermodel of `exists_finite_countermodel`. -/
+/-- Gentzen completeness for `LogicGLPoint3`: a sequent valid in every concrete finite `GL.3`
+model is provable. -/
 theorem completeness {S : Sequent α}
-    (h : ∀ {κ : Type}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ S) :
+    (h : ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ S) :
     ⊢ᵍ[GLPoint3] S := by
   by_contra hS
   obtain ⟨n, M, hFin, hant, hsuc⟩ := exists_finite_countermodel hS
   haveI := hFin
-  obtain ⟨D, hD, hDforces⟩ := h M.toModel M.root.1 hant
+  obtain ⟨D, hD, hDforces⟩ := h (n + 1) M.toModel M.root.1 hant
   exact hsuc D hD hDforces
-
-/-- `completeness`, generalized to `LogicGLPoint3` models whose world type lives in an arbitrary
-universe `w`, not just `Type 0`. Obtained from `completeness` by `ULift`-lifting the
-`Fin (n + 1)` countermodel it produces into `Type w` via `Model.uLift`. -/
-theorem completeness_universe {S : Sequent α}
-    (h : ∀ {κ : Type w}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ S) :
-    ⊢ᵍ[GLPoint3] S := by
-  apply completeness;
-  intro κ _ M _ x hant;
-  obtain ⟨D, hD, hDforces⟩ := h M.uLift.{w} (ULift.up x)
-    (fun C hC => Model.forces_uLift_iff.mpr (hant C hC));
-  exact ⟨D, hD, Model.forces_uLift_iff.mp hDforces⟩
 
 end Kripke
 

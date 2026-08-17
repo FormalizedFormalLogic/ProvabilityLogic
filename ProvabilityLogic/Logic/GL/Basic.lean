@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Logic.SumQuasiNormal
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.Unravelling
 public import ProvabilityLogic.LabelledGentzen.Gentzen
 public import ProvabilityLogic.LabelledGentzen.Completeness
@@ -22,7 +23,9 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A,
-  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A,
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → M ⊧ A,
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGL] → M.root.1 ⊩[_] A
 ].TFAE
   := by
   tfae_have 1 ↔ 2 := by grind;
@@ -49,39 +52,80 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   tfae_have 8 → 7 := by
     intro h κ _ M _;
     exact (RootedModel.unravelling.modal_equivalence_root (M := M)).mp $ h M.unravelling;
+  tfae_have 6 → 9 := by
+    intro h n _ M _;
+    exact Model.validate_reindex_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
+  tfae_have 9 → 6 := by
+    intro h κ _ M _;
+    exact Model.validate_toConcrete_iff.mp <| h M.card M.toConcrete;
+  tfae_have 7 → 10 := by
+    intro h n _ M _;
+    exact RootedModel.forces_reindex_root_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
+  tfae_have 10 → 7 := by
+    intro h κ _ M _;
+    exact RootedModel.forces_toConcrete_root_iff.mp <| h M.card M.toConcrete;
   tfae_finish;
 
-theorem iff_provableHilbert [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ʰ[GL] A :=
-  provability_TFAE.out 0 1
+variable [DecidableEq α] {A : Formula α}
 
-theorem iff_provableGentzen [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ᵍ[GL] (∅ ⟹ {A}) :=
-  provability_TFAE.out 0 2
+theorem iff_provableHilbert : A ∈ LogicGL ↔ ⊢ʰ[GL] A := provability_TFAE.out 0 1
 
-theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ LogicGL ↔ ⊢ᵍᶜ[GL] (∅ ⟹ {A}) :=
-  provability_TFAE.out 0 3
+theorem iff_provableGentzen : A ∈ LogicGL ↔ ⊢ᵍ[GL] (∅ ⟹ {A}) := provability_TFAE.out 0 2
 
-theorem iff_provableLabelledGentzen [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGL ↔ ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}) :=
+theorem iff_provableGentzenWithCut : A ∈ LogicGL ↔ ⊢ᵍᶜ[GL] (∅ ⟹ {A}) := provability_TFAE.out 0 3
+
+theorem iff_provableLabelledGentzen :
+  A ∈ LogicGL ↔ ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}) :=
   provability_TFAE.out 0 4
 
-theorem iff_forces [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A :=
+theorem iff_forces : A ∈ LogicGL ↔
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A :=
   provability_TFAE.out 0 5
 
-theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
+theorem iff_forces_root : A ∈ LogicGL ↔
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 6
 
 /-- GL-provability is characterized by validity over the (smaller) class of finite
 GL *tree* models (`IsFiniteGLTree`): it suffices to check finite GL-models that
 are trees. -/
-theorem iff_forces_root_tree [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGL ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] →
-      M.root.1 ⊩[_] A :=
+theorem iff_forces_root_tree : A ∈ LogicGL ↔
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 7
 
-theorem provableHilbert_of_provableGentzen [DecidableEq α] {A : Formula α} :
-    ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ʰ[GL] A :=
+theorem iff_forces_concrete : A ∈ LogicGL ↔
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → M ⊧ A :=
+  provability_TFAE.out 0 8
+
+theorem iff_forces_root_concrete : A ∈ LogicGL ↔
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
+  provability_TFAE.out 0 9
+
+variable {n : ℕ} [NeZero n]
+
+/-- A rooted concrete finite `GL`-model refuting `A` at its root shows `A` is not a
+`GL`-theorem. -/
+theorem not_mem_of_concrete_root_not_forces (M : RootedModel (Fin n) α) [M.IsFiniteGL]
+  (h : M.root.1 ⊮[_] A) : A ∉ LogicGL :=
+  fun hA => h <| iff_forces_root_concrete.mp hA n M
+
+/-- If `A` is a `GL`-theorem, it is forced at the root of every rooted concrete finite
+`GL`-model. -/
+theorem concrete_root_forces_of_mem (M : RootedModel (Fin n) α) [M.IsFiniteGL]
+  (h : A ∈ LogicGL) : M.root.1 ⊩[_] A :=
+  iff_forces_root_concrete.mp h n M
+
+/-- A concrete finite `GL`-model with a world not forcing `A` shows `A` is not a `GL`-theorem. -/
+theorem not_mem_of_concrete_not_forces (M : Model (Fin n) α) [M.IsFiniteGL] {x : M.World}
+  (h : x ⊮[M] A) : A ∉ LogicGL :=
+  fun hA => h <| iff_forces_concrete.mp hA n M x
+
+/-- If `A` is a `GL`-theorem, it is forced at every world of every concrete finite `GL`-model. -/
+theorem concrete_forces_of_mem (M : Model (Fin n) α) [M.IsFiniteGL] (h : A ∈ LogicGL)
+  (x : M.World) : x ⊩[M] A :=
+  iff_forces_concrete.mp h n M x
+
+theorem provableHilbert_of_provableGentzen : ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ʰ[GL] A :=
   fun h => provability_TFAE.out 2 1 |>.mp h
 
 end LogicGL
