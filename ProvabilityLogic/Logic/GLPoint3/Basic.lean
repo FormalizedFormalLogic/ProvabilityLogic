@@ -34,7 +34,7 @@ lemma provable_of_provable_GL {A : Formula α} (h : A ∈ LogicGL) : A ∈ Logic
   Logic.sumNormal.mem₁ h
 
 lemma provable_axiomWeakPoint3 {A B : Formula α} :
-    ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) ∈ LogicGLPoint3 :=
+  ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mem₂ ⟨A, B, rfl⟩
 
 section
@@ -87,8 +87,8 @@ protected lemma substlessInduction
   (axiomWeakPoint3 : ∀ {A B}, motive ((□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A))) provable_axiomWeakPoint3)
   (mdp : ∀ {A B}, {hAB : (A 🡒 B) ∈ LogicGLPoint3} → {hA : A ∈ LogicGLPoint3} →
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumNormal.mdp hAB hA))
-    (nec : ∀ {A}, {hA : A ∈ LogicGLPoint3} → motive A hA → motive (□A) (Logic.sumNormal.nec hA)) :
-    ∀ {A}, (h : A ∈ LogicGLPoint3) → motive A h := by
+  (nec : ∀ {A}, {hA : A ∈ LogicGLPoint3} → motive A hA → motive (□A) (Logic.sumNormal.nec hA)) :
+  ∀ {A}, (h : A ∈ LogicGLPoint3) → motive A h := by
   intro A h;
   induction substless.ofLogicGLPoint3 h with
   | provable_GL hg => exact provable_GL hg;
@@ -118,8 +118,8 @@ private lemma imp_chain : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C)) ∈ Logic
   exact DeducibleHilbert.impTrans hAB hBC;
 
 lemma impTrans
-    (hAB : (A 🡒 B) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
-    (A 🡒 C) ∈ LogicGLPoint3 :=
+  (hAB : (A 🡒 B) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
+  (A 🡒 C) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' imp_chain hAB) hBC
 
 lemma andIntro' (hA : A ∈ LogicGLPoint3) (hB : B ∈ LogicGLPoint3) : (A ⋏ B) ∈ LogicGLPoint3 :=
@@ -130,16 +130,16 @@ lemma andElimL' (h : (A ⋏ B) ∈ LogicGLPoint3) : A ∈ LogicGLPoint3 := mdp' 
 lemma andElimR' (h : (A ⋏ B) ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 := mdp' ProvableHilbert.andElimR h
 
 lemma orIntroL' (B : Formula α) (hA : A ∈ LogicGLPoint3) :
-    (A ⋎ B) ∈ LogicGLPoint3 :=
+  (A ⋎ B) ∈ LogicGLPoint3 :=
   mdp' ProvableHilbert.orIntroL hA
 
 lemma orIntroR' (A : Formula α) (hB : B ∈ LogicGLPoint3) :
-    (A ⋎ B) ∈ LogicGLPoint3 :=
+  (A ⋎ B) ∈ LogicGLPoint3 :=
   mdp' ProvableHilbert.orIntroR hB
 
 lemma orElim'
-    (hAC : (A 🡒 C) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3)
-    (hAB : (A ⋎ B) ∈ LogicGLPoint3) : C ∈ LogicGLPoint3 :=
+  (hAC : (A 🡒 C) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3)
+  (hAB : (A ⋎ B) ∈ LogicGLPoint3) : C ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (Logic.sumNormal.mdp (mdp' ProvableHilbert.orElim hAC) hBC) hAB
 
 lemma box' (h : (A 🡒 B) ∈ LogicGLPoint3) : (□A 🡒 □B) ∈ LogicGLPoint3 :=
@@ -232,17 +232,17 @@ variable {A B C : Formula α} {Q : FormulaFinset α}
 `(B 🡒 C) ∈ L` derive `((A ⋎ B) 🡒 C) ∈ L`, without needing `(A ⋎ B) ∈ L` itself
 (unlike `orElim'`, which discharges the disjunction as a hypothesis). -/
 lemma orElim_imp'
-    (hAC : (A 🡒 C) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
-    ((A ⋎ B) 🡒 C) ∈ LogicGLPoint3 :=
+  (hAC : (A 🡒 C) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
+  ((A ⋎ B) 🡒 C) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.orElim hAC) hBC
 
 lemma mem_imp_fdisj' (h : A ∈ Q) :
-    (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
+  (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
   of_GL (ProvableHilbert.imp_mem_fdisj h)
 
 lemma imp_and_intro'
-    (hCA : (C 🡒 A) ∈ LogicGLPoint3) (hCB : (C 🡒 B) ∈ LogicGLPoint3) :
-    (C 🡒 (A ⋏ B)) ∈ LogicGLPoint3 :=
+  (hCA : (C 🡒 A) ∈ LogicGLPoint3) (hCB : (C 🡒 B) ∈ LogicGLPoint3) :
+  (C 🡒 (A ⋏ B)) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.ctxAndIntro hCA) hCB
 
 section
@@ -251,7 +251,7 @@ variable [DecidableEq α]
 /-- Disjunction elimination for `LogicGLPoint3`, generalized from a single disjunction to a
 finset of disjuncts: if every member of `Q` implies `C`, so does `⋁Q`. -/
 lemma imp_fdisj_elim'
-    (h : ∀ B ∈ Q, (B 🡒 C) ∈ LogicGLPoint3) : ((⋁ Q) 🡒 C) ∈ LogicGLPoint3 := by
+  (h : ∀ B ∈ Q, (B 🡒 C) ∈ LogicGLPoint3) : ((⋁ Q) 🡒 C) ∈ LogicGLPoint3 := by
   induction Q using Finset.induction with
   | empty => exact of_GL (by simp only [FormulaFinset.disj_empty]; exact ProvableHilbert.efq)
   | insert a s ha ih =>
@@ -265,7 +265,7 @@ lemma imp_fdisj_elim'
 end
 
 lemma imp_and_congr_right' (h : (B 🡒 C) ∈ LogicGLPoint3) :
-    ((A ⋏ B) 🡒 (A ⋏ C)) ∈ LogicGLPoint3 :=
+  ((A ⋏ B) 🡒 (A ⋏ C)) ∈ LogicGLPoint3 :=
   imp_and_intro' (of_GL ProvableHilbert.andL) (impTrans (of_GL ProvableHilbert.andR) h)
 
 section
@@ -274,7 +274,7 @@ variable [DecidableEq α]
 /-- Distributing a fixed conjunct `A` over a finset disjunction: if `(A ⋏ B) 🡒 C` holds in
 `LogicGLPoint3` for every `B ∈ Q`, so does `(A ⋏ ⋁Q) 🡒 C`. -/
 lemma imp_and_fdisj_elim'
-    (h : ∀ B ∈ Q, ((A ⋏ B) 🡒 C) ∈ LogicGLPoint3) : ((A ⋏ (⋁ Q)) 🡒 C) ∈ LogicGLPoint3 := by
+  (h : ∀ B ∈ Q, ((A ⋏ B) 🡒 C) ∈ LogicGLPoint3) : ((A ⋏ (⋁ Q)) 🡒 C) ∈ LogicGLPoint3 := by
   induction Q using Finset.induction with
   | empty =>
     apply of_GL;
@@ -304,13 +304,13 @@ lemma dia_theta_imp_witnessDisj (hS : S ⊆ Δ) (hSne : S.Nonempty) :
 
 /-- `S ⊆ Δ` nonempty puts `◇θ(S, Δ \ S)` among the disjuncts of `witnessDisj Δ`. -/
 lemma mem_imp_witnessDisj (hS : S ⊆ Δ) (hSne : S.Nonempty) :
-    ((◇ (theta S (Δ \ S))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 :=
+  ((◇ (theta S (Δ \ S))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 :=
   of_GL (dia_theta_imp_witnessDisj hS hSne)
 
 /-- The deep/linearity branch of the `witness` induction, the Hilbert counterpart of the
 `hzw'` case of `Model.exists_linear_witness`. -/
 lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
-    ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D)) 🡒 ◇ (theta {D} Δ')) ∈ LogicGLPoint3 := by
+  ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D)) 🡒 ◇ (theta {D} Δ')) ∈ LogicGLPoint3 := by
   set θ' := theta S' (Δ' \ S') with hθ'def;
   set A : Formula α := ∼D ⋏ □D with hAdef;
   set B : Formula α := θ' ⋏ ⊡D with hBdef;
@@ -387,8 +387,7 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
     simp only [Finset.image_singleton, FormulaFinset.conj_singleton];
     exact ProvableHilbert.ctxAndIntroRule ProvableHilbert.andL
       (ProvableHilbert.impTrans ProvableHilbert.andR hconjΔ');
-  have hcases :
-    (((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A)) 🡒 ◇ (theta {D} Δ')) ∈ LogicGL := by
+  have hcases : (((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A)) 🡒 ◇ (theta {D} Δ')) ∈ LogicGL := by
     apply ProvableHilbert.orElim';
     · apply ProvableHilbert.orElim';
       · exact ProvableHilbert.impTrans (ProvableHilbert.impTrans (LogicGL.diaImp hAB_bot)
@@ -401,7 +400,7 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
 /-- The Hilbert-level witness lemma: for nonempty `Δ`, `LogicGLPoint3` proves
 `(⋀_{A∈Δ} ∼□A) 🡒 ⋁_{∅≠S⊆Δ} ◇θ_S`. -/
 theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
-    ((⋀ (Δ.image (fun A => ∼□A))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
+  ((⋀ (Δ.image (fun A => ∼□A))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
   intro Δ;
   induction Δ using Finset.strongInductionOn with
   | _ Δ ih =>
@@ -601,7 +600,7 @@ lemma diaImp' (h : (A 🡒 B) ∈ LogicGLPoint3) : (◇A 🡒 ◇B) ∈ LogicGLP
 /-- From `(A 🡒 B) ∈ L` derive `((A ⋏ ∼B) 🡒 ⊥) ∈ L`: the propositional core used to
 turn a `boxGLPoint3` premise `h S` into a contradiction against `∼B`. -/
 lemma imp_and_not_bot' (h : (A 🡒 B) ∈ LogicGLPoint3) :
-    ((A ⋏ ∼B) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 := by
+  ((A ⋏ ∼B) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 := by
   have hB : ((A ⋏ ∼B) 🡒 B) ∈ LogicGLPoint3 := impTrans (of_GL ProvableHilbert.andL) h;
   have hnB : ((A ⋏ ∼B) 🡒 ∼B) ∈ LogicGLPoint3 := of_GL ProvableHilbert.andR;
   have hand : ((A ⋏ ∼B) 🡒 (B ⋏ ∼B)) ∈ LogicGLPoint3 := imp_and_intro' hB hnB;
@@ -657,10 +656,10 @@ fixed nonempty `S ⊆ Δ`, derive that `⋀Γ.box ⋏ ◇θ(S, Δ \ S)` is contr
 counterpart of the contradiction assembled at the witness world in
 `Model.validate_gentzen_boxGLPoint3`. -/
 private lemma boxGLPoint3_step {S : FormulaFinset α}
-    (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
-      ((⋀(Γ.box ∪ Γ ∪ S.box)) 🡒 (⋁(S ∪ (Δ \ S).box))) ∈ LogicGLPoint3)
-    (hSsub : S ⊆ Δ) (hSne : S.Nonempty) :
-    ((⋀Γ.box ⋏ ◇ (theta S (Δ \ S))) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 := by
+  (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
+    ((⋀(Γ.box ∪ Γ ∪ S.box)) 🡒 (⋁(S ∪ (Δ \ S).box))) ∈ LogicGLPoint3)
+  (hSsub : S ⊆ Δ) (hSne : S.Nonempty) :
+  ((⋀Γ.box ⋏ ◇ (theta S (Δ \ S))) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 := by
   set T := Δ \ S with hTdef;
   -- The premise `h S`, turned into a contradiction against its own negated consequent.
   have hbotProp : ((⋀(Γ.box ∪ Γ ∪ S.box)) ⋏ ∼(⋁ (S ∪ T.box))) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
@@ -680,8 +679,7 @@ private lemma boxGLPoint3_step {S : FormulaFinset α}
   have hdiabot : ((◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 :=
     impTrans (diaImp' hpropbot) (of_GL LogicGL.dia_bot)
   -- Transport `□(⋀(Γ.box ∪ Γ))` (from `⋀Γ.box`) into the `◇θ(S, T)` witness.
-  have hcombine :
-    ((⋀Γ.box ⋏ ◇ (theta S T)) 🡒 ◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) ∈ LogicGL :=
+  have hcombine : ((⋀Γ.box ⋏ ◇ (theta S T)) 🡒 ◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) ∈ LogicGL :=
     ProvableHilbert.impTrans
       (ProvableHilbert.ctxAndIntroRule
         (ProvableHilbert.impTrans ProvableHilbert.andL LogicGL.imp_box_union)
@@ -692,9 +690,9 @@ private lemma boxGLPoint3_step {S : FormulaFinset α}
 /-- The Hilbert soundness of the `boxGLPoint3` rule, the Hilbert-calculus counterpart of
 `Model.validate_gentzen_boxGLPoint3`. -/
 theorem boxGLPoint3 (hΔ : Δ.Nonempty)
-    (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
-      ((⋀(Γ.box ∪ Γ ∪ S.box)) 🡒 (⋁(S ∪ (Δ \ S).box))) ∈ LogicGLPoint3) :
-    ((⋀Γ.box) 🡒 (⋁Δ.box)) ∈ LogicGLPoint3 := by
+  (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
+    ((⋀(Γ.box ∪ Γ ∪ S.box)) 🡒 (⋁(S ∪ (Δ \ S).box))) ∈ LogicGLPoint3) :
+  ((⋀Γ.box) 🡒 (⋁Δ.box)) ∈ LogicGLPoint3 := by
   -- Assemble the per-`S` contradictions into a single contradiction against `witnessDisj Δ`.
   have hall : ((⋀Γ.box) ⋏ witnessDisj Δ) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 := by
     unfold witnessDisj;
