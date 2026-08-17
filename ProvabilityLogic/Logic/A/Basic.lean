@@ -344,6 +344,12 @@ theorem iff_provable_provableGentzenWithCut :
   A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
   LogicA.provability_TFAE.out 0 3
 
+/-- `LogicA`-provability is characterized by cut-free provability in the two-layered
+sequent calculus for `A`, at level `1`. -/
+theorem iff_provable_provableGentzen :
+  A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) := by
+  sorry
+
 end LogicA
 
 theorem LogicA_subset_LogicD [DecidableEq α] : @LogicA α ⊆ LogicD := by
