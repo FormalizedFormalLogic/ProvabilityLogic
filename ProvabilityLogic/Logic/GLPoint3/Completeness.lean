@@ -24,9 +24,9 @@ open LogicGL
 This is the `GL.3` counterpart of `ProvableHilbert.of_provableGentzen`
 (`ProvabilityLogic/Hilbert/Basic.lean`): every sequent provable in the combinatorial `GL.3` Gentzen
 calculus `⊢ᵍ[GLPoint3]` (`ProvabilityLogic/Gentzen/GLPoint3/Basic.lean`) translates into a `LogicGLPoint3`
-membership statement. The proof is a structural induction on `LogicGLPoint3.ProofGentzen`,
-mirroring `ProvableHilbert.of_provableGentzen` case by case; the only new case is
-`boxGLPoint3`, discharged by the Step L soundness theorem `LogicGLPoint3.boxGLPoint3`.
+membership statement. The proof is an induction on `⊢ᵍ[GLPoint3]` via
+`LogicGLPoint3.ProvableGentzen.rec`, mirroring `ProvableHilbert.of_provableGentzen` case by case;
+the only new case is `boxGLPoint3`, discharged by `LogicGLPoint3.boxGLPoint3`.
 -/
 
 namespace LogicGL.ProvableHilbert
@@ -108,7 +108,6 @@ variable {α : Type u} [DecidableEq α]
 
 theorem of_provableGentzen {S : Sequent α} (h : ⊢ᵍ[GLPoint3] S) :
     ((⋀S.ant) 🡒 (⋁S.suc)) ∈ LogicGLPoint3 := by
-  obtain ⟨h⟩ := h
   induction h with
   | axm A => simp; exact LogicGLPoint3.of_GL ProvableHilbert.impId
   | botL => simp; exact LogicGLPoint3.of_GL ProvableHilbert.efq
