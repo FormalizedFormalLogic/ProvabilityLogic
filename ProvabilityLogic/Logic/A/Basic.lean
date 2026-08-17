@@ -288,7 +288,8 @@ theorem provability_TFAE : [
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A,
-  ⊢ᵍᶜ[A] (∅ ⟹[1] {A})
+  ⊢ᵍᶜ[A] (∅ ⟹[1] {A}),
+  ⊢ᵍ[A] (∅ ⟹[1] {A}),
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
@@ -322,6 +323,7 @@ theorem provability_TFAE : [
     intro h κ _ M _ a Rra;
     exact forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
+  tfae_have 4 ↔ 5 := LogicA.sequent_TFAE.out 0 1
   tfae_finish;
 
 /--
@@ -347,8 +349,8 @@ theorem iff_provable_provableGentzenWithCut :
 /-- `LogicA`-provability is characterized by cut-free provability in the two-layered
 sequent calculus for `A`, at level `1`. -/
 theorem iff_provable_provableGentzen :
-  A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) := by
-  sorry
+  A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
+  LogicA.provability_TFAE.out 0 4
 
 end LogicA
 
