@@ -169,6 +169,10 @@ variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : For
 
 theorem of_without_cut : ⊢ᵍ[A] S → ⊢ᵍᶜ[A] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
+/-- `Prop`-level version of `LogicA.GentzenWithCutProof.toGentzenWithCutProofGL`. -/
+theorem toGentzenWithCutProvableGL {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[GL] (Γ ⟹ Δ) :=
+  ⟨GentzenWithCutProof.toGentzenWithCutProofGL h.some⟩
+
 lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[A] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
 lemma botL (l) : ⊢ᵍᶜ[A] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
 lemma wkL (h : ⊢ᵍᶜ[A] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[A] (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
