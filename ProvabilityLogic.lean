@@ -6,6 +6,7 @@ public import ProvabilityLogic.Formula.Letterless
 public import ProvabilityLogic.Formula.Modalized
 public import ProvabilityLogic.Formula.Substitution
 public import ProvabilityLogic.Gentzen.A.Basic
+public import ProvabilityLogic.Gentzen.A.Kripke
 public import ProvabilityLogic.Gentzen.D.Basic
 public import ProvabilityLogic.Gentzen.D.Kripke
 public import ProvabilityLogic.Gentzen.D.WithCut
@@ -52,6 +53,7 @@ public import ProvabilityLogic.LabelledGentzen.GLPoint3.Basic
 public import ProvabilityLogic.LabelledGentzen.GLPoint3.Kripke
 public import ProvabilityLogic.LabelledGentzen.Sequent
 public import ProvabilityLogic.Logic.A.Basic
+public import ProvabilityLogic.Logic.A.Gentzen
 public import ProvabilityLogic.Logic.Basic
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.Logic.D.NotCIP

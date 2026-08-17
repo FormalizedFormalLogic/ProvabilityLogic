@@ -1,6 +1,7 @@
 module
 
 public import ProvabilityLogic.Gentzen.GL.Basic
+public import ProvabilityLogic.Gentzen.GL.WithCut
 
 @[expose]
 public section
@@ -151,6 +152,16 @@ def GentzenWithCutProof.ofProofGentzen {S : TwoLayeredSequent α} : ⊢ᵍ[A]! S
 | .liftUp h   => .liftUp (GentzenWithCutProof.ofProofGentzen h)
 | .boxGL h    => .boxGL (GentzenWithCutProof.ofProofGentzen h)
 | .boxGP h    => .boxGP (GentzenWithCutProof.ofProofGentzen h)
+
+def GentzenWithCutProof.toGentzenWithCutProofGL {Γ Δ : FormulaFinset α} : ⊢ᵍᶜ[A]! (Γ ⟹[0] Δ) → ⊢ᵍᶜ[GL]! (Γ ⟹ Δ)
+| .axm 0 A    => .axm A
+| .botL 0     => .botL
+| .wkL h h'   => .wkL (GentzenWithCutProof.toGentzenWithCutProofGL h) h'
+| .wkR h h'   => .wkR (GentzenWithCutProof.toGentzenWithCutProofGL h) h'
+| .impL h₁ h₂ => .impL (GentzenWithCutProof.toGentzenWithCutProofGL h₁) (GentzenWithCutProof.toGentzenWithCutProofGL h₂)
+| .impR h     => .impR (GentzenWithCutProof.toGentzenWithCutProofGL h)
+| .boxGL h    => .boxGL (GentzenWithCutProof.toGentzenWithCutProofGL h)
+| .cut h₁ h₂  => .cut (GentzenWithCutProof.toGentzenWithCutProofGL h₁) (GentzenWithCutProof.toGentzenWithCutProofGL h₂)
 
 namespace GentzenWithCutProvable
 
