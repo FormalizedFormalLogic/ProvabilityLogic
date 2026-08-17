@@ -28,19 +28,19 @@ infix:70 " ∶ " => LabelledFormula.mk
 
 namespace LabelledFormula
 
-protected def toString [ToString α] (lf : LabelledFormula α) : String :=
-  s!"{lf.label} : {Formula.toString lf.formula}"
+protected def toString [ToString α] (ℓA : LabelledFormula α) : String :=
+  s!"{ℓA.label} : {Formula.toString ℓA.formula}"
 
 instance [ToString α] : ToString (LabelledFormula α) := ⟨LabelledFormula.toString⟩
 
 /-- Renaming a labelled formula: replace the label `y` by `z` wherever it occurs. -/
-def relabel (y z : Label) (lf : LabelledFormula α) : LabelledFormula α := ⟨if lf.label = y then z else lf.label, lf.formula⟩
+def relabel (y z : Label) (ℓA : LabelledFormula α) : LabelledFormula α := ⟨if ℓA.label = y then z else ℓA.label, ℓA.formula⟩
 
 omit [DecidableEq α] in
-@[simp] lemma relabel_label (y z : Label) (lf : LabelledFormula α) : (lf.relabel y z).label = if lf.label = y then z else lf.label := rfl
+@[simp] lemma relabel_label (y z : Label) (ℓA : LabelledFormula α) : (ℓA.relabel y z).label = if ℓA.label = y then z else ℓA.label := rfl
 
 omit [DecidableEq α] in
-@[simp] lemma relabel_formula (y z : Label) (lf : LabelledFormula α) : (lf.relabel y z).formula = lf.formula := rfl
+@[simp] lemma relabel_formula (y z : Label) (ℓA : LabelledFormula α) : (ℓA.relabel y z).formula = ℓA.formula := rfl
 
 end LabelledFormula
 
@@ -54,7 +54,7 @@ notation:50 R:51 " ⸴ " Γ:51 " ⟹ˡ " Δ:51 => LabelledSequent.mk R Γ Δ
 
 namespace LabelledSequent
 
-variable {S : LabelledSequent α} {lf : LabelledFormula α} {p : LabelRel}
+variable {S : LabelledSequent α} {ℓA : LabelledFormula α} {p : LabelRel}
 
 /-- Every world-label occurring in `S`, either in a labelled formula or in a relational atom. -/
 @[grind]
@@ -73,13 +73,13 @@ lemma freshLabel_notMem : S.freshLabel ∉ S.labels := by
 
 omit [DecidableEq α] in
 @[grind =>]
-lemma mem_labels_of_mem_ant (h : lf ∈ S.ant) : lf.label ∈ S.labels := by
+lemma mem_labels_of_mem_ant (h : ℓA ∈ S.ant) : ℓA.label ∈ S.labels := by
   simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
 omit [DecidableEq α] in
 @[grind =>]
-lemma mem_labels_of_mem_suc (h : lf ∈ S.suc) : lf.label ∈ S.labels := by
+lemma mem_labels_of_mem_suc (h : ℓA ∈ S.suc) : ℓA.label ∈ S.labels := by
   simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 

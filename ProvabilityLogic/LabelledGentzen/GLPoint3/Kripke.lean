@@ -13,7 +13,7 @@ variable {κ : Type u} [Nonempty κ]
 
 namespace Model
 
-variable {L : M.LabelMap} {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)}
+variable {L : M.LabelMap} {R : Finset LabelRel} {ℓΓ ℓΔ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
 lemma validate_labelled_relabel_of_eq {S : LabelledSequent α} (heq : L y = L z) :
@@ -25,10 +25,10 @@ lemma validate_labelled_relabel_of_eq {S : LabelledSequent α} (heq : L y = L z)
 
 lemma validate_labelled_lin [M.IsGLPoint3]
   (hxy : (x, y) ∈ R) (hxz : (x, z) ∈ R)
-  (h₁ : M ⊧ˡ[L] (insert (y, z) R ⸴ Γ ⟹ˡ Δ))
-  (h₂ : M ⊧ˡ[L] (insert (z, y) R ⸴ Γ ⟹ˡ Δ))
-  (h₃ : M ⊧ˡ[L] ((R ⸴ Γ ⟹ˡ Δ).relabel y z))
-  : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
+  (h₁ : M ⊧ˡ[L] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+  (h₂ : M ⊧ˡ[L] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+  (h₃ : M ⊧ˡ[L] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z))
+  : M ⊧ˡ[L] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   intro hrel hant;
   rcases Model.linear (hrel (x, y) hxy) (hrel (x, z) hxz) with hyz | heq | hzy;
   · exact h₁ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hyz, hrel p hp]) hant;
@@ -64,7 +64,7 @@ theorem soundness {S : LabelledSequent α} (h : ⊢ˡᵍ[GLPoint3] S) :
 theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡᵍ[GLPoint3] (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGLPoint3] → M.Validate A := by
   intro κ _ M _ w;
-  obtain ⟨lf, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
+  obtain ⟨ℓA, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
   grind;
 
 end Kripke

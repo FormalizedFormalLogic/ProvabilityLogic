@@ -22,72 +22,72 @@ namespace LogicGL
 inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | axm (x A) : ProofLabelledGentzen (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A})
 | botL (x) : ProofLabelledGentzen (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α)))
-| wkRel {R R' Γ Δ} : ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ) → (_ : R ⊆ R' := by grind) → ProofLabelledGentzen (R' ⸴ Γ ⟹ˡ Δ)
-| wkAnt {R Γ Γ' Δ} : ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofLabelledGentzen (R ⸴ Γ' ⟹ˡ Δ)
-| wkSuc {R Γ Δ Δ'} : ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ')
-| impL {R Γ Δ x A B} :
-    ProofLabelledGentzen (R ⸴ Γ ⟹ˡ (insert (x ∶ A) Δ)) →
-    ProofLabelledGentzen (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ) →
-    ProofLabelledGentzen (R ⸴ (insert (x ∶ A 🡒 B) Γ) ⟹ˡ Δ)
-| impR {R Γ Δ x A B} :
-    ProofLabelledGentzen (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ)) →
-    ProofLabelledGentzen (R ⸴ Γ ⟹ˡ (insert (x ∶ A 🡒 B) Δ))
+| wkRel {R R' ℓΓ ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : R ⊆ R' := by grind) → ProofLabelledGentzen (R' ⸴ ℓΓ ⟹ˡ ℓΔ)
+| wkAnt {R ℓΓ ℓΓ' ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΓ ⊆ ℓΓ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ' ⟹ˡ ℓΔ)
+| wkSuc {R ℓΓ ℓΔ ℓΔ'} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΔ ⊆ ℓΔ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ')
+| impL {R ℓΓ ℓΔ x A B} :
+    ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A) ℓΔ)) →
+    ProofLabelledGentzen (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ) →
+    ProofLabelledGentzen (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ)
+| impR {R ℓΓ ℓΔ x A B} :
+    ProofLabelledGentzen (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ)) →
+    ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ))
 /-- `L□`: uses an already available successor `y` of `x` (`x R y ∈ R`) to unfold `x : □A`. -/
-| boxL {R Γ Δ} (x y A) (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ Γ := by grind) :
-    ProofLabelledGentzen (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ) →
-    ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
+| boxL {R ℓΓ ℓΔ} (x y A) (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) :
+    ProofLabelledGentzen (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ) →
+    ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
 /-- `R□^Löb`: introduces a fresh successor `y` of `x`, additionally assuming `y : □A` (the Löb trick). -/
-| boxRLob {R Γ Δ} (x y A) (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels := by grind) :
-    ProofLabelledGentzen (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ) →
-    ProofLabelledGentzen (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ)
+| boxRLob {R ℓΓ ℓΔ} (x y A) (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind) :
+    ProofLabelledGentzen (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ) →
+    ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ)
 /-- `Irref`: a reflexive relational atom `x R x` closes any sequent. -/
-| irref {R Γ Δ} (x) (h : (x, x) ∈ R := by grind) : ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
+| irref {R ℓΓ ℓΔ} (x) (h : (x, x) ∈ R := by grind) : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
 /-- `Trans`: saturates `R` with the transitive consequence of `x R y` and `y R z`. -/
-| trans {R Γ Δ} (x y z) (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) :
-    ProofLabelledGentzen (insert (x, z) R ⸴ Γ ⟹ˡ Δ) →
-    ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
+| trans {R ℓΓ ℓΔ} (x y z) (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) :
+    ProofLabelledGentzen (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ) →
+    ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
 notation:120 "⊢ˡᵍ[GL]! " S:121 => ProofLabelledGentzen S
 
 
 namespace ProofLabelledGentzen
 
-variable {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)} {x y : Label} {A B : Formula α}
+variable {R : Finset LabelRel} {ℓΓ ℓΔ : Finset (LabelledFormula α)} {x y : Label} {A B : Formula α}
 
-def union (x A) (hΓ : (x ∶ A) ∈ Γ := by grind) (hΔ : (x ∶ A) ∈ Δ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) :=
+def union (x A) (hΓ : (x ∶ A) ∈ ℓΓ := by grind) (hΔ : (x ∶ A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
   wkSuc $ wkAnt $ wkRel (axm x A)
 
-def botL_mem (x) (h : (x ∶ (⊥ : Formula α)) ∈ Γ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) :=
-  wkSuc (Δ := ∅) $ wkAnt $ wkRel (botL x)
+def botL_mem (x) (h : (x ∶ (⊥ : Formula α)) ∈ ℓΓ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  wkSuc (ℓΔ := ∅) $ wkAnt $ wkRel (botL x)
 
-def mdpL_mem (x A B) (h₁ : (x ∶ A 🡒 B) ∈ Γ := by grind) (h₂ : (x ∶ A) ∈ Γ := by grind) (h₃ : (x ∶ B) ∈ Δ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) := by
-  rw [(show Γ = insert (x ∶ A 🡒 B) (insert (x ∶ A) (Γ \ {x ∶ A, x ∶ A 🡒 B})) by grind)];
+def mdpL_mem (x A B) (h₁ : (x ∶ A 🡒 B) ∈ ℓΓ := by grind) (h₂ : (x ∶ A) ∈ ℓΓ := by grind) (h₃ : (x ∶ B) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
+  rw [(show ℓΓ = insert (x ∶ A 🡒 B) (insert (x ∶ A) (ℓΓ \ {x ∶ A, x ∶ A 🡒 B})) by grind)];
   apply impL;
   . apply union x A;
   . apply union x B;
 
-def negL : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ (insert (x ∶ A) Δ)) → ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ ∼A) Γ) ⟹ˡ Δ) := λ p => impL p (wkSuc $ wkAnt $ wkRel (botL x))
+def negL : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A) ℓΔ)) → ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ ∼A) ℓΓ) ⟹ˡ ℓΔ) := λ p => impL p (wkSuc $ wkAnt $ wkRel (botL x))
 
-def negR : ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ (insert (x ∶ ∼A) Δ)) := λ p => impR $ wkSuc $ wkAnt p (by grind)
+def negR : ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ ∼A) ℓΔ)) := λ p => impR $ wkSuc $ wkAnt p (by grind)
 
-def andL : ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ A) $ insert (x ∶ B) $ Γ) ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A ⋏ B) Γ ⟹ˡ Δ) := λ p => by
+def andL : ⊢ˡᵍ[GL]! (R ⸴ (insert (x ∶ A) $ insert (x ∶ B) $ ℓΓ) ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A ⋏ B) ℓΓ ⟹ˡ ℓΔ) := λ p => by
   apply impL;
   . apply impR;
     apply negR;
-    simpa [(show (insert (x ∶ A) $ insert (x ∶ B) Γ) = (insert (x ∶ B) $ insert (x ∶ A) Γ) by grind)] using p;
+    simpa [(show (insert (x ∶ A) $ insert (x ∶ B) ℓΓ) = (insert (x ∶ B) $ insert (x ∶ A) ℓΓ) by grind)] using p;
   . exact botL_mem x;
 
-def andR : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ insert (x ∶ B) Δ) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ insert (x ∶ A ⋏ B) Δ) := λ p q => by
+def andR : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ insert (x ∶ B) ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A ⋏ B) ℓΔ) := λ p q => by
   apply impR;
   apply impL;
   . exact wkSuc p;
   . exact negL $ wkSuc q;
 
-def orL : ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A) Γ ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A ⋎ B) Γ ⟹ˡ Δ) := λ p q => by
+def orL : ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A) ℓΓ ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A ⋎ B) ℓΓ ⟹ˡ ℓΔ) := λ p q => by
   apply impL;
   . exact negR p;
   . exact q;
 
-def orR : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ (insert (x ∶ A) $ insert (x ∶ B) Δ)) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ insert (x ∶ A ⋎ B) Δ) := λ p => by
+def orR : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A) $ insert (x ∶ B) ℓΔ)) → ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A ⋎ B) ℓΔ) := λ p => by
   apply impR;
   apply negL;
   simpa;
@@ -100,11 +100,11 @@ to the antecedent side of `x` and the succedent side of `y` for an accessibility
 - [Neg14, Lemma 5.2]
 -/
 def loop (x y z : Label) (A : Formula α)
-  (hz : z ∉ (R ⸴ Γ ⟹ˡ Δ).labels)
+  (hz : z ∉ (R ⸴ ℓΓ ⟹ˡ ℓΔ).labels)
   (hR : (x, y) ∈ R := by grind)
-  (hx : (x ∶ □A) ∈ Γ := by grind)
-  (hy : (y ∶ □A) ∈ Δ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) := by
-  rw [(show Δ = insert (y ∶ □A) (Δ.erase (y ∶ □A)) by grind)];
+  (hx : (x ∶ □A) ∈ ℓΓ := by grind)
+  (hy : (y ∶ □A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
+  rw [(show ℓΔ = insert (y ∶ □A) (ℓΔ.erase (y ∶ □A)) by grind)];
   apply boxRLob y z A;
   apply trans x y z;
   apply boxL x z A;
@@ -120,69 +120,69 @@ notation:120 "⊬ˡᵍ[GL] " S:121 => ¬ ProvableLabelledGentzen S
 
 namespace ProvableLabelledGentzen
 
-variable {R R' : Finset LabelRel} {Γ Γ' Δ Δ' : Finset (LabelledFormula α)} {x y z : Label} {A B : Formula α}
+variable {R R' : Finset LabelRel} {ℓΓ ℓΓ' ℓΔ ℓΔ' : Finset (LabelledFormula α)} {x y z : Label} {A B : Formula α}
 
 lemma axm (x : Label) (A : Formula α) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := ⟨ProofLabelledGentzen.axm x A⟩
-lemma union (x : Label) (A : Formula α) (hΓ : (x ∶ A) ∈ Γ := by grind) (hΔ : (x ∶ A) ∈ Δ := by grind) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.union x A hΓ hΔ⟩
+lemma union (x : Label) (A : Formula α) (hΓ : (x ∶ A) ∈ ℓΓ := by grind) (hΔ : (x ∶ A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.union x A hΓ hΔ⟩
 lemma botL (x : Label) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := ⟨ProofLabelledGentzen.botL x⟩
-@[grind =>] lemma botL_mem (x : Label) (h : (x ∶ (⊥ : Formula α)) ∈ Γ := by grind) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.botL_mem x h⟩
-lemma wkRel (π : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h : R ⊆ R') : ⊢ˡᵍ[GL] (R' ⸴ Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.wkRel π.some h⟩
-lemma wkAnt (π : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h : Γ ⊆ Γ') : ⊢ˡᵍ[GL] (R ⸴ Γ' ⟹ˡ Δ) := ⟨ProofLabelledGentzen.wkAnt π.some h⟩
-lemma wkSuc (π : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h : Δ ⊆ Δ') : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ') := ⟨ProofLabelledGentzen.wkSuc π.some h⟩
-lemma impL (π₁ : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (π₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A 🡒 B) Γ) ⟹ˡ Δ) := ⟨ProofLabelledGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ))) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ (insert (x ∶ A 🡒 B) Δ)) := ⟨ProofLabelledGentzen.impR π.some⟩
-lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ Γ := by grind) (π : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) :=
+@[grind =>] lemma botL_mem (x : Label) (h : (x ∶ (⊥ : Formula α)) ∈ ℓΓ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.botL_mem x h⟩
+lemma wkRel (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : R ⊆ R') : ⊢ˡᵍ[GL] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel π.some h⟩
+lemma wkAnt (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt π.some h⟩
+lemma wkSuc (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc π.some h⟩
+lemma impL (π₁ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (π₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.impL π₁.some π₂.some⟩
+lemma impR (π : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) := ⟨ProofLabelledGentzen.impR π.some⟩
+lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (π : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
   ⟨ProofLabelledGentzen.boxL x y A hxy hxA π.some⟩
-lemma boxRLob (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels := by grind)
-    (π : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) :=
+lemma boxRLob (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind)
+    (π : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
   ⟨ProofLabelledGentzen.boxRLob x y A hfresh π.some⟩
-lemma irref (h : (x, x) ∈ R := by grind) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.irref x h⟩
-lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (π : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) :=
+lemma irref (h : (x, x) ∈ R := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.irref x h⟩
+lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (π : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
   ⟨ProofLabelledGentzen.trans x y z hxy hyz π.some⟩
 
-lemma negL (h : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ ∼A) Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.negL h.some⟩
-lemma negR (h : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ ∼A) Δ) := ⟨ProofLabelledGentzen.negR h.some⟩
-lemma andL (h : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) (insert (x ∶ B) Γ) ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A ⋏ B) Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.andL h.some⟩
-lemma andR (h₁ : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ B) Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A ⋏ B) Δ) := ⟨ProofLabelledGentzen.andR h₁.some h₂.some⟩
-lemma orL (h₁ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) Γ ⟹ˡ Δ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A ⋎ B) Γ ⟹ˡ Δ) := ⟨ProofLabelledGentzen.orL h₁.some h₂.some⟩
-lemma orR (h : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A) (insert (x ∶ B) Δ))) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A ⋎ B) Δ) := ⟨ProofLabelledGentzen.orR h.some⟩
+lemma negL (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ ∼A) ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.negL h.some⟩
+lemma negR (h : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ ∼A) ℓΔ) := ⟨ProofLabelledGentzen.negR h.some⟩
+lemma andL (h : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) (insert (x ∶ B) ℓΓ) ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A ⋏ B) ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.andL h.some⟩
+lemma andR (h₁ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ B) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A ⋏ B) ℓΔ) := ⟨ProofLabelledGentzen.andR h₁.some h₂.some⟩
+lemma orL (h₁ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) ℓΓ ⟹ˡ ℓΔ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A ⋎ B) ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.orL h₁.some h₂.some⟩
+lemma orR (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A ⋎ B) ℓΔ) := ⟨ProofLabelledGentzen.orR h.some⟩
 
 lemma loop (x y : Label) (A : Formula α) (hR : (x, y) ∈ R := by grind)
-  (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) :=
-  ⟨ProofLabelledGentzen.loop x y (R ⸴ Γ ⟹ˡ Δ).freshLabel A LabelledSequent.freshLabel_notMem hR hx hy⟩
+  (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : (y ∶ □A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.loop x y (R ⸴ ℓΓ ⟹ˡ ℓΔ).freshLabel A LabelledSequent.freshLabel_notMem hR hx hy⟩
 
 @[induction_eliminator]
 lemma rec
   {motive : (S : LabelledSequent α) → ⊢ˡᵍ[GL] S → Prop}
   (axm : ∀ x A, motive (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) (ProvableLabelledGentzen.axm x A))
   (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) (ProvableLabelledGentzen.botL x))
-  (wkRel : ∀ {R R' Γ Δ} (h : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h' : R ⊆ R'),
-    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R' ⸴ Γ ⟹ˡ Δ) (wkRel h h')
+  (wkRel : ∀ {R R' ℓΓ ℓΔ} (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h' : R ⊆ R'),
+    motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R' ⸴ ℓΓ ⟹ˡ ℓΔ) (wkRel h h')
   )
-  (wkAnt : ∀ {R Γ Γ' Δ} (h : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h' : Γ ⊆ Γ'),
-    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ' ⟹ˡ Δ) (wkAnt h h')
+  (wkAnt : ∀ {R ℓΓ ℓΓ' ℓΔ} (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h' : ℓΓ ⊆ ℓΓ'),
+    motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ' ⟹ˡ ℓΔ) (wkAnt h h')
   )
-  (wkSuc : ∀ {R Γ Δ Δ'} (h : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ)) (h' : Δ ⊆ Δ'),
-    motive (R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ') (wkSuc h h')
+  (wkSuc : ∀ {R ℓΓ ℓΔ ℓΔ'} (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h' : ℓΔ ⊆ ℓΔ'),
+    motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ') (wkSuc h h')
   )
-  (impL : ∀ {R Γ Δ x A B} (h₁ : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)),
-    motive (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ) h₁ → motive (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ) h₂ →
-    motive (R ⸴ (insert (x ∶ A 🡒 B) Γ) ⟹ˡ Δ) (impL h₁ h₂)
+  (impL : ∀ {R ℓΓ ℓΔ x A B} (h₁ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)),
+    motive (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ) h₁ → motive (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ) h₂ →
+    motive (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) (impL h₁ h₂)
   )
-  (impR : ∀ {R Γ Δ x A B} (h : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ))),
-    motive (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ)) h → motive (R ⸴ Γ ⟹ˡ (insert (x ∶ A 🡒 B) Δ)) (impR h)
+  (impR : ∀ {R ℓΓ ℓΔ x A B} (h : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))),
+    motive (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ)) h → motive (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) (impR h)
   )
-  (boxL : ∀ {R Γ Δ x y A} (hxy : (x, y) ∈ R) (hxA : (x ∶ □A) ∈ Γ) (h : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ)),
-    motive (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ) (boxL hxy hxA h)
+  (boxL : ∀ {R ℓΓ ℓΔ x y A} (hxy : (x, y) ∈ R) (hxA : (x ∶ □A) ∈ ℓΓ) (h : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)),
+    motive (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (boxL hxy hxA h)
   )
-  (boxRLob : ∀ {R Γ Δ x y A} (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels)
-      (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ)),
-    motive (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ) h →
-    motive (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ) (boxRLob hfresh h)
+  (boxRLob : ∀ {R ℓΓ ℓΔ x y A} (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels)
+      (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)),
+    motive (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ) h →
+    motive (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) (boxRLob hfresh h)
   )
-  (irref : ∀ {R Γ Δ x} (h : (x, x) ∈ R), motive (R ⸴ Γ ⟹ˡ Δ) (irref h))
-  (trans : ∀ {R Γ Δ x y z} (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R) (h : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ Γ ⟹ˡ Δ)),
-    motive (insert (x, z) R ⸴ Γ ⟹ˡ Δ) h → motive (R ⸴ Γ ⟹ˡ Δ) (trans hxy hyz h)
+  (irref : ∀ {R ℓΓ ℓΔ x} (h : (x, x) ∈ R), motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (irref h))
+  (trans : ∀ {R ℓΓ ℓΔ x y z} (hxy : (x, y) ∈ R) (hyz : (y, z) ∈ R) (h : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)),
+    motive (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (trans hxy hyz h)
   )
   : ∀ {S : LabelledSequent α} (h : ⊢ˡᵍ[GL] S), motive S h := by
     rintro S ⟨h⟩;
@@ -196,13 +196,13 @@ end ProvableLabelledGentzen
 
 namespace ProvableLabelledGentzen
 
-variable {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)}
+variable {R : Finset LabelRel} {ℓΓ ℓΔ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
 /-- If `y` is reachable from `x` through a nonempty chain of relational atoms in `R`,
 then the relational atom `(x, y)` can be discharged by `Trans`. -/
 lemma of_transGen_insert (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
-  : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ Γ ⟹ˡ Δ) → ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
+  : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ ℓΓ ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   induction h with
   | single hxy =>
     simp [Finset.insert_eq_self.mpr hxy];
@@ -222,15 +222,15 @@ The single-edge case is `ProvableLabelledGentzen.loop`.
 - [Neg14, Lemma 5.2]
 -/
 lemma loopChain (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
-  (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind)
-  : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
+  (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : (y ∶ □A) ∈ ℓΔ := by grind)
+  : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   apply of_transGen_insert h;
   exact loop x y A;
 
 /-- `ReflTransGen` variant of `loopChain`, additionally covering the degenerate case `x = y`. -/
 lemma loopChain' (h : Relation.ReflTransGen (λ a b => (a, b) ∈ R) x y)
-  (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind)
-  : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
+  (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : (y ∶ □A) ∈ ℓΔ := by grind)
+  : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   rcases Relation.reflTransGen_iff_eq_or_transGen.mp h with rfl | h;
   . exact union y (□A);
   . exact loopChain h hx hy;
@@ -258,8 +258,8 @@ lemma transGen_of_isChain {l : List Label} (hl : l ≠ [])
 -/
 lemma loopChain_of_isChain {l : List Label} (hl : l ≠ [])
   (hchain : (x :: l).IsChain (λ a b => (a, b) ∈ R))
-  (hx : (x ∶ □A) ∈ Γ := by grind) (hy : ((l.getLast hl) ∶ □A) ∈ Δ := by grind)
-  : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) :=
+  (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : ((l.getLast hl) ∶ □A) ∈ ℓΔ := by grind)
+  : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
   loopChain (transGen_of_isChain hl hchain) hx hy
 
 
@@ -292,9 +292,9 @@ repeats along the chain and the sequent is provable.
 theorem provable_of_long_chain {X : Finset (Formula α)} (hX : X.card < n)
   (hchain : ∀ i : Fin n, (xs i.castSucc, xs i.succ) ∈ R)
   {f : Fin n → Formula α} (hf : ∀ i, f i ∈ X)
-  (hant : ∀ i : Fin n, ((xs i.succ) ∶ □(f i)) ∈ Γ)
-  (hsuc : ∀ i : Fin n, ((xs i.castSucc) ∶ □(f i)) ∈ Δ)
-  : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
+  (hant : ∀ i : Fin n, ((xs i.succ) ∶ □(f i)) ∈ ℓΓ)
+  (hsuc : ∀ i : Fin n, ((xs i.castSucc) ∶ □(f i)) ∈ ℓΔ)
+  : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   -- pigeonhole: more edges than elements of `X` forces two edges `i ≠ j` with `f i = f j`;
   -- whichever of `i.succ`, `j.succ` comes first, `loopChain'` closes the sequent via the repeat
   obtain ⟨i, -, j, -, hne, heq⟩ := Finset.exists_ne_map_eq_of_card_lt_of_maps_to

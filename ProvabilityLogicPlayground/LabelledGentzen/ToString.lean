@@ -30,53 +30,53 @@ namespace LogicGL
 
 /-- Curryst proof tree node for the proof search trace. -/
 partial def searchTraceAux [ToString α] (processed : Finset (LabelledFormula α))
-  (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) : String :=
-  let concl := LabelledSequent.toStringOfLists (R, Γ, Δ)
-  match Γ.find? (fun lf => decide (lf ∈ Δ)) with
+  (R : List LabelRel) (ℓΓ ℓΔ : List (LabelledFormula α)) : String :=
+  let concl := LabelledSequent.toStringOfLists (R, ℓΓ, ℓΔ)
+  match ℓΓ.find? (fun ℓA => decide (ℓA ∈ ℓΔ)) with
   | some _ => s!"rule(name: [Ax], ${concl}$)"
   | none =>
-  match Γ.find? (fun lf : LabelledFormula α => decide (lf.formula = (⊥ : Formula α))) with
+  match ℓΓ.find? (fun ℓA : LabelledFormula α => decide (ℓA.formula = (⊥ : Formula α))) with
   | some _ => s!"rule(name: [$bot$L], ${concl}$)"
   | none =>
   match R.find? (fun p => decide (p.1 = p.2)) with
   | some _ => s!"rule(name: [Irref], ${concl}$)"
   | none =>
-  match impRTarget? Γ Δ with
+  match impRTarget? ℓΓ ℓΔ with
   | some (x, A, B) =>
     s!"rule(name: [$->R$], \
-      {searchTraceAux processed R ((x ∶ A) :: Γ) ((x ∶ B) :: Δ.erase (x ∶ A 🡒 B))}, ${concl}$)"
+      {searchTraceAux processed R ((x ∶ A) :: ℓΓ) ((x ∶ B) :: ℓΔ.erase (x ∶ A 🡒 B))}, ${concl}$)"
   | none =>
-  match impLTarget? Γ Δ with
+  match impLTarget? ℓΓ ℓΔ with
   | some (x, A, B) =>
     s!"rule(name: [$->L$], \
-      {searchTraceAux processed R (Γ.erase (x ∶ A 🡒 B)) ((x ∶ A) :: Δ)}, \
-      {searchTraceAux processed R ((x ∶ B) :: Γ.erase (x ∶ A 🡒 B)) Δ}, ${concl}$)"
+      {searchTraceAux processed R (ℓΓ.erase (x ∶ A 🡒 B)) ((x ∶ A) :: ℓΔ)}, \
+      {searchTraceAux processed R ((x ∶ B) :: ℓΓ.erase (x ∶ A 🡒 B)) ℓΔ}, ${concl}$)"
   | none =>
-  match boxLTarget? R Γ with
+  match boxLTarget? R ℓΓ with
   | some (_, y, A) =>
-    s!"rule(name: [$class(\"unary\", square)L$], {searchTraceAux processed R ((y ∶ A) :: Γ) Δ}, ${concl}$)"
+    s!"rule(name: [$class(\"unary\", square)L$], {searchTraceAux processed R ((y ∶ A) :: ℓΓ) ℓΔ}, ${concl}$)"
   | none =>
   match transTarget? R with
   | some (x, _, z) =>
-    s!"rule(name: [Trans], {searchTraceAux processed ((x, z) :: R) Γ Δ}, ${concl}$)"
+    s!"rule(name: [Trans], {searchTraceAux processed ((x, z) :: R) ℓΓ ℓΔ}, ${concl}$)"
   | none =>
-  match loopTarget? R Γ Δ with
+  match loopTarget? R ℓΓ ℓΔ with
   | some _ => s!"rule(name: [Loop], ${concl}$)"
   | none =>
-  match lobTarget? processed R Γ Δ with
+  match lobTarget? processed R ℓΓ ℓΔ with
   | some (x, A) =>
-    let y := (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).freshLabel;
+    let y := (R.toFinset ⸴ ℓΓ.toFinset ⟹ˡ ℓΔ.toFinset).freshLabel;
     let preds := (R.filter (fun p => p.2 = x)).map Prod.fst;
     s!"rule(name: [$class(\"unary\", square)R^\"Löb\"$], \
       {searchTraceAux (insert (x ∶ □A) processed)
-        (preds.map (fun w => (w, y)) ++ (x, y) :: R) ((y ∶ □A) :: Γ)
-        ((y ∶ A) :: Δ.erase (x ∶ □A))}, ${concl}$)"
+        (preds.map (fun w => (w, y)) ++ (x, y) :: R) ((y ∶ □A) :: ℓΓ)
+        ((y ∶ A) :: ℓΔ.erase (x ∶ □A))}, ${concl}$)"
   | none => s!"rule(name: [$?$], ${concl}$)"
 
 /-- Typst source rendering the proof-search trace as a `curryst` proof tree document. -/
-def searchTrace0 [ToString α] (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) : String :=
+def searchTrace0 [ToString α] (R : List LabelRel) (ℓΓ ℓΔ : List (LabelledFormula α)) : String :=
   s!"#import \"@preview/curryst:0.6.0\": rule, prooftree\n\n\
-    #context prooftree(\n  {searchTraceAux ∅ R Γ Δ},\n  stroke: text.fill + 0.05em\n)"
+    #context prooftree(\n  {searchTraceAux ∅ R ℓΓ ℓΔ},\n  stroke: text.fill + 0.05em\n)"
 
 /-- Decide whether `A` is a theorem of GL, displaying the proof-search trace or `⊬ A`. -/
 def decideTrace0 [ToString α] (A : Formula α) : String :=
