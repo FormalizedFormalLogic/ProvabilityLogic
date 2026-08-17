@@ -217,13 +217,14 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Th
 /-- Interpreting a letterless substitution instance is interpreting under the composed
 realization. -/
 lemma interpret_substLetterless {g : α → LetterlessFormula} {A : Formula α} :
-  (A.substLetterless g).interpret 𝔅 = (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A := by
+  (A.substLetterless g).interpret 𝔅 =
+  A.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 := by
   induction A <;> simp_all [Formula.substLetterless, LetterlessFormula.interpret, Formula.interpret];
 
 /-- On letterless formulas (`Formula Empty`), `Formula.interpret` does not depend on the
 realization and coincides with `LetterlessFormula.interpret`. -/
 lemma interpret_letterless {f : Realization Empty L} {A : LetterlessFormula} :
-  f 𝔅 A = A.interpret 𝔅 := by
+  Formula.interpret f 𝔅 A = A.interpret 𝔅 := by
   induction A with
   | atom a => exact a.elim;
   | bot => rfl;
@@ -337,10 +338,10 @@ theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
     apply iff_provable_GLPoint3_provable_GL_of_letterless.mp;
     rw [Formula.lift_substLetterless];
     exact Logic.sumNormal.subst (s := fun a => LetterlessFormula.lift (g a)) hA;
-  have h₂ : T ⊢ (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A := by
+  have h₂ : T ⊢ A.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 := by
     have := LogicGL.arithmetical_soundness (𝔅 := 𝔅) (f := f.1) hGL;
     rwa [LetterlessFormula.interpret_lift, Formula.interpret_substLetterless] at this;
-  have h₃ : T ⊢ (f A) 🡘 (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A :=
+  have h₃ : T ⊢ (f A) 🡘 A.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 :=
     Formula.interpret_iff_congr (f₁ := f.1) (fun a => hg₂ a) A;
   cl_prover [h₂, h₃];
 
@@ -431,12 +432,12 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   intro hprov;
   -- `f* A` is provably equivalent to `interpret 𝔅 B₀`
   have hequiv :
-    𝗜𝚺₁ ⊢ (A.standardInterpret ⟨σ⟩ T) 🡘
-      (A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T) :=
+    𝗜𝚺₁ ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T A) 🡘
+      ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ) T A) :=
     Formula.interpret_iff_congr (fun a => hσ₂ a) A;
-  have h₁ : T ⊢ A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T := by
-    have h : T ⊢ (A.standardInterpret ⟨σ⟩ T) 🡘
-        (A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T) :=
+  have h₁ : T ⊢ (⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ) T A := by
+    have h : T ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T A) 🡘
+        ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ) T A) :=
       Entailment.WeakerThan.pbl hequiv;
     cl_prover [hprov, h];
   have h₂ : T ⊢ B₀.interpret T.standardProvability := by

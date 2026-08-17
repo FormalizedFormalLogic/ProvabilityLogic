@@ -367,7 +367,7 @@ theorem provable_reflection_of_mem_not_LogicD :
       ∈ (T.provabilityLogicRelativeTo U : Logic (Option α)) := hsub hBGL;
   -- The completion of `GL{B}`: the provability logic relative to `U₁ := T + {g(B)}`.
   set U₁ : FirstOrder.ArithmeticTheory :=
-    𝗜𝚺₁ ∪ (Set.range (fun g : Realization (Option α) ℒₒᵣ => B.standardInterpret g T))
+    𝗜𝚺₁ ∪ (Set.range (fun g : Realization (Option α) ℒₒᵣ => g T B))
     with hU₁;
   haveI : 𝗜𝚺₁ ⪯ U₁ := inferInstance;
   have hBI : B ∈ (T.provabilityLogicRelativeTo U₁ : Logic (Option α)) := by
@@ -389,7 +389,7 @@ theorem provable_reflection_of_mem_not_LogicD :
   set f₀ : Realization (Option α) ℒₒᵣ := ⟨fun _ => ⊥⟩ with hf₀;
   obtain ⟨⟨s, hs_sub⟩, hs⟩ := LO.FirstOrder.Theory.compact_add_right (hs₀I f₀);
   obtain ⟨G, -, hG_cov⟩ := finite_preimage_choice s Set.univ
-    (fun g : Realization (Option α) ℒₒᵣ => B.standardInterpret g T)
+    (fun g : Realization (Option α) ℒₒᵣ => g T B)
     (fun σ' hσ' => by
       obtain ⟨g, hg⟩ := hs_sub hσ';
       exact ⟨g, Set.mem_univ g, hg⟩);
@@ -429,11 +429,9 @@ theorem provable_reflection_of_mem_not_LogicD :
     exact provabilityLogic_mdp (provabilityLogic_of_GL hdn)
       (provabilityLogic_mdp (provabilityLogic_of_GL hbr) hconj);
   -- Combine everything at the arithmetical level.
-  have w₂ : U ⊢ s.conj 🡒 (LetterlessFormula.lift (TBBMinus _ pf) :
-      Formula (Option α)).standardInterpret f₀ T :=
+  have w₂ : U ⊢ s.conj 🡒 f₀ T (LetterlessFormula.lift (TBBMinus _ pf) : Formula (Option α)) :=
     Entailment.WeakerThan.pbl hs;
-  have w₃ : U ⊢ ((LetterlessFormula.lift (TBBMinus _ pf) :
-      Formula (Option α)).standardInterpret f₀ T) 🡒 ⊥ :=
+  have w₃ : U ⊢ (f₀ T (LetterlessFormula.lift (TBBMinus _ pf) : Formula (Option α))) 🡒 ⊥ :=
     hnots₀ f₀;
   have w₁ : U ⊢ (∼((T.standardProvability σ) 🡒 σ)) 🡒 s.conj := by
     apply right_Fconj!_intro;
@@ -442,15 +440,15 @@ theorem provable_reflection_of_mem_not_LogicD :
     set g' : Realization (Option α) ℒₒᵣ :=
       ⟨fun x => match x with | none => σ | some a => g.val (some a)⟩ with hg';
     have hfact := hdisj g';
-    have e₁ : B.standardInterpret g' T = B.standardInterpret g T := by
+    have e₁ : g' T B = g T B := by
       apply Formula.interpret_congr_atoms;
       intro a ha;
       have := hBatoms ha;
       rw [Formula.atoms_map] at this;
       obtain ⟨b, -, rfl⟩ := Finset.mem_image.mp this;
       rfl;
-    have e₂ : (B ⋎ ((□(#(none : Option α))) 🡒 (#(none : Option α)))).standardInterpret g' T
-        = ((B.standardInterpret g' T 🡒 ⊥) 🡒 ((T.standardProvability σ) 🡒 σ)) := rfl;
+    have e₂ : g' T (B ⋎ ((□(#(none : Option α))) 🡒 (#(none : Option α))))
+        = ((g' T B 🡒 ⊥) 🡒 ((T.standardProvability σ) 🡒 σ)) := rfl;
     rw [e₂, e₁] at hfact;
     cl_prover [hfact];
   cl_prover [w₁, w₂, w₃];

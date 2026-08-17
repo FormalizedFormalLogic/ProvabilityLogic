@@ -885,13 +885,13 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     set C : Formula α := ⋀ (Δ.image LetterlessFormula.lift) with hC;
     have ha : (C 🡒 A) ∈ LogicGL := by
       apply (LogicGL.uniformRealization_spec (T := T) (C 🡒 A)).mp;
-      show T ⊢ C.standardInterpret f₀ T 🡒 A.standardInterpret f₀ T;
+      show T ⊢ f₀ T C 🡒 f₀ T A;
       apply Entailment.C!_trans ?_ hs;
       apply Entailment.right_Fconj!_intro;
       intro σ hσ;
       obtain ⟨B, hBΔ, rfl⟩ := hΔ_cov σ hσ;
       rw [show (LetterlessFormula.standardInterpret T B)
-        = (LetterlessFormula.lift B : Formula α).standardInterpret f₀ T from
+        = f₀ T (LetterlessFormula.lift B : Formula α) from
         (LetterlessFormula.interpret_lift (f := f₀)).symm];
       have hmem : (C 🡒 LetterlessFormula.lift B) ∈ LogicGL := by
         show ⊢ʰ[GL] (C 🡒 LetterlessFormula.lift B);
