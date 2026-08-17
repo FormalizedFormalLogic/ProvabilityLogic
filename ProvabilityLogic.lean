@@ -64,7 +64,6 @@ public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.GLPlusBoxBot.Basic
 public import ProvabilityLogic.Logic.GLPoint2.Basic
 public import ProvabilityLogic.Logic.GLPoint3.Basic
-public import ProvabilityLogic.Logic.GLPoint3.Completeness
 public import ProvabilityLogic.Logic.GLPoint3.Letterless
 public import ProvabilityLogic.Logic.GLPoint3OplusBoxBot.Basic
 public import ProvabilityLogic.Logic.Grz.Basic

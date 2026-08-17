@@ -240,8 +240,6 @@ theorem provability_TFAE [DecidableEq α] : [
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
 
-/-- `S`-provability is characterized by eventual forcing along the chain of the tail models of
-concrete finite `GL`-models. -/
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
     A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
       ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →

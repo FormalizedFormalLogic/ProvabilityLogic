@@ -171,16 +171,15 @@ namespace Kripke
 
 open Model in
 theorem soundness (h : ⊢ᵍ[GL] S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M ⊧ S := by
-  obtain ⟨p⟩ := h;
   intro _ M M_finiteGL;
-  induction p with
+  induction h with
   | axm A => exact validate_gentzen_axm
   | botL => exact validate_gentzen_botL
-  | wkL h _ ih => exact validate_gentzen_wkL ih;
-  | wkR h _ ih => exact validate_gentzen_wkR ih;
-  | impL _ _ ih₁ ih₂ => exact validate_gentzen_impL ih₁ ih₂
-  | impR _ ih => exact validate_gentzen_impR ih
-  | boxGL _ ih => exact validate_gentzen_boxGL ih
+  | wkL h h' ih => exact validate_gentzen_wkL ih;
+  | wkR h h' ih => exact validate_gentzen_wkR ih;
+  | impL h₁ h₂ ih₁ ih₂ => exact validate_gentzen_impL ih₁ ih₂
+  | impR h ih => exact validate_gentzen_impR ih
+  | boxGL h ih => exact validate_gentzen_boxGL ih
 
 theorem finite_soundness (h : ⊢ᵍ[GL] S) : ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ S := λ _ _ M [M.IsFiniteGL] => soundness h M
 

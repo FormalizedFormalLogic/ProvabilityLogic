@@ -8,77 +8,78 @@ public section
 
 namespace LogicGL
 
-variable {α : Type*} [DecidableEq α] {A B C : Formula α}
+variable {α : Type*} {A B C D : Formula α}
 
 open ProvableHilbert Model.World
 
-/-- The implication-transitivity tautology is a GL theorem. -/
 theorem imp_trans : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 A 🡒 C) ∈ LogicGL := by
+  classical
   apply Kripke.completeness;
   grind;
 
-omit [DecidableEq α] in
-/-- Contraposition: from `A 🡒 B` derive `∼B 🡒 ∼A`. -/
 theorem contra (h : (A 🡒 B) ∈ LogicGL) : (∼B 🡒 ∼A) ∈ LogicGL :=
   mdp (elimContra (A := ∼A) (B := ∼B))
     (impTrans dne (impTrans h dni))
 
-omit [DecidableEq α] in
-/-- Axiom `4` transported through `◇`: `◇◇A 🡒 ◇A`. -/
 theorem dia4 : (◇◇A 🡒 ◇A) ∈ LogicGL :=
   contra (impTrans modal4 (boxImp dni))
 
-/-- From `∼(A ⋏ ∼B)` derive `A 🡒 B`. -/
-theorem imp_of_not_and_not : (∼(A ⋏ ∼B) 🡒 (A 🡒 B)) ∈ LogicGL := by
+theorem imp_of_not_and_not [DecidableEq α] : (∼(A ⋏ ∼B) 🡒 (A 🡒 B)) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-/-- Commutativity of conjunction: `(A ⋏ B) 🡒 (B ⋏ A)`. -/
-theorem conj_comm : ((A ⋏ B) 🡒 (B ⋏ A)) ∈ LogicGL := by
+theorem conj_comm [DecidableEq α] : ((A ⋏ B) 🡒 (B ⋏ A)) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-/-- Distributivity of conjunction over disjunction: `(A ⋏ (B ⋎ C)) 🡒 ((A ⋏ B) ⋎ (A ⋏ C))`. -/
-theorem distrib_and_or : ((A ⋏ (B ⋎ C)) 🡒 ((A ⋏ B) ⋎ (A ⋏ C))) ∈ LogicGL := by
+theorem and_congr_right (h : (B 🡒 C) ∈ LogicGL) : ((A ⋏ B) 🡒 (A ⋏ C)) ∈ LogicGL :=
+  ctxAndIntroRule andL (impTrans andR h)
+
+theorem distrib_and_or [DecidableEq α] : ((A ⋏ (B ⋎ C)) 🡒 ((A ⋏ B) ⋎ (A ⋏ C))) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-omit [DecidableEq α] in
-/-- Monotonicity of disjunction in the left disjunct: from `A 🡒 B` derive
-`(A ⋎ C) 🡒 (B ⋎ C)`. -/
+theorem bridge_impL_imp [DecidableEq α] :
+  (((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D)) ∈ LogicGL := by
+  apply Kripke.completeness;
+  grind;
+
+theorem bridge_impR_imp [DecidableEq α] :
+  (((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D))) ∈ LogicGL := by
+  apply Kripke.completeness;
+  grind;
+
 theorem or_imp_left (h : (A 🡒 B) ∈ LogicGL) : ((A ⋎ C) 🡒 (B ⋎ C)) ∈ LogicGL :=
   orElim' (impTrans h orL) orR
 
-/-- `◇⊥` derives `⊥`. -/
-theorem dia_bot : (◇(⊥ : Formula α) 🡒 ⊥) ∈ LogicGL := by
+theorem dia_bot [DecidableEq α] : (◇(⊥ : Formula α) 🡒 ⊥) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-omit [DecidableEq α] in
-/-- Monotonicity of `◇`: from `A 🡒 B` derive `◇A 🡒 ◇B`. -/
 theorem diaImp (h : (A 🡒 B) ∈ LogicGL) : (◇A 🡒 ◇B) ∈ LogicGL :=
   contra (boxImp (contra h))
 
-/-- `□A ⋏ ◇B` derives `◇(A ⋏ B)`. -/
-theorem imp_dia_and : ((□A ⋏ ◇B) 🡒 ◇(A ⋏ B)) ∈ LogicGL := by
+theorem dia_neg_imp_not_box : (◇(∼A) 🡒 ∼□A) ∈ LogicGL := contra (boxImp dni)
+
+theorem not_box_imp_dia_neg : (∼□A 🡒 ◇(∼A)) ∈ LogicGL := contra (boxImp dne)
+
+theorem dia_of_not_box_imp_not_box : (◇(∼□A) 🡒 ∼□A) ∈ LogicGL :=
+  impTrans (diaImp not_box_imp_dia_neg) (impTrans dia4 dia_neg_imp_not_box)
+
+theorem imp_dia_and [DecidableEq α] : ((□A ⋏ ◇B) 🡒 ◇(A ⋏ B)) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-/-- Diamond case split: `◇A 🡒 (◇(A ⋏ B) ⋎ ◇(A ⋏ ∼B))`. -/
-theorem dia_cases : (◇A 🡒 (◇(A ⋏ B) ⋎ ◇(A ⋏ ∼B))) ∈ LogicGL := by
+theorem dia_cases [DecidableEq α] : (◇A 🡒 (◇(A ⋏ B) ⋎ ◇(A ⋏ ∼B))) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 
-/-- From `∼□A` derive `◇(□A ⋏ ∼A)`, the Hilbert-level terminal-box-refuter fact. -/
-theorem dia_boxRefuter : (∼□A 🡒 ◇(□A ⋏ ∼A)) ∈ LogicGL :=
+theorem dia_boxRefuter [DecidableEq α] : (∼□A 🡒 ◇(□A ⋏ ∼A)) ∈ LogicGL :=
   contra (impTrans (boxImp (imp_of_not_and_not (A := □A) (B := A))) modalL)
 
-/-- The conditional `LogicGLPoint3` dichotomy: from `□((⊡∼A) 🡒 ∼B) ⋎ □((⊡∼B) 🡒 ∼A)`
-(the `LogicGLPoint3` axiom, with `A` and `B` substituted for its negations), derive that
-`◇A ⋏ ◇B` implies one of `◇(A ⋏ B)`, `◇(A ⋏ ◇B)`, or `◇(B ⋏ ◇A)`. -/
-theorem weakPoint3_dichotomy :
-    (((□((⊡(∼A)) 🡒 ∼B)) ⋎ (□((⊡(∼B)) 🡒 ∼A))) 🡒
-      ((◇A ⋏ ◇B) 🡒 ((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A)))) ∈ LogicGL := by
+theorem weakPoint3_dichotomy [DecidableEq α] :
+  (((□((⊡(∼A)) 🡒 ∼B)) ⋎ (□((⊡(∼B)) 🡒 ∼A))) 🡒
+    ((◇A ⋏ ◇B) 🡒 ((◇(A ⋏ B) ⋎ ◇(A ⋏ ◇B)) ⋎ ◇(B ⋏ ◇A)))) ∈ LogicGL := by
   apply Kripke.completeness;
   intro κ _ M _ x h hAB;
   have hAB' := forces_and.mp hAB;
@@ -118,33 +119,49 @@ theorem weakPoint3_dichotomy :
       exact forces_or.mpr (Or.inl (forces_or.mpr (Or.inr
         (forces_dia.mpr ⟨y, hxy, forces_and.mpr ⟨hyA, forces_dia.mpr ⟨w, hyw, hwB⟩⟩⟩))));
 
-end LogicGL
+section
+
+variable {Γ Δ : FormulaFinset α}
+
+theorem imp_fconj_box_box [DecidableEq α] : (⋀Γ.box 🡒 ⋀Γ.box.box) ∈ LogicGL := by
+  apply imp_fconj_of_forall;
+  intro C hC;
+  obtain ⟨B', hB', rfl⟩ := Finset.mem_image.mp hC;
+  obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hB';
+  exact impTrans (imp_fconj_of_mem (Finset.mem_image_of_mem _ hB)) modal4;
+
+theorem imp_box_conj_box [DecidableEq α] : (⋀Γ.box 🡒 □⋀Γ.box) ∈ LogicGL :=
+  impTrans imp_fconj_box_box imp_conj_box
+
+theorem imp_box_union [DecidableEq α] : (⋀Γ.box 🡒 □(⋀(Γ.box ∪ Γ))) ∈ LogicGL :=
+  impTrans (impTrans (ctxAndIntroRule imp_box_conj_box imp_conj_box) imp_box_and)
+    (boxImp (imp_fconj_union Γ.box Γ))
+
+theorem imp_not_fdisj_of_forall (h : ∀ A ∈ Δ, (B 🡒 ∼A) ∈ LogicGL) : (B 🡒 ∼(⋁ Δ)) ∈ LogicGL :=
+  impTrans dni (contra (imp_fdisj_elim (fun A hA => impTrans dni (contra (h A hA)))))
+
+theorem imp_not_fdisj_fconj_not [DecidableEq α] :
+  (∼(⋁ Δ) 🡒 ⋀ (Δ.image (fun A => ∼A))) ∈ LogicGL := by
+  apply imp_fconj_of_forall;
+  intro C hC;
+  obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hC;
+  exact contra (imp_mem_fdisj hA);
+
+end
 
 /-! ### Examples from the meta-mathematical applications of `GL`
-
-Ground instances (over `Formula ℕ`, with a fixed atom `#0` standing in for the schema
-variable used in the paper) of the meta-mathematical examples discussed there, checked
-automatically via `LogicGL.decidableMem` (itself running the labelled proof search
-`search0`). The kernel-level `decide` tactic gets stuck unfolding `search0`'s
-well-founded recursion, so `native_decide` (trusting the compiler) is used instead;
-`#eval decide (... ∈ LogicGL)` confirms the same results via the same instance.
 
 - [MPB23, §6.3]
 -/
 
-/-- Undecidability of consistency: if `PA` does not prove its own inconsistency, then its
-consistency is undecidable. -/
 example : ∼□□⊥ 🡒 (∼□(∼□⊥) ⋏ ∼□(∼∼□⊥)) ∈ @LogicGL ℕ := by native_decide
 
-/-- Undecidability of Gödel's formula: if `A` is a fixed point of `¬□A` and `PA` does not
-prove its own inconsistency, then `A` is undecidable in `PA`. -/
 example : (□((#0) 🡘 ∼□#0) ⋏ ∼□□⊥) 🡒 (∼□#0 ⋏ ∼□(∼#0)) ∈ @LogicGL ℕ := by native_decide
 
-/-- Reflection and iterated consistency. -/
 example : □((□(#0) 🡒 #0) 🡒 ◇◇⊤) 🡒 ◇◇⊤ 🡒 □#0 🡒 #0 ∈ @LogicGL ℕ := by native_decide
 
-/-- Formalised Gödel's second incompleteness theorem: if `PA` is consistent, it cannot
-prove its own consistency. -/
 example : ∼□⊥ 🡒 ∼□◇⊤ ∈ @LogicGL ℕ := by native_decide
+
+end LogicGL
 
 end
