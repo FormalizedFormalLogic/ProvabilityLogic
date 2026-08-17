@@ -5,10 +5,10 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 /-!
 # The strong interpretation and the boxdot translation
 
-The strong interpretation of a formula, sending `□A` to `(A.strongInterpret f) ⋏ 𝔅 (A.strongInterpret f)`
-instead of `𝔅 (A.interpret f)`, and its equivalence with the interpretation of the boxdot
-translate. Used by `ProvabilityLogic.ProvabilityLogic.Grz.Basic` to establish the arithmetical
-completeness of `Grz`.
+The strong interpretation of a formula, sending `□A` to
+`(A.strongInterpret f 𝔅) ⋏ 𝔅 (A.strongInterpret f 𝔅)` instead of `𝔅 (A.interpret f 𝔅)`, and its
+equivalence with the interpretation of the boxdot translate. Used by
+`ProvabilityLogic.ProvabilityLogic.Grz.Basic` to establish the arithmetical completeness of `Grz`.
 
 - [Gol78]
 - [Boo80]
@@ -26,21 +26,22 @@ variable {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T] {𝔅 : Provability T₀ T}
 namespace Formula
 
 omit [L.DecidableEq] in
-/-- The strong interpretation sending `□A` to `(A.strongInterpret f) ⋏ 𝔅 (A.strongInterpret f)`
-instead of `𝔅 (A.interpret f)`. -/
+/-- The strong interpretation sending `□A` to
+`(A.strongInterpret f 𝔅) ⋏ 𝔅 (A.strongInterpret f 𝔅)` instead of `𝔅 (A.interpret f 𝔅)`. -/
 @[grind]
-def strongInterpret (f : Realization α 𝔅) : Formula α → FirstOrder.Sentence L
+def strongInterpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 : Provability T₀ T) :
+  Formula α → FirstOrder.Sentence L
   | #a    => f.val a
   | ⊥     => ⊥
-  | A 🡒 B => (A.strongInterpret f) 🡒 (B.strongInterpret f)
-  | □A    => (A.strongInterpret f) ⋏ 𝔅 (A.strongInterpret f)
+  | A 🡒 B => (A.strongInterpret f 𝔅) 🡒 (B.strongInterpret f 𝔅)
+  | □A    => (A.strongInterpret f 𝔅) ⋏ 𝔅 (A.strongInterpret f 𝔅)
 
-variable {f : Realization α 𝔅} {A : Formula α}
+variable {f : Realization α L} {A : Formula α}
 
 /-- The interpretation of the boxdot translate of `A` is `T`-provably equivalent to the strong
 interpretation of `A`. -/
 lemma iff_interpret_boxdot_strongInterpret_inside [𝔅.HBL2] :
-  T ⊢ f (Aᵇ) 🡘 A.strongInterpret f := by
+  T ⊢ f 𝔅 (Aᵇ) 🡘 A.strongInterpret f 𝔅 := by
   induction A with
   | atom a => simp [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
   | bot => simp only [Formula.boxdotTranslate, strongInterpret, Formula.interpret]; cl_prover;
@@ -65,7 +66,7 @@ lemma iff_interpret_boxdot_strongInterpret_inside [𝔅.HBL2] :
 /-- `T` proves the interpretation of the boxdot translate of `A` iff it proves the strong
 interpretation of `A`. -/
 lemma iff_interpret_boxdot_strongInterpret [𝔅.HBL2] :
-  T ⊢ f (Aᵇ) ↔ T ⊢ A.strongInterpret f := by
+  T ⊢ f 𝔅 (Aᵇ) ↔ T ⊢ A.strongInterpret f 𝔅 := by
   constructor;
   . intro h; exact (C_of_E_mp! iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
   . intro h; exact (C_of_E_mpr! iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
@@ -74,11 +75,11 @@ lemma iff_interpret_boxdot_strongInterpret [𝔅.HBL2] :
 the strong interpretation of `A`. -/
 lemma iff_models_interpret_boxdot_strongInterpret
   {M} [Nonempty M] [Structure L M] [M↓[L] ⊧* T] [𝔅.HBL2] [𝔅.SoundOn M] :
-  M↓[L] ⊧ f (Aᵇ) ↔ M↓[L] ⊧ A.strongInterpret f := by
+  M↓[L] ⊧ f 𝔅 (Aᵇ) ↔ M↓[L] ⊧ A.strongInterpret f 𝔅 := by
   induction A with
   | box A ih =>
-    suffices (M↓[L] ⊧ f (Aᵇ)) ∧ (M↓[L] ⊧ 𝔅 (f (Aᵇ))) ↔
-        (M↓[L] ⊧ A.strongInterpret f) ∧ (M↓[L] ⊧ 𝔅 (A.strongInterpret f)) by
+    suffices (M↓[L] ⊧ f 𝔅 (Aᵇ)) ∧ (M↓[L] ⊧ 𝔅 (f 𝔅 (Aᵇ))) ↔
+        (M↓[L] ⊧ A.strongInterpret f 𝔅) ∧ (M↓[L] ⊧ 𝔅 (A.strongInterpret f 𝔅)) by
       simpa [Formula.boxdotTranslate, Formula.interpret, strongInterpret] using this;
     constructor;
     . rintro ⟨h₁, h₂⟩;
