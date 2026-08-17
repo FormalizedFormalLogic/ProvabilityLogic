@@ -5,17 +5,10 @@ public import ProvabilityLogic.Kripke.Preservation
 public import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
-Transport of a model, and of a rooted model, along an equivalence of its world type. Forcing
-(at every world, resp. at the root), validity and the `GL`/`GLPoint3` finite model classes are
-all preserved, so a countermodel may freely be re-indexed by any type in bijection with its
-worlds — in particular by a type in another universe.
-
-Specializing the equivalence to `Finite.equivFin` presents every finite model as a *concrete*
-model, one whose worlds are literally `Fin n`. Since a concrete model lives in `Type 0`, it can
-in turn be re-indexed into an arbitrary universe (take `Equiv.ulift`), which is what makes it a
-usable normal form.
-
-This is routine infrastructure with no counterpart in the literature.
+Transport of a model, and of a rooted model, along an equivalence of its world type. Forcing,
+validity and the `GL`/`GLPoint3` finite model classes are preserved. Specializing the equivalence
+to `Finite.equivFin` presents every finite model as a *concrete* model, one whose worlds are
+literally `Fin n`.
 -/
 
 @[expose]
@@ -36,8 +29,7 @@ def reindex (M : Model κ α) (e : κ ≃ κ') : Model κ' α where
   Rel' x y := M.Rel' (e.symm x) (e.symm y)
   Val' x a := M.Val' (e.symm x) a
 
-/-- `M` and `M.reindex e` are bisimilar via `x ↦ e x`, since the frame and the valuation of
-`M.reindex e` are literally those of `M` transported through the bijection `e`. -/
+/-- `M` and `M.reindex e` are bisimilar via `x ↦ e x`. -/
 def reindexBisimulation (M : Model κ α) (e : κ ≃ κ') : M ⇄ M.reindex e where
   toRel x y := y = e x
   atomic := by
@@ -50,14 +42,12 @@ def reindexBisimulation (M : Model κ α) (e : κ ≃ κ') : M ⇄ M.reindex e w
     rintro x y y' rfl hR;
     exact ⟨e.symm y', by simp, by simpa [reindex, Model.Rel] using hR⟩;
 
-/-- Forcing is preserved by re-indexing a model: a formula is forced at `e x` in `M.reindex e`
-iff it is forced at `x` in `M`. -/
+/-- Forcing is preserved by re-indexing a model. -/
 lemma forces_reindex_iff {x : M.World} :
   e x ⊩[M.reindex e] A ↔ x ⊩[M] A :=
   (World.modal_equivalent_of_bisimilar (M.reindexBisimulation e) rfl).symm
 
-/-- Forcing is preserved by re-indexing a model, stated at an arbitrary world `y` of
-`M.reindex e` rather than at one of the form `e x`. -/
+/-- Forcing is preserved by re-indexing a model, stated at an arbitrary world. -/
 lemma forces_reindex_iff' {y : (M.reindex e).World} :
   y ⊩[M.reindex e] A ↔ e.symm y ⊩[M] A := by
   simpa using forces_reindex_iff (M := M) (e := e) (x := e.symm y);
@@ -68,9 +58,8 @@ instance [IsTrans _ M.Rel] : IsTrans _ (M.reindex e).Rel where
 instance [Std.Irrefl M.Rel] : Std.Irrefl (M.reindex e).Rel where
   irrefl := fun x => Std.Irrefl.irrefl (r := M.Rel) (e.symm x)
 
-/-- Finiteness of the worlds transfers along `e`. This is deliberately not an `instance`: its
-head would be the bare `Finite κ'`, which turns every `Equiv` in context into a source of
-`Finite` instances and makes typeclass search loop. -/
+/-- Finiteness of the worlds transfers along `e`. Not an `instance`: its head would be the bare
+`Finite κ'`, which makes typeclass search loop. -/
 lemma finite_reindex [Finite M.World] : Finite (M.reindex e).World := Finite.of_equiv _ e
 
 instance [M.IsFiniteGL] : (M.reindex e).IsFiniteGL where
@@ -96,8 +85,7 @@ namespace RootedModel
 
 variable {M : RootedModel κ α} {e : κ ≃ κ'} {A : Formula α}
 
-/-- The rooted model obtained from `M` by re-indexing its world type: the frame and the
-valuation are those of `M.toModel.reindex e`, and `e M.root.1` is again a root. -/
+/-- The rooted model obtained from `M` by transporting its world type along `e`. -/
 def reindex (M : RootedModel κ α) (e : κ ≃ κ') : RootedModel κ' α where
   toModel := M.toModel.reindex e
   root := ⟨e M.root.1, by
@@ -125,17 +113,9 @@ end
 
 section Concrete
 
-/-- A *concrete* model is one whose worlds are literally `Fin n`. Every finite model is a
-concrete model up to re-indexing (`Model.toConcrete`), and a concrete model lives in `Type 0`,
-hence can be re-indexed into any universe.
-
-The size is a plain `n : ℕ` with `[NeZero n]`, as in Mathlib's own `Fin` API, rather than an
-`ℕ+`: `PNat.val` is not reducible, so instance search cannot see through `Fin ↑n` to instances
-registered for a literal `Fin n`. -/
-abbrev ConcreteModel (n : ℕ) [NeZero n] (α : Type w) := Model (Fin n) α
-
-/-- A rooted `ConcreteModel`. -/
-abbrev ConcreteRootedModel (n : ℕ) [NeZero n] (α : Type w) := RootedModel (Fin n) α
+/- The size of a concrete model is kept as a plain `n : ℕ` with `[NeZero n]`, as in Mathlib's own
+`Fin` API, rather than as an `ℕ+`: `PNat.val` is not reducible, so instance search cannot see
+through `Fin ↑n` to instances registered for a literal `Fin n`. -/
 
 variable {κ : Type u} [Nonempty κ] [Finite κ] {α : Type w}
 
@@ -143,15 +123,13 @@ namespace Model
 
 variable {M : Model κ α} {A : Formula α}
 
-/-- The number of worlds of a model. Being `Nat.card`, it takes the junk value `0` on an
-infinite model; only the finite case carries the `NeZero` instance below, and hence only
-finite models can be presented concretely. -/
+/-- The number of worlds of a model, as a `Nat.card` (hence `0` on an infinite model). -/
 noncomputable def card (M : Model κ α) : ℕ := Nat.card M.World
 
 instance (M : Model κ α) : NeZero M.card := ⟨Nat.card_pos.ne'⟩
 
 /-- Any finite model is a concrete model up to re-indexing. -/
-noncomputable def toConcrete (M : Model κ α) : ConcreteModel M.card α :=
+noncomputable def toConcrete (M : Model κ α) : Model (Fin M.card) α :=
   M.reindex (Finite.equivFin κ)
 
 /-- Forcing is preserved by presenting a finite model as a concrete one. -/
@@ -160,7 +138,7 @@ lemma forces_toConcrete_iff {x : M.World} :
   forces_reindex_iff
 
 /-- Forcing is preserved by presenting a finite model as a concrete one, stated at an arbitrary
-world of the concrete model. -/
+world. -/
 lemma forces_toConcrete_iff' {x : M.toConcrete.World} :
   x ⊩[M.toConcrete] A ↔ (Finite.equivFin κ).symm x ⊩[M] A :=
   forces_reindex_iff'
@@ -181,7 +159,7 @@ namespace RootedModel
 variable {M : RootedModel κ α} {A : Formula α}
 
 /-- Any finite rooted model is a concrete rooted model up to re-indexing. -/
-noncomputable def toConcrete (M : RootedModel κ α) : ConcreteRootedModel M.card α :=
+noncomputable def toConcrete (M : RootedModel κ α) : RootedModel (Fin M.card) α :=
   M.reindex (Finite.equivFin κ)
 
 instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL :=

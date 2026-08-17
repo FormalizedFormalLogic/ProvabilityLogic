@@ -217,7 +217,7 @@ theorem provability_TFAE [DecidableEq α] : [
       M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A),
     (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
     ⊢ᵍ[S] (∅ ⟹[1] {A}),
-    ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] → ∀ (tail : M.World),
+    ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ (tail : M.World),
       ∃ k : ℕ, ∀ m : ℕ, k ≤ m → toTail.chainPoint m ⊩[(M.toTail tail).toModel] A
   ].TFAE := by
   tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
@@ -241,10 +241,9 @@ theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
 
 /-- `S`-provability is characterized by eventual forcing along the chain of the tail models of
-concrete (`Fin n`-indexed) finite `GL`-models. A re-indexing restatement of the tail-model
-characterization, with no counterpart in the literature. -/
+concrete finite `GL`-models. -/
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
-    A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGL] →
+    A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
       ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
         toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
   provability_TFAE.out 0 5

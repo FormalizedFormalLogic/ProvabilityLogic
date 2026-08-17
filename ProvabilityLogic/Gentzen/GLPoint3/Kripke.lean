@@ -801,12 +801,9 @@ theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
     exact (c.truthLemma A 0).2 (c.subset_head.suc_subset hA)
 
 /-- Gentzen completeness for `LogicGLPoint3`: a sequent valid in every concrete finite `GL.3`
-model is provable. Proved by contraposition, from the rooted finite countermodel of
-`exists_finite_countermodel`, which is already presented over `Fin (n + 1)`, i.e. concrete. This
-is the strongest form: `∀ κ, ...` hypotheses over an arbitrary (possibly universe-polymorphic)
-world type follow from it via `Model.toConcrete`. -/
+model is provable. -/
 theorem completeness {S : Sequent α}
-    (h : ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGLPoint3] → M ⊧ S) :
+    (h : ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ S) :
     ⊢ᵍ[GLPoint3] S := by
   by_contra hS
   obtain ⟨n, M, hFin, hant, hsuc⟩ := exists_finite_countermodel hS

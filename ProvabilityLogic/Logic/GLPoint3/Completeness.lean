@@ -168,8 +168,8 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ᵍ[GLPoint3] (∅ ⟹ {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A,
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGLPoint3] → M ⊧ A,
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A,
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
 ].TFAE := by
   tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
   tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
@@ -214,16 +214,16 @@ theorem iff_forces_root [DecidableEq α] {A : Formula α} :
 
 theorem iff_forces_concrete [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteModel n α), [M.IsFiniteGLPoint3] → M ⊧ A :=
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A :=
   provability_TFAE.out 0 4
 
 theorem iff_forces_root_concrete [DecidableEq α] {A : Formula α} :
   A ∈ LogicGLPoint3 ↔
-  ∀ (n : ℕ) [NeZero n] (M : ConcreteRootedModel n α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
+  ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
-/-- A rooted concrete (`Fin n`-indexed) finite `GL.3`-model witnessing `A` not forced at its root
-shows `A` is not a `GL.3`-theorem. -/
+/-- A rooted concrete finite `GL.3`-model refuting `A` at its root shows `A` is not a
+`GL.3`-theorem. -/
 theorem not_mem_of_concrete_root_not_forces [DecidableEq α] {A : Formula α} {n : ℕ} [NeZero n]
     (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3] (h : M.root.1 ⊮[_] A) : A ∉ LogicGLPoint3 :=
   fun hA => h <| iff_forces_root_concrete.mp hA n M
