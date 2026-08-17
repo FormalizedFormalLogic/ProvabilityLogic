@@ -43,6 +43,12 @@ theorem LogicA.of_provable {A : Formula α} (h : A ∈ LogicA) : ⊢ᵍᶜ[A] (�
 sequent calculus for `A`, at level `1`. -/
 theorem LogicA.iff_provable_provableGentzenWithCut {A : Formula α} :
   A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) := by
-  sorry
+  constructor
+  · exact LogicA.of_provable
+  · intro h
+    apply LogicA.iff_provable_forces_graftOmega_root.mpr
+    intro κ _ M _ a Rra
+    exact Model.World.forces_singleton_sequent.mp
+      (LogicA.GentzenWithCutProvable.soundness_graftOmega h M a Rra)
 
 end
