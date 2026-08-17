@@ -5,6 +5,7 @@ public import ProvabilityLogic.Formula.Countable
 public import ProvabilityLogic.Formula.Letterless
 public import ProvabilityLogic.Formula.Modalized
 public import ProvabilityLogic.Formula.Substitution
+public import ProvabilityLogic.Gentzen.A.Basic
 public import ProvabilityLogic.Gentzen.D.Basic
 public import ProvabilityLogic.Gentzen.D.Kripke
 public import ProvabilityLogic.Gentzen.D.WithCut

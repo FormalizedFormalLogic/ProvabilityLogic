@@ -9,11 +9,6 @@ open LogicGL
 
 variable {α : Type u} [DecidableEq α]
 
-/-- A `Sequent` with a level `l : Fin 2`, used in the two-level sequent calculus for `S`. -/
-structure TwoLayeredSequent (α : Type u) extends Sequent α where
-  level : Fin 2
-notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
-
 /--
   Sequent calculus for the logic `S` with levels `l : Fin 2`.
   Level `0` matches `LogicGL.ProofGentzen`; level `1` adds the reflexivity rule `boxL`.
