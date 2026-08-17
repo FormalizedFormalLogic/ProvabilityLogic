@@ -110,7 +110,7 @@ lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : For
   replace hne : ¬(Model.World.rank M.root.1 < A.subfmls.prebox.card + 1) :=
     fun h => (Model.World.forces_neg.mp hne) (Model.iff_rank_lt_forces_boxItr_bot.mp h);
   obtain ⟨z, Rrz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank
-    (Γ := A.subfmls.prebox) rfl (x := M.root.1) (by omega);
+    (Γ := A.subfmls.prebox) (x := M.root.1) (by omega);
   apply Model.World.forces_dia.mpr;
   use z, Rrz;
   apply Model.World.forces_fconj.mpr;

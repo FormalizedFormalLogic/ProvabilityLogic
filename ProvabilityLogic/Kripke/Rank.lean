@@ -68,17 +68,14 @@ forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
 
 - [AB05, Lemma 26]
 -/
-lemma exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
-    ∀ {n : ℕ} {Γ : FormulaFinset α}, Γ.card = n → ∀ {x : M.World}, n < x.rank →
-    ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
-  intro n;
-  induction n with
+lemma exists_forces_axiomT_of_card_lt_rank [DecidableEq α] {Γ : FormulaFinset α} {x : M.World}
+    (hx : Γ.card < x.rank) : ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
+  generalize hn : Γ.card = n at hx;
+  induction n generalizing Γ x with
   | zero =>
-    intro Γ hΓ x hx;
     obtain ⟨z, Rxz, _⟩ := of_lt_rank hx;
-    exact ⟨z, Rxz, by simp [Finset.card_eq_zero.mp hΓ]⟩;
+    exact ⟨z, Rxz, by simp [Finset.card_eq_zero.mp hn]⟩;
   | succ n ih =>
-    intro Γ hΓ x hx;
     obtain ⟨z, Rxz, hz⟩ := of_lt_rank hx;
     by_cases hall : ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B);
     . exact ⟨z, Rxz, hall⟩;
@@ -86,8 +83,9 @@ lemma exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
       obtain ⟨B₀, hB₀, hfail⟩ := hall;
       obtain ⟨hbox, hnB⟩ := Model.World.not_forces_imp.mp hfail;
       obtain ⟨z', Rzz', hz'⟩ := ih
-        (Γ := Γ.erase B₀) (by rw [Finset.card_erase_of_mem hB₀, hΓ]; rfl)
-        (x := z) (by omega);
+        (Γ := Γ.erase B₀) (x := z)
+        (by rw [Finset.card_erase_of_mem hB₀, hn]; rfl)
+        (by omega);
       use z', IsTrans.trans _ _ _ Rxz Rzz';
       intro B hB;
       by_cases hBB₀ : B = B₀;
