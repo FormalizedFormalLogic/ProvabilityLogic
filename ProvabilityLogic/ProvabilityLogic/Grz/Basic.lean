@@ -41,14 +41,16 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 -/
 theorem arithmetical_completeness_iff_of_infinity_height (height : T.height = (⊤ : ℕ∞))
     [DecidableEq α] :
-    A ∈ LogicGrz ↔ (∀ f : StandardRealization α T, T ⊢ A.strongInterpret f) := by
+    A ∈ LogicGrz ↔
+      (∀ f : Realization α ℒₒᵣ, T ⊢ A.strongInterpret f T.standardProvability) := by
   rw [← iff_provable_boxdot_GL_provable_Grz,
     LogicGL.arithmetical_completeness_iff_of_infinity_height height];
   exact forall_congr' fun f => Formula.iff_interpret_boxdot_strongInterpret;
 
 /-- **Arithmetical completeness of `Grz`** for a `𝚺₁`-sound theory. -/
 theorem arithmetical_completeness_iff_of_sigma1_sound [T.SoundOnHierarchy 𝚺 1] [DecidableEq α] :
-    A ∈ LogicGrz ↔ (∀ f : StandardRealization α T, T ⊢ A.strongInterpret f) :=
+    A ∈ LogicGrz ↔
+      (∀ f : Realization α ℒₒᵣ, T ⊢ A.strongInterpret f T.standardProvability) :=
   arithmetical_completeness_iff_of_infinity_height
     (FirstOrder.Arithmetic.height_eq_top_of_sigma1_sound T)
 
@@ -63,7 +65,8 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ↓
   strong interpretation of `A` holds in the standard model under every standard realization.
 -/
 theorem arithmetical_completeness_model_iff [DecidableEq α] :
-    A ∈ LogicGrz ↔ (∀ f : StandardRealization α T, ℕ↓[ℒₒᵣ] ⊧ A.strongInterpret f) := by
+    A ∈ LogicGrz ↔
+      (∀ f : Realization α ℒₒᵣ, ℕ↓[ℒₒᵣ] ⊧ A.strongInterpret f T.standardProvability) := by
   rw [← iff_provable_boxdot_S_provable_Grz, LogicS.arithmetical_completeness_iff (T := T)];
   exact forall_congr' fun f => Formula.iff_models_interpret_boxdot_strongInterpret;
 

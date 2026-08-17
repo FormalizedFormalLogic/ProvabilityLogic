@@ -55,7 +55,7 @@ it sends every propositional variable to a consistency assertion.
 
 - [VS83, Theorem 1]
 -/
-def Realization.IsConsistencyRealization {𝔅 : Provability T₀ T} (f : Realization α 𝔅) : Prop :=
+def Realization.IsConsistencyRealization (f : Realization α L) (𝔅 : Provability T₀ T) : Prop :=
   ∀ a, 𝔅.IsConsistencyAssertion (f.val a)
 
 /--
@@ -65,11 +65,11 @@ assertion: the type of interpretations `φ` in Theorem 1.
 - [VS83, Theorem 1]
 -/
 abbrev ConsistencyRealization (α : Type*) (𝔅 : Provability T₀ T) :=
-  {f : Realization α 𝔅 // f.IsConsistencyRealization}
+  {f : Realization α L // f.IsConsistencyRealization 𝔅}
 
 instance {𝔅 : Provability T₀ T} :
     CoeFun (ConsistencyRealization α 𝔅) (fun _ => Formula α → FirstOrder.Sentence L) :=
-  ⟨fun f => Formula.interpret f.1⟩
+  ⟨fun f => Formula.interpret f.1 𝔅⟩
 
 end
 
@@ -217,13 +217,13 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Th
 /-- Interpreting a letterless substitution instance is interpreting under the composed
 realization. -/
 lemma interpret_substLetterless {g : α → LetterlessFormula} {A : Formula α} :
-  (A.substLetterless g).interpret 𝔅 = Formula.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α 𝔅) A := by
+  (A.substLetterless g).interpret 𝔅 = (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A := by
   induction A <;> simp_all [Formula.substLetterless, LetterlessFormula.interpret, Formula.interpret];
 
 /-- On letterless formulas (`Formula Empty`), `Formula.interpret` does not depend on the
 realization and coincides with `LetterlessFormula.interpret`. -/
-lemma interpret_letterless {f : Realization Empty 𝔅} {A : LetterlessFormula} :
-  Formula.interpret f A = A.interpret 𝔅 := by
+lemma interpret_letterless {f : Realization Empty L} {A : LetterlessFormula} :
+  f 𝔅 A = A.interpret 𝔅 := by
   induction A with
   | atom a => exact a.elim;
   | bot => rfl;
@@ -337,10 +337,10 @@ theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
     apply iff_provable_GLPoint3_provable_GL_of_letterless.mp;
     rw [Formula.lift_substLetterless];
     exact Logic.sumNormal.subst (s := fun a => LetterlessFormula.lift (g a)) hA;
-  have h₂ : T ⊢ Formula.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α 𝔅) A := by
-    have := LogicGL.arithmetical_soundness (f := f.1) hGL;
+  have h₂ : T ⊢ (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A := by
+    have := LogicGL.arithmetical_soundness (𝔅 := 𝔅) (f := f.1) hGL;
     rwa [LetterlessFormula.interpret_lift, Formula.interpret_substLetterless] at this;
-  have h₃ : T ⊢ (f A) 🡘 Formula.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α 𝔅) A :=
+  have h₃ : T ⊢ (f A) 🡘 (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 A :=
     Formula.interpret_iff_congr (f₁ := f.1) (fun a => hg₂ a) A;
   cl_prover [h₂, h₃];
 
@@ -431,12 +431,15 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   intro hprov;
   -- `f* A` is provably equivalent to `interpret 𝔅 B₀`
   have hequiv :
-    𝗜𝚺₁ ⊢ (Formula.interpret (⟨σ⟩ : StandardRealization α T) A) 🡘
-      (Formula.interpret (⟨fun a => (ψ a).interpret T.standardProvability⟩ : StandardRealization α T) A) :=
+    𝗜𝚺₁ ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T.standardProvability A) 🡘
+      ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
+        T.standardProvability A) :=
     Formula.interpret_iff_congr (fun a => hσ₂ a) A;
-  have h₁ : T ⊢ Formula.interpret (⟨fun a => (ψ a).interpret T.standardProvability⟩ : StandardRealization α T) A := by
-    have h : T ⊢ (Formula.interpret (⟨σ⟩ : StandardRealization α T) A) 🡘
-        (Formula.interpret (⟨fun a => (ψ a).interpret T.standardProvability⟩ : StandardRealization α T) A) :=
+  have h₁ : T ⊢ (⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
+      T.standardProvability A := by
+    have h : T ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T.standardProvability A) 🡘
+        ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
+          T.standardProvability A) :=
       Entailment.WeakerThan.pbl hequiv;
     cl_prover [hprov, h];
   have h₂ : T ⊢ B₀.interpret T.standardProvability := by
@@ -444,7 +447,7 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   -- soundness of `GL` yields `T ⊢ 𝔅^[n+1]⊥ 🡒 𝔅^[n]⊥`, hence `T ⊢ 𝔅^[n]⊥` by Löb
   have h₃ : T ⊢ LetterlessFormula.interpret T.standardProvability (TBB M.height) := by
     have h := LogicGL.arithmetical_soundness'
-      (f := (⟨Empty.elim⟩ : StandardRealization Empty T)) hGL;
+      (𝔅 := T.standardProvability) (f := (⟨Empty.elim⟩ : Realization Empty ℒₒᵣ)) hGL;
     rw [Formula.interpret_letterless] at h;
     simp only [LetterlessFormula.interpret] at h;
     exact h ⨀ h₂;

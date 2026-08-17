@@ -13,9 +13,10 @@ Main definitions and results:
 - `LO.FirstOrder.ArithmeticTheory.localReflection`: the local reflection schema
   `Rfn_Γₙ(T) = { Pr_T(σ) 🡒 σ | σ a Γₙ-sentence }`.
 - `LogicD.arithmetical_soundness` (the `⊇` half): if `A ∈ LogicD` then
-  `(T ∪ T.localReflection 𝚺 1) ⊢ f A` for every standard realization `f` for `T`.
-- `LogicD.arithmetical_completeness` (the `⊆` half): if `(T ∪ T.localReflection 𝚺 1) ⊢ f A`
-  for every standard realization `f` for `T`, then `A ∈ LogicD`; `sorry` for now.
+  `(T ∪ T.localReflection 𝚺 1) ⊢ f T.standardProvability A` for every realization `f`.
+- `LogicD.arithmetical_completeness` (the `⊆` half): if
+  `(T ∪ T.localReflection 𝚺 1) ⊢ f T.standardProvability A` for every realization `f`,
+  then `A ∈ LogicD`; `sorry` for now.
 - `LO.FirstOrder.ArithmeticTheory.unbounded_localReflection`: the instance of the
   unboundedness theorem needed for the `⊆` half; `sorry` for now.
 - `LogicD.eq_provabilityLogicRelativeTo_localReflection`: the resulting equality
@@ -45,8 +46,8 @@ extended by the local `𝚺₁`-reflection schema for `T`.
 
 - [AB05, Example 60]
 -/
-theorem arithmetical_soundness (h : A ∈ LogicD) (f : StandardRealization α T) :
-    (T ∪ T.localReflection 𝚺 1) ⊢ f A := by
+theorem arithmetical_soundness (h : A ∈ LogicD) (f : Realization α ℒₒᵣ) :
+    (T ∪ T.localReflection 𝚺 1) ⊢ f T.standardProvability A := by
   -- By `LogicD.substlessInduction`: theorems of `GL` are already provable in `T`, and
   -- the interpretations of the axioms `P` and `D` are `𝚺₁`-reflection instances (at `⊥`
   -- and at `f (□A ⋎ □B)` respectively).
@@ -65,8 +66,8 @@ is provable in `𝗣𝗔 + Rfn_Σ₁(𝗣𝗔)` under every standard realization
 
 - [AB05, Example 60]
 -/
-theorem arithmetical_soundness_PA (h : A ∈ LogicD) (f : StandardRealization α 𝗣𝗔) :
-  (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) ⊢ f A :=
+theorem arithmetical_soundness_PA (h : A ∈ LogicD) (f : Realization α ℒₒᵣ) :
+  (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) ⊢ f 𝗣𝗔.standardProvability A :=
   arithmetical_soundness h f
 
 
@@ -85,7 +86,8 @@ The arithmetical construction (a `D`-analogue of the Solovay sentences used for
 - [AB05, Example 60 (completeness half)]
 -/
 theorem arithmetical_completeness
-    (H : ∀ f : StandardRealization α T, T ∪ T.localReflection 𝚺 1 ⊢ f A) : A ∈ LogicD := by
+    (H : ∀ f : Realization α ℒₒᵣ, T ∪ T.localReflection 𝚺 1 ⊢ f T.standardProvability A) :
+    A ∈ LogicD := by
   -- If `A ∉ LogicD` then by `iff_provable_D_provable_GL` the formula `⋀A.subfmlsD 🡒 A`
   -- is not provable in `GL`, so there is a finite rooted GL countermodel whose root
   -- forces all axiom `D` instances built from subformulas of `A` but refutes `A`.

@@ -345,8 +345,8 @@ lemma interpret_boxItr : interpret 𝔅 (□^[n]A) = 𝔅^[n] (interpret 𝔅 A)
 
 noncomputable abbrev standardInterpret (T : FirstOrder.ArithmeticTheory) [T.Δ₁] := interpret T.standardProvability
 
-lemma interpret_lift {α : Type*} {f : Realization α 𝔅} {A : LetterlessFormula} :
-    Formula.interpret f (LetterlessFormula.lift A) = LetterlessFormula.interpret 𝔅 A := by
+lemma interpret_lift {α : Type*} {f : Realization α L} {A : LetterlessFormula} :
+    Formula.interpret f 𝔅 (LetterlessFormula.lift A) = LetterlessFormula.interpret 𝔅 A := by
   induction A with
   | atom a => exact a.elim
   | _ => simp_all [Formula.interpret, LetterlessFormula.interpret, LetterlessFormula.lift]
@@ -481,7 +481,7 @@ lemma letterless_arithmetical_completeness : A ∈ LogicGL ↔ T ⊢ A.interpret
   rw [LogicGL.arithmetical_completeness_iff_of_sigma1_sound (T := T)];
   constructor;
   . intro h;
-    have := h (⟨Empty.elim⟩ : StandardRealization Empty T);
+    have := h (⟨Empty.elim⟩ : Realization Empty ℒₒᵣ);
     rwa [← hlift, LetterlessFormula.interpret_lift] at this;
   . intro h f;
     rwa [← hlift, LetterlessFormula.interpret_lift];
@@ -883,12 +883,12 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     set C : Formula α := ⋀ (Δ.image LetterlessFormula.lift) with hC;
     have ha : (C 🡒 A) ∈ LogicGL := by
       apply (LogicGL.uniformRealization_spec (T := T) (C 🡒 A)).mp;
-      show T ⊢ Formula.interpret f₀ C 🡒 Formula.interpret f₀ A;
+      show T ⊢ f₀ T.standardProvability C 🡒 f₀ T.standardProvability A;
       apply Entailment.C!_trans ?_ hs;
       apply Entailment.right_Fconj!_intro;
       intro σ hσ;
       obtain ⟨B, hBΔ, rfl⟩ := hΔ_cov σ hσ;
-      rw [show (LetterlessFormula.standardInterpret T B) = Formula.interpret f₀ (LetterlessFormula.lift B) from
+      rw [show (LetterlessFormula.standardInterpret T B) = f₀ T.standardProvability (LetterlessFormula.lift B) from
         (LetterlessFormula.interpret_lift (f := f₀)).symm];
       have hmem : (C 🡒 LetterlessFormula.lift B) ∈ LogicGL := by
         show ⊢ʰ[GL] (C 🡒 LetterlessFormula.lift B);
