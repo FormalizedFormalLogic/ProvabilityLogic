@@ -173,6 +173,10 @@ theorem of_without_cut : ⊢ᵍ[A] S → ⊢ᵍᶜ[A] S := λ ⟨h⟩ => ⟨Gent
 theorem toGentzenWithCutProvableGL {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[GL] (Γ ⟹ Δ) :=
   ⟨GentzenWithCutProof.toGentzenWithCutProofGL h.some⟩
 
+/-- Level-`0` `LogicA`-with-cut provability implies cut-free `LogicGL`-Gentzen provability. -/
+theorem toProvableGentzenGL {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) : ⊢ᵍ[GL] (Γ ⟹ Δ) :=
+  LogicGL.ProvableGentzen.of_with_cut (toGentzenWithCutProvableGL h)
+
 lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[A] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩
 lemma botL (l) : ⊢ᵍᶜ[A] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨GentzenWithCutProof.botL l⟩
 lemma wkL (h : ⊢ᵍᶜ[A] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[A] (Γ' ⟹[l] Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
