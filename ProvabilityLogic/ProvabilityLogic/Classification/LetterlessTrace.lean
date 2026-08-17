@@ -231,11 +231,12 @@ lemma spectrum_TFAE : [
   tfae_have 1 → 2 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 2 → 3 := by
     intro h;
-    use ULift.{u} (Fin (n + 1)), inferInstance, uLiftFiniteLineModel n (α := α), inferInstance, inferInstance;
-    constructor;
-    . exact uLiftFiniteLineModel.height_eq;
-    . apply h;
-      exact uLiftFiniteLineModel.height_eq;
+    have e : (finiteLineModel n (α := α)).World ≃ ULift.{u} (Fin (n + 1)) := Equiv.ulift.symm;
+    have h₁ : ((finiteLineModel n (α := α)).reindex e).height = n :=
+      RootedModel.height_reindex.trans finiteLineModel.height_eq;
+    use ULift.{u} (Fin (n + 1)), inferInstance, (finiteLineModel n (α := α)).reindex e,
+      inferInstance, inferInstance;
+    exact ⟨h₁, h _ h₁⟩;
   tfae_have 3 → 1 := by grind [Model.iff_forces_lift_rank_mem_spectrum];
   tfae_have 1 → 4 := by grind [Model.iff_forces_rank_mem_spectrum];
   tfae_have 4 → 5 := by

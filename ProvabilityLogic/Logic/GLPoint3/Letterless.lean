@@ -9,7 +9,7 @@ public section
 open LogicGL
 
 /-- The finite line model is a finite linear GL model, being a strict linear order. -/
-instance {n : ℕ} : (finiteLineModel n).toModel.IsFiniteGLPoint3 where
+instance {n : ℕ} {α : Type*} : (finiteLineModel n (α := α)).toModel.IsFiniteGLPoint3 where
   toIsFiniteGL := inferInstance
   linear _ _ := lt_trichotomy _ _
 

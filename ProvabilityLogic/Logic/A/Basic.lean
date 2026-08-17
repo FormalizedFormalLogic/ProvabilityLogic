@@ -358,7 +358,7 @@ instance : (axiomDCountermodel n a).IsFiniteGL where
 instance : (axiomDCountermodel n a).IsGL := Model.instIsGLOfIsFiniteGL
 
 lemma rank_eq (x : (axiomDCountermodel n a).World) : x.rank = (n + 1) - x :=
-  finiteLineModel.rank_eq (n := n + 1) x
+  finiteLineModel.rank_eq (n := n + 1) (α := α) x
 
 lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
   simpa using rank_eq (a := a) (axiomDCountermodel n a).root.1;
