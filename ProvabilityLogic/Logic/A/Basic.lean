@@ -221,13 +221,13 @@ lemma root_forces_neg_boxItr_bot_imp
   -- Both `x ⊩[M] ∼□^[N]⊥` and `∀ n < N, x ⊩[M] TBB n` express `N ≤ x.rank`.
   haveI : Fintype M.World := Fintype.ofFinite _;
   by_contra hC;
-  obtain ⟨h₁, h₂⟩ := Model.World.not_forces_imp.mp hC;
+  obtain ⟨h₁, h₂⟩ := not_forces_imp.mp hC;
   apply h₂;
   apply hN M.toModel M.root.1;
   intro n hn;
   apply Model.iff_forces_TBB_neq_rank.mpr;
   have hge : ¬ M.root.1.rank < N :=
-    fun hc => (Model.World.forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
+    fun hc => (forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
   omega;
 
 /--
@@ -271,8 +271,8 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
     (not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA h);
   push Not at this;
   obtain ⟨κ, hne, M, hfgl, hroot⟩ := this;
-  obtain ⟨hdia, hnA⟩ := Model.World.not_forces_imp.mp hroot;
-  obtain ⟨r, hr, hrS⟩ := Model.World.forces_dia.mp hdia;
+  obtain ⟨hdia, hnA⟩ := not_forces_imp.mp hroot;
+  obtain ⟨r, hr, hrS⟩ := forces_dia.mp hdia;
   exact ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩;
 
 /--
@@ -296,7 +296,7 @@ theorem provability_TFAE : [
     haveI := RootedModel.graftOmega.isGL (M := M) (a := ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩) Rra;
     exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel)
       (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      (Model.World.forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
+      (forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
   tfae_have 3 → 1 := by
     intro h;
     by_contra hA;
@@ -304,7 +304,7 @@ theorem provability_TFAE : [
     apply hroot;
     have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
       intro B hB;
-      exact Model.World.forces_fconj.mp hrS _
+      exact forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
     exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
@@ -320,7 +320,7 @@ theorem provability_TFAE : [
     | mdp ihAB ihA => exact GentzenWithCutProvable.mdp ihAB ihA;
   tfae_have 4 → 3 := by
     intro h κ _ M _ a Rra;
-    exact Model.World.forces_singleton_sequent.mp
+    exact forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
   tfae_finish;
 
@@ -385,20 +385,20 @@ lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < 
   x ⊩[_] (□(#a) : Formula α) := by grind
 
 lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩[_] (□(#a) : Formula α) :=
-  Model.World.not_forces_box.mpr ⟨bad n, by grind, by grind⟩
+  not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
 lemma root_not_forces_axiomD_consequent :
   ¬(axiomDCountermodel n a).root.1 ⊩[_] ((□(#a) : Formula α) ⋎ □(#a)) :=
-  Model.World.not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
+  not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
 
 lemma root_forces_axiomD_antecedent :
   (axiomDCountermodel n a).root.1 ⊩[_] (□((□(#a) : Formula α) ⋎ □(#a))) :=
-  Model.World.forces_box.mpr fun _ hy =>
-    Model.World.forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
+  forces_box.mpr fun _ hy =>
+    forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
 
 lemma root_forces_neg_boxItr_bot :
   (axiomDCountermodel n a).root.1 ⊩[_] (∼(□^[n]⊥) : Formula α) := by
-  apply Model.World.forces_neg.mpr;
+  apply forces_neg.mpr;
   intro hc;
   have h := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
   rw [root_rank_eq] at h;
@@ -414,7 +414,7 @@ theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
   rintro ⟨n, hGL⟩;
   have h := LogicGL.concrete_root_forces_of_mem (axiomDCountermodel n a) hGL
     axiomDCountermodel.root_forces_neg_boxItr_bot;
-  rcases Model.World.forces_imp.mp h with h | h;
+  rcases forces_imp.mp h with h | h;
   · exact h axiomDCountermodel.root_forces_axiomD_antecedent;
   · exact axiomDCountermodel.root_not_forces_axiomD_consequent h;
 
