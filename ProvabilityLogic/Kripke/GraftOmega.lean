@@ -244,17 +244,21 @@ open Model.World
 
 variable [DecidableEq α] {A : Formula α}
 
+omit [DecidableEq α] in
 /--
-  Forcing preservation for ω-expansion: if `a` forces every axiom T instance for the boxed
-  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
-  chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
-  original model. The ω-analogue of `graft.mainlemma`.
+  Forcing preservation for ω-expansion over an arbitrary formula set `Φ` closed under the
+  immediate subformulas of its implications and boxes: if `a` forces every axiom T instance
+  for the boxed formulas of `Φ`, then for every `C ∈ Φ`, forcing at the grafted chain worlds
+  agrees with `a`, and forcing at the `inl` worlds agrees with the original model.
+  The ω-analogue of `graft.mainlemma`.
 
   - [Bek90, Lemma 5]
 -/
-lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
-  (Rra : M.root.1 ≺ (a : M.World)) :
-  ∀ {C : Formula α}, C ∈ A.subfmls →
+lemma mainlemma_of_closed [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Φ : FormulaFinset α}
+  (hbox : ∀ {B : Formula α}, □B ∈ Φ → B ∈ Φ)
+  (himp : ∀ {B C : Formula α}, (B 🡒 C) ∈ Φ → B ∈ Φ ∧ C ∈ Φ)
+  (a : M.ReflexiveWorldOf Φ) (Rra : M.root.1 ≺ (a : M.World)) :
+  ∀ {C : Formula α}, C ∈ Φ →
   (∀ i : ℕ, ((.inr i) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
     (.inl a) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C)) ∧
   (∀ x : M.World, ((.inl x) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔ x ⊩[M.toModel] C)) := by
@@ -263,7 +267,7 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
   induction C with
   | box B ihB =>
     intro hB;
-    obtain ⟨ihB₁, ihB₂⟩ := ihB (by grind);
+    obtain ⟨ihB₁, ihB₂⟩ := ihB (hbox hB);
     have h₂ : ∀ x : M.World,
         ((.inl x) ⊩[(M.graftOmega ⟨a, hane⟩).toModel] (□B) ↔ x ⊩[M.toModel] □B) := by
       intro x;
@@ -288,6 +292,22 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
         . exact h (.inl y) hay;
       . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
   | _ => grind;
+
+/--
+  Forcing preservation for ω-expansion: if `a` forces every axiom T instance for the boxed
+  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
+  chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
+  original model. The ω-analogue of `graft.mainlemma`.
+
+  - [Bek90, Lemma 5]
+-/
+lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
+  (Rra : M.root.1 ≺ (a : M.World)) :
+  ∀ {C : Formula α}, C ∈ A.subfmls →
+  (∀ i : ℕ, ((.inr i) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
+    (.inl a) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C)) ∧
+  (∀ x : M.World, ((.inl x) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔ x ⊩[M.toModel] C)) :=
+  mainlemma_of_closed (by grind) (by grind) a Rra
 
 end Mainlemma
 
