@@ -44,4 +44,9 @@ structure Saturated (S : Sequent α) where
 
 end Sequent
 
+/-- A `Sequent` with a level `l : Fin 2`, used by the two-level sequent calculi for `S` and `A`. -/
+structure TwoLayeredSequent (α : Type u) extends Sequent α where
+  level : Fin 2
+notation:50 Γ:51 " ⟹[" l "] " Δ:51 => TwoLayeredSequent.mk (Γ ⟹ Δ) l
+
 end

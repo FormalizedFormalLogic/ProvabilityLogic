@@ -97,40 +97,6 @@ section
 variable [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
 
 /--
-In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
-forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
-
-- [AB05, Lemma 26]
--/
-lemma Model.exists_forces_axiomT_of_card_lt_rank [DecidableEq α] :
-    ∀ {n : ℕ} {Γ : FormulaFinset α}, Γ.card = n → ∀ {x : M.World}, n < x.rank →
-    ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
-  intro n;
-  induction n with
-  | zero =>
-    intro Γ hΓ x hx;
-    obtain ⟨z, Rxz, _⟩ := Model.of_lt_rank hx;
-    exact ⟨z, Rxz, by simp [Finset.card_eq_zero.mp hΓ]⟩;
-  | succ n ih =>
-    intro Γ hΓ x hx;
-    obtain ⟨z, Rxz, hz⟩ := Model.of_lt_rank hx;
-    by_cases hall : ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B);
-    . exact ⟨z, Rxz, hall⟩;
-    . push Not at hall;
-      obtain ⟨B₀, hB₀, hfail⟩ := hall;
-      obtain ⟨hbox, hnB⟩ := Model.World.not_forces_imp.mp hfail;
-      obtain ⟨z', Rzz', hz'⟩ := ih
-        (Γ := Γ.erase B₀) (by rw [Finset.card_erase_of_mem hB₀, hΓ]; rfl)
-        (x := z) (by omega);
-      use z', IsTrans.trans _ _ _ Rxz Rzz';
-      intro B hB;
-      by_cases hBB₀ : B = B₀;
-      . subst hBB₀;
-        intro _;
-        exact hbox z' Rzz';
-      . exact hz' B (Finset.mem_erase.mpr ⟨hBB₀, hB⟩);
-
-/--
 The chain lemma: `GL ⊢ ∼□^[m+1]⊥ 🡒 ◇⋀{□B 🡒 B | □B ∈ Sub(A)}` where `m` is the
 number of boxed subformulas of `A`, instantiated for use in GL soundness proofs.
 
@@ -144,7 +110,7 @@ lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : For
   replace hne : ¬(Model.World.rank M.root.1 < A.subfmls.prebox.card + 1) :=
     fun h => (Model.World.forces_neg.mp hne) (Model.iff_rank_lt_forces_boxItr_bot.mp h);
   obtain ⟨z, Rrz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank
-    (Γ := A.subfmls.prebox) rfl (x := M.root.1) (by omega);
+    (Γ := A.subfmls.prebox) (x := M.root.1) (by omega);
   apply Model.World.forces_dia.mpr;
   use z, Rrz;
   apply Model.World.forces_fconj.mpr;

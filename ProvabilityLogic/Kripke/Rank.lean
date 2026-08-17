@@ -62,6 +62,38 @@ lemma iff_rank_eq_zero : x.rank = 0 ↔ ∀ y, ¬x ≺ y := by
 
 lemma of_lt_rank (hn : n < x.rank) : ∃ y : M.World, x ≺ y ∧ y.rank = n := cwfHeight_lt hn
 
+/--
+In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
+forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
+
+- [AB05, Lemma 26]
+-/
+lemma exists_forces_axiomT_of_card_lt_rank [DecidableEq α] {Γ : FormulaFinset α} {x : M.World}
+    (hx : Γ.card < x.rank) : ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
+  generalize hn : Γ.card = n at hx;
+  induction n generalizing Γ x with
+  | zero =>
+    obtain ⟨z, Rxz, _⟩ := of_lt_rank hx;
+    exact ⟨z, Rxz, by simp [Finset.card_eq_zero.mp hn]⟩;
+  | succ n ih =>
+    obtain ⟨z, Rxz, hz⟩ := of_lt_rank hx;
+    by_cases hall : ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B);
+    . exact ⟨z, Rxz, hall⟩;
+    . push Not at hall;
+      obtain ⟨B₀, hB₀, hfail⟩ := hall;
+      obtain ⟨hbox, hnB⟩ := Model.World.not_forces_imp.mp hfail;
+      obtain ⟨z', Rzz', hz'⟩ := ih
+        (Γ := Γ.erase B₀) (x := z)
+        (by rw [Finset.card_erase_of_mem hB₀, hn]; rfl)
+        (by omega);
+      use z', IsTrans.trans _ _ _ Rxz Rzz';
+      intro B hB;
+      by_cases hBB₀ : B = B₀;
+      . subst hBB₀;
+        intro _;
+        exact hbox z' Rzz';
+      . exact hz' B (Finset.mem_erase.mpr ⟨hBB₀, hB⟩);
+
 lemma exists_rank_terminal (x : M.World) : ∃ y, x ≺^[x.rank] y := iff_le_rank.mp (by simp)
 
 lemma terminal_rel_terminal (h : x ≺^[x.rank] y) : ∀ z, ¬y ≺ z := by

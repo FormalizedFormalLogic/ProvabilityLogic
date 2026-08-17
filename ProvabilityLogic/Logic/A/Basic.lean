@@ -1,5 +1,6 @@
 module
 
+public import ProvabilityLogic.Gentzen.A.Kripke
 public import ProvabilityLogic.Logic.D.Basic
 public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 
@@ -220,13 +221,13 @@ lemma root_forces_neg_boxItr_bot_imp
   -- Both `x ⊩[M] ∼□^[N]⊥` and `∀ n < N, x ⊩[M] TBB n` express `N ≤ x.rank`.
   haveI : Fintype M.World := Fintype.ofFinite _;
   by_contra hC;
-  obtain ⟨h₁, h₂⟩ := Model.World.not_forces_imp.mp hC;
+  obtain ⟨h₁, h₂⟩ := not_forces_imp.mp hC;
   apply h₂;
   apply hN M.toModel M.root.1;
   intro n hn;
   apply Model.iff_forces_TBB_neq_rank.mpr;
   have hge : ¬ M.root.1.rank < N :=
-    fun hc => (Model.World.forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
+    fun hc => (forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
   omega;
 
 /--
@@ -270,8 +271,8 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
     (not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA h);
   push Not at this;
   obtain ⟨κ, hne, M, hfgl, hroot⟩ := this;
-  obtain ⟨hdia, hnA⟩ := Model.World.not_forces_imp.mp hroot;
-  obtain ⟨r, hr, hrS⟩ := Model.World.forces_dia.mp hdia;
+  obtain ⟨hdia, hnA⟩ := not_forces_imp.mp hroot;
+  obtain ⟨r, hr, hrS⟩ := forces_dia.mp hdia;
   exact ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩;
 
 /--
@@ -286,8 +287,9 @@ theorem provability_TFAE : [
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A,
+  ⊢ᵍᶜ[A] (∅ ⟹[1] {A}),
+  ⊢ᵍ[A] (∅ ⟹[1] {A}),
 ].TFAE := by
   tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 2 → 3 := by
@@ -295,20 +297,33 @@ theorem provability_TFAE : [
     haveI := RootedModel.graftOmega.isGL (M := M) (a := ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩) Rra;
     exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel)
       (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      (Model.World.forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
+      (forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
   tfae_have 3 → 1 := by
     intro h;
     by_contra hA;
-    obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ :=
-      exists_reflexive_countermodel_of_not_mem_LogicA hA;
-    haveI := hne; haveI := hfgl;
+    obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ := exists_reflexive_countermodel_of_not_mem_LogicA hA;
+    apply hroot;
     have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
       intro B hB;
-      exact Model.World.forces_fconj.mp hrS _
+      exact forces_fconj.mp hrS _
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
-    apply hroot;
     exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
+  tfae_have 1 → 4 := by
+    intro h;
+    clear tfae_1_to_2 tfae_2_to_3 tfae_3_to_1;
+    induction h using LogicA.substlessInductionGP with
+    | GL h =>
+      apply GentzenWithCutProvable.liftUp;
+      apply GentzenWithCutProvable.of_without_cut;
+      exact LogicA.iff_provableGentzen_provable_zero.mp (LogicGL.iff_provableGentzen.mp h);
+    | GP n => exact GentzenWithCutProvable.neg_boxItr_bot n;
+    | mdp ihAB ihA => exact GentzenWithCutProvable.mdp ihAB ihA;
+  tfae_have 4 → 3 := by
+    intro h κ _ M _ a Rra;
+    exact forces_singleton_sequent.mp
+      (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
+  tfae_have 4 ↔ 5 := LogicA.sequent_TFAE.out 0 1
   tfae_finish;
 
 /--
@@ -320,14 +335,26 @@ theorem iff_provable_forces_graftOmega_root :
   A ∈ LogicA ↔
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
-    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
-      ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] A) :=
+    (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
   LogicA.provability_TFAE.out 0 2
+
+/--
+  `LogicA`-provability is characterized by provability in the with-cut two-layered
+  sequent calculus for `A`, at level `1`.
+-/
+theorem iff_provable_provableGentzenWithCut :
+  A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
+  LogicA.provability_TFAE.out 0 3
+
+/-- `LogicA`-provability is characterized by cut-free provability in the two-layered
+sequent calculus for `A`, at level `1`. -/
+theorem iff_provable_provableGentzen :
+  A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
+  LogicA.provability_TFAE.out 0 4
 
 end LogicA
 
-/-- `LogicA` is contained in `LogicD`; folklore, with no source cited. -/
-theorem LogicA_subset_LogicD [DecidableEq α] : (LogicA : Logic α) ⊆ LogicD := by
+theorem LogicA_subset_LogicD [DecidableEq α] : @LogicA α ⊆ LogicD := by
   intro A hA;
   obtain ⟨n, h⟩ := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp hA;
   exact Logic.sumQuasiNormal.mdp (LogicD.provable_of_provable_GL h) LogicD.provable_neg_boxItr_bot;
@@ -352,7 +379,6 @@ abbrev axiomDCountermodel (n : ℕ) (_a : α) : RootedModel (Fin (n + 2)) α whe
 
 namespace axiomDCountermodel
 
-instance : Fintype (axiomDCountermodel n a).World := inferInstance
 instance : (axiomDCountermodel n a).IsFiniteGL where
   finite := inferInstance
 instance : (axiomDCountermodel n a).IsGL := Model.instIsGLOfIsFiniteGL
@@ -367,20 +393,20 @@ lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < 
   x ⊩[_] (□(#a) : Formula α) := by grind
 
 lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩[_] (□(#a) : Formula α) :=
-  Model.World.not_forces_box.mpr ⟨bad n, by grind, by grind⟩
+  not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
 lemma root_not_forces_axiomD_consequent :
   ¬(axiomDCountermodel n a).root.1 ⊩[_] ((□(#a) : Formula α) ⋎ □(#a)) :=
-  Model.World.not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
+  not_forces_or.mpr ⟨root_not_forces_box_atom, root_not_forces_box_atom⟩
 
 lemma root_forces_axiomD_antecedent :
   (axiomDCountermodel n a).root.1 ⊩[_] (□((□(#a) : Formula α) ⋎ □(#a))) :=
-  Model.World.forces_box.mpr fun _ hy =>
-    Model.World.forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
+  forces_box.mpr fun _ hy =>
+    forces_or.mpr <| Or.inl <| forces_box_atom_of_ne_root hy
 
 lemma root_forces_neg_boxItr_bot :
   (axiomDCountermodel n a).root.1 ⊩[_] (∼(□^[n]⊥) : Formula α) := by
-  apply Model.World.forces_neg.mpr;
+  apply forces_neg.mpr;
   intro hc;
   have h := Model.iff_rank_lt_forces_boxItr_bot.mpr hc;
   rw [root_rank_eq] at h;
@@ -396,7 +422,7 @@ theorem LogicA.not_provable_axiomD [DecidableEq α] {a : α} :
   rintro ⟨n, hGL⟩;
   have h := LogicGL.concrete_root_forces_of_mem (axiomDCountermodel n a) hGL
     axiomDCountermodel.root_forces_neg_boxItr_bot;
-  rcases Model.World.forces_imp.mp h with h | h;
+  rcases forces_imp.mp h with h | h;
   · exact h axiomDCountermodel.root_forces_axiomD_antecedent;
   · exact axiomDCountermodel.root_not_forces_axiomD_consequent h;
 
@@ -405,7 +431,7 @@ theorem not_LogicD_subset_LogicA [DecidableEq α] {a : α} : ¬(@LogicD α ⊆ L
   exact LogicA.not_provable_axiomD (a := a) (h (LogicD.provable_axiomD (A := #a) (B := #a)));
 
 /-- `LogicA` is a proper sublogic of `LogicD`; folklore, with no source cited. -/
-theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : (LogicA : Logic α) ⊂ LogicD :=
+theorem LogicA_ssubset_LogicD [DecidableEq α] [Inhabited α] : @LogicA α ⊂ LogicD :=
   ⟨LogicA_subset_LogicD, not_LogicD_subset_LogicA (a := default)⟩
 
 end axiomD
