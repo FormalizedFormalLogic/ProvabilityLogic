@@ -482,9 +482,11 @@ lemma letterless_arithmetical_completeness : A ∈ LogicGL ↔ T ⊢ A.interpret
   constructor;
   . intro h;
     have := h (⟨Empty.elim⟩ : Realization Empty ℒₒᵣ);
-    rwa [← hlift, LetterlessFormula.interpret_lift] at this;
+    rw [← hlift] at this;
+    simpa only [LetterlessFormula.interpret_lift] using this;
   . intro h f;
-    rwa [← hlift, LetterlessFormula.interpret_lift];
+    rw [← hlift];
+    simpa only [LetterlessFormula.interpret_lift] using h;
 
 namespace LetterlessFormula
 
@@ -867,12 +869,12 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     | @mem₂ B hB =>
       intro f;
       obtain ⟨C, hC, rfl⟩ := hB;
-      rw [LetterlessFormula.interpret_lift];
+      simp only [LetterlessFormula.interpret_lift];
       apply Entailment.by_axm;
       simp only [Set.mem_union];
       exact Or.inr ⟨C, hC, rfl⟩;
     | @mdp B C _ _ ihBC ihB => intro f; exact (ihBC f) ⨀ (ihB f)
-    | @subst B s _ ihB => intro f; rw [Formula.interpret_subst]; exact ihB _
+    | @subst B s _ ihB => intro f; simp only [Formula.interpret_subst]; exact ihB _
   . intro h;
     let f₀ := LogicGL.uniformRealization (α := α) T;
     obtain ⟨⟨s, hs_sub⟩, hs⟩ := LO.FirstOrder.Theory.compact_add_right (h f₀);
@@ -883,12 +885,13 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     set C : Formula α := ⋀ (Δ.image LetterlessFormula.lift) with hC;
     have ha : (C 🡒 A) ∈ LogicGL := by
       apply (LogicGL.uniformRealization_spec (T := T) (C 🡒 A)).mp;
-      show T ⊢ f₀ T.standardProvability C 🡒 f₀ T.standardProvability A;
+      show T ⊢ C.standardInterpret f₀ T 🡒 A.standardInterpret f₀ T;
       apply Entailment.C!_trans ?_ hs;
       apply Entailment.right_Fconj!_intro;
       intro σ hσ;
       obtain ⟨B, hBΔ, rfl⟩ := hΔ_cov σ hσ;
-      rw [show (LetterlessFormula.standardInterpret T B) = f₀ T.standardProvability (LetterlessFormula.lift B) from
+      rw [show (LetterlessFormula.standardInterpret T B)
+        = (LetterlessFormula.lift B : Formula α).standardInterpret f₀ T from
         (LetterlessFormula.interpret_lift (f := f₀)).symm];
       have hmem : (C 🡒 LetterlessFormula.lift B) ∈ LogicGL := by
         show ⊢ʰ[GL] (C 🡒 LetterlessFormula.lift B);

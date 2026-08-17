@@ -342,12 +342,14 @@ theorem provable_reflection_of_mem_not_LogicD :
     have hTBBα : (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
       provable_TBB_of_mem_trace (hT ▸ Set.mem_univ n);
     intro g;
-    rw [← LetterlessFormula.eq_lift_TBB (α := Option α), LetterlessFormula.interpret_lift];
+    rw [← LetterlessFormula.eq_lift_TBB (α := Option α)];
+    simp only [LetterlessFormula.interpret_lift];
     have := hTBBα ⟨g.val ∘ some⟩;
-    rwa [← LetterlessFormula.eq_lift_TBB (α := α), LetterlessFormula.interpret_lift] at this;
+    rw [← LetterlessFormula.eq_lift_TBB (α := α)] at this;
+    simpa only [LetterlessFormula.interpret_lift] using this;
   have hAL' : (A.map some) ∈ (T.provabilityLogicRelativeTo U : Logic (Option α)) := by
     intro g;
-    rw [Formula.interpret_map];
+    simp only [Formula.interpret_map];
     exact hAL _;
   -- The Lemma 1 (§5) disjunction is a theorem of the provability logic at `Option α`.
   obtain ⟨B, hBS, hBatoms, hBGL⟩ :=
@@ -360,12 +362,12 @@ theorem provable_reflection_of_mem_not_LogicD :
     | mem₁ hB => exact subset_LogicA_of_univ_trace hT' hB;
     | mem₂ hB => obtain rfl := hB; exact hAL';
     | mdp _ _ ih₁ ih₂ => exact provabilityLogic_mdp ih₁ ih₂;
-    | subst _ ih => intro g; rw [Formula.interpret_subst]; exact ih _;
+    | subst _ ih => intro g; simp only [Formula.interpret_subst]; exact ih _;
   have hdisj : (B ⋎ ((□(#(none : Option α))) 🡒 (#(none : Option α))))
       ∈ (T.provabilityLogicRelativeTo U : Logic (Option α)) := hsub hBGL;
   -- The completion of `GL{B}`: the provability logic relative to `U₁ := T + {g(B)}`.
   set U₁ : FirstOrder.ArithmeticTheory :=
-    𝗜𝚺₁ ∪ (Set.range (fun g : Realization (Option α) ℒₒᵣ => g T.standardProvability B))
+    𝗜𝚺₁ ∪ (Set.range (fun g : Realization (Option α) ℒₒᵣ => B.standardInterpret g T))
     with hU₁;
   haveI : 𝗜𝚺₁ ⪯ U₁ := inferInstance;
   have hBI : B ∈ (T.provabilityLogicRelativeTo U₁ : Logic (Option α)) := by
@@ -387,7 +389,7 @@ theorem provable_reflection_of_mem_not_LogicD :
   set f₀ : Realization (Option α) ℒₒᵣ := ⟨fun _ => ⊥⟩ with hf₀;
   obtain ⟨⟨s, hs_sub⟩, hs⟩ := LO.FirstOrder.Theory.compact_add_right (hs₀I f₀);
   obtain ⟨G, -, hG_cov⟩ := finite_preimage_choice s Set.univ
-    (fun g : Realization (Option α) ℒₒᵣ => g T.standardProvability B)
+    (fun g : Realization (Option α) ℒₒᵣ => B.standardInterpret g T)
     (fun σ' hσ' => by
       obtain ⟨g, hg⟩ := hs_sub hσ';
       exact ⟨g, Set.mem_univ g, hg⟩);
@@ -427,11 +429,11 @@ theorem provable_reflection_of_mem_not_LogicD :
     exact provabilityLogic_mdp (provabilityLogic_of_GL hdn)
       (provabilityLogic_mdp (provabilityLogic_of_GL hbr) hconj);
   -- Combine everything at the arithmetical level.
-  have w₂ : U ⊢ s.conj 🡒 f₀ T.standardProvability
-      (LetterlessFormula.lift (TBBMinus _ pf) : Formula (Option α)) :=
+  have w₂ : U ⊢ s.conj 🡒 (LetterlessFormula.lift (TBBMinus _ pf) :
+      Formula (Option α)).standardInterpret f₀ T :=
     Entailment.WeakerThan.pbl hs;
-  have w₃ : U ⊢ (f₀ T.standardProvability
-      (LetterlessFormula.lift (TBBMinus _ pf) : Formula (Option α))) 🡒 ⊥ :=
+  have w₃ : U ⊢ ((LetterlessFormula.lift (TBBMinus _ pf) :
+      Formula (Option α)).standardInterpret f₀ T) 🡒 ⊥ :=
     hnots₀ f₀;
   have w₁ : U ⊢ (∼((T.standardProvability σ) 🡒 σ)) 🡒 s.conj := by
     apply right_Fconj!_intro;
@@ -440,15 +442,15 @@ theorem provable_reflection_of_mem_not_LogicD :
     set g' : Realization (Option α) ℒₒᵣ :=
       ⟨fun x => match x with | none => σ | some a => g.val (some a)⟩ with hg';
     have hfact := hdisj g';
-    have e₁ : g' T.standardProvability B = g T.standardProvability B := by
+    have e₁ : B.standardInterpret g' T = B.standardInterpret g T := by
       apply Formula.interpret_congr_atoms;
       intro a ha;
       have := hBatoms ha;
       rw [Formula.atoms_map] at this;
       obtain ⟨b, -, rfl⟩ := Finset.mem_image.mp this;
       rfl;
-    have e₂ : g' T.standardProvability (B ⋎ ((□(#(none : Option α))) 🡒 (#(none : Option α))))
-        = ((g' T.standardProvability B 🡒 ⊥) 🡒 ((T.standardProvability σ) 🡒 σ)) := rfl;
+    have e₂ : (B ⋎ ((□(#(none : Option α))) 🡒 (#(none : Option α)))).standardInterpret g' T
+        = ((B.standardInterpret g' T 🡒 ⊥) 🡒 ((T.standardProvability σ) 🡒 σ)) := rfl;
     rw [e₂, e₁] at hfact;
     cl_prover [hfact];
   cl_prover [w₁, w₂, w₃];

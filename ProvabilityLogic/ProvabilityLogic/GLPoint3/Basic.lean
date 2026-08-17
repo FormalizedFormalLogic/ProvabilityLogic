@@ -431,15 +431,12 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
   intro hprov;
   -- `f* A` is provably equivalent to `interpret 𝔅 B₀`
   have hequiv :
-    𝗜𝚺₁ ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T.standardProvability A) 🡘
-      ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
-        T.standardProvability A) :=
+    𝗜𝚺₁ ⊢ (A.standardInterpret ⟨σ⟩ T) 🡘
+      (A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T) :=
     Formula.interpret_iff_congr (fun a => hσ₂ a) A;
-  have h₁ : T ⊢ (⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
-      T.standardProvability A := by
-    have h : T ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T.standardProvability A) 🡘
-        ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ)
-          T.standardProvability A) :=
+  have h₁ : T ⊢ A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T := by
+    have h : T ⊢ (A.standardInterpret ⟨σ⟩ T) 🡘
+        (A.standardInterpret ⟨fun a => (ψ a).interpret T.standardProvability⟩ T) :=
       Entailment.WeakerThan.pbl hequiv;
     cl_prover [hprov, h];
   have h₂ : T ⊢ B₀.interpret T.standardProvability := by

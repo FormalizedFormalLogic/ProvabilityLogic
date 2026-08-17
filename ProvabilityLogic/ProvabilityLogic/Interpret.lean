@@ -32,6 +32,9 @@ instance : CoeFun (Realization α L)
   (fun _ ↦ ∀ {T₀ T : FirstOrder.Theory L}, Provability T₀ T → Formula α → FirstOrder.Sentence L) :=
   ⟨interpret⟩
 
+noncomputable abbrev standardInterpret (f : Realization α _) (T : FirstOrder.ArithmeticTheory)
+  [T.Δ₁] := interpret f T.standardProvability
+
 variable {f : Realization α L} {A : Formula α}
 
 @[simp, grind =]
@@ -118,7 +121,7 @@ end LetterlessFormula
 
 @[grind]
 def LO.FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α :=
-  {A | ∀ f : Realization α ℒₒᵣ, U ⊢ f T.standardProvability A}
+  {A | ∀ f : Realization α ℒₒᵣ, U ⊢ A.standardInterpret f T}
 
 abbrev LO.FirstOrder.ArithmeticTheory.provabilityLogic (T : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := T.provabilityLogicRelativeTo T
 

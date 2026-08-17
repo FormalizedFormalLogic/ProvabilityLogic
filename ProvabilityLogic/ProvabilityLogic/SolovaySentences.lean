@@ -154,9 +154,9 @@ lemma rfl_mainlemma
     (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
     ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
       (M.root.1 ⊩[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T.standardProvability B)) ∧
+        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (B.standardInterpret S.realization T)) ∧
       (M.root.1 ⊮[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T.standardProvability B)) := by
+        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(B.standardInterpret S.realization T)) := by
   intro B;
   induction B with
   | bot =>
@@ -204,7 +204,7 @@ lemma rfl_mainlemma
       apply T.standardProvability.D1;
       apply Entailment.WeakerThan.pbl (𝓢 := 𝗜𝚺₁);
       have all : ∀ i : (M.extendRoot 1).World,
-        𝗜𝚺₁ ⊢ S.σ i 🡒 (S.realization T.standardProvability B) := by
+        𝗜𝚺₁ ⊢ S.σ i 🡒 (B.standardInterpret S.realization T) := by
         rintro (x | i);
         . apply S.mainlemma (by simp [RootedModel.extendRoot, Fin.posLast]);
           apply RootedModel.extendRoot.same_forces_embed.mpr;
@@ -223,11 +223,11 @@ lemma rfl_mainlemma
       cl_prover [this, S.SC4];
     . intro h;
       obtain ⟨y, Rxy, hy⟩ := Model.World.not_forces_box.mp h;
-      have hmn : 𝗜𝚺₁ ⊢ S.σ (Sum.inl y) 🡒 ∼(S.realization T.standardProvability B) :=
+      have hmn : 𝗜𝚺₁ ⊢ S.σ (Sum.inl y) 🡒 ∼(B.standardInterpret S.realization T) :=
         S.mainlemma_neg (by simp [RootedModel.extendRoot, Fin.posLast])
           (RootedModel.extendRoot.same_forces_embed.not.mpr hy);
       have b : 𝗜𝚺₁ ⊢ T.standardProvability.dia (S.σ (Sum.inl y)) 🡒
-          ∼(T.standardProvability (S.realization T.standardProvability B)) :=
+          ∼(T.standardProvability (B.standardInterpret S.realization T)) :=
         contra! $ T.standardProvability.mono' $ CN!_of_CN!_right hmn;
       exact C!_trans (S.SC2 _ _ (by simp [Model.Rel])) b;
 
@@ -662,7 +662,7 @@ theorem unprovable_realization_exists
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
   (hA : M.root.1 ⊮[M.toModel] A) (h : M.height < T.height)
-  : ∃ f : Realization α ℒₒᵣ, T ⊬ f T.standardProvability A := by
+  : ∃ f : Realization α ℒₒᵣ, T ⊬ A.standardInterpret f T := by
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences (M := M.extendRoot 1) (T := T);
   use S.realization;
   contrapose! h;

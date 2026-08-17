@@ -51,7 +51,7 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 variable {M : RootedModel κ α}
 
 theorem arithmetical_completeness_of_infinity_height (height : T.height = (⊤ : ℕ∞)) :
-  (∀ f : Realization α ℒₒᵣ, T ⊢ f T.standardProvability A) → A ∈ LogicGL := by
+  (∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) → A ∈ LogicGL := by
   contrapose!;
   intro hA;
   replace h := LogicGL.iff_forces_root.not.mp hA;
@@ -61,7 +61,7 @@ theorem arithmetical_completeness_of_infinity_height (height : T.height = (⊤ :
   exact unprovable_realization_exists T M hA (by simp_all);
 
 theorem arithmetical_completeness_of_finite_le {n : ℕ} (height : n ≤ T.height)
-  : (∀ f : Realization α ℒₒᵣ, T ⊢ f T.standardProvability A) →  □^[n] ⊥ 🡒 A ∈ LogicGL := by
+  : (∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) →  □^[n] ⊥ 🡒 A ∈ LogicGL := by
   contrapose!;
   intro hA;
   replace h := LogicGL.iff_forces_root.not.mp hA;
@@ -75,14 +75,14 @@ theorem arithmetical_completeness_of_finite_le {n : ℕ} (height : n ≤ T.heigh
   . exact height;
 
 lemma arithmetical_completeness_iff_of_infinity_height (height : T.height = (⊤ : ℕ∞))
-  : A ∈ LogicGL ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ f T.standardProvability A) := by
+  : A ∈ LogicGL ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) := by
   constructor;
   . intro h f;
     exact arithmetical_soundness' (f := f) h;
   . exact arithmetical_completeness_of_infinity_height height;
 
 lemma arithmetical_completeness_iff_of_sigma1_sound [T.SoundOnHierarchy 𝚺 1]
-  : A ∈ LogicGL ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ f T.standardProvability A) :=
+  : A ∈ LogicGL ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) :=
   arithmetical_completeness_iff_of_infinity_height (FirstOrder.Arithmetic.height_eq_top_of_sigma1_sound T)
 
 theorem eq_provabilityLogic_sigma1_sound [T.SoundOnHierarchy 𝚺 1] : @LogicGL α = T.provabilityLogic := by
