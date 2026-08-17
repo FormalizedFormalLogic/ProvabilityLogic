@@ -113,6 +113,13 @@ lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[A] (Γ ⟹[1] Δ) → ⊬�
   contrapose!;
   apply liftUp;
 
+/-- Embed a cut-free `LogicGL` proof of `Γ ⟹ insert (□^[n]⊥) Δ` into level-`1` cut-free
+`LogicA` provability of `Γ ⟹[1] Δ`, stripping the extra `□^[n]⊥` succedent formula via `boxGP`.
+Folklore, a routine technical bridge combining `iff_provableGentzen_provable_zero`, `liftUp`, and `boxGP`. -/
+lemma of_provableGentzen_insert_boxItr_bot {n : ℕ}
+  (h : ⊢ᵍ[GL] (Γ ⟹ insert (□^[n]⊥) Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
+  boxGP (liftUp (LogicA.iff_provableGentzen_provable_zero.mp h))
+
 end ProvableGentzen
 
 open ProvableGentzen
