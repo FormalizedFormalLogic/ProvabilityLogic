@@ -72,15 +72,56 @@ end LogicA.GentzenWithCutProvable
 
 namespace LogicA.ProvableGentzen
 
+open LogicGL LogicGL.ProvableGentzen.Kripke in
+/-- A `GL`-unprovable sequent has a finite `GL` countermodel with a world forcing every formula
+of the antecedent and refuting every formula of the succedent. Routine repackaging of the
+countermodel underlying `LogicGL.ProvableGentzen.Kripke.completeness`, with no counterpart of its
+own in the literature. -/
+private lemma exists_countermodel {Γ Δ : FormulaFinset α}
+  (h : ⊬ᵍ[GL] (Γ ⟹ Δ)) :
+  ∃ (κ : Type u) (_ : Nonempty κ) (M : Model κ α) (_ : M.IsFiniteGL) (x : M.World),
+  (∀ C ∈ Γ, x ⊩[M] C) ∧ (∀ D ∈ Δ, x ⊮[M] D) := by
+  haveI : Fact (⊬ᵍ[GL] (Γ ⟹ Δ)) := ⟨h⟩;
+  exact ⟨_, inferInstance, countermodelOf (Γ ⟹ Δ), inferInstance,
+    ExpandedSequent.lindenbaum _ h Sequent.subset_self_subfmls,
+    fun _ hC => truthlemma_ant (ExpandedSequent.subset_lindenbaum.1 hC),
+    fun _ hD => truthlemma_suc (ExpandedSequent.subset_lindenbaum.2 hD)⟩;
+
+open Model.toRootedModel RootedModel.graftOmega in
 /-- Completeness of level-`1` cut-free `LogicA`-Gentzen provability w.r.t. `graftOmega`
 semantics: if a sequent is forced at the root of every ω-graft extension of every finite
-rooted `GL` model, it is cut-free provable. -/
+rooted `GL` model, it is cut-free provable. The sequent form is original to this formalization;
+its ingredients are the ω-expansion forcing lemma and the pigeonhole reflexivity lemma.
+
+- [Bek90, Lemma 5]
+- [AB05, Lemma 26]
+-/
 theorem completeness {Γ Δ : FormulaFinset α}
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] (Γ ⟹ Δ)) :
   ⊢ᵍ[A] (Γ ⟹[1] Δ) := by
-  sorry
+  by_contra hnp;
+  set N := (FormulaFinset.prebox (Γ ⟹ Δ : Sequent α).subfmls).card with hN;
+  obtain ⟨_, _, M₀, _, x, hΓ, hΔ⟩ := exists_countermodel (Γ := Γ) (Δ := insert (□^[N + 1]⊥) Δ)
+    (fun hp => hnp (of_provableGentzen_insert_boxItr_bot hp));
+  haveI : Fintype M₀.World := Fintype.ofFinite _;
+  have h₁ : N < x.rank := by
+    have : ¬(x.rank < N + 1) := fun hc =>
+      hΔ _ (Finset.mem_insert_self _ _) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
+    omega;
+  obtain ⟨z, Rxz, hz⟩ := Model.exists_forces_axiomT_of_card_lt_rank (hN ▸ h₁);
+  have key := fun {C : Formula α} (hC : C ∈ (Γ ⟹ Δ : Sequent α).subfmls) =>
+    mainlemma_of_closed (M := M₀.toRootedModel x) (Φ := (Γ ⟹ Δ : Sequent α).subfmls)
+      (by grind) (by grind)
+      ⟨⟨z, Or.inr Rxz⟩,
+        fun hB => forces_same_at_cone_point.mpr (hz _ (FormulaFinset.iff_mem_prebox_mem.mpr hB))⟩
+      Rxz hC;
+  obtain ⟨D, hD, hfD⟩ := h (M₀.toRootedModel x) ⟨z, Or.inr Rxz⟩ Rxz
+    (fun C hC => (key (Sequent.subset_self_subfmls (Finset.mem_union_left _ hC))).2 _
+      |>.mpr (forces_same_at_root.mpr (hΓ C hC)));
+  exact hΔ D (Finset.mem_insert_of_mem hD) <| forces_same_at_root.mp <|
+    (key (Sequent.subset_self_subfmls (Finset.mem_union_right _ hD))).2 _ |>.mp hfD;
 
 end LogicA.ProvableGentzen
 
