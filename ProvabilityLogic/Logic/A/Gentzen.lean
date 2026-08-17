@@ -12,7 +12,12 @@ variable {α : Type u} [DecidableEq α] {A : Formula α} {n : ℕ}
 
 /-- The axiom `∼□^[n]⊥` is with-cut-provable at level `1`. -/
 lemma LogicA.provableGentzenWithCut_neg_boxItr_bot (n) : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {∼□^[n]⊥}) := by
-  sorry
+  show ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {□^[n]⊥ 🡒 ⊥});
+  rw [← Finset.insert_empty];
+  apply GentzenWithCutProvable.impR;
+  apply GentzenWithCutProvable.boxGP (n := n);
+  apply GentzenWithCutProvable.wkR (GentzenWithCutProvable.axm 1 (□^[n]⊥));
+  grind;
 
 /-- Modus ponens for level-`1` `LogicA`-with-cut provability, via the `cut` rule. -/
 theorem LogicA.GentzenWithCutProvable.mdp {A B : Formula α}
