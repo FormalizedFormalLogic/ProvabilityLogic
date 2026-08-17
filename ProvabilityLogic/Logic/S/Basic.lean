@@ -160,7 +160,7 @@ lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
 lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] ((∅ : FormulaFinset α) ⟹ {A}) := by
+  ∀ (x : M.ReflexivePointOf X), (x : M.World) ⊩[_] ((∅ : FormulaFinset α) ⟹ {A}) := by
   use A.subfmls.prebox.box;
   intro κ _ M _ x;
   have hHilbert := LogicGL.iff_provableHilbert.mp h;

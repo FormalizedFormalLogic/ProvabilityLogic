@@ -252,7 +252,7 @@ variable [DecidableEq α] {A : Formula α}
 
   - [Bek90, Lemma 5]
 -/
-lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
+lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexivePointOf A.subfmls)
   (Rra : M.root.1 ≺ (a : M.World)) :
   ∀ {C : Formula α}, C ∈ A.subfmls →
   (∀ i : ℕ, ((.inr i) ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
