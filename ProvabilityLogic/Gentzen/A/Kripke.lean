@@ -8,12 +8,8 @@ public import ProvabilityLogic.Kripke.GraftOmega
 /-!
 # Soundness and completeness for the sequent calculus for `A`
 
-Soundness and completeness of level-`1` `LogicA`-Gentzen provability with respect to
-`RootedModel.graftOmega` semantics, the resulting `List.TFAE` package tying it to
-`LogicGL`-provability, and semantic cut elimination. Original to this formalization: it
-assembles `LogicGL` completeness, `RootedModel.graftOmega`, and a pigeonhole argument for a
-reflexive world, following the structure of the analogous result for `LogicD`, but the
-level-`1` statement for `LogicA` itself is not stated in this form in the literature.
+Soundness and completeness of level-`1` `LogicA`-Gentzen provability w.r.t.
+`RootedModel.graftOmega` semantics, and the resulting semantic cut elimination.
 -/
 
 @[expose]
@@ -73,10 +69,8 @@ end LogicA.GentzenWithCutProvable
 namespace LogicA.ProvableGentzen
 
 open LogicGL LogicGL.ProvableGentzen.Kripke in
-/-- A `GL`-unprovable sequent has a finite `GL` countermodel with a world forcing every formula
-of the antecedent and refuting every formula of the succedent. Routine repackaging of the
-countermodel underlying `LogicGL.ProvableGentzen.Kripke.completeness`, with no counterpart of its
-own in the literature. -/
+/-- A `GL`-unprovable sequent has a finite `GL` countermodel with a world forcing every
+antecedent formula and refuting every succedent formula. -/
 private lemma exists_countermodel {Γ Δ : FormulaFinset α}
   (h : ⊬ᵍ[GL] (Γ ⟹ Δ)) :
   ∃ (κ : Type u) (_ : Nonempty κ) (M : Model κ α) (_ : M.IsFiniteGL) (x : M.World),
@@ -90,12 +84,7 @@ private lemma exists_countermodel {Γ Δ : FormulaFinset α}
 open Model.toRootedModel RootedModel.graftOmega in
 /-- Completeness of level-`1` cut-free `LogicA`-Gentzen provability w.r.t. `graftOmega`
 semantics: if a sequent is forced at the root of every ω-graft extension of every finite
-rooted `GL` model, it is cut-free provable. The sequent form is original to this formalization;
-its ingredients are the ω-expansion forcing lemma and the pigeonhole reflexivity lemma.
-
-- [Bek90, Lemma 5]
-- [AB05, Lemma 26]
--/
+rooted `GL` model, it is cut-free provable. -/
 theorem completeness {Γ Δ : FormulaFinset α}
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
@@ -125,11 +114,10 @@ theorem completeness {Γ Δ : FormulaFinset α}
 
 end LogicA.ProvableGentzen
 
-/-- The four equivalent characterizations of `Γ ⟹ Δ` being a theorem of level-`1`
-`LogicA.ProofGentzen`: with-cut provability, cut-free provability, forcing at the root of
-every ω-graft extension of every finite rooted `GL` model, and a `GL`-provable deduction-
-theorem form. -/
-theorem LogicA.semantical_TFAE {Γ Δ : FormulaFinset α} : [
+/-- `Γ ⟹ Δ` is a theorem of level-`1` `LogicA.ProofGentzen`, in each of four equivalent senses:
+with-cut provability, cut-free provability, forcing at the root of every ω-graft extension of
+every finite rooted `GL` model, and a `GL`-provable deduction-theorem form. -/
+theorem LogicA.sequent_TFAE {Γ Δ : FormulaFinset α} : [
     ⊢ᵍᶜ[A] (Γ ⟹[1] Δ),
     ⊢ᵍ[A] (Γ ⟹[1] Δ),
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →

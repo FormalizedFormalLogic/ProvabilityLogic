@@ -246,13 +246,10 @@ variable [DecidableEq α] {A : Formula α}
 
 omit [DecidableEq α] in
 /--
-  Forcing preservation for ω-expansion over an arbitrary formula set `Φ` closed under the
-  immediate subformulas of its implications and boxes: if `a` forces every axiom T instance
-  for the boxed formulas of `Φ`, then for every `C ∈ Φ`, forcing at the grafted chain worlds
-  agrees with `a`, and forcing at the `inl` worlds agrees with the original model.
-  The ω-analogue of `graft.mainlemma`.
-
-  - [Bek90, Lemma 5]
+  Forcing preservation for ω-expansion over a formula set `Φ` closed under immediate
+  subformulas of its implications and boxes: if `a` forces every axiom T instance for the
+  boxed formulas of `Φ`, forcing at grafted chain worlds agrees with `a`, and forcing at
+  `inl` worlds agrees with the original model, for every `C ∈ Φ`.
 -/
 lemma mainlemma_of_closed [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Φ : FormulaFinset α}
   (hbox : ∀ {B : Formula α}, □B ∈ Φ → B ∈ Φ)
