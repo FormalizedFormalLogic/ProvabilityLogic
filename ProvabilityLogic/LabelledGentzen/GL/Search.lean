@@ -6,25 +6,11 @@ public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 meta import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
-Saturation for proof search in the labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡᵍ[GL]`).
+Proof search for `ProvableLabelledGentzen` (`⊢ˡᵍ[GL]`): saturation of the propositional,
+relational and modal rules, followed by `R□^Löb`, with completeness via countermodel
+extraction on failure.
 
-`saturate` exhaustively applies the propositional rules (`impL`/`impR`), the
-relational rule `Trans` and the modal rule `L□` (each keeping its principal
-formula, so that every step only *adds* labelled formulas or relational atoms),
-until either the sequent is closed by `axm`/`botL`/`Irref`, or a fixed point is
-reached.  Saturated open sequents satisfy the Hintikka-style closure conditions
-recorded in `LabelledSequent.Saturated`; the remaining boxed formulas in the
-succedent are exactly the targets for `R□^Löb` in the outer proof search.
-
-Termination is measured by the number of facts still missing from the finite
-universe determined by the labels and the subformula closure of the sequent,
-both of which are invariant under saturation steps.
--/
-
-/-!
-Completeness of the proof search `search0` for `ProvableLabelledGentzen`: whenever `search0 R Γ Δ = none`,
-a finite Kripke countermodel of the labelled sequent `R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset`
-exists (`LogicGL.exists_countermodel_of_search0_eq_none`).
+- [Neg14, Lemma 5.2, Theorem 5.5]
 -/
 
 @[expose]
@@ -248,7 +234,7 @@ lemma saturationMeasure_trans (hxy : (x, y) ∈ Rf) (hyz : (y, z) ∈ Rf) (hnew 
     (fst_mem_labels_of_mem_rel (p := (x, y)) hxy)
     (snd_mem_labels_of_mem_rel (p := (y, z)) hyz) hnew
 
-/-! ### Rule-level invariance lemmas (for propagating `labels`/`sf` through `saturate`) -/
+/-! ### Rule-level invariance lemmas -/
 
 lemma labels_impR (h : (x ∶ A 🡒 B) ∈ Δf) :
   (Rf ⸴ insert (x ∶ A) Γf ⟹ˡ insert (x ∶ B) Δf).labels = (Rf ⸴ Γf ⟹ˡ Δf).labels := by
@@ -296,9 +282,8 @@ lemma labels_trans (hxy : (x, y) ∈ Rf) (hyz : (y, z) ∈ Rf) :
     (fst_mem_labels_of_mem_rel (p := (x, y)) hxy)
     (snd_mem_labels_of_mem_rel (p := (y, z)) hyz)
 
-/-- A labelled sequent is *saturated* when it is not closed by `axm`/`botL`/`Irref` and
-it satisfies the Hintikka-style closure conditions for `impL`, `impR`, `Trans` and `L□`
-(principal formulas are kept, so implications may still occur, but they are decomposed). -/
+/-- A labelled sequent is saturated when it is closed under `impL`, `impR`, `Trans`, `L□`
+and not already closed by `axm`/`botL`/`Irref`. -/
 structure Saturated (S : LabelledSequent α) : Prop where
   not_axm : ∀ lf ∈ S.ant, lf ∉ S.suc
   not_bot : ∀ x : Label, (x ∶ (⊥ : Formula α)) ∉ S.ant
@@ -308,38 +293,19 @@ structure Saturated (S : LabelledSequent α) : Prop where
   rel_trans : ∀ x y z, (x, y) ∈ S.rel → (y, z) ∈ S.rel → (x, z) ∈ S.rel
   box_ant : ∀ x y A, (x, y) ∈ S.rel → (x ∶ □A) ∈ S.ant → (y ∶ A) ∈ S.ant
 
-/-! ### Termination measure for the outer proof search (`lobMeasure`)
-
-The outer search (`search`/`searchLeaves`) records `R□^Löb` applications *per label*
-in `processed : Finset (LabelledFormula α)`. Its termination relies on the fact that,
-along a single ancestry chain of labels, the same `□A` is treated at most once (a
-second occurrence closes by `axm` or by `loop` before `R□^Löb` is consulted), so only
-sibling chains count independently, and the length of every chain is bounded by the
-number of boxed subformulas. This is implemented by the weighted measure
-`lobMeasure`: each label `x` carries the *blocked* boxed subformulas `blockedBoxes x`
-(present in the antecedent at `x` itself or at a direct `R`-predecessor of `x`), and
-a `R□^Löb` step at `x` creates one fresh label whose blocked set strictly contains
-the one of `x`, so its exponential weight drops by a factor that dominates the (at
-most `boxSf.card`) new pending boxes it brings.
-
-- [Neg14, Theorem 5.5]
--/
+/-! ### Termination measure for the outer proof search (`lobMeasure`) -/
 
 /-- The boxed formulas in the subformula closure of `S`. -/
 def boxSf (S : LabelledSequent α) : FormulaFinset α := S.sf.filter Formula.IsBox
 
-/--
-The boxed subformulas that can no longer become `R□^Löb` targets at the label `x`:
-those in the antecedent at `x` itself (the sequent closes by `axm`) or at a direct
-`R`-predecessor of `x` (the sequent closes by `loop`).
+/-- The boxed subformulas that can no longer become `R□^Löb` targets at the label `x`.
 
 - [Neg14, Lemma 5.2]
 -/
 def blockedBoxes (S : LabelledSequent α) (x : Label) : FormulaFinset α :=
   S.boxSf.filter (fun B => (x ∶ B) ∈ S.ant ∨ ∃ p ∈ S.rel, p.2 = x ∧ (p.1 ∶ B) ∈ S.ant)
 
-/-- The boxed subformulas still available as `R□^Löb` targets at the label `x`:
-not yet processed there and not blocked. -/
+/-- The boxed subformulas still available as `R□^Löb` targets at the label `x`. -/
 def pendingBoxes (S : LabelledSequent α) (P : Finset (LabelledFormula α)) (x : Label) :
   FormulaFinset α :=
   S.boxSf.filter (fun B => (x ∶ B) ∉ P ∧ B ∉ S.blockedBoxes x)
@@ -370,12 +336,10 @@ lemma blockedBoxes_mono (hsf : S.sf = S'.sf) (hrel : S.rel ⊆ S'.rel) (hant : S
   · exact Or.inl (hant h);
   · exact Or.inr ⟨p, hrel hp, h1, hant h2⟩;
 
-/-- `lobMeasure` does not increase along a step that keeps `labels` and `sf` and only
-adds relational atoms and antecedent formulas (as every saturation step does). -/
+/-- `lobMeasure` does not increase along a saturation step. -/
 lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
   (hrel : S.rel ⊆ S'.rel) (hant : S.ant ⊆ S'.ant) :
   S'.lobMeasure P ≤ S.lobMeasure P := by
-  -- Every `blockedBoxes x` grows and every summand of `lobMeasure` shrinks.
   rw [lobMeasure, lobMeasure, hlab];
   apply Finset.sum_le_sum;
   intro z _;
@@ -389,11 +353,7 @@ lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
   · rw [lobWeight, lobWeight, hbox];
     exact Nat.pow_le_pow_right (by omega) (Nat.sub_le_sub_left (Finset.card_le_card hbl) _);
 
-/--
-Key decrease lemma for the termination of `search`/`searchLeaves`:
-applying `R□^Löb` at an unblocked, unprocessed target `x ∶ □A` with a fresh label `y` —
-adding, besides `(x, y)`, the relational atoms `(w, y)` for every direct predecessor `w`
-of `x` (which `Trans`-saturation would add anyway) — strictly decreases `lobMeasure`.
+/-- Applying `R□^Löb` at an unblocked, unprocessed target strictly decreases `lobMeasure`.
 
 - [Neg14, Theorem 5.5]
 -/
@@ -477,7 +437,6 @@ lemma lobMeasure_lob_lt
   have hpendy_le : (S'.pendingBoxes P' y).card ≤ b := by
     calc (S'.pendingBoxes P' y).card ≤ S'.boxSf.card := Finset.card_le_card (Finset.filter_subset _ _)
     _ = b := by rw [boxSf_congr hsf'];
-  -- The fresh label's contribution is strictly dominated by the weight freed at `x`.
   have hstrict : (S'.pendingBoxes P' y).card * S'.lobWeight y < L.lobWeight x := by
     have hwy : S'.lobWeight y ≤ (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := by
       rw [lobWeight, boxSf_congr hsf'];
@@ -497,7 +456,6 @@ lemma lobMeasure_lob_lt
     _ < (b + 1) * (b + 1) ^ (b - ((L.blockedBoxes x).card + 1)) := h3
     _ = (b + 1) ^ (b - (L.blockedBoxes x).card) := h2
     _ = L.lobWeight x := rfl;
-  -- Assemble: split the fresh label `y` and the target label `x` out of both sums.
   have hsum' : S'.lobMeasure P' =
     (S'.pendingBoxes P' y).card * S'.lobWeight y +
     ∑ z ∈ L.labels, (S'.pendingBoxes P' z).card * S'.lobWeight z := by
@@ -554,9 +512,8 @@ def impL_mem (h : (x ∶ A 🡒 B) ∈ Γ)
   rw [show Γ = insert (x ∶ A 🡒 B) Γ by grind];
   exact impL p q;
 
-/-- Iterated `Trans`: discharges the relational atoms `(w, y)` for a list of labels `ws`
-whose members are all `R`-predecessors of `x`, given `(x, y) ∈ R`.  Used by the proof
-search to justify the eagerly added transitive pairs of a `R□^Löb` step. -/
+/-- Iterated `Trans`, discharging `(w, y)` for a list `ws` of `R`-predecessors of `x`,
+given `(x, y) ∈ R`. -/
 def transMany (x y : Label) :
   (ws : List Label) → (hws : ∀ w ∈ ws, (w, x) ∈ R) → (hxy : (x, y) ∈ R) →
   ⊢ˡᵍ[GL]! ((ws.map (fun w => (w, y))).toFinset ∪ R ⸴ Γ ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ)
@@ -573,9 +530,8 @@ end ProofLabelledGentzen
 end LogicGL
 
 
-/-- The labelled sequent determined by list-representations of its components.
-Used to keep the leaves of `saturate` computably enumerable (extracting elements
-from a `Finset` is noncomputable). -/
+/-- The labelled sequent determined by list-representations of its components (kept
+computable, since extracting elements from a `Finset` is not). -/
 abbrev LabelledSequent.ofLists
   (L : List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)) : LabelledSequent α :=
   L.1.toFinset ⸴ L.2.1.toFinset ⟹ˡ L.2.2.toFinset
@@ -583,12 +539,8 @@ abbrev LabelledSequent.ofLists
 
 namespace LogicGL
 
-/-- The result of saturating a labelled sequent `S`: either a proof of `S`, or a
-finite list of saturated open sequents (the leaves of the saturation tree, given by
-list-representations of their components for computability) together with a way of
-recovering a proof of `S` from proofs of all of them.  The leaves have the same
-labels and the same subformula closure as `S`, and extend `S` componentwise
-(saturation only ever *adds* relational atoms and labelled formulas). -/
+/-- The result of saturating `S`: either a proof of `S`, or the stuck saturated leaves
+together with a way to recover a proof of `S` from proofs of all of them. -/
 inductive SaturationResult (S : LabelledSequent α) : Type u
   | closed (π : ⊢ˡᵍ[GL]! S) : SaturationResult S
   | stuck (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
@@ -890,9 +842,8 @@ section finders
 
 variable (processed : Finset (LabelledFormula α)) (R : List LabelRel) (Γ Δ : List (LabelledFormula α))
 
-/--
-Finds a *looping* boxed formula: some `x ∶ □A` in the
-succedent together with a predecessor `w` of `x` carrying `w ∶ □A` in the antecedent.
+/-- Finds a *looping* boxed formula: `x ∶ □A` in the succedent with a predecessor `w` of
+`x` carrying `w ∶ □A` in the antecedent.
 
 - [Neg14, Lemma 5.2]
 -/
@@ -903,11 +854,8 @@ def loopTarget? : Option (Label × Label × Formula α) :=
         if p.2 = x ∧ (p.1 ∶ □A) ∈ Γ then some (p.1, x, A) else none
     | _ => none
 
-/-- Finds a boxed formula in the succedent that is still a `R□^Löb` candidate: not yet
-processed *at its label* on the current branch, not closable by `axm` (`x ∶ □A ∉ Γ`)
-and not closable by `loop` (no direct `R`-predecessor of `x` carries `□A` in the
-antecedent).  The latter two checks are vacuous on saturated, loop-free leaves, but
-provide the computable evidence needed by the termination measure `lobMeasure`. -/
+/-- Finds a boxed succedent formula that is still a `R□^Löb` candidate: not yet processed
+at its label, not closable by `axm`, and not closable by `loop`. -/
 def lobTarget? : Option (Label × Formula α) :=
   Δ.findSome? fun lf =>
     match lf with
@@ -966,19 +914,15 @@ def consAllMem {β : Type v} [DecidableEq β] {f : β → Type w} {b : β} {l : 
 
 mutual
 
-/--
-Proof search for `ProvableLabelledGentzen`:
-saturate, then solve every stuck leaf (`searchLeaves`).  The parameter `processed` records,
-*per label*, the boxed formulas already treated by `R□^Löb` on the current branch.
+/-- Proof search for `ProvableLabelledGentzen`: saturate, then solve every stuck leaf via
+`searchLeaves`.
 
 - [Neg14, Theorem 5.5]
 -/
 def search (processed : Finset (LabelledFormula α)) (R : List LabelRel)
   (Γ Δ : List (LabelledFormula α)) :
   Option (⊢ˡᵍ[GL]! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
-  -- Termination: every `R□^Löb` step strictly decreases the weighted measure
-  -- `LabelledSequent.lobMeasure` (`lobMeasure_lob_lt`), which saturation never
-  -- increases (`lobMeasure_le`).
+  -- Termination relies on `lobMeasure_lob_lt`/`lobMeasure_le`.
   match saturate R Γ Δ with
   | .closed π => some π
   | .stuck leaves _ hlab hsf hmono k =>
@@ -993,12 +937,8 @@ decreasing_by
   apply Prod.Lex.right;
   exact Prod.Lex.left _ _ Nat.zero_lt_one;
 
-/--
-Solves every stuck leaf produced by `saturate`: a leaf is closed either by a looping
-sequent (via `ProofLabelledGentzen.loop`), or by applying `R□^Löb`
-(keeping the principal formula) to a boxed succedent formula not yet processed at its
-label and recursing with `search`.  The parameter `m` bounds the `lobMeasure` of every
-leaf (`hbound`).
+/-- Solves every stuck leaf produced by `saturate`, closing each by `loop` or by
+`R□^Löb` recursing into `search`.
 
 - [Neg14, Lemma 5.2]
 -/
@@ -1104,9 +1044,7 @@ of its (finite, decidable) inputs. -/
 instance search0.decidableIsSome (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
   Decidable (search0 R Γ Δ).isSome := inferInstance
 
-/-! Sanity checks: the Löb axiom `□(□a 🡒 a) 🡒 □a` and the `K` axiom are found
-automatically; the `T` axiom `□a 🡒 a` and `□a` itself, which are not theorems of
-`GL`, are rejected. -/
+/-! ### Sanity checks -/
 
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□(□#0 🡒 #0) 🡒 □#0)]).isSome
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□(#0 🡒 #1) 🡒 □#0 🡒 □#1)]).isSome
@@ -1114,41 +1052,26 @@ automatically; the `T` axiom `□a 🡒 a` and `□a` itself, which are not theo
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 🡒 #0)]).isNone
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0)]).isNone
 
-/-! Phase 0 checks (completeness plan for `search`/`searchLeaves`): sanity checks that
-probed whether the earlier formula-only `processed : Finset (Formula α)` tracking
-(ignoring which label a boxed formula sits at) could cause spurious failure — kept as
-regression tests for the label-aware redesign. -/
-
 -- Two-level nested Löb-processing chain (root 0 → fresh y1 → fresh y2): still found.
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□(□(□#0 🡒 #0) 🡒 □#0))]).isSome
 
--- Same box content `□#0` needed at label `0` on *both* sides of a conjunction
--- (distinct Löb instances sharing the atom `#0`, but staying at the same label): still found.
+-- Same box content `□#0` needed at label `0` on both sides of a conjunction: still found.
 #guard (search0 (α := ℕ) [] [] [0 ∶ ((□(□#0 🡒 #0) 🡒 □#0) ⋏ (□(□#0 🡒 #0) 🡒 □#0))]).isSome
 
 -- Distinct atoms, both needing their own Löb-processing at the same label: still found.
 #guard (search0 (α := ℕ) [] [] [0 ∶ ((□(□#0 🡒 #0) 🡒 □#0) ⋏ (□(□#1 🡒 #1) 🡒 □#1))]).isSome
 
--- Adversarial *direct* multi-label input: two unrelated root labels `0`, `1`, both carrying
--- the same theorem `□(□a 🡒 a) 🡒 □a` in the succedent (a disjunctive goal, individually
--- closable at either label): still found (does not require touching the other label).
+-- Two unrelated root labels both carrying the same theorem: still found.
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□(□#0 🡒 #0) 🡒 □#0), 1 ∶ (□(□#0 🡒 #0) 🡒 □#0)]).isSome
 
--- Adversarial direct multi-label input with *no* supporting structure: two unrelated labels
--- both claiming `□a` in the succedent, with empty antecedent. This is genuinely GL-invalid
--- (no shared witness world), so rejection here is the *correct* answer, not evidence of a bug.
+-- Two unrelated labels both claiming `□a` with empty antecedent: genuinely GL-invalid, rejected.
 #guard (search0 (α := ℕ) [] [] [0 ∶ (□#0 : Formula ℕ), 1 ∶ (□#0 : Formula ℕ)]).isNone
 
 /-! ### Why `processed` must be label-aware
 
-Recording processed `R□^Löb` targets merely as `processed : Finset (Formula α)`, ignoring
-at *which label* a boxed formula was treated, is unsound: two `R□^Löb` applications can
-create sibling labels that are incomparable in the transitive closure, so a witness
-recorded for one label may be unreachable from the other, and the boxed formula must be
-processed again at the sibling. `search0` therefore tracks
-`processed : Finset (LabelledFormula α)`, with the Negri-style termination measure
-`LabelledSequent.lobMeasure` accounting for this repeated processing across sibling
-labels. The example below, `□□⊥ 🡒 (∼□a 🡒 □□a)`, exercises exactly this pattern.
+`processed` must track labels, not just formulas: two `R□^Löb` applications can create
+sibling labels unreachable from each other, so the same boxed formula may need
+reprocessing at each. `□□⊥ 🡒 (∼□a 🡒 □□a)` below exercises this pattern.
 
 - [Neg14, Theorem 5.5]
 -/
@@ -1156,16 +1079,13 @@ labels. The example below, `□□⊥ 🡒 (∼□a 🡒 □□a)`, exercises ex
 section incompleteness
 
 /-- A formula provable as `ProvableLabelledGentzen` whose derivation needs a boxed
-formula processed at two sibling labels (see the section documentation):
-`□□⊥ 🡒 (∼□a 🡒 □□a)`. -/
+formula processed at two sibling labels: `□□⊥ 🡒 (∼□a 🡒 □□a)`. -/
 def lobProcessedCounterexample : Formula ℕ := □□⊥ 🡒 (∼□#0 🡒 □□#0)
 
 /-- `lobProcessedCounterexample` is provable as `ProvableLabelledGentzen`. -/
 lemma provable_lobProcessedCounterexample :
   ⊢ˡᵍ[GL] ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
-  -- Two `impR`s and `R□^Löb` at `0 ∶ □□a` (fresh label `1`), the antecedent `□□⊥` yields
-  -- `1 ∶ □⊥` by `L□`, so a second `R□^Löb` at `1 ∶ □a` (fresh label `2`) closes by `L□`
-  -- (giving `2 ∶ ⊥`) and `botL`.
+  -- Two `R□^Löb` steps (fresh labels `1`, `2`) close via `L□` and `botL`.
   rw [show ({0 ∶ lobProcessedCounterexample} : Finset (LabelledFormula ℕ)) =
     insert (0 ∶ (□□⊥ 🡒 (∼□#0 🡒 □□#0))) ∅ by rfl];
   apply ProvableLabelledGentzen.impR (x := 0);
@@ -1179,10 +1099,7 @@ lemma provable_lobProcessedCounterexample :
 -- ... and `search0` finds it.
 #guard (search0 [] [] [0 ∶ lobProcessedCounterexample]).isSome
 
-/-! The mechanism, machine-checked step by step on the subformula `∼□a 🡒 □□a`
-(a non-theorem, whose search tree exhibits the sibling branching): the sibling
-labels `1`, `2` still arise, but the orphaned `2 ∶ □a` is now a fresh `R□^Löb`
-target at label `2`. -/
+/-! The same mechanism, machine-checked step by step on the non-theorem `∼□a 🡒 □□a`. -/
 
 /-- The stuck leaves of `saturate` (empty if the sequent was closed); test-only. -/
 private def stuckLeaves (R : List LabelRel) (Γ Δ : List (LabelledFormula ℕ)) :
@@ -1205,21 +1122,19 @@ private def stuckLeaves (R : List LabelRel) (Γ Δ : List (LabelledFormula ℕ))
     [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
   [([(0, 1)], [1 ∶ □#0, 0 ∶ ∼□#0], [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)])]
 
--- ... and the second `R□^Löb` processes `□□a` again at label `0` (not at `1`),
--- creating the fresh child `2` as a *sibling* of `1` ...
+-- ... and the second `R□^Löb` processes `□□a` at label `0` again, creating sibling `2` ...
 #guard lobTarget? ({0 ∶ □#0} : Finset (LabelledFormula ℕ)) [(0, 1)] [1 ∶ □#0, 0 ∶ ∼□#0]
     [1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
   some (0, □#0)
 
--- ... reaching a leaf with `2 ∶ □a` in the succedent whose only would-be witness
--- (`1 ∶ a`) is unreachable from `2` (`R = {(0,2), (0,1)}` is not a chain):
+-- ... reaching a leaf where `2 ∶ □a`'s only witness `1 ∶ a` is unreachable from `2`:
 #guard stuckLeaves [(0, 2), (0, 1)] [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0]
     [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] =
   [([(0, 2), (0, 1)], [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0],
     [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)])]
 
--- `loopTarget?` does not fire on this leaf; the formula-only bookkeeping used to
--- also block `lobTarget?` here (`□a ∈ processed`), abandoning the leaf ...
+-- `loopTarget?` does not fire here; formula-only bookkeeping would wrongly block
+-- `lobTarget?` too ...
 #guard loopTarget? [(0, 2), (0, 1)] [2 ∶ □□#0, 1 ∶ □#0, 0 ∶ ∼□#0]
     [2 ∶ □#0, 1 ∶ #0, 0 ∶ □#0, 0 ∶ □□#0, 0 ∶ (∼□#0 🡒 □□#0)] = none
 
@@ -1242,18 +1157,15 @@ open LogicGL
 
 variable {S S₀ : LabelledSequent α} {x y : Label} {A B : Formula α}
 
-/-- Every boxed succedent formula of `S` has a relational successor refuting its body:
-the Hintikka-style condition supplied to the countermodel construction by the failed
-proof search. -/
+/-- Every boxed succedent formula of `S` has a relational successor refuting its body. -/
 def BoxSucWitnessed (S : LabelledSequent α) : Prop :=
   ∀ x A, (x ∶ □A) ∈ S.suc → ∃ y, (x, y) ∈ S.rel ∧ (y ∶ A) ∈ S.suc
 
 instance : Nonempty {z : Label // z ∈ insert (0 : Label) S.labels} :=
   ⟨⟨0, Finset.mem_insert_self 0 _⟩⟩
 
-/-- The finite Kripke model determined by a labelled sequent `S`: the worlds are the
-labels of `S` (plus a fallback root `0`), the relation is given by the relational atoms
-and the valuation by the atomic antecedent members. -/
+/-- The finite Kripke model determined by `S`: worlds are `S`'s labels plus a fallback
+root `0`. -/
 def countermodel (S : LabelledSequent α) : Model {z : Label // z ∈ insert (0 : Label) S.labels} α where
   Rel' u w := (u.1, w.1) ∈ S.rel
   Val' u a := (u.1 ∶ (#a : Formula α)) ∈ S.ant
@@ -1265,9 +1177,8 @@ lemma countermodel_isFiniteGL (hsat : S.Saturated) : S.countermodel.IsFiniteGL w
   irrefl u := hsat.not_irref u.1
 
 omit [DecidableEq α] in
-/-- Truth lemma for `countermodel`: on a saturated sequent all of whose boxed succedent
-formulas are witnessed, antecedent members are forced and succedent members are refuted
-at their labels. -/
+/-- Truth lemma for `countermodel`: antecedent members are forced and succedent members
+are refuted at their labels. -/
 lemma countermodel_truthlemma (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)
   {A : Formula α} {w : S.countermodel.World} :
   ((w.1 ∶ A) ∈ S.ant → w ⊩[_] A) ∧ ((w.1 ∶ A) ∈ S.suc → ¬w ⊩[_] A) := by
@@ -1340,9 +1251,7 @@ lemma not_validate_countermodel (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)
 
 /-! ### The soundness invariant of the `processed` bookkeeping -/
 
-/-- Soundness invariant of the `processed` set threaded through `search`/`searchLeaves`:
-every recorded pair `(x ∶ □A)` has a witness label `y` with `(x, y) ∈ S.rel` and
-`y ∶ A ∈ S.suc`. -/
+/-- Soundness invariant of the `processed` set threaded through `search`/`searchLeaves`. -/
 def ProcessedWitnessed (P : Finset (LabelledFormula α)) (S : LabelledSequent α) : Prop :=
   ∀ x A, (x ∶ □A) ∈ P → ∃ y, (x, y) ∈ S.rel ∧ (y ∶ A) ∈ S.suc
 
@@ -1364,8 +1273,7 @@ lemma ProcessedWitnessed.empty : ProcessedWitnessed (∅ : Finset (LabelledFormu
 /-! ### Abandoned leaves of the proof search -/
 
 /-- An *abandoned leaf* of the proof search over `S₀`: a saturated sequent extending `S₀`
-componentwise on which neither `loopTarget?` nor `lobTarget?` fires, together with a
-`processed` set witnessed in it. -/
+on which neither `loopTarget?` nor `lobTarget?` fires. -/
 inductive HasFailingLeaf (S₀ : LabelledSequent α) : Prop where
   | intro
       (Rl : List LabelRel)
@@ -1396,8 +1304,7 @@ lemma HasFailingLeaf.boxSucWitnessed
   (wit : ProcessedWitnessed P (LabelledSequent.ofLists (Rl, Γl, Δl))) :
   (LabelledSequent.ofLists (Rl, Γl, Δl)).BoxSucWitnessed := by
   intro x A hxA;
-  -- The three disjuncts of `lobTarget?_none`: witnessed by the recorded `processed` pair,
-  -- or contradicted by saturation (`not_axm`), or by `loopTarget?_none`.
+  -- `lobTarget?_none`'s three cases: `processed`, `not_axm`, or `loopTarget?_none`.
   rcases lobTarget?_none noLob hxA with hP | hΓ | ⟨w, hwR, hwΓ⟩;
   · exact wit x A hP;
   · exact absurd hxA (sat.not_axm _ hΓ);
@@ -1422,8 +1329,7 @@ namespace LogicGL
 /-! ### Extraction of an abandoned leaf from a failing search -/
 
 open LabelledSequent in
-/-- Auxiliary simultaneous statement for `search_eq_none_hasFailingLeaf` and
-`searchLeaves_eq_none_hasFailingLeaf`. -/
+/-- Auxiliary simultaneous statement for `search_eq_none_hasFailingLeaf`. -/
 theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
   (∀ (P : Finset (LabelledFormula α)) (m : ℕ)
     (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
@@ -1436,10 +1342,8 @@ theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
     (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).lobMeasure P ≤ n → search P R Γ Δ = none →
     ProcessedWitnessed P (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset) →
     (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset).HasFailingLeaf) := by
-  -- Strong induction on a bound `n` of the `lobMeasure`: the list recursion of
-  -- `searchLeaves` is handled by an inner structural induction below, and each `R□^Löb`
-  -- step strictly decreases the measure (`lobMeasure_lob_lt`), so its child `search` call
-  -- falls under the outer induction hypothesis `ih`.
+  -- Strong induction on a bound `n` of `lobMeasure`; `R□^Löb` steps decrease it via
+  -- `lobMeasure_lob_lt`.
   induction n using Nat.strong_induction_on with
   | _ n ih =>
   have SL : ∀ (P : Finset (LabelledFormula α)) (m : ℕ)
@@ -1572,7 +1476,7 @@ theorem search_eq_none_hasFailingLeaf
     P R Γ Δ le_rfl h hwit
 
 
-/-! ### Completeness of `search0`: countermodel extraction and decidability -/
+/-! ### Completeness of `search0` -/
 
 open LabelledSequent in
 /-- **Completeness of the proof search**: if `search0 R Γ Δ = none`, there is a finite

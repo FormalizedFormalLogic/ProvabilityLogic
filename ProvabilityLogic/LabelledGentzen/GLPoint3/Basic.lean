@@ -3,12 +3,11 @@ module
 public import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
-Labelled sequent calculus for `LogicGLPoint3` (`GL.3`), obtained from the labelled
-calculus `G3KGL` for `GL` (`ProvabilityLogic.LabelledGentzen.GL.Basic`) by adding a structural
-rule `Lin` for linearity (weak connectedness) of the accessibility relation:
-given `x R y` and `x R z`, the successors `y` and `z` of a common world are
-compared by branching into `y R z`, `y = z` (realised as a relabelling of `y`
-to `z`), or `z R y`.
+Labelled sequent calculus for `LogicGLPoint3`, extending the calculus for `GL`
+with the linearity rule `Lin`. Original to this formalization, applying the method of
+[Neg14] — read a frame condition off as a structural rule — to weak connectedness.
+
+- [Neg14, §5]
 -/
 
 @[expose]
@@ -31,22 +30,16 @@ inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | impR {R Γ Δ x A B} :
     ProofLabelledGentzen (R ⸴ (insert (x ∶ A) Γ) ⟹ˡ (insert (x ∶ B) Δ)) →
     ProofLabelledGentzen (R ⸴ Γ ⟹ˡ (insert (x ∶ A 🡒 B) Δ))
-/-- `L□`: uses an already available successor `y` of `x` (`x R y ∈ R`) to unfold `x : □A`. -/
 | boxL {R Γ Δ} (x y A) (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ Γ := by grind) :
     ProofLabelledGentzen (R ⸴ insert (y ∶ A) Γ ⟹ˡ Δ) →
     ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
-/-- `R□^Löb`: introduces a fresh successor `y` of `x`, additionally assuming `y : □A` (the Löb trick). -/
 | boxRLob {R Γ Δ} (x y A) (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels := by grind) :
     ProofLabelledGentzen (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ) →
     ProofLabelledGentzen (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ)
-/-- `Irref`: a reflexive relational atom `x R x` closes any sequent. -/
 | irref {R Γ Δ} (x) (h : (x, x) ∈ R := by grind) : ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
-/-- `Trans`: saturates `R` with the transitive consequence of `x R y` and `y R z`. -/
 | trans {R Γ Δ} (x y z) (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) :
     ProofLabelledGentzen (insert (x, z) R ⸴ Γ ⟹ˡ Δ) →
     ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
-/-- `Lin`: linearity (weak connectedness). Two successors `y`, `z` of a common world `x` are
-compared by branching into `y R z`, `y = z` (realised by relabelling `y` to `z`), or `z R y`. -/
 | lin {R Γ Δ} (x y z) (hxy : (x, y) ∈ R := by grind) (hxz : (x, z) ∈ R := by grind) :
     ProofLabelledGentzen (insert (y, z) R ⸴ Γ ⟹ˡ Δ) →
     ProofLabelledGentzen (insert (z, y) R ⸴ Γ ⟹ˡ Δ) →

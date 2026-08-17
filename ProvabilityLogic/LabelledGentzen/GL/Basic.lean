@@ -4,18 +4,11 @@ public import ProvabilityLogic.LabelledGentzen.Sequent
 public import Mathlib.Combinatorics.Pigeonhole
 
 /-!
-Labelled sequent calculus `G3KGL` for `GL`, following Negri's labelled
-sequent calculus for provability logic. World-labels are drawn from `ℕ`.
+Labelled sequent calculus `G3KGL` for `GL`, and the pigeonhole argument that makes a
+sequent provable once its relational atoms chain more worlds than there are boxed
+formulas available.
 
 - [MPB23, §2.2, §6]
--/
-
-/-!
-Looping sequents are provable, and the pigeonhole argument underlying the
-termination of proof search: along a chain of relational atoms longer than
-the number of available boxed formulas, some boxed formula repeats at both
-ends of a subchain, so the sequent is provable by looping.
-
 - [Neg14, Lemma 5.2, Theorem 5.5]
 -/
 
@@ -111,9 +104,6 @@ def loop (x y z : Label) (A : Formula α)
   (hR : (x, y) ∈ R := by grind)
   (hx : (x ∶ □A) ∈ Γ := by grind)
   (hy : (y ∶ □A) ∈ Δ := by grind) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) := by
-  -- Root-first: `R□^Löb` introduces a fresh successor `z` of `y` (assuming `z : □A`),
-  -- `Trans` derives `x R z` from `x R y` and `y R z`, then `L□` unfolds `x : □A` via `z`,
-  -- closing with an axiom on `z : A`.
   rw [(show Δ = insert (y ∶ □A) (Δ.erase (y ∶ □A)) by grind)];
   apply boxRLob y z A;
   apply trans x y z;
@@ -241,7 +231,6 @@ lemma loopChain (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
 lemma loopChain' (h : Relation.ReflTransGen (λ a b => (a, b) ∈ R) x y)
   (hx : (x ∶ □A) ∈ Γ := by grind) (hy : (y ∶ □A) ∈ Δ := by grind)
   : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
-  -- split on whether `x = y` (closed directly by `union`) or a genuine chain (delegate to `loopChain`)
   rcases Relation.reflTransGen_iff_eq_or_transGen.mp h with rfl | h;
   . exact union y (□A);
   . exact loopChain h hx hy;

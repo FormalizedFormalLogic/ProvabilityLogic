@@ -4,8 +4,6 @@ public import ProvabilityLogic.Formula.Basic
 
 /-!
 This file defines the labelled formula `x ∶ A` and the labelled sequent `R ⸴ Γ ⟹ˡ Δ`.
-Every labelled sequent calculus in this repository (`GL`, `GL.3`) shares these types.
-
 - [MPB23, §2.2]
 -/
 
@@ -14,9 +12,7 @@ public section
 
 variable {α : Type u} [DecidableEq α]
 
-/-- World-labels of the labelled sequent calculus. A bare `abbrev` for `ℕ`, kept
-distinct so that arithmetic on `Formula`/proof-search data is not confused with
-label bookkeeping. -/
+/-- World-labels of the labelled sequent calculus. -/
 abbrev Label := ℕ
 
 /-- A relational atom `x R y` between two world-labels. -/
@@ -32,7 +28,6 @@ infix:70 " ∶ " => LabelledFormula.mk
 
 namespace LabelledFormula
 
-/-- Typst math-mode source for a labelled formula `x : A`. -/
 protected def toString [ToString α] (lf : LabelledFormula α) : String :=
   s!"{lf.label} : {Formula.toString lf.formula}"
 
@@ -49,8 +44,7 @@ omit [DecidableEq α] in
 
 end LabelledFormula
 
-/-- A labelled sequent `R ⸴ Γ ⟹ˡ Δ`: `R` is a finite set of relational atoms
-`x R y`, and `Γ`/`Δ` are finite sets of labelled formulas. -/
+/-- A labelled sequent `R ⸴ Γ ⟹ˡ Δ`. -/
 structure LabelledSequent (α : Type u) where
   rel : Finset LabelRel
   ant : Finset (LabelledFormula α)
@@ -101,8 +95,7 @@ lemma snd_mem_labels_of_mem_rel (h : p ∈ S.rel) : p.2 ∈ S.labels := by
   simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
-/-- Renaming a labelled sequent: replace the label `y` by `z` wherever it occurs, in the
-relational atoms as well as in the antecedent and succedent formulas. -/
+/-- Renaming a labelled sequent: replace the label `y` by `z` wherever it occurs. -/
 def relabel (y z : Label) (S : LabelledSequent α) : LabelledSequent α where
   rel := S.rel.image (fun p => (if p.1 = y then z else p.1, if p.2 = y then z else p.2))
   ant := S.ant.image (LabelledFormula.relabel y z)
