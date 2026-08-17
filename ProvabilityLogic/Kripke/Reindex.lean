@@ -24,7 +24,6 @@ namespace Model
 
 variable {M : Model κ α} {e : κ ≃ κ'} {A : Formula α}
 
-/-- The model obtained from `M` by transporting its world type along `e`. -/
 def reindex (M : Model κ α) (e : κ ≃ κ') : Model κ' α where
   Rel' x y := M.Rel' (e.symm x) (e.symm y)
   Val' x a := M.Val' (e.symm x) a
@@ -42,12 +41,10 @@ def reindexBisimulation (M : Model κ α) (e : κ ≃ κ') : M ⇄ M.reindex e w
     rintro x y y' rfl hR;
     exact ⟨e.symm y', by simp, by simpa [reindex, Model.Rel] using hR⟩;
 
-/-- Forcing is preserved by re-indexing a model. -/
 lemma forces_reindex_iff {x : M.World} :
   e x ⊩[M.reindex e] A ↔ x ⊩[M] A :=
   (World.modal_equivalent_of_bisimilar (M.reindexBisimulation e) rfl).symm
 
-/-- Forcing is preserved by re-indexing a model, stated at an arbitrary world. -/
 lemma forces_reindex_iff' {y : (M.reindex e).World} :
   y ⊩[M.reindex e] A ↔ e.symm y ⊩[M] A := by
   simpa using forces_reindex_iff (M := M) (e := e) (x := e.symm y);
@@ -74,7 +71,6 @@ instance [M.IsFiniteGLPoint3] : (M.reindex e).IsFiniteGLPoint3 where
     · exact Or.inr <| Or.inl <| e.symm.injective h;
     · exact Or.inr <| Or.inr h;
 
-/-- Validity is preserved by re-indexing a model. -/
 lemma validate_reindex_iff : M.reindex e ⊧ A ↔ M ⊧ A :=
   ⟨fun h x => forces_reindex_iff.mp <| h (e x), fun h _ => forces_reindex_iff'.mpr <| h _⟩
 
@@ -85,7 +81,6 @@ namespace RootedModel
 
 variable {M : RootedModel κ α} {e : κ ≃ κ'} {A : Formula α}
 
-/-- The rooted model obtained from `M` by transporting its world type along `e`. -/
 def reindex (M : RootedModel κ α) (e : κ ≃ κ') : RootedModel κ' α where
   toModel := M.toModel.reindex e
   root := ⟨e M.root.1, by
@@ -101,7 +96,6 @@ instance [M.IsFiniteGL] : (M.reindex e).IsFiniteGL :=
 instance [M.IsFiniteGLPoint3] : (M.reindex e).IsFiniteGLPoint3 :=
   inferInstanceAs (M.toModel.reindex e).IsFiniteGLPoint3
 
-/-- Forcing at the root is preserved by re-indexing a rooted model. -/
 lemma forces_reindex_root_iff :
   (M.reindex e).root.1 ⊩[(M.reindex e).toModel] A ↔ M.root.1 ⊩[M.toModel] A :=
   Model.forces_reindex_iff
@@ -132,18 +126,14 @@ instance (M : Model κ α) : NeZero M.card := ⟨Nat.card_pos.ne'⟩
 noncomputable def toConcrete (M : Model κ α) : Model (Fin M.card) α :=
   M.reindex (Finite.equivFin κ)
 
-/-- Forcing is preserved by presenting a finite model as a concrete one. -/
 lemma forces_toConcrete_iff {x : M.World} :
   Finite.equivFin κ x ⊩[M.toConcrete] A ↔ x ⊩[M] A :=
   forces_reindex_iff
 
-/-- Forcing is preserved by presenting a finite model as a concrete one, stated at an arbitrary
-world. -/
 lemma forces_toConcrete_iff' {x : M.toConcrete.World} :
   x ⊩[M.toConcrete] A ↔ (Finite.equivFin κ).symm x ⊩[M] A :=
   forces_reindex_iff'
 
-/-- Validity is preserved by presenting a finite model as a concrete one. -/
 lemma validate_toConcrete_iff : M.toConcrete ⊧ A ↔ M ⊧ A := validate_reindex_iff
 
 instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL := inferInstanceAs (M.reindex _).IsFiniteGL
@@ -166,7 +156,6 @@ instance [M.IsFiniteGL] : M.toConcrete.IsFiniteGL := inferInstanceAs (M.reindex 
 instance [M.IsFiniteGLPoint3] : M.toConcrete.IsFiniteGLPoint3 :=
   inferInstanceAs (M.reindex _).IsFiniteGLPoint3
 
-/-- Forcing at the root is preserved by presenting a finite rooted model as a concrete one. -/
 lemma forces_toConcrete_root_iff :
   M.toConcrete.root.1 ⊩[M.toConcrete.toModel] A ↔ M.root.1 ⊩[M.toModel] A :=
   forces_reindex_root_iff

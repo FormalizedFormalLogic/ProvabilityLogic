@@ -103,24 +103,18 @@ theorem iff_forces_root_concrete : A ∈ LogicGL ↔
 
 variable {n : ℕ} [NeZero n]
 
-/-- A rooted concrete finite `GL`-model refuting `A` at its root shows `A` is not a
-`GL`-theorem. -/
 theorem not_mem_of_concrete_root_not_forces (M : RootedModel (Fin n) α) [M.IsFiniteGL]
   (h : M.root.1 ⊮[_] A) : A ∉ LogicGL :=
   fun hA => h <| iff_forces_root_concrete.mp hA n M
 
-/-- If `A` is a `GL`-theorem, it is forced at the root of every rooted concrete finite
-`GL`-model. -/
 theorem concrete_root_forces_of_mem (M : RootedModel (Fin n) α) [M.IsFiniteGL]
   (h : A ∈ LogicGL) : M.root.1 ⊩[_] A :=
   iff_forces_root_concrete.mp h n M
 
-/-- A concrete finite `GL`-model with a world not forcing `A` shows `A` is not a `GL`-theorem. -/
 theorem not_mem_of_concrete_not_forces (M : Model (Fin n) α) [M.IsFiniteGL] {x : M.World}
   (h : x ⊮[M] A) : A ∉ LogicGL :=
   fun hA => h <| iff_forces_concrete.mp hA n M x
 
-/-- If `A` is a `GL`-theorem, it is forced at every world of every concrete finite `GL`-model. -/
 theorem concrete_forces_of_mem (M : Model (Fin n) α) [M.IsFiniteGL] (h : A ∈ LogicGL)
   (x : M.World) : x ⊩[M] A :=
   iff_forces_concrete.mp h n M x

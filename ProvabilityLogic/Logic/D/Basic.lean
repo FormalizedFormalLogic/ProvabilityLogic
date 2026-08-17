@@ -388,15 +388,11 @@ theorem iff_provable_box_provable_GL [DecidableEq α] :
   · intro h;
     exact provable_of_provable_GL (ProvableHilbert.nec h);
 
-/-- `D`-provability is characterized by forcing at the root (ω) of the pseudo-tail models of
-concrete finite `GL`-models. -/
 theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] :
     A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
-/-- A concrete finite `GL`-model whose pseudo-tail model refutes `A` at its root (ω) shows `A`
-is not a `D`-theorem. -/
 theorem not_mem_of_concrete_pseudoTail_root_not_forces [DecidableEq α] {n : ℕ} [NeZero n]
     (M : Model (Fin n) α) [M.IsFiniteGL] (r : M.World) (o : α → Prop)
     (h : (M.toPseudoTail r o).root.1 ⊮[_] A) : A ∉ LogicD :=

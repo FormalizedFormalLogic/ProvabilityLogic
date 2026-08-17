@@ -280,13 +280,11 @@ lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
   rw [h];
   exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
 
-/-- Forcing at a chain point is unaffected by re-indexing the base model. -/
 lemma forces_toTail_reindex_chainPoint_iff {i : ℕ∞} :
   toTail.chainPoint i ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
   toTail.chainPoint i ⊩[(M.toTail tail).toModel] A :=
   forces_toTail_reindex_iff (x := toTail.chainPoint i)
 
-/-- Forcing at the root is unaffected by re-indexing the base model. -/
 lemma forces_toTail_reindex_root_iff :
   ((M.reindex e).toTail (e tail)).root.1 ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
   (M.toTail tail).root.1 ⊩[(M.toTail tail).toModel] A :=

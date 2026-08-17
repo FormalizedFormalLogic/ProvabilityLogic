@@ -750,7 +750,6 @@ namespace LogicGLPoint3
 
 open Model Model.World
 
-/-- Soundness of `LogicGLPoint3` over finite linear GL models. -/
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
     [M.IsFiniteGLPoint3] {A : Formula α} (h : A ∈ LogicGLPoint3) : M ⊧ A := by
   induction h using LogicGLPoint3.substlessInduction with
@@ -761,9 +760,7 @@ lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
 
 variable [DecidableEq α] {A : Formula α}
 
-/--
-Kripke completeness: a formula is provable in `LogicGLPoint3` iff it is valid over all finite `GL.3` models
-iff it is provable in the `GL.3` sequent calculus `⊢ᵍ[GLPoint3]` iff it is forced at the root of all finite rooted `GL.3` models.
+/-- Kripke completeness for `LogicGLPoint3`.
 
 - [VS83, Theorem 10, Theorem 11(b), Theorem 11(c)]
 -/
@@ -806,10 +803,6 @@ theorem iff_forces : A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A :=
   provability_TFAE.out 0 2
 
-/--
-A formula is a theorem of `LogicGLPoint3` iff it is forced at the root of every
-finite rooted linear GL model.
--/
 theorem iff_forces_root : A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 3
@@ -824,26 +817,18 @@ theorem iff_forces_root_concrete : A ∈ LogicGLPoint3 ↔
 
 variable {n : ℕ} [NeZero n]
 
-/-- A rooted concrete finite `GL.3`-model refuting `A` at its root shows `A` is not a
-`GL.3`-theorem. -/
 theorem not_mem_of_concrete_root_not_forces (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3]
   (h : M.root.1 ⊮[_] A) : A ∉ LogicGLPoint3 :=
   fun hA => h <| iff_forces_root_concrete.mp hA n M
 
-/-- If `A` is a `GL.3`-theorem, it is forced at the root of every rooted concrete finite
-`GL.3`-model. -/
 theorem concrete_root_forces_of_mem (M : RootedModel (Fin n) α) [M.IsFiniteGLPoint3]
   (h : A ∈ LogicGLPoint3) : M.root.1 ⊩[_] A :=
   iff_forces_root_concrete.mp h n M
 
-/-- A concrete finite `GL.3`-model with a world not forcing `A` shows `A` is not a
-`GL.3`-theorem. -/
 theorem not_mem_of_concrete_not_forces (M : Model (Fin n) α) [M.IsFiniteGLPoint3] {x : M.World}
   (h : x ⊮[M] A) : A ∉ LogicGLPoint3 :=
   fun hA => h <| iff_forces_concrete.mp hA n M x
 
-/-- If `A` is a `GL.3`-theorem, it is forced at every world of every concrete finite
-`GL.3`-model. -/
 theorem concrete_forces_of_mem (M : Model (Fin n) α) [M.IsFiniteGLPoint3] (h : A ∈ LogicGLPoint3)
   (x : M.World) : x ⊩[M] A :=
   iff_forces_concrete.mp h n M x
