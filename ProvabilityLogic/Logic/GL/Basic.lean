@@ -2,8 +2,8 @@ module
 
 public import ProvabilityLogic.Logic.SumQuasiNormal
 public import ProvabilityLogic.Kripke.Unravelling
-public import ProvabilityLogic.LabelledGentzen.Gentzen
-public import ProvabilityLogic.LabelledGentzen.Completeness
+public import ProvabilityLogic.LabelledGentzen.GL.Kripke
+public import ProvabilityLogic.LabelledGentzen.GL.Search
 
 @[expose]
 public section

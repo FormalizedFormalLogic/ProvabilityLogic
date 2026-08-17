@@ -2,7 +2,7 @@ module
 
 public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.LabelledGentzen.GLPoint3.Basic
-public import ProvabilityLogic.LabelledGentzen.Kripke
+public import ProvabilityLogic.LabelledGentzen.GL.Kripke
 
 @[expose]
 public section

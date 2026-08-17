@@ -1,13 +1,13 @@
 module
 
-public import ProvabilityLogic.LabelledGentzen.Search
-meta import ProvabilityLogic.LabelledGentzen.Basic
-meta import ProvabilityLogic.LabelledGentzen.Search
+public import ProvabilityLogic.LabelledGentzen.GL.Search
+meta import ProvabilityLogic.LabelledGentzen.GL.Basic
+meta import ProvabilityLogic.LabelledGentzen.GL.Search
 meta import LeanTypst.EvalTypst
 
 /-!
 Display-only printers for `G3KGL` labelled sequents and proof-search traces. None of
-this is used by `ProvabilityLogic.LabelledGentzen.Basic`/`ProvabilityLogic.LabelledGentzen.Search`'s
+this is used by `ProvabilityLogic.LabelledGentzen.GL.Basic`/`ProvabilityLogic.LabelledGentzen.GL.Search`'s
 mathematical content; it is kept in its own file so that those stay free of printing
 concerns.
 -/

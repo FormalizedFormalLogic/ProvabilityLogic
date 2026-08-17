@@ -1,10 +1,10 @@
 module
 
-public import ProvabilityLogic.LabelledGentzen.Basic
+public import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
 Labelled sequent calculus for `LogicGLPoint3` (`GL.3`), obtained from the labelled
-calculus `G3KGL` for `GL` (`ProvabilityLogic.LabelledGentzen.Basic`) by adding a structural
+calculus `G3KGL` for `GL` (`ProvabilityLogic.LabelledGentzen.GL.Basic`) by adding a structural
 rule `Lin` for linearity (weak connectedness) of the accessibility relation:
 given `x R y` and `x R z`, the successors `y` and `z` of a common world are
 compared by branching into `y R z`, `y = z` (realised as a relabelling of `y`
@@ -17,31 +17,6 @@ public section
 namespace LabelledGentzen
 
 variable {α : Type u} [DecidableEq α]
-
-namespace LabelledFormula
-
-/-- Renaming a labelled formula: replace the label `y` by `z` wherever it occurs. -/
-def relabel (y z : Label) (lf : LabelledFormula α) : LabelledFormula α := ⟨if lf.label = y then z else lf.label, lf.formula⟩
-
-omit [DecidableEq α] in
-@[simp] lemma relabel_label (y z : Label) (lf : LabelledFormula α) : (lf.relabel y z).label = if lf.label = y then z else lf.label := rfl
-
-omit [DecidableEq α] in
-@[simp] lemma relabel_formula (y z : Label) (lf : LabelledFormula α) : (lf.relabel y z).formula = lf.formula := rfl
-
-end LabelledFormula
-
-namespace LabelledSequent
-
-/-- Renaming a labelled sequent: replace the label `y` by `z` wherever it occurs, in the
-relational atoms as well as in the antecedent and succedent formulas. -/
-def relabel (y z : Label) (S : LabelledSequent α) : LabelledSequent α where
-  rel := S.rel.image (fun p => (if p.1 = y then z else p.1, if p.2 = y then z else p.2))
-  ant := S.ant.image (LabelledFormula.relabel y z)
-  suc := S.suc.image (LabelledFormula.relabel y z)
-
-end LabelledSequent
-
 
 namespace GLPoint3
 
