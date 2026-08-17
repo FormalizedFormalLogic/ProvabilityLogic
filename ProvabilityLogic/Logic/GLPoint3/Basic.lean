@@ -9,9 +9,9 @@ public import ProvabilityLogic.Kripke.Linearity
 
 This file bundles: the definition of `LogicGLPoint3` and its `subst`-free induction principle
 (`LogicGLPoint3.substlessInduction`) together with the basic propositional combinators; the
-Hilbert-level witness lemma `LogicGLPoint3.witness` (Step K), the Hilbert-calculus counterpart of
+Hilbert-level witness lemma `LogicGLPoint3.witness`, the Hilbert-calculus counterpart of
 `Model.exists_linear_witness`; and the Hilbert soundness of the `boxGLPoint3` Gentzen rule
-`LogicGLPoint3.boxGLPoint3` (Step L), the counterpart of `Model.validate_gentzen_boxGLPoint3`
+`LogicGLPoint3.boxGLPoint3`, the counterpart of `Model.validate_gentzen_boxGLPoint3`
 (both in `ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`).
 -/
 
@@ -150,15 +150,14 @@ end combinators
 end LogicGLPoint3
 
 /-!
-# Step K: the Hilbert-level witness lemma for `GL.3`
+## The Hilbert-level witness lemma for `GL.3`
 
 This is the Hilbert-calculus counterpart of `Model.exists_linear_witness`
 (`ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`). For a nonempty finite `Δ`, `LogicGLPoint3` proves
 
 `(⋀_{A∈Δ} ∼□A) 🡒 ⋁_{∅≠S⊆Δ} ◇θ_S`,
 
-where `θ_S := ⋀_{A∈S}(∼A ⋏ □A) ⋏ ⋀_{A∈Δ\S} ∼□A`. This is the key combinatorial fact
-driving the Hilbert-level soundness of the `boxGLPoint3` Gentzen rule.
+where `θ_S := ⋀_{A∈S}(∼A ⋏ □A) ⋏ ⋀_{A∈Δ\S} ∼□A`.
 -/
 
 namespace LogicGLPoint3
@@ -237,8 +236,6 @@ lemma orElim_imp'
     ((A ⋎ B) 🡒 C) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.orElim hAC) hBC
 
-/-- Membership in the disjunction, at the `LogicGLPoint3` level: from `A ∈ Q`, `A 🡒 ⋁Q`
-holds in `LogicGLPoint3` (lifted from the `⊢ʰ[GL]`-level `imp_mem_fdisj`). -/
 lemma mem_imp_fdisj' (h : A ∈ Q) :
     (A 🡒 (⋁ Q)) ∈ LogicGLPoint3 :=
   of_GL (ProvableHilbert.imp_mem_fdisj h)
@@ -310,9 +307,8 @@ lemma mem_imp_witnessDisj (hS : S ⊆ Δ) (hSne : S.Nonempty) :
     ((◇ (theta S (Δ \ S))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 :=
   of_GL (dia_theta_imp_witnessDisj hS hSne)
 
-/-- The deep/linearity branch of the Step K induction: from `∼□D` and the terminal content
-`(θ(S', Δ' \ S') ⋏ □D) ⋏ D`, derive `◇θ({D}, Δ')`. Hilbert counterpart of the `hzw'` case of
-`Model.exists_linear_witness`. -/
+/-- The deep/linearity branch of the `witness` induction, the Hilbert counterpart of the
+`hzw'` case of `Model.exists_linear_witness`. -/
 lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
     ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D)) 🡒 ◇ (theta {D} Δ')) ∈ LogicGLPoint3 := by
   set θ' := theta S' (Δ' \ S') with hθ'def;
@@ -402,7 +398,7 @@ lemma witness_deep_step {Δ' S' : FormulaFinset α} {D : Formula α} :
         LogicGL.dia_bot) ProvableHilbert.efq;
   exact impTrans hmain (of_GL hcases);
 
-/-- **(W)**, the Hilbert-level witness lemma: for nonempty `Δ`, `LogicGLPoint3` proves
+/-- The Hilbert-level witness lemma: for nonempty `Δ`, `LogicGLPoint3` proves
 `(⋀_{A∈Δ} ∼□A) 🡒 ⋁_{∅≠S⊆Δ} ◇θ_S`. -/
 theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
     ((⋀ (Δ.image (fun A => ∼□A))) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
@@ -528,12 +524,12 @@ end
 end LogicGLPoint3
 
 /-!
-# Step L: Hilbert soundness of the `boxGLPoint3` Gentzen rule
+## Hilbert soundness of the `boxGLPoint3` Gentzen rule
 
 This is the Hilbert-calculus counterpart of `Model.validate_gentzen_boxGLPoint3`
-(`ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`): from the Step K witness lemma
-(`LogicGLPoint3.witness`) and the family of Hilbert-level premises for `boxGLPoint3`,
-derive the rule's conclusion inside `LogicGLPoint3`.
+(`ProvabilityLogic/Gentzen/GLPoint3/Kripke.lean`): from `LogicGLPoint3.witness` and the
+family of Hilbert-level premises for `boxGLPoint3`, derive the rule's conclusion inside
+`LogicGLPoint3`.
 -/
 
 namespace LogicGL
@@ -693,9 +689,7 @@ private lemma boxGLPoint3_step {S : FormulaFinset α}
       LogicGL.imp_dia_and
   exact impTrans (of_GL hcombine) hdiabot
 
-/-- **Step L**, the Hilbert soundness of the `boxGLPoint3` rule: from the Step K witness
-lemma and a family of `LogicGLPoint3`-membership premises indexed by the nonempty subsets
-`S ⊆ Δ`, derive the rule's conclusion. This is the Hilbert-calculus counterpart of
+/-- The Hilbert soundness of the `boxGLPoint3` rule, the Hilbert-calculus counterpart of
 `Model.validate_gentzen_boxGLPoint3`. -/
 theorem boxGLPoint3 (hΔ : Δ.Nonempty)
     (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
@@ -710,7 +704,7 @@ theorem boxGLPoint3 (hΔ : Δ.Nonempty)
     obtain ⟨hSne, hSsub'⟩ := Finset.mem_erase.mp hSmem;
     rw [Finset.mem_powerset] at hSsub';
     exact boxGLPoint3_step h hSsub' (Finset.nonempty_iff_ne_empty.mpr hSne);
-  -- Feed in the Step K witness lemma to reduce `witnessDisj Δ` to `⋀(Δ.image ∼□·)`.
+  -- Feed in `witness` to reduce `witnessDisj Δ` to `⋀(Δ.image ∼□·)`.
   have hantecedent : ((⋀Γ.box) ⋏ ⋀ (Δ.image (fun A => ∼□A))) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
     impTrans (imp_and_congr_right' (witness hΔ)) hall
   -- De Morgan: `∼⋁Δ.box` derives `⋀(Δ.image ∼□·)`.
