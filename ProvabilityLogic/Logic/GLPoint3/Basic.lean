@@ -100,18 +100,10 @@ lemma of_GL (h : A ∈ LogicGL) : A ∈ LogicGLPoint3 := provable_of_provable_GL
 lemma mdp' (h : (A 🡒 B) ∈ LogicGL) (hA : A ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (of_GL h) hA
 
-private lemma imp_chain : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C)) ∈ LogicGL := by
-  apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
-  apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{B 🡒 C, A 🡒 B}`, goal `A 🡒 C`
-  have hAB : ({B 🡒 C, A 🡒 B} : FormulaSet α) ⊢ʰ[GL] A 🡒 B := DeducibleHilbert.ofContext (by grind);
-  have hBC : ({B 🡒 C, A 🡒 B} : FormulaSet α) ⊢ʰ[GL] B 🡒 C := DeducibleHilbert.ofContext (by grind);
-  exact DeducibleHilbert.impTrans hAB hBC;
-
 lemma impTrans
   (hAB : (A 🡒 B) ∈ LogicGLPoint3) (hBC : (B 🡒 C) ∈ LogicGLPoint3) :
   (A 🡒 C) ∈ LogicGLPoint3 :=
-  Logic.sumNormal.mdp (mdp' imp_chain hAB) hBC
+  Logic.sumNormal.mdp (mdp' LogicGL.imp_trans hAB) hBC
 
 lemma andIntro' (hA : A ∈ LogicGLPoint3) (hB : B ∈ LogicGLPoint3) : (A ⋏ B) ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (mdp' ProvableHilbert.andIntro hA) hB

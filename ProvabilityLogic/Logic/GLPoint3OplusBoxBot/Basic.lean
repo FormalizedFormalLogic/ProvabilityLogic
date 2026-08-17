@@ -47,6 +47,7 @@ omit [DecidableEq α] in
 lemma of_GL (h : A ∈ LogicGL) : A ∈ LogicGLPoint3OplusBoxBot n :=
   provable_of_provable_GLPoint3 (LogicGLPoint3.provable_of_provable_GL h)
 
+omit [DecidableEq α] in
 /-- Transitivity of implication inside `LogicGLPoint3OplusBoxBot n`. -/
 lemma imp_trans (hAB : (A 🡒 B) ∈ LogicGLPoint3OplusBoxBot n)
     (hBC : (B 🡒 C) ∈ LogicGLPoint3OplusBoxBot n) : (A 🡒 C) ∈ LogicGLPoint3OplusBoxBot n :=

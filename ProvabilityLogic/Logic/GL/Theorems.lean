@@ -12,8 +12,10 @@ variable {α : Type*} [DecidableEq α] {A B C D : Formula α}
 
 open ProvableHilbert Model.World
 
+omit [DecidableEq α] in
 /-- The implication-transitivity tautology is a GL theorem. -/
 theorem imp_trans : ((A 🡒 B) 🡒 (B 🡒 C) 🡒 A 🡒 C) ∈ LogicGL := by
+  classical
   apply Kripke.completeness;
   grind;
 
