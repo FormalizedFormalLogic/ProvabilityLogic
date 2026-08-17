@@ -31,7 +31,13 @@ theorem LogicA.GentzenWithCutProvable.mdp {A B : Formula α}
 
 /-- `LogicA`-provability implies level-`1` `LogicA`-with-cut provability. -/
 theorem LogicA.of_provable {A : Formula α} (h : A ∈ LogicA) : ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) := by
-  sorry
+  induction h using LogicA.substlessInductionGP with
+  | GL h =>
+    apply LogicA.GentzenWithCutProvable.liftUp;
+    apply LogicA.GentzenWithCutProvable.of_without_cut;
+    exact LogicA.iff_provableGentzen_provable_zero.mp (LogicGL.iff_provableGentzen.mp h);
+  | GP n => exact LogicA.provableGentzenWithCut_neg_boxItr_bot n;
+  | mdp ihAB ihA => exact LogicA.GentzenWithCutProvable.mdp ihAB ihA;
 
 /-- `LogicA`-provability is characterized by provability in the with-cut two-layered
 sequent calculus for `A`, at level `1`. -/
