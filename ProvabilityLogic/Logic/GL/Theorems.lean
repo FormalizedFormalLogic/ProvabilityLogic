@@ -8,7 +8,7 @@ public section
 
 namespace LogicGL
 
-variable {α : Type*} [DecidableEq α] {A B C : Formula α}
+variable {α : Type*} [DecidableEq α] {A B C D : Formula α}
 
 open ProvableHilbert Model.World
 
@@ -40,6 +40,17 @@ theorem conj_comm : ((A ⋏ B) 🡒 (B ⋏ A)) ∈ LogicGL := by
 
 /-- Distributivity of conjunction over disjunction: `(A ⋏ (B ⋎ C)) 🡒 ((A ⋏ B) ⋎ (A ⋏ C))`. -/
 theorem distrib_and_or : ((A ⋏ (B ⋎ C)) 🡒 ((A ⋏ B) ⋎ (A ⋏ C))) ∈ LogicGL := by
+  apply Kripke.completeness;
+  grind;
+
+/-- `bridge_impL` with its two premises bundled into a single antecedent conjunction, ready for
+modus ponens. -/
+theorem bridge_impL_imp : (((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D)) ∈ LogicGL := by
+  apply Kripke.completeness;
+  grind;
+
+/-- `bridge_impR` with its premise bundled as an antecedent, ready for modus ponens. -/
+theorem bridge_impR_imp : (((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D))) ∈ LogicGL := by
   apply Kripke.completeness;
   grind;
 

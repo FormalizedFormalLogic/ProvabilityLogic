@@ -109,6 +109,9 @@ lemma of_GL (h : ⊢ʰ[GL] A) : A ∈ LogicGLPoint3 := provable_of_provable_GL h
 lemma mdp' (h : ⊢ʰ[GL] (A 🡒 B)) (hA : A ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 :=
   Logic.sumNormal.mdp (of_GL h) hA
 
+lemma mdp_GL (h : (A 🡒 B) ∈ LogicGL) (hA : A ∈ LogicGLPoint3) : B ∈ LogicGLPoint3 :=
+  Logic.sumNormal.mdp (provable_of_provable_GL h) hA
+
 /-- Chained implication, at the `⊢ʰ[GL]` level, used to prove `LogicGLPoint3.impTrans`. -/
 private lemma imp_chain : ⊢ʰ[GL] (A 🡒 B) 🡒 (B 🡒 C) 🡒 (A 🡒 C) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;

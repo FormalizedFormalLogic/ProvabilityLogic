@@ -9,25 +9,6 @@ public section
 
 open LogicGL
 
-namespace LogicGL
-
-universe u
-variable {α : Type u} [DecidableEq α] {A B C D : Formula α}
-
-private lemma bridge_impL_imp :
-  (((C 🡒 (A ⋎ D)) ⋏ ((B ⋏ C) 🡒 D)) 🡒 (((A 🡒 B) ⋏ C) 🡒 D)) ∈ LogicGL := by
-  apply LogicGL.iff_forces.mpr;
-  intro κ _ M _ x;
-  grind;
-
-private lemma bridge_impR_imp :
-  (((A ⋏ C) 🡒 (B ⋎ D)) 🡒 (C 🡒 ((A 🡒 B) ⋎ D))) ∈ LogicGL := by
-  apply LogicGL.iff_forces.mpr;
-  intro κ _ M _ x;
-  grind;
-
-end LogicGL
-
 namespace LogicGLPoint3
 
 universe u
@@ -45,12 +26,12 @@ theorem of_provableGentzen {S : Sequent α} (h : ⊢ᵍ[GLPoint3] S) :
   | impL h₁ h₂ ih₁ ih₂ =>
     have e₁ := LogicGLPoint3.impTrans ih₁ (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert)
     have e₂ := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert) ih₂
-    have ebridge := LogicGLPoint3.mdp' bridge_impL_imp (LogicGLPoint3.andIntro' e₁ e₂)
+    have ebridge := LogicGLPoint3.mdp_GL bridge_impL_imp (LogicGLPoint3.andIntro' e₁ e₂)
     exact LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fconj) ebridge
   | impR h ih =>
     have e := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert)
       (LogicGLPoint3.impTrans ih (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert))
-    have ebridge := LogicGLPoint3.mdp' bridge_impR_imp e
+    have ebridge := LogicGLPoint3.mdp_GL bridge_impR_imp e
     exact LogicGLPoint3.impTrans ebridge (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fdisj)
   | boxGLPoint3 hΔ h ih =>
     exact LogicGLPoint3.boxGLPoint3 hΔ ih
