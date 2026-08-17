@@ -3,8 +3,8 @@ module
 public import ProvabilityLogic.Logic.SumQuasiNormal
 public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.Unravelling
-public import ProvabilityLogic.LabelledGentzen.Gentzen
-public import ProvabilityLogic.LabelledGentzen.Completeness
+public import ProvabilityLogic.LabelledGentzen.GL.Kripke
+public import ProvabilityLogic.LabelledGentzen.GL.Search
 
 @[expose]
 public section
@@ -20,7 +20,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ⊢ʰ[GL] A,
   ⊢ᵍ[GL] (∅ ⟹ {A}),
   ⊢ᵍᶜ[GL] (∅ ⟹ {A}),
-  ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}),
+  ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {(0 : Label) ∶ A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A,
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A,
@@ -74,8 +74,7 @@ theorem iff_provableGentzen : A ∈ LogicGL ↔ ⊢ᵍ[GL] (∅ ⟹ {A}) := prov
 
 theorem iff_provableGentzenWithCut : A ∈ LogicGL ↔ ⊢ᵍᶜ[GL] (∅ ⟹ {A}) := provability_TFAE.out 0 3
 
-theorem iff_provableLabelledGentzen :
-  A ∈ LogicGL ↔ ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {(0 : LabelledGentzen.Label) ∶ A}) :=
+theorem iff_provableLabelledGentzen : A ∈ LogicGL ↔ ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {(0 : Label) ∶ A}) :=
   provability_TFAE.out 0 4
 
 theorem iff_forces : A ∈ LogicGL ↔
@@ -128,7 +127,7 @@ end LogicGL
 via the labelled proof search. -/
 instance decidable_provableGentzen_formula (A : Formula α) [DecidableEq α] :
   Decidable (⊢ᵍ[GL] (∅ ⟹ {A})) :=
-  decidable_of_iff _ (iff_provableGentzen_provableLabelledGentzen (x := 0)).symm
+  decidable_of_iff _ (LogicGL.iff_provableGentzen_provableLabelledGentzen (x := 0)).symm
 
 /-- Membership in `LogicGL` is decidable, via the labelled proof search. -/
 instance LogicGL.decidableMem (A : Formula α) [DecidableEq α] : Decidable (A ∈ LogicGL) :=

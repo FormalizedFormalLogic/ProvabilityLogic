@@ -2,12 +2,10 @@ module
 
 public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.LabelledGentzen.GLPoint3.Basic
-public import ProvabilityLogic.LabelledGentzen.Kripke
+public import ProvabilityLogic.LabelledGentzen.GL.Kripke
 
 @[expose]
 public section
-
-open LabelledGentzen
 
 variable {κ : Type u} [Nonempty κ]
          {α : Type v} [DecidableEq α]
@@ -15,27 +13,22 @@ variable {κ : Type u} [Nonempty κ]
 
 namespace Model
 
-variable {L : M.LabelMap} {R : Finset LabelledGentzen.LabelRel} {Γ Δ : Finset (LabelledGentzen.LabelledFormula α)}
-         {x y z : LabelledGentzen.Label} {A B : Formula α}
+variable {L : M.LabelMap} {R : Finset LabelRel} {ℓΓ ℓΔ : Finset (LabelledFormula α)}
+         {x y z : Label} {A B : Formula α}
 
-/-- Relabelling `y` to `z` in a sequent does not change its validity under a label map
-identifying `y` and `z`. -/
-lemma validate_labelled_relabel_of_eq {S : LabelledGentzen.LabelledSequent α} (heq : L y = L z) :
+lemma validate_labelled_relabel_of_eq {S : LabelledSequent α} (heq : L y = L z) :
   M ⊧ˡ[L] (S.relabel y z) ↔ M ⊧ˡ[L] S := by
-  have hL : ∀ a : LabelledGentzen.Label, L (if a = y then z else a) = L a := by
+  have hL : ∀ a : Label, L (if a = y then z else a) = L a := by
     intro a; by_cases h : a = y <;> simp [h, heq];
-  simp only [Model.ValidateLabelled, LabelledGentzen.LabelledSequent.relabel,
-    LabelledGentzen.LabelledFormula.relabel, Finset.forall_mem_image, Finset.exists_mem_image, hL];
+  simp only [Model.ValidateLabelled, LabelledSequent.relabel,
+    LabelledFormula.relabel, Finset.forall_mem_image, Finset.exists_mem_image, hL];
 
-/-- Soundness of the `Lin` rule: on a linear frame, any two successors `y`, `z`
-of a common world `x` are related by `y ≺ z`, `y = z`, or `z ≺ y`, and the corresponding
-premise closes the sequent in each case. -/
 lemma validate_labelled_lin [M.IsGLPoint3]
   (hxy : (x, y) ∈ R) (hxz : (x, z) ∈ R)
-  (h₁ : M ⊧ˡ[L] (insert (y, z) R ⸴ Γ ⟹ˡ Δ))
-  (h₂ : M ⊧ˡ[L] (insert (z, y) R ⸴ Γ ⟹ˡ Δ))
-  (h₃ : M ⊧ˡ[L] ((R ⸴ Γ ⟹ˡ Δ).relabel y z))
-  : M ⊧ˡ[L] (R ⸴ Γ ⟹ˡ Δ) := by
+  (h₁ : M ⊧ˡ[L] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+  (h₂ : M ⊧ˡ[L] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+  (h₃ : M ⊧ˡ[L] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z))
+  : M ⊧ˡ[L] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   intro hrel hant;
   rcases Model.linear (hrel (x, y) hxy) (hrel (x, z) hxz) with hyz | heq | hzy;
   · exact h₁ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hyz, hrel p hp]) hant;
@@ -45,12 +38,12 @@ lemma validate_labelled_lin [M.IsGLPoint3]
 end Model
 
 
-namespace LabelledGentzen.GLPoint3.ProvableLabelledGentzen
+namespace LogicGLPoint3.ProvableLabelledGentzen
 
 namespace Kripke
 
 open Model in
-theorem soundness {S : LabelledGentzen.LabelledSequent α} (h : ⊢ˡ³ S) :
+theorem soundness {S : LabelledSequent α} (h : ⊢ˡᵍ[GLPoint3] S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGLPoint3] → ∀ L : M.LabelMap, M ⊧ˡ[L] S := by
   intro κ _ M _;
   induction h with
@@ -67,15 +60,14 @@ theorem soundness {S : LabelledGentzen.LabelledSequent α} (h : ⊢ˡ³ S) :
   | trans hxy hyz _ ih => exact λ L => validate_labelled_trans hxy hyz (ih L);
   | lin hxy hxz _ _ _ ih₁ ih₂ ih₃ => exact λ L => validate_labelled_lin hxy hxz (ih₁ L) (ih₂ L) (ih₃ L);
 
-/-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `LogicGLPoint3` model. -/
-theorem soundness_formula {x : LabelledGentzen.Label} {A : Formula α} (h : ⊢ˡ³ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
+theorem soundness_formula {x : Label} {A : Formula α} (h : ⊢ˡᵍ[GLPoint3] (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGLPoint3] → M.Validate A := by
   intro κ _ M _ w;
-  obtain ⟨lf, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
+  obtain ⟨ℓA, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
   grind;
 
 end Kripke
 
-end LabelledGentzen.GLPoint3.ProvableLabelledGentzen
+end LogicGLPoint3.ProvableLabelledGentzen
 
 end

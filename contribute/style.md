@@ -117,6 +117,8 @@ First-order logic:
 
 Sequents (`Γ ⟹ Δ` and similar, e.g. `TwoLayeredSequent`) are named `S`, `S'`, `S₁`, … . Do not rename this to `Sq` or similar to dodge a perceived clash with a logic named `S` (as in `LogicS`): the proof-calculus notation always encloses the logic name in brackets (`⊢ʰ[GL]`, `⊢ᵍ[GLPoint3]`, `⊢ᵍ[S]`), so a bare variable `S` never collides with it.
 
+Labelled formulas (`x ∶ A`, the type `LabelledFormula`) take the corresponding letter with an `ℓ` prefix: a labelled formula is `ℓA`, `ℓB`, … , and a `Finset`/`List` of them is `ℓΓ`, `ℓΔ`. The prefix is what distinguishes them from the plain `A`/`Γ` of the label-free calculi, which appear alongside them wherever the two are related.
+
 Kripke semantics: worlds are `x`, `y`, `z`, `w`, `v`, `u`. When building one model out of another, index the new model by `Model.World` rather than reintroducing a `κ : Type u`.
 
 Membership in a logic is stated as `provable_*` (e.g. `provable_axiomD`), not `mem_*`.
