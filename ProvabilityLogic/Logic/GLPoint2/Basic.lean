@@ -99,6 +99,7 @@ lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
 
 variable [DecidableEq α] {A B C : Formula α}
 
+omit [DecidableEq α] in
 /-- Transitivity of implication inside `LogicGLPoint2`. -/
 lemma imp_trans (hAB : (A 🡒 B) ∈ @LogicGLPoint2 α) (hBC : (B 🡒 C) ∈ LogicGLPoint2) :
     (A 🡒 C) ∈ LogicGLPoint2 :=

@@ -38,11 +38,11 @@ public import ProvabilityLogic.Kripke.Preservation
 public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Kripke.Rank
 public import ProvabilityLogic.Kripke.ReflexiveWorld
+public import ProvabilityLogic.Kripke.Reindex
 public import ProvabilityLogic.Kripke.RootExtension
 public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.Kripke.Simplification
 public import ProvabilityLogic.Kripke.Tail
-public import ProvabilityLogic.Kripke.ULift
 public import ProvabilityLogic.Kripke.Unravelling
 public import ProvabilityLogic.LabelledGentzen.GL.Basic
 public import ProvabilityLogic.LabelledGentzen.GL.Kripke
@@ -62,7 +62,6 @@ public import ProvabilityLogic.Logic.GL.Theorems
 public import ProvabilityLogic.Logic.GLPlusBoxBot.Basic
 public import ProvabilityLogic.Logic.GLPoint2.Basic
 public import ProvabilityLogic.Logic.GLPoint3.Basic
-public import ProvabilityLogic.Logic.GLPoint3.Completeness
 public import ProvabilityLogic.Logic.GLPoint3.Letterless
 public import ProvabilityLogic.Logic.GLPoint3OplusBoxBot.Basic
 public import ProvabilityLogic.Logic.Grz.Basic
