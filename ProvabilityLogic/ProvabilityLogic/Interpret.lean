@@ -18,8 +18,6 @@ structure Realization (α : Type*) (L : FirstOrder.Language) where
 
 namespace Formula
 
--- `{T₀ T}` are bound after `f` so that the coercion below can be `interpret` itself: routing it
--- through a lambda leaves a beta-redex in every statement written as `f 𝔅 A`.
 @[grind]
 def interpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 : Provability T₀ T) :
   Formula α → FirstOrder.Sentence L
@@ -28,17 +26,21 @@ def interpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 : Prov
   | A 🡒 B => (A.interpret f 𝔅) 🡒 (B.interpret f 𝔅)
   | □A    => 𝔅 (A.interpret f 𝔅)
 
-instance : CoeFun (Realization α L)
-  (fun _ ↦ ∀ {T₀ T : FirstOrder.Theory L}, Provability T₀ T → Formula α → FirstOrder.Sentence L) :=
-  ⟨interpret⟩
-
+-- `T` and `[T.Δ₁]` are bound after `f` so that the coercion below can be `standardInterpret`
+-- itself: routing it through a lambda leaves a beta-redex in every statement written as `f T A`.
 noncomputable abbrev standardInterpret (f : Realization α _) (T : FirstOrder.ArithmeticTheory)
   [T.Δ₁] := interpret f T.standardProvability
+
+/-- The standard interpretation is the default reading of a realization: `f T A` means
+`A.standardInterpret f T`. The generic one is written explicitly as `A.interpret f 𝔅`. -/
+noncomputable instance : CoeFun (Realization α ℒₒᵣ)
+  (fun _ ↦ (T : FirstOrder.ArithmeticTheory) → [T.Δ₁] → Formula α → FirstOrder.Sentence ℒₒᵣ) :=
+  ⟨standardInterpret⟩
 
 variable {f : Realization α L} {A : Formula α}
 
 @[simp, grind =]
-lemma interpret_boxItr {n : ℕ} : f 𝔅 (□^[n]A) = 𝔅^[n] (f 𝔅 A) := by
+lemma interpret_boxItr {n : ℕ} : (□^[n]A).interpret f 𝔅 = 𝔅^[n] (A.interpret f 𝔅) := by
   induction n with
   | zero => simp [Formula.boxItr];
   | succ n ih => simp only [boxItr, Function.iterate_succ_apply', interpret, ih];
@@ -52,7 +54,7 @@ variable {β : Type*}
 
 /-- Interpreting a renamed formula is interpreting under the pulled-back realization. -/
 lemma Formula.interpret_map {f : Realization β L} {g : α → β} {A : Formula α} :
-  f 𝔅 (A.map g) = (⟨f.val ∘ g⟩ : Realization α L) 𝔅 A := by
+  (A.map g).interpret f 𝔅 = A.interpret (⟨f.val ∘ g⟩ : Realization α L) 𝔅 := by
   induction A with
   | atom a => rfl
   | bot => rfl
@@ -62,7 +64,7 @@ lemma Formula.interpret_map {f : Realization β L} {g : α → β} {A : Formula 
 /-- Two realizations agreeing on the atoms of `A` interpret `A` identically. -/
 lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α L} {A : Formula α}
     (h : ∀ a ∈ A.atoms, f₁.val a = f₂.val a) :
-    f₁ 𝔅 A = f₂ 𝔅 A := by
+    A.interpret f₁ 𝔅 = A.interpret f₂ 𝔅 := by
   induction A with
   | atom a => exact h a (by simp [Formula.atoms])
   | bot => rfl
@@ -77,7 +79,7 @@ lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α
 /-- Interpreting a substituted formula is interpreting under the realization composed with
 the substitution's own interpretation. -/
 lemma Formula.interpret_subst {f : Realization α L} {s : Formula.Substitution α α} {A : Formula α} :
-  f 𝔅 (A⟦s⟧) = (⟨fun a ↦ f 𝔅 (s a)⟩ : Realization α L) 𝔅 A := by
+  (A⟦s⟧).interpret f 𝔅 = A.interpret (⟨fun a ↦ (s a).interpret f 𝔅⟩ : Realization α L) 𝔅 := by
   induction A with
   | atom a => rfl
   | _ => simp_all [Formula.interpret, Formula.subst_imp, Formula.subst_box]
@@ -86,16 +88,17 @@ lemma Formula.interpret_subst {f : Realization α L} {s : Formula.Substitution �
 formula equivalently. -/
 lemma Formula.interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α L}
     (h : ∀ a, T₀ ⊢ (f₁.val a) 🡘 (f₂.val a)) (A : Formula α) :
-    T₀ ⊢ (f₁ 𝔅 A) 🡘 (f₂ 𝔅 A) := by
+    T₀ ⊢ (A.interpret f₁ 𝔅) 🡘 (A.interpret f₂ 𝔅) := by
   induction A with
   | atom a => exact h a
   | bot => dsimp [Formula.interpret]; cl_prover
   | imp A B ihA ihB => dsimp [Formula.interpret]; cl_prover [ihA, ihB]
   | box A ih => exact 𝔅.ext' ih
 
-/-- The interpretation of `⊡A` is `T`-provably equivalent to `(f 𝔅 A) ⋏ 𝔅 (f 𝔅 A)`. -/
+/-- The interpretation of `⊡A` is `T`-provably equivalent to
+`(A.interpret f 𝔅) ⋏ 𝔅 (A.interpret f 𝔅)`. -/
 lemma Formula.interpret_boxdot_inside [L.DecidableEq] {f : Realization α L} {A : Formula α} :
-    T ⊢ f 𝔅 (⊡A) 🡘 (f 𝔅 A) ⋏ 𝔅 (f 𝔅 A) := by
+    T ⊢ (⊡A).interpret f 𝔅 🡘 (A.interpret f 𝔅) ⋏ 𝔅 (A.interpret f 𝔅) := by
   dsimp [Formula.interpret];
   cl_prover;
 
@@ -109,10 +112,10 @@ namespace LetterlessFormula
 variable {A B : LetterlessFormula} {f f₁ f₂ : LetterlessRealization L}
 
 @[grind .]
-lemma eq_interpret : f₁ 𝔅 A = f₂ 𝔅 A := by induction A <;> grind;
+lemma eq_interpret : A.interpret f₁ 𝔅 = A.interpret f₂ 𝔅 := by induction A <;> grind;
 
 @[grind .]
-lemma iff_provable_interpret : T ⊢ f₁ 𝔅 A ↔ T ⊢ f₂ 𝔅 A := by
+lemma iff_provable_interpret : T ⊢ A.interpret f₁ 𝔅 ↔ T ⊢ A.interpret f₂ 𝔅 := by
   rw [eq_interpret];
 
 end LetterlessFormula
@@ -121,7 +124,7 @@ end LetterlessFormula
 
 @[grind]
 def LO.FirstOrder.ArithmeticTheory.provabilityLogicRelativeTo (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α :=
-  {A | ∀ f : Realization α ℒₒᵣ, U ⊢ A.standardInterpret f T}
+  {A | ∀ f : Realization α ℒₒᵣ, U ⊢ f T A}
 
 abbrev LO.FirstOrder.ArithmeticTheory.provabilityLogic (T : FirstOrder.ArithmeticTheory) [T.Δ₁] : Logic α := T.provabilityLogicRelativeTo T
 

@@ -99,8 +99,7 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {A : Formula α} (hA : A ∉ LogicA)
     {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
     ∃ (n : ℕ) (f : Realization α ℒₒᵣ),
-      𝗜𝚺₁ ⊢ (((∼(□^[n]⊥)) ⋏ A : Formula α).standardInterpret f T)
-        🡒 ((T.standardProvability σ) 🡒 σ) := by
+      𝗜𝚺₁ ⊢ (f T ((∼(□^[n]⊥)) ⋏ A : Formula α)) 🡒 ((T.standardProvability σ) 🡒 σ) := by
   -- Obtained by the Solovay construction on the countermodel given by
   -- `StrongReflexiveCountermodel.ofReflexive`, modified so that the limit jumps from
   -- the root to the `A`-reflexive node `r` as soon as a witness of `σ` is found.
@@ -113,9 +112,9 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
   use Model.World.rank X.r, S.realization;
   have h := S.reflection;
   unfold LO.FirstOrder.ProvabilityAbstraction.Provability.conItr at h;
-  have e : (((∼(□^[Model.World.rank X.r]⊥)) ⋏ A : Formula α).standardInterpret S.realization T)
+  have e : (S.realization T ((∼(□^[Model.World.rank X.r]⊥)) ⋏ A : Formula α))
       = ((((T.standardProvability^[Model.World.rank X.r] ⊥) 🡒 ⊥)
-          🡒 ((A.standardInterpret S.realization T) 🡒 ⊥)) 🡒 ⊥) := by
+          🡒 ((S.realization T A) 🡒 ⊥)) 🡒 ⊥) := by
     simp [Formula.interpret];
   rw [e];
   cl_prover [h];
@@ -166,7 +165,7 @@ theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
     . -- the axiom `D`: its interpretation is a `𝚺₁`-reflection instance.
       intro f;
       exact provable_sigma1_reflection_of_mem_not_LogicA hT hAL hAA
-        (((□C) ⋎ (□D) : Formula α).standardInterpret f T)
+        (f T ((□C) ⋎ (□D) : Formula α))
         (by simp [Formula.interpret, Arithmetic.standardProvability_def]);
   | mdp _ _ ih₁ ih₂ => exact provabilityLogic_mdp ih₁ ih₂;
   | subst _ ih => intro f; simp only [Formula.interpret_subst]; exact ih _;

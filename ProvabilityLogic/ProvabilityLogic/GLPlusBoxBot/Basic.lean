@@ -23,13 +23,13 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L]
          {𝔅 : Provability T U} [𝔅.HBL] {f : Realization α L}
 
 lemma arithmetical_soundness (hA : A ∈ LogicGLPlusBoxBot 𝔅.height) {f : Realization α L} :
-    U ⊢ f 𝔅 A := by
+    U ⊢ A.interpret f 𝔅 := by
   cases h : 𝔅.height
   case _ =>
     simp [LogicGLPlusBoxBot, h] at hA;
     exact LogicGL.arithmetical_soundness' $ hA;
   case _ n =>
-    have : U ⊢ f 𝔅 (□^[n]⊥) 🡒 f 𝔅 A :=
+    have : U ⊢ (□^[n]⊥ : Formula α).interpret f 𝔅 🡒 A.interpret f 𝔅 :=
       LogicGL.arithmetical_soundness' $ LogicGLPlusBoxBot.iff_provable_provable_GL.mp $ h ▸ hA;
     apply this ⨀ ?_;
     rw [Formula.interpret_boxItr];
@@ -44,7 +44,7 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 variable {M : RootedModel κ α}
 
 theorem arithmetical_completeness {n : ℕ∞} (hn : n ≤ T.height)
-  (h : ∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) : A ∈ LogicGLPlusBoxBot n := by
+  (h : ∀ f : Realization α ℒₒᵣ, T ⊢ f T A) : A ∈ LogicGLPlusBoxBot n := by
   match n with
   | .none =>
     apply LogicGL.arithmetical_completeness_of_infinity_height (T := T) ?_ h;
@@ -55,7 +55,7 @@ theorem arithmetical_completeness {n : ℕ∞} (hn : n ≤ T.height)
     exact hn;
 
 theorem arithmetical_completeness_iff
-  : A ∈ LogicGLPlusBoxBot T.height ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ A.standardInterpret f T) := by
+  : A ∈ LogicGLPlusBoxBot T.height ↔ (∀ f : Realization α ℒₒᵣ, T ⊢ f T A) := by
   constructor;
   . intro h f; exact arithmetical_soundness h;
   . exact arithmetical_completeness (by simp);

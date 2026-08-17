@@ -46,8 +46,8 @@ noncomputable def realization : Realization α L :=
   ⟨fun a ↦ ⩖ i ∈ { i : M.World | i ⊩[_] (.atom a) }, S.σ i⟩
 
 private lemma mainlemma_aux (hri : M.root ≠ i)
-  : (i ⊩[_] A → T₀ ⊢ S.σ i 🡒 S.realization 𝔅 A) ∧
-  (i ⊮[_] A → T₀ ⊢ S.σ i 🡒 ∼(S.realization 𝔅 A)) := by
+  : (i ⊩[_] A → T₀ ⊢ S.σ i 🡒 A.interpret S.realization 𝔅) ∧
+  (i ⊮[_] A → T₀ ⊢ S.σ i 🡒 ∼(A.interpret S.realization 𝔅)) := by
   induction A generalizing i with
   | bot => simp [Formula.interpret];
   | atom a =>
@@ -91,15 +91,15 @@ private lemma mainlemma_aux (hri : M.root ≠ i)
       have hrj : ↑M.root ≠ j := by
         rintro rfl;
         exact Std.Irrefl.irrefl i $ IsTrans.trans i (↑M.root) i Rij (M.root.2 i (Ne.symm hri));
-      have : T₀ ⊢ 𝔅.dia (S.σ j) 🡒 ∼(𝔅 (S.realization 𝔅 A)) :=
+      have : T₀ ⊢ 𝔅.dia (S.σ j) 🡒 ∼(𝔅 (A.interpret S.realization 𝔅)) :=
         contra! $ 𝔅.mono' $ CN!_of_CN!_right $ (ihA hrj).2 hA;
       exact C!_trans (S.SC2 i j Rij) this;
 
 theorem mainlemma (hri : M.root ≠ i) :
-  i ⊩[_] A → T₀ ⊢ S.σ i 🡒 S.realization 𝔅 A := (mainlemma_aux hri).1
+  i ⊩[_] A → T₀ ⊢ S.σ i 🡒 A.interpret S.realization 𝔅 := (mainlemma_aux hri).1
 
 theorem mainlemma_neg (hri : M.root ≠ i) :
-  i ⊮[_] A → T₀ ⊢ S.σ i 🡒 ∼(S.realization 𝔅 A) := (mainlemma_aux hri).2
+  i ⊮[_] A → T₀ ⊢ S.σ i 🡒 ∼(A.interpret S.realization 𝔅) := (mainlemma_aux hri).2
 
 lemma root_of_iterated_inconsistency : T₀ ⊢ (∼𝔅^[M.height] ⊥) 🡒 (S.σ M.root) := by
   suffices T₀ ⊢ (⩖ j, S.σ j) 🡒 ((∼(S.σ M.root)) 🡒 (𝔅^[M.height] ⊥)) by
@@ -118,7 +118,7 @@ lemma root_of_iterated_inconsistency : T₀ ⊢ (∼𝔅^[M.height] ⊥) 🡒 (S
     cl_prover [this];
 
 lemma theory_height (hSound : ∀ {σ}, T₀ ⊢ 𝔅 σ → T ⊢ σ) (h : M.root.1 ⊩[_] ◇(∼A))
-  (b : T ⊢ S.realization 𝔅 A) : 𝔅.height < M.height := by
+  (b : T ⊢ A.interpret S.realization 𝔅) : 𝔅.height < M.height := by
   apply 𝔅.height_lt_pos_of_boxBot hSound (n := M.height) (pos_rank_of_forces_dia h);
   obtain ⟨i, hi, hiA⟩ : ∃ i : M.World, M.root.1 ≺ i ∧ i ⊮[_] A := by
     obtain ⟨i, hi, hiA⟩ := forces_dia.mp h;
@@ -126,10 +126,10 @@ lemma theory_height (hSound : ∀ {σ}, T₀ ⊢ 𝔅 σ → T ⊢ σ) (h : M.ro
   have hri : ↑M.root ≠ i := by
     rintro rfl;
     exact Std.Irrefl.irrefl _ hi;
-  have b₀ : T₀ ⊢ 𝔅 (S.realization 𝔅 A) := 𝔅.D1 b;
+  have b₀ : T₀ ⊢ 𝔅 (A.interpret S.realization 𝔅) := 𝔅.D1 b;
   have b₁ : T₀ ⊢ (∼𝔅^[M.height] ⊥) 🡒 (S.σ M.root) := S.root_of_iterated_inconsistency;
   have b₂ : T₀ ⊢ S.σ M.root 🡒 𝔅.dia (S.σ i) := S.SC2 M.root i hi;
-  have b₃ : T₀ ⊢ 𝔅.dia (S.σ i) 🡒 (∼(𝔅 (S.realization 𝔅 A))) := by
+  have b₃ : T₀ ⊢ 𝔅.dia (S.σ i) 🡒 (∼(𝔅 (A.interpret S.realization 𝔅))) := by
     simpa [Provability.dia] using! 𝔅.dia_mono <| WeakerThan.pbl <| S.mainlemma_neg hri hiA;
   cl_prover [b₀, b₁, b₂, b₃];
 
@@ -154,9 +154,9 @@ lemma rfl_mainlemma
     (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
     ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
       (M.root.1 ⊩[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (B.standardInterpret S.realization T)) ∧
+        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T B)) ∧
       (M.root.1 ⊮[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(B.standardInterpret S.realization T)) := by
+        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T B)) := by
   intro B;
   induction B with
   | bot =>
@@ -204,7 +204,7 @@ lemma rfl_mainlemma
       apply T.standardProvability.D1;
       apply Entailment.WeakerThan.pbl (𝓢 := 𝗜𝚺₁);
       have all : ∀ i : (M.extendRoot 1).World,
-        𝗜𝚺₁ ⊢ S.σ i 🡒 (B.standardInterpret S.realization T) := by
+        𝗜𝚺₁ ⊢ S.σ i 🡒 (S.realization T B) := by
         rintro (x | i);
         . apply S.mainlemma (by simp [RootedModel.extendRoot, Fin.posLast]);
           apply RootedModel.extendRoot.same_forces_embed.mpr;
@@ -223,11 +223,11 @@ lemma rfl_mainlemma
       cl_prover [this, S.SC4];
     . intro h;
       obtain ⟨y, Rxy, hy⟩ := Model.World.not_forces_box.mp h;
-      have hmn : 𝗜𝚺₁ ⊢ S.σ (Sum.inl y) 🡒 ∼(B.standardInterpret S.realization T) :=
+      have hmn : 𝗜𝚺₁ ⊢ S.σ (Sum.inl y) 🡒 ∼(S.realization T B) :=
         S.mainlemma_neg (by simp [RootedModel.extendRoot, Fin.posLast])
           (RootedModel.extendRoot.same_forces_embed.not.mpr hy);
       have b : 𝗜𝚺₁ ⊢ T.standardProvability.dia (S.σ (Sum.inl y)) 🡒
-          ∼(T.standardProvability (B.standardInterpret S.realization T)) :=
+          ∼(T.standardProvability (S.realization T B)) :=
         contra! $ T.standardProvability.mono' $ CN!_of_CN!_right hmn;
       exact C!_trans (S.SC2 _ _ (by simp [Model.Rel])) b;
 
@@ -662,7 +662,7 @@ theorem unprovable_realization_exists
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
   (hA : M.root.1 ⊮[M.toModel] A) (h : M.height < T.height)
-  : ∃ f : Realization α ℒₒᵣ, T ⊬ A.standardInterpret f T := by
+  : ∃ f : Realization α ℒₒᵣ, T ⊬ f T A := by
   let S := LO.FirstOrder.Theory.standardProvability.solovaySentences (M := M.extendRoot 1) (T := T);
   use S.realization;
   contrapose! h;
