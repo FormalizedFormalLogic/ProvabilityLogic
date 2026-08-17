@@ -182,7 +182,7 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     intro B hB;
     exact Model.World.forces_fconj.mp hA _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
-  let a' : M.ReflexiveWorldOf A.subfmls := ⟨a, fun {B} hB => ha B hB⟩;
+  let a' : M.ReflexivePointOf A.subfmls := ⟨a, fun {B} hB => ha B hB⟩;
   apply Set.Finite.subset (Set.finite_Iio M.height);
   intro n hn;
   simp only [Set.mem_compl_iff] at hn;

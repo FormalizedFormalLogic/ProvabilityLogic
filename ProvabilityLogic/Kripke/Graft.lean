@@ -241,7 +241,7 @@ variable [DecidableEq α] {A : Formula α}
 
   - [AB05, Lemma 12]
 -/
-lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.subfmls)
+lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexivePointOf A.subfmls)
   (Rra : M.root.1 ≺ (a : M.World))
   {C : Formula α} (hC : C ∈ A.subfmls)
   :

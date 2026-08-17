@@ -35,7 +35,7 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
-  let r' : M.ReflexiveWorldOf A.subfmls := ⟨r, fun {B} hB => ha B hB⟩;
+  let r' : M.ReflexivePointOf A.subfmls := ⟨r, fun {B} hB => ha B hB⟩;
   have hrne : r ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ hr);
   let r'' : M.NonRoot := ⟨r, hrne⟩;
   set k := M.height + 2 with hk;

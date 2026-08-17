@@ -32,14 +32,14 @@ end Model.World
 variable {κ : Type v} [Nonempty κ] {M : Model κ α}
 
 /-- The `Subtype` of worlds of `M` that are `X`-reflexive. -/
-abbrev Model.ReflexiveWorldOf (M : Model κ α) (X : FormulaFinset α) := {x : M.World // x.IsReflexiveOf X}
+abbrev Model.ReflexivePointOf (M : Model κ α) (X : FormulaFinset α) := {x : M.World // x.IsReflexiveOf X}
 
-namespace Model.ReflexiveWorldOf
+namespace Model.ReflexivePointOf
 
 variable {X : FormulaFinset α}
 
-instance : CoeOut (M.ReflexiveWorldOf X) M.World := ⟨Subtype.val⟩
+instance : CoeOut (M.ReflexivePointOf X) M.World := ⟨Subtype.val⟩
 
-end Model.ReflexiveWorldOf
+end Model.ReflexivePointOf
 
 end

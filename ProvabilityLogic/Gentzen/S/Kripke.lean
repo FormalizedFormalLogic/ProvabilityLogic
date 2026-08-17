@@ -89,7 +89,7 @@ omit [Nonempty κ] [M.IsGL] in
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-    ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ)
+    ∃ X : FormulaFinset α, ∀ (x : M.ReflexivePointOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ)
   ) :
   ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
   (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩[_] (Γ ⟹ Δ) := by
@@ -635,7 +635,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
 -/
 theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ) := by
+  ∀ (x : M.ReflexivePointOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ) := by
   obtain ⟨X, hX⟩ := soundness_aux h;
   refine ⟨X, ?_⟩;
   intro κ _ M _ x;
@@ -651,10 +651,10 @@ end GentzenWithCutProvable
 theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1
     ∃ X : FormulaFinset α, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
+      ∀ (x : M.ReflexivePointOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
     -- condition 2
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-      ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
+      ∃ X : FormulaFinset α, ∀ (x : M.ReflexivePointOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
     -- condition 3
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
       (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩[_] (Γ ⟹ Δ),
