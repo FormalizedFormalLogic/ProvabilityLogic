@@ -15,8 +15,6 @@ concerns.
 @[expose]
 public section
 
-namespace LabelledGentzen
-
 variable {α : Type u} [DecidableEq α]
 
 namespace LabelledSequent
@@ -36,9 +34,12 @@ def toStringOfLists [ToString α]
 
 end LabelledSequent
 
+
+namespace LogicGL
+
 /-! ### Curryst trace printer for the proof search
 
-Printing the ambient sequent at each node of an already-built `⊢ˡ! S` proof term is
+Printing the ambient sequent at each node of an already-built `⊢ˡᵍ[GL]! S` proof term is
 noncomputable (recovering the elements of `S`'s `Finset`s requires choice).
 `saturate`/`search`/`searchLeaves`, however, manipulate the sequent as list-represented
 components throughout, so mirroring their branching directly on those lists lets every
@@ -118,7 +119,7 @@ def searchTrace0 [ToString α] (R : List LabelRel) (Γ Δ : List (LabelledFormul
     #context prooftree(\n  {searchTraceAux ∅ R Γ Δ},\n  stroke: text.fill + 0.05em\n)"
 
 /-- Decide whether `A` is a theorem of `GL` — equivalently, whether the labelled sequent
-`⟹ˡ 0 ∶ A` is `⊢ˡ`-provable — by running `search0`, which is decidable and complete
+`⟹ˡ 0 ∶ A` is `⊢ˡᵍ[GL]`-provable — by running `search0`, which is decidable and complete
 (`isSome_search0_iff_provableLabelledGentzen`). Displays the resulting proof-search trace
 as a rendered `curryst` proof tree (like `searchTrace0`) when `A` is provable, or `⊬ A`
 otherwise. -/
@@ -130,4 +131,4 @@ def decideTrace0 [ToString α] (A : Formula α) : String :=
 #eval-typst decideTrace0 $ □(□#0 🡒 #0) 🡒 □#0
 #eval-typst decideTrace0 $ □#0 🡒 #0
 
-end LabelledGentzen
+end LogicGL

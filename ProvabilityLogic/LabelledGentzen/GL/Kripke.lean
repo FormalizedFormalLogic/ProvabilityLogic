@@ -5,7 +5,7 @@ public import ProvabilityLogic.LabelledGentzen.GL.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 
 /-!
-Kripke semantics for the labelled sequent calculus `G3KGL` (`⊢ˡ!`). A label
+Kripke semantics for the labelled sequent calculus `G3KGL` (`⊢ˡᵍ[GL]!`). A label
 assignment `L : M.LabelMap` interprets the world-labels, and a labelled sequent
 is valid under `L` when, whenever all relational atoms and all antecedent
 formulas hold, some succedent formula holds.
@@ -15,15 +15,13 @@ formulas hold, some succedent formula holds.
 
 /-!
 Syntactic embedding of the label-free Gentzen calculus (`ProvableGentzen`/`⊢ᵍ[GL]`) into
-Negri's labelled sequent calculus (`ProvableLabelledGentzen`/`⊢ˡ`): every `ProvableGentzen`
+Negri's labelled sequent calculus (`ProvableLabelledGentzen`/`⊢ˡᵍ[GL]`): every `ProvableGentzen`
 derivation of a label-free sequent gives a `ProvableLabelledGentzen` derivation of its
 translation `Sequent.toLabelled`.
 -/
 
 @[expose]
 public section
-
-open LabelledGentzen
 
 variable {κ : Type u} [Nonempty κ]
          {α : Type v}
@@ -113,7 +111,7 @@ section WithDecidableEqBoxRLob
 
 variable [DecidableEq α]
 
-open LabelledGentzen.LabelledSequent in
+open LabelledSequent in
 lemma validate_labelled_boxRLob [M.IsGL]
   (hfresh : y ∉ (R ⸴ Γ ⟹ˡ insert (x ∶ □A) Δ).labels)
   (h : ∀ L : M.LabelMap, M ⊧ˡ[L] (insert (x, y) R ⸴ insert (y ∶ □A) Γ ⟹ˡ insert (y ∶ A) Δ))
@@ -194,7 +192,7 @@ lemma validate_labelled_trans [IsTrans _ M.Rel]
 end Model
 
 
-namespace LabelledGentzen.ProvableLabelledGentzen
+namespace LogicGL.ProvableLabelledGentzen
 
 namespace Kripke
 
@@ -204,7 +202,7 @@ Soundness of `G3KGL` with respect to Kripke semantics on `GL` models.
 
 - [Neg14, Theorem 5.4]
 -/
-theorem soundness [DecidableEq α] {S : LabelledSequent α} (h : ⊢ˡ S) :
+theorem soundness [DecidableEq α] {S : LabelledSequent α} (h : ⊢ˡᵍ[GL] S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → ∀ L : M.LabelMap, M ⊧ˡ[L] S := by
   intro κ _ M _;
   induction h with
@@ -221,7 +219,7 @@ theorem soundness [DecidableEq α] {S : LabelledSequent α} (h : ⊢ˡ S) :
   | trans hxy hyz _ ih => exact λ L => validate_labelled_trans hxy hyz (ih L);
 
 /-- A formula provable as `∅ ⸴ ∅ ⟹ˡ {x ∶ A}` is valid in every `GL` model. -/
-theorem soundness_formula [DecidableEq α] {x : Label} {A : Formula α} (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
+theorem soundness_formula [DecidableEq α] {x : Label} {A : Formula α} (h : ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGL] → M.Validate A := by
   intro κ _ M _ w;
   obtain ⟨lf, hlf, hf⟩ := soundness h M (λ _ => w) (by grind) (by grind);
@@ -229,12 +227,10 @@ theorem soundness_formula [DecidableEq α] {x : Label} {A : Formula α} (h : ⊢
 
 end Kripke
 
-end LabelledGentzen.ProvableLabelledGentzen
+end LogicGL.ProvableLabelledGentzen
 
 
 section
-
-open LogicGL
 
 variable {α : Type u} [DecidableEq α]
 
@@ -244,17 +240,17 @@ def Sequent.toLabelled (z : Label) (S : Sequent α) : LabelledSequent α :=
   ∅ ⸴ S.ant.image (z ∶ ·) ⟹ˡ S.suc.image (z ∶ ·)
 
 
-namespace LabelledGentzen
-
 variable {R : Finset LabelRel} {Γ Δ Θ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
+
+namespace LogicGL
 
 namespace ProvableLabelledGentzen
 
 /-- Iterated `Trans`: relational atoms `(x, y)` for all `x ∈ T` may be assumed,
 provided `(z, y) ∈ R` and `(x, z) ∈ R` for each `x ∈ T`. -/
 lemma transMany (T : Finset Label) (hzy : (z, y) ∈ R) (hT : ∀ x ∈ T, (x, z) ∈ R)
-  (π : ⊢ˡ ((R ∪ T.image (·, y)) ⸴ Γ ⟹ˡ Δ)) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
+  (π : ⊢ˡᵍ[GL] ((R ∪ T.image (·, y)) ⸴ Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
   induction T using Finset.induction generalizing R with
   | empty => simpa using π;
   | insert x T hxT ih =>
@@ -268,7 +264,7 @@ lemma transMany (T : Finset Label) (hzy : (z, y) ∈ R) (hT : ∀ x ∈ T, (x, z
 /-- Iterated `L□`: labelled formulas `y ∶ B` for all `(x, B) ∈ T` may be assumed,
 provided `(x, y) ∈ R` and `x ∶ □B ∈ Γ` for each `(x, B) ∈ T`. -/
 lemma boxLMany (T : Finset (Label × Formula α)) (hT : ∀ p ∈ T, (p.1, y) ∈ R ∧ (p.1 ∶ □p.2) ∈ Γ)
-  (π : ⊢ˡ (R ⸴ (Γ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ Δ)) : ⊢ˡ (R ⸴ Γ ⟹ˡ Δ) := by
+  (π : ⊢ˡᵍ[GL] (R ⸴ (Γ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ Δ)) : ⊢ˡᵍ[GL] (R ⸴ Γ ⟹ˡ Δ) := by
   induction T using Finset.induction generalizing Γ with
   | empty => simpa using π;
   | insert p T hpT ih =>
@@ -282,6 +278,8 @@ lemma boxLMany (T : Finset (Label × Formula α)) (hT : ∀ p ∈ T, (p.1, y) �
     grind;
 
 end ProvableLabelledGentzen
+
+end LogicGL
 
 /-- The boxed formula of `f` that can be unfolded at `y`: `some (x, B)` when
 `f = x ∶ □B` with `(x, y) ∈ R`, and `none` otherwise. -/
@@ -299,6 +297,8 @@ lemma LabelledFormula.boxTarget_eq_some {f : LabelledFormula α} {p : Label × F
   (cases A' <;> simp [LabelledFormula.boxTarget]);
   grind;
 
+namespace LogicGL
+
 /-- All pairs `(x, B)` with `x ∶ □B ∈ Θ` and `(x, y) ∈ R`: the boxed formulas of `Θ`
 that can be unfolded at `y` by `L□`. -/
 def boxTargets (y : Label) (R : Finset LabelRel) (Θ : Finset (LabelledFormula α)) :
@@ -314,8 +314,6 @@ lemma mem_boxTargets : (x, B) ∈ boxTargets y R Θ ↔ (x, y) ∈ R ∧ (x ∶ 
   simp only [boxTargets, Finset.mem_filterMap, LabelledFormula.boxTarget_eq_some];
   grind;
 
-end LabelledGentzen
-
 
 namespace ProvableGentzen
 
@@ -328,7 +326,7 @@ namespace ProvableGentzen
 lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ[GL] S) :
   ∀ (z : Label) (R : Finset LabelRel) (Θ : Finset (LabelledFormula α)),
   (∀ B ∈ S.ant, (z ∶ B) ∈ Θ ∨ ∃ x C, B = □C ∧ (x, z) ∈ R ∧ (x ∶ □C) ∈ Θ) →
-  ⊢ˡ (R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)) := by
+  ⊢ˡᵍ[GL] (R ⸴ Θ ⟹ˡ S.suc.image (z ∶ ·)) := by
   induction h using ProvableGentzen.rec with
   | axm A =>
     intro z R Θ H;
@@ -427,38 +425,39 @@ lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ[GL] S) :
 
 /-- Embedding of `ProvableGentzen` into `ProvableLabelledGentzen`: a proof of `S` yields a proof
 of `S.toLabelled z` for any label `z`. -/
-lemma toLabelledGentzen (z : Label) {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ˡ (S.toLabelled z) :=
+lemma toLabelledGentzen (z : Label) {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ˡᵍ[GL] (S.toLabelled z) :=
   toLabelledGentzenAux h z ∅ (S.ant.image (z ∶ ·)) (fun _ hB => Or.inl (Finset.mem_image_of_mem _ hB))
 
 end ProvableGentzen
 
 
 /-- Embedding of `ProvableGentzen` into `ProvableLabelledGentzen`. -/
-theorem ProvableGentzen.toLabelled (z : Label) {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ˡ (S.toLabelled z) :=
+theorem ProvableGentzen.toLabelled (z : Label) {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ˡᵍ[GL] (S.toLabelled z) :=
   ProvableGentzen.toLabelledGentzen z h
 
 
 /-- Converse embedding: a proof of `A` at label `x` in `ProvableLabelledGentzen`
 yields a proof of `A` in `ProvableGentzen`. -/
 theorem ProvableLabelledGentzen.toGentzen {x : Label} {A : Formula α}
-  (h : ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) : ⊢ᵍ[GL] (∅ ⟹ {A}) := by
+  (h : ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) : ⊢ᵍ[GL] (∅ ⟹ {A}) := by
   -- via Kripke semantics: soundness of `ProvableLabelledGentzen` on `GL` models
-  -- (`LabelledGentzen.ProvableLabelledGentzen.Kripke.soundness_formula`) specialized to finite
-  -- `GL` models, composed with completeness of `ProvableGentzen` for finite `GL` models
+  -- (`ProvableLabelledGentzen.Kripke.soundness_formula`) specialized to finite `GL` models,
+  -- composed with completeness of `ProvableGentzen` for finite `GL` models
   -- (`ProvableGentzen.Kripke.completeness`)
   apply ProvableGentzen.Kripke.completeness;
   intro κ _ M _ w;
   exact Model.World.forces_singleton_sequent.mpr
-    (LabelledGentzen.ProvableLabelledGentzen.Kripke.soundness_formula h M w);
+    (ProvableLabelledGentzen.Kripke.soundness_formula h M w);
 
 /-- `ProvableGentzen` and `ProvableLabelledGentzen` agree, for a formula `A` at any label `x`. -/
 theorem iff_provableGentzen_provableLabelledGentzen {x : Label} {A : Formula α} :
-  ⊢ᵍ[GL] (∅ ⟹ {A}) ↔ ⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A}) := by
+  ⊢ᵍ[GL] (∅ ⟹ {A}) ↔ ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {x ∶ A}) := by
   constructor;
   . intro h;
     simpa [Sequent.toLabelled] using ProvableGentzen.toLabelled x h;
   . exact ProvableLabelledGentzen.toGentzen;
 
+end LogicGL
 
 end
 

@@ -14,11 +14,9 @@ to `z`), or `z R y`.
 @[expose]
 public section
 
-namespace LabelledGentzen
-
 variable {α : Type u} [DecidableEq α]
 
-namespace GLPoint3
+namespace LogicGLPoint3
 
 inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | axm (x A) : ProofLabelledGentzen (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A})
@@ -54,14 +52,14 @@ compared by branching into `y R z`, `y = z` (realised by relabelling `y` to `z`)
     ProofLabelledGentzen (insert (z, y) R ⸴ Γ ⟹ˡ Δ) →
     ProofLabelledGentzen ((R ⸴ Γ ⟹ˡ Δ).relabel y z) →
     ProofLabelledGentzen (R ⸴ Γ ⟹ˡ Δ)
-prefix:120 "⊢ˡ³! " => ProofLabelledGentzen
+notation:120 "⊢ˡᵍ[GLPoint3]! " S:121 => ProofLabelledGentzen S
 
 
 abbrev ProvableLabelledGentzen (S : LabelledSequent α) : Prop := Nonempty (ProofLabelledGentzen S)
-prefix:120 "⊢ˡ³ " => ProvableLabelledGentzen
+notation:120 "⊢ˡᵍ[GLPoint3] " S:121 => ProvableLabelledGentzen S
 
-end GLPoint3
+notation:120 "⊬ˡᵍ[GLPoint3] " S:121 => ¬ ProvableLabelledGentzen S
 
-end LabelledGentzen
+end LogicGLPoint3
 
 end

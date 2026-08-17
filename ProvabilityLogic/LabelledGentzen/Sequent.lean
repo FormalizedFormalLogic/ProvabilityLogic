@@ -12,8 +12,6 @@ Every labelled sequent calculus in this repository (`GL`, `GL.3`) shares these t
 @[expose]
 public section
 
-namespace LabelledGentzen
-
 variable {α : Type u} [DecidableEq α]
 
 /-- World-labels of the labelled sequent calculus. A bare `abbrev` for `ℕ`, kept
@@ -111,7 +109,5 @@ def relabel (y z : Label) (S : LabelledSequent α) : LabelledSequent α where
   suc := S.suc.image (LabelledFormula.relabel y z)
 
 end LabelledSequent
-
-end LabelledGentzen
 
 end

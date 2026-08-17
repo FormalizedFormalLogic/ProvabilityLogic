@@ -6,7 +6,7 @@ public import Mathlib.Algebra.Order.BigOperators.Group.Finset
 meta import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
-Saturation for proof search in the labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡ`).
+Saturation for proof search in the labelled sequent calculus (`ProofLabelledGentzen`/`⊢ˡᵍ[GL]`).
 
 `saturate` exhaustively applies the propositional rules (`impL`/`impR`), the
 relational rule `Trans` and the modal rule `L□` (each keeping its principal
@@ -24,13 +24,11 @@ both of which are invariant under saturation steps.
 /-!
 Completeness of the proof search `search0` for `ProvableLabelledGentzen`: whenever `search0 R Γ Δ = none`,
 a finite Kripke countermodel of the labelled sequent `R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset`
-exists (`LabelledGentzen.exists_countermodel_of_search0_eq_none`).
+exists (`LogicGL.exists_countermodel_of_search0_eq_none`).
 -/
 
 @[expose]
 public section
-
-namespace LabelledGentzen
 
 variable {α : Type u} [DecidableEq α]
 
@@ -538,19 +536,21 @@ end lobMeasure
 end LabelledSequent
 
 
+namespace LogicGL
+
 namespace ProofLabelledGentzen
 
 variable {R : Finset LabelRel} {Γ Δ : Finset (LabelledFormula α)} {x : Label} {A B : Formula α}
 
 /-- `impR` with the principal formula kept in the succedent. -/
 def impR_mem (h : (x ∶ A 🡒 B) ∈ Δ)
-  (p : ⊢ˡ! (R ⸴ insert (x ∶ A) Γ ⟹ˡ insert (x ∶ B) Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
+  (p : ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ A) Γ ⟹ˡ insert (x ∶ B) Δ)) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) := by
   rw [show Δ = insert (x ∶ A 🡒 B) Δ by grind];
   exact impR p;
 
 /-- `impL` with the principal formula kept in the antecedent. -/
 def impL_mem (h : (x ∶ A 🡒 B) ∈ Γ)
-  (p : ⊢ˡ! (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (q : ⊢ˡ! (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)) : ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ) := by
+  (p : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ insert (x ∶ A) Δ)) (q : ⊢ˡᵍ[GL]! (R ⸴ insert (x ∶ B) Γ ⟹ˡ Δ)) : ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ) := by
   rw [show Γ = insert (x ∶ A 🡒 B) Γ by grind];
   exact impL p q;
 
@@ -559,7 +559,7 @@ whose members are all `R`-predecessors of `x`, given `(x, y) ∈ R`.  Used by th
 search to justify the eagerly added transitive pairs of a `R□^Löb` step. -/
 def transMany (x y : Label) :
   (ws : List Label) → (hws : ∀ w ∈ ws, (w, x) ∈ R) → (hxy : (x, y) ∈ R) →
-  ⊢ˡ! ((ws.map (fun w => (w, y))).toFinset ∪ R ⸴ Γ ⟹ˡ Δ) → ⊢ˡ! (R ⸴ Γ ⟹ˡ Δ)
+  ⊢ˡᵍ[GL]! ((ws.map (fun w => (w, y))).toFinset ∪ R ⸴ Γ ⟹ˡ Δ) → ⊢ˡᵍ[GL]! (R ⸴ Γ ⟹ˡ Δ)
   | [], _, _, π => by simpa using π
   | w :: ws, hws, hxy, π =>
     transMany x y ws (fun v hv => hws v (List.mem_cons_of_mem _ hv)) hxy
@@ -570,6 +570,8 @@ def transMany (x y : Label) :
 
 end ProofLabelledGentzen
 
+end LogicGL
+
 
 /-- The labelled sequent determined by list-representations of its components.
 Used to keep the leaves of `saturate` computably enumerable (extracting elements
@@ -578,6 +580,9 @@ abbrev LabelledSequent.ofLists
   (L : List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)) : LabelledSequent α :=
   L.1.toFinset ⸴ L.2.1.toFinset ⟹ˡ L.2.2.toFinset
 
+
+namespace LogicGL
+
 /-- The result of saturating a labelled sequent `S`: either a proof of `S`, or a
 finite list of saturated open sequents (the leaves of the saturation tree, given by
 list-representations of their components for computability) together with a way of
@@ -585,7 +590,7 @@ recovering a proof of `S` from proofs of all of them.  The leaves have the same
 labels and the same subformula closure as `S`, and extend `S` componentwise
 (saturation only ever *adds* relational atoms and labelled formulas). -/
 inductive SaturationResult (S : LabelledSequent α) : Type u
-  | closed (π : ⊢ˡ! S) : SaturationResult S
+  | closed (π : ⊢ˡᵍ[GL]! S) : SaturationResult S
   | stuck (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
       (hsat : ∀ L ∈ leaves, (LabelledSequent.ofLists L).Saturated)
       (hlab : ∀ L ∈ leaves, (LabelledSequent.ofLists L).labels = S.labels)
@@ -594,7 +599,7 @@ inductive SaturationResult (S : LabelledSequent α) : Type u
         S.rel ⊆ (LabelledSequent.ofLists L).rel ∧
         S.ant ⊆ (LabelledSequent.ofLists L).ant ∧
         S.suc ⊆ (LabelledSequent.ofLists L).suc)
-      (k : (∀ L ∈ leaves, ⊢ˡ! (LabelledSequent.ofLists L)) → ⊢ˡ! S) : SaturationResult S
+      (k : (∀ L ∈ leaves, ⊢ˡᵍ[GL]! (LabelledSequent.ofLists L)) → ⊢ˡᵍ[GL]! S) : SaturationResult S
 
 namespace SaturationResult
 
@@ -602,7 +607,7 @@ variable {S S' S₁ S₂ : LabelledSequent α}
 
 /-- Transports a `SaturationResult` along a one-premise derivation step whose premise
 `S` extends the conclusion `S'` componentwise. -/
-def map (f : ⊢ˡ! S → ⊢ˡ! S') (hlab : S.labels = S'.labels) (hsf : S.sf = S'.sf)
+def map (f : ⊢ˡᵍ[GL]! S → ⊢ˡᵍ[GL]! S') (hlab : S.labels = S'.labels) (hsf : S.sf = S'.sf)
   (hrel : S'.rel ⊆ S.rel) (hant : S'.ant ⊆ S.ant) (hsuc : S'.suc ⊆ S.suc) :
   SaturationResult S → SaturationResult S'
   | closed π => closed (f π)
@@ -615,7 +620,7 @@ def map (f : ⊢ˡ! S → ⊢ˡ! S') (hlab : S.labels = S'.labels) (hsf : S.sf =
 
 /-- Transports two `SaturationResult`s along a two-premise derivation step whose premises
 `S₁`/`S₂` extend the conclusion `S'` componentwise. -/
-def map₂ (f : ⊢ˡ! S₁ → ⊢ˡ! S₂ → ⊢ˡ! S')
+def map₂ (f : ⊢ˡᵍ[GL]! S₁ → ⊢ˡᵍ[GL]! S₂ → ⊢ˡᵍ[GL]! S')
   (hlab₁ : S₁.labels = S'.labels) (hsf₁ : S₁.sf = S'.sf)
   (hlab₂ : S₂.labels = S'.labels) (hsf₂ : S₂.sf = S'.sf)
   (hrel₁ : S'.rel ⊆ S₁.rel) (hant₁ : S'.ant ⊆ S₁.ant) (hsuc₁ : S'.suc ⊆ S₁.suc)
@@ -970,7 +975,7 @@ saturate, then solve every stuck leaf (`searchLeaves`).  The parameter `processe
 -/
 def search (processed : Finset (LabelledFormula α)) (R : List LabelRel)
   (Γ Δ : List (LabelledFormula α)) :
-  Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
+  Option (⊢ˡᵍ[GL]! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
   -- Termination: every `R□^Löb` step strictly decreases the weighted measure
   -- `LabelledSequent.lobMeasure` (`lobMeasure_lob_lt`), which saturation never
   -- increases (`lobMeasure_le`).
@@ -1000,7 +1005,7 @@ leaf (`hbound`).
 def searchLeaves (processed : Finset (LabelledFormula α)) (m : ℕ)
   (leaves : List (List LabelRel × List (LabelledFormula α) × List (LabelledFormula α)))
   (hbound : ∀ L ∈ leaves, (LabelledSequent.ofLists L).lobMeasure processed ≤ m) :
-  Option (∀ L ∈ leaves, ⊢ˡ! (LabelledSequent.ofLists L)) :=
+  Option (∀ L ∈ leaves, ⊢ˡᵍ[GL]! (LabelledSequent.ofLists L)) :=
   -- `m` together with `leaves.length` drives the lexicographic termination measure.
   match leaves, hbound with
   | [], _ => some (fun _ hL => nomatch hL)
@@ -1051,9 +1056,9 @@ def searchLeaves (processed : Finset (LabelledFormula α)) (m : ℕ)
             exact LabelledSequent.freshLabel_notMem;
           some (consAllMem
             (by
-              show ⊢ˡ! (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset);
+              show ⊢ˡᵍ[GL]! (Rl.toFinset ⸴ Γl.toFinset ⟹ˡ Δl.toFinset);
               -- strip the eager transitive pairs by iterated `Trans`
-              have π' : ⊢ˡ! ((preds.map (fun w => (w, y))).toFinset ∪ ((x, y) :: Rl).toFinset ⸴
+              have π' : ⊢ˡᵍ[GL]! ((preds.map (fun w => (w, y))).toFinset ∪ ((x, y) :: Rl).toFinset ⸴
                 insert (y ∶ □A) Γl.toFinset ⟹ˡ insert (y ∶ A) Δl.toFinset) := by
                 have hR' : R'.toFinset =
                   (preds.map (fun w => (w, y))).toFinset ∪ ((x, y) :: Rl).toFinset :=
@@ -1066,7 +1071,7 @@ def searchLeaves (processed : Finset (LabelledFormula α)) (m : ℕ)
                 simp only [List.toFinset_cons, Finset.mem_insert, List.mem_toFinset];
                 right;
                 rwa [← hpx, Prod.mk.eta];
-              have π'' : ⊢ˡ! (((x, y) :: Rl).toFinset ⸴
+              have π'' : ⊢ˡᵍ[GL]! (((x, y) :: Rl).toFinset ⸴
                 insert (y ∶ □A) Γl.toFinset ⟹ˡ insert (y ∶ A) Δl.toFinset) :=
                 ProofLabelledGentzen.transMany x y preds hpreds (by simp) π';
               rw [show Δl.toFinset = insert (x ∶ □A) Δl.toFinset
@@ -1091,7 +1096,7 @@ end
 
 /-- Entry point of the proof search: no boxed formula has been processed yet. -/
 def search0 (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
-  Option (⊢ˡ! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
+  Option (⊢ˡᵍ[GL]! (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
   search ∅ R Γ Δ
 
 /-- Whether `search0` succeeds is decidable: it is a computable `Bool`-valued function
@@ -1157,7 +1162,7 @@ def lobProcessedCounterexample : Formula ℕ := □□⊥ 🡒 (∼□#0 🡒 �
 
 /-- `lobProcessedCounterexample` is provable as `ProvableLabelledGentzen`. -/
 lemma provable_lobProcessedCounterexample :
-  ⊢ˡ ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
+  ⊢ˡᵍ[GL] ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
   -- Two `impR`s and `R□^Löb` at `0 ∶ □□a` (fresh label `1`), the antecedent `□□⊥` yields
   -- `1 ∶ □⊥` by `L□`, so a second `R□^Löb` at `1 ∶ □a` (fresh label `2`) closes by `L□`
   -- (giving `2 ∶ ⊥`) and `botL`.
@@ -1226,8 +1231,12 @@ private def stuckLeaves (R : List LabelRel) (Γ Δ : List (LabelledFormula ℕ))
 
 end incompleteness
 
+end LogicGL
+
 
 namespace LabelledSequent
+
+open LogicGL
 
 /-! ### The countermodel determined by a saturated open leaf -/
 
@@ -1408,6 +1417,8 @@ theorem exists_countermodel_of_hasFailingLeaf (h : S₀.HasFailingLeaf) :
 end LabelledSequent
 
 
+namespace LogicGL
+
 /-! ### Extraction of an abandoned leaf from a failing search -/
 
 open LabelledSequent in
@@ -1579,7 +1590,7 @@ open LabelledSequent in
 (of list-represented components). -/
 theorem isSome_search0_iff_provableLabelledGentzen
   {R : List LabelRel} {Γ Δ : List (LabelledFormula α)} :
-  (search0 R Γ Δ).isSome ↔ ⊢ˡ (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset) := by
+  (search0 R Γ Δ).isSome ↔ ⊢ˡᵍ[GL] (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset) := by
   constructor;
   · intro h;
     exact ⟨(search0 R Γ Δ).get h⟩;
@@ -1594,15 +1605,15 @@ theorem isSome_search0_iff_provableLabelledGentzen
 decidable, by running the proof search `search0`. -/
 instance decidable_provableLabelledGentzen_ofLists
   (R : List LabelRel) (Γ Δ : List (LabelledFormula α)) :
-  Decidable (⊢ˡ (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
+  Decidable (⊢ˡᵍ[GL] (R.toFinset ⸴ Γ.toFinset ⟹ˡ Δ.toFinset)) :=
   decidable_of_iff _ isSome_search0_iff_provableLabelledGentzen
 
 /-- `ProvableLabelledGentzen` of a single labelled formula is decidable. -/
 instance decidable_provableLabelledGentzen_singleton (x : Label) (A : Formula α) :
-  Decidable (⊢ˡ (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :=
-  decidable_of_iff (⊢ˡ (([] : List LabelRel).toFinset ⸴
+  Decidable (⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {x ∶ A})) :=
+  decidable_of_iff (⊢ˡᵍ[GL] (([] : List LabelRel).toFinset ⸴
     ([] : List (LabelledFormula α)).toFinset ⟹ˡ [x ∶ A].toFinset)) (by simp)
 
-end LabelledGentzen
+end LogicGL
 
 end
