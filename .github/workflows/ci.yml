@@ -165,6 +165,23 @@ jobs:
           path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
 
+      # doc-gen4 holds the whole Mathlib+Foundation environment in one process, then forks a git
+      # child per package for the `srcUri.github` targets — many at once, under lake's parallelism.
+      # The kernel's default overcommit heuristic refuses to fork a process that large, so those
+      # (and only those: every `docInfo` target succeeds) fail with "resource exhausted (error code:
+      # 12, cannot allocate memory)". `overcommit_memory=1` never refuses; the forks are
+      # copy-on-write and immediately exec a small binary, so nothing actually claims that memory.
+      # The extra swap is headroom for the peak. Runner images already have an active `/swapfile`,
+      # hence the different name.
+      - name: Give doc-gen4 room to fork
+        run: |
+          sudo sysctl -w vm.overcommit_memory=1
+          sudo fallocate -l 16G /swapfile-docs
+          sudo chmod 600 /swapfile-docs
+          sudo mkswap /swapfile-docs
+          sudo swapon /swapfile-docs
+          free -h
+
       # Generated after the project cache is packed, so the archive stays lean and doesn't carry
       # doc-gen4's HTML output.
       - name: Build docs
