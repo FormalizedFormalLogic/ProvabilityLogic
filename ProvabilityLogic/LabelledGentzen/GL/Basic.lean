@@ -126,19 +126,19 @@ lemma axm (x : Label) (A : Formula α) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ A} ⟹ˡ {
 lemma union (x : Label) (A : Formula α) (hΓ : (x ∶ A) ∈ ℓΓ := by grind) (hΔ : (x ∶ A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.union x A hΓ hΔ⟩
 lemma botL (x : Label) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := ⟨ProofLabelledGentzen.botL x⟩
 @[grind =>] lemma botL_mem (x : Label) (h : (x ∶ (⊥ : Formula α)) ∈ ℓΓ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.botL_mem x h⟩
-lemma wkRel (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : R ⊆ R') : ⊢ˡᵍ[GL] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel π.some h⟩
-lemma wkAnt (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt π.some h⟩
-lemma wkSuc (π : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc π.some h⟩
-lemma impL (π₁ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (π₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) := ⟨ProofLabelledGentzen.impR π.some⟩
-lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (π : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
-  ⟨ProofLabelledGentzen.boxL x y A hxy hxA π.some⟩
+lemma wkRel (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hR : R ⊆ R') : ⊢ˡᵍ[GL] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel h.some hR⟩
+lemma wkAnt (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΓ : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt h.some hΓ⟩
+lemma wkSuc (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΔ : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc h.some hΔ⟩
+lemma impL (h₁ : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (h₂ : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) := ⟨ProofLabelledGentzen.impR h.some⟩
+lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (h : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.boxL x y A hxy hxA h.some⟩
 lemma boxRLob (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind)
-    (π : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
-  ⟨ProofLabelledGentzen.boxRLob x y A hfresh π.some⟩
+    (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
+  ⟨ProofLabelledGentzen.boxRLob x y A hfresh h.some⟩
 lemma irref (h : (x, x) ∈ R := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.irref x h⟩
-lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (π : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
-  ⟨ProofLabelledGentzen.trans x y z hxy hyz π.some⟩
+lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (h : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.trans x y z hxy hyz h.some⟩
 
 lemma negL (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ ∼A) ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.negL h.some⟩
 lemma negR (h : ⊢ˡᵍ[GL] (R ⸴ insert (x ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ ∼A) ℓΔ) := ⟨ProofLabelledGentzen.negR h.some⟩
@@ -207,10 +207,10 @@ lemma of_transGen_insert (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
   | single hxy =>
     simp [Finset.insert_eq_self.mpr hxy];
   | @tail b c _ hbc ih =>
-    intro π;
+    intro h;
     apply ih;
     apply trans (x := x) (y := b) (z := c);
-    apply wkRel π;
+    apply wkRel h;
     grind;
 
 /--
