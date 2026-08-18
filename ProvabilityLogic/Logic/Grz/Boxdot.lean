@@ -70,7 +70,7 @@ variable [DecidableEq α] {A : Formula α}
 
 lemma provable_boxdot_GL_of_provable_Grz : A ∈ LogicGrz → Aᵇ ∈ LogicGL := by
   intro h;
-  replace h := LogicGrz.provability_TFAE |>.out 0 1 |>.mp h;
+  replace h := LogicGrz.iff_provableHilbert.mp h;
   induction h with
   | modal4 =>
     apply LogicGL.iff_forces.mpr;
@@ -117,7 +117,6 @@ theorem iff_provable_boxdot_GL_provable_Grz : Aᵇ ∈ LogicGL ↔ A ∈ LogicGr
   provable_boxdot_GL_of_provable_Grz
 ⟩
 
-/-- `Grz`-provability of `A` is equivalent to `S`-provability of its boxdot translate. -/
 theorem iff_provable_boxdot_S_provable_Grz : Aᵇ ∈ LogicS ↔ A ∈ LogicGrz :=
   Iff.trans LogicS.iff_provable_boxdot_GL_provable_boxdot_S.symm
     iff_provable_boxdot_GL_provable_Grz

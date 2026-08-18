@@ -114,8 +114,7 @@ lemma provable_neg_boxItr_bot : ∼□^[n]⊥ ∈ @LogicA α := by
     have hK : TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥  ∈ @LogicGL α := LogicGL.iff_forces.mpr (by grind);
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL hK) hTBB) ih;
 
-/-- The easy direction of the deduction-theorem characterization: if `GL ⊢ ∼□^[n]⊥ 🡒 A`,
-then `A ∈ LogicA`. -/
+/-- The easy direction of `LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp`. -/
 lemma provable_of_provable_GL_neg_boxItr_bot_imp (h : (∼□^[n]⊥) 🡒 A ∈ LogicGL) : A ∈ LogicA :=
   Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_neg_boxItr_bot
 
@@ -185,10 +184,6 @@ end
 
 open Model Model.World
 
-/--
-  For every theorem `A` of `LogicA` there is an `N` such that `A` is forced at every world
-  of every finite `GL` model at which `TBB 0, …, TBB (N - 1)` hold.
--/
 lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
   ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (x : M.World),
   (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A := by
@@ -210,9 +205,6 @@ lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
     grind;
 
 omit [DecidableEq α] in
-/-- If `A` is forced at every world of every finite `GL` model at which
-`TBB 0, …, TBB (N - 1)` hold, then the root of every finite rooted `GL` model forces
-`∼□^[N]⊥ 🡒 A`. -/
 lemma root_forces_neg_boxItr_bot_imp
   (h : ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
     ∀ (x : M.World), (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A)
@@ -233,10 +225,7 @@ lemma root_forces_neg_boxItr_bot_imp
     fun hc => (forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
   omega;
 
-/--
-  Deduction-theorem-style `GL`-characterization of `LogicA`: `A ∈ LogicA` iff
-  `GL ⊢ ∼□^[n]⊥ 🡒 A` for some `n`.
--/
+/-- Deduction-theorem-style `GL`-characterization of `LogicA`. -/
 theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
   A ∈ LogicA ↔ ∃ n : ℕ, (∼□^[n]⊥) 🡒 A ∈ LogicGL := by
   constructor;
@@ -287,21 +276,21 @@ lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
 -/
 theorem provability_TFAE : [
   A ∈ LogicA,
-  ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
+  ⊢ᵍ[A] (∅ ⟹[1] {A}),
+  ⊢ᵍᶜ[A] (∅ ⟹[1] {A}),
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A,
-  ⊢ᵍᶜ[A] (∅ ⟹[1] {A}),
-  ⊢ᵍ[A] (∅ ⟹[1] {A}),
+  ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
 ].TFAE := by
-  tfae_have 1 → 2 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
-  tfae_have 2 → 3 := by
+  tfae_have 1 → 5 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
+  tfae_have 5 → 4 := by
     rintro ⟨n, hGL⟩ κ _ M _ a Rra;
     haveI := RootedModel.graftOmega.isGL (M := M) (a := ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩) Rra;
     exact ProvableHilbert.Kripke.soundness hGL ((M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel)
       (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1
       (forces_neg.mpr RootedModel.graftOmega.root_not_forces_boxItr_bot);
-  tfae_have 3 → 1 := by
+  tfae_have 4 → 1 := by
     intro h;
     by_contra hA;
     obtain ⟨κ, hne, M, hfgl, hroot, r, Rrr, hrS⟩ := exists_reflexive_countermodel_of_not_mem_LogicA hA;
@@ -312,9 +301,9 @@ theorem provability_TFAE : [
         (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
     exact RootedModel.graftOmega.mainlemma ⟨r, fun hB => ha _ hB⟩ Rrr Formula.mem_subfmls_self
       |>.2 M.root.1 |>.mp (h M r Rrr);
-  tfae_have 1 → 4 := by
+  tfae_have 1 → 3 := by
     intro h;
-    clear tfae_1_to_2 tfae_2_to_3 tfae_3_to_1;
+    clear tfae_1_to_5 tfae_5_to_4 tfae_4_to_1;
     induction h using LogicA.substlessInductionGP with
     | GL h =>
       apply GentzenWithCutProvable.liftUp;
@@ -322,11 +311,11 @@ theorem provability_TFAE : [
       exact LogicA.iff_provableGentzen_provable_zero.mp (LogicGL.iff_provableGentzen.mp h);
     | GP n => exact GentzenWithCutProvable.neg_boxItr_bot n;
     | mdp ihAB ihA => exact GentzenWithCutProvable.mdp ihAB ihA;
-  tfae_have 4 → 3 := by
+  tfae_have 3 → 4 := by
     intro h κ _ M _ a Rra;
     exact forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
-  tfae_have 4 ↔ 5 := LogicA.sequent_TFAE.out 0 1
+  tfae_have 3 ↔ 2 := LogicA.sequent_TFAE.out 0 1
   tfae_finish;
 
 /--
@@ -339,21 +328,15 @@ theorem iff_provable_forces_graftOmega_root :
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
-  LogicA.provability_TFAE.out 0 2
-
-/--
-  `LogicA`-provability is characterized by provability in the with-cut two-layered
-  sequent calculus for `A`, at level `1`.
--/
-theorem iff_provable_provableGentzenWithCut :
-  A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
   LogicA.provability_TFAE.out 0 3
 
-/-- `LogicA`-provability is characterized by cut-free provability in the two-layered
-sequent calculus for `A`, at level `1`. -/
+theorem iff_provable_provableGentzenWithCut :
+  A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
+  LogicA.provability_TFAE.out 0 2
+
 theorem iff_provable_provableGentzen :
   A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
-  LogicA.provability_TFAE.out 0 4
+  LogicA.provability_TFAE.out 0 1
 
 end LogicA
 
