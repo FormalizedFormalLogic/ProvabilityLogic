@@ -27,6 +27,9 @@ public section
 universe u
 variable {α : Type u}
 
+/-- **Artemov's logic `A`** (also written `GLαω = GLα ω`): `GL` extended by all `TBB n`. -/
+abbrev LogicA {α} : Logic α := LogicGLAlpha Set.univ
+
 namespace LogicA
 
 open LogicGL

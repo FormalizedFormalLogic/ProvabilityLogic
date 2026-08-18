@@ -62,8 +62,8 @@ section cofinite_trace
 section without_decidableEq
 
 /-- `LogicGLAlpha` is monotone in the trace set. -/
-lemma LogicGLAlpha.mono {Alpha Alpha' : Set ℕ} (h : Alpha ⊆ Alpha') :
-    (LogicGLAlpha Alpha : Logic α) ⊆ LogicGLAlpha Alpha' := by
+lemma LogicGLAlpha.mono {X Y : Set ℕ} (h : X ⊆ Y) :
+    (LogicGLAlpha X : Logic α) ⊆ LogicGLAlpha Y := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
   rintro A ⟨B, ⟨n, hn, rfl⟩, rfl⟩;
   exact Logic.sumQuasiNormal.mem₂ ⟨TBB n, ⟨n, h hn, rfl⟩, rfl⟩;
@@ -183,9 +183,9 @@ section modal
 
 variable [DecidableEq α]
 
-/-- `LogicGLAlpha Beta ⊆ LogicGLBetaMinus Beta` for cofinite `Beta` (both have trace `Beta`, and `LogicGLBetaMinus` is the largest). -/
-lemma LogicGLAlpha.subset_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finite) :
-    (LogicGLAlpha Beta : Logic α) ⊆ LogicGLBetaMinus Beta hCf := by
+/-- `LogicGLAlpha X ⊆ LogicGLBetaMinus X` for cofinite `X` (both have trace `X`, and `LogicGLBetaMinus` is the largest). -/
+lemma LogicGLAlpha.subset_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
+    (LogicGLAlpha X : Logic α) ⊆ LogicGLBetaMinus X hCf := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
   rintro A ⟨B, ⟨n, hn, rfl⟩, rfl⟩;
   apply iff_GL_sumQuasiNormal_proves_subset_spectrum (T := 𝗜𝚺₁)
@@ -193,8 +193,8 @@ lemma LogicGLAlpha.subset_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finit
   intro k hk;
   have hk' : k ∈ LetterlessFormula.spectrum (TBBMinus _ hCf) := by
     simpa [LetterlessFormulaSet.eq_spectrum] using hk;
-  have hsp : LetterlessFormula.spectrum (TBBMinus _ hCf) = Betaᶜ := by
-    have h := LetterlessFormula.trace_TBBMinus (s := Betaᶜ) hCf;
+  have hsp : LetterlessFormula.spectrum (TBBMinus _ hCf) = Xᶜ := by
+    have h := LetterlessFormula.trace_TBBMinus (s := Xᶜ) hCf;
     rw [LetterlessFormula.trace, compl_inj_iff] at h;
     exact h;
   rw [hsp] at hk';
@@ -204,56 +204,56 @@ lemma LogicGLAlpha.subset_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finit
   exact hk' hn;
 
 /--
-  `LogicGLAlpha Beta = LogicA ∩ LogicGLBetaMinus Beta` for cofinite `Beta`: the `η`/`ξ` correspondence
-  evaluated at `LogicGLAlpha Beta`, proved via the finite compactness
-  `GL_sumQuasiNormal_finite_provable` (note `Betaᶜ` is finite).
+  `LogicGLAlpha X = LogicA ∩ LogicGLBetaMinus X` for cofinite `X`: the `η`/`ξ` correspondence
+  evaluated at `LogicGLAlpha X`, proved via the finite compactness
+  `GL_sumQuasiNormal_finite_provable` (note `Xᶜ` is finite).
 
 - [AB05, η/ξ correspondence]
 -/
-lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Betaᶜ.Finite) :
-    (LogicGLAlpha Beta : Logic α) = LogicA ∩ LogicGLBetaMinus Beta hCf := by
+lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
+    (LogicGLAlpha X : Logic α) = LogicA ∩ LogicGLBetaMinus X hCf := by
   apply Set.Subset.antisymm;
-  . exact Set.subset_inter (LogicGLAlpha.mono (Set.subset_univ Beta))
+  . exact Set.subset_inter (LogicGLAlpha.mono (Set.subset_univ X))
       (LogicGLAlpha.subset_LogicGLBetaMinus hCf);
   . rintro A ⟨h₁, h₂⟩;
     obtain ⟨Y₁, hY₁, hGL₁⟩ := GL_sumQuasiNormal_finite_provable h₁;
     obtain ⟨Y₂, hY₂, hGL₂⟩ := GL_sumQuasiNormal_finite_provable h₂;
-    -- Recover the index set of `Y₁` and split it along `Beta`.
+    -- Recover the index set of `Y₁` and split it along `X`.
     obtain ⟨N, -, hN_cov⟩ := finite_preimage_choice Y₁ Set.univ TBB
       (fun C hC => by simpa using hY₁ C hC);
-    let NBeta : Finset ℕ := N.filter (· ∈ Beta);
+    let NX : Finset ℕ := N.filter (· ∈ X);
     let F : Finset ℕ := hCf.toFinset;
-    have sub₁ : Y₁ ⊆ (NBeta.image TBB) ∪ (F.image TBB) := by
+    have sub₁ : Y₁ ⊆ (NX.image TBB) ∪ (F.image TBB) := by
       intro C hC;
       obtain ⟨n, hnN, rfl⟩ := hN_cov C hC;
-      by_cases hnBeta : n ∈ Beta;
-      . exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (by simp [NBeta, hnN, hnBeta]));
-      . exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (by simp [F, hnBeta]));
-    -- `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 ⋀TBB(NBeta ∪-image F)` at the letterless level.
-    have s₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
+      by_cases hnX : n ∈ X;
+      . exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (by simp [NX, hnN, hnX]));
+      . exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (by simp [F, hnX]));
+    -- `⊢ʰ[GL] ⋀TBB(NX) 🡒 ⋀TBB(F) 🡒 ⋀TBB(NX ∪-image F)` at the letterless level.
+    have s₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α)
         🡒 A)) := by
-      have w₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α)
+      have w₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α)
           🡒 LetterlessFormula.lift (⋀Y₁))) := by
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset sub₁);
       exact ProvableHilbert.impTrans w₁ hGL₁;
     -- Merge lemma for finite conjunctions, semantically.
-    have merge : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    have merge : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)
-        🡒 (LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α))) := by
-      have : (⊢ʰ[GL] ((⋀(NBeta.image TBB) : LetterlessFormula)
-          🡒 (⋀(F.image TBB)) 🡒 (⋀((NBeta.image TBB) ∪ (F.image TBB))))) := by
+        🡒 (LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α))) := by
+      have : (⊢ʰ[GL] ((⋀(NX.image TBB) : LetterlessFormula)
+          🡒 (⋀(F.image TBB)) 🡒 (⋀((NX.image TBB) ∪ (F.image TBB))))) := by
         apply LogicGL.iff_forces.mpr;
         grind;
       simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α) this;
-    -- Compose: `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 ⋀TBB(F) 🡒 A`.
-    have c₂ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    -- Compose: `⊢ʰ[GL] ⋀TBB(NX) 🡒 ⋀TBB(F) 🡒 A`.
+    have c₂ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)) := by
-      have t : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+      have t : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)
-          🡒 (LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α))
-          🡒 ((LetterlessFormula.lift (⋀((NBeta.image TBB) ∪ (F.image TBB))) : Formula α) 🡒 A)
-          🡒 ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+          🡒 (LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α))
+          🡒 ((LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α) 🡒 A)
+          🡒 ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
             🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A))) := by
         apply LogicGL.iff_forces.mpr;
         grind;
@@ -268,12 +268,12 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {Beta : Set ℕ} (hCf : Beta
           = TBBMinus _ hCf by simp] at this;
       have := ProvableHilbert.impTrans (ProvableHilbert.lift (α := α) w₂) hGL₂;
       simpa [LetterlessFormula.lift, TBBMinus] using this;
-    -- Excluded middle on `⋀TBB(F)` finishes: `⊢ʰ[GL] ⋀TBB(NBeta) 🡒 A`.
-    have final : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A)) := by
-      have t₂ : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α)
+    -- Excluded middle on `⋀TBB(F)` finishes: `⊢ʰ[GL] ⋀TBB(NX) 🡒 A`.
+    have final : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α) 🡒 A)) := by
+      have t₂ : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)
           🡒 ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)
-          🡒 ((LetterlessFormula.lift (⋀(NBeta.image TBB)) : Formula α) 🡒 A))) := by
+          🡒 ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α) 🡒 A))) := by
         apply LogicGL.iff_forces.mpr;
         grind;
       exact ProvableHilbert.mdp (ProvableHilbert.mdp t₂ c₂) c₃;
@@ -420,8 +420,8 @@ end
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U] [DecidableEq α]
 
 /--
-  If the provability logic of `T` relative to `U` has cofinite trace `Beta` and is contained in `S`,
-  then it is one of `LogicGLAlpha Beta`, `D ∩ LogicGLBetaMinus Beta`, and `S ∩ LogicGLBetaMinus Beta`.
+  If the provability logic `L` of `T` relative to `U` has cofinite trace and is contained in `S`,
+  then it is one of `LogicGLAlpha L.trace`, `D ∩ LogicGLBetaMinus L.trace`, and `S ∩ LogicGLBetaMinus L.trace`.
   Obtained from the universal-trace classification by adjoining the missing `TBB` axioms and intersecting back.
 -/
 lemma classification_LogicS_sublogics_of_cofinite_trace :

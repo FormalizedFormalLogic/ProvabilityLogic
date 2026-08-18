@@ -58,6 +58,8 @@ public import ProvabilityLogic.Logic.GL.CIP
 public import ProvabilityLogic.Logic.GL.Fixedpoint
 public import ProvabilityLogic.Logic.GL.Letterless
 public import ProvabilityLogic.Logic.GL.Theorems
+public import ProvabilityLogic.Logic.GLAlpha.Basic
+public import ProvabilityLogic.Logic.GLBetaMinus.Basic
 public import ProvabilityLogic.Logic.GLPlusBoxBot.Basic
 public import ProvabilityLogic.Logic.GLPoint2.Basic
 public import ProvabilityLogic.Logic.GLPoint3.Basic
