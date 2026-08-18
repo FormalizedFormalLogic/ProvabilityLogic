@@ -284,8 +284,8 @@ lemma Formula.trace_lift {B : LetterlessFormula} :
   rw [Formula.iff_mem_trace, LetterlessFormula.iff_mem_trace_rootedModel];
 
 @[simp, grind =]
-lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {Y : Set ℕ} (hCf : Yᶜ.Finite) :
-    (LogicGLBetaMinus Y hCf : Logic α).trace = Y := by
+lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {X : Set ℕ} (hCf : Xᶜ.Finite) :
+    (LogicGLBetaMinus X hCf : Logic α).trace = X := by
   have hclosure : ∀ A ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α), ∀ s,
       A⟦s⟧ ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α) := by
     rintro A hA s;
@@ -295,11 +295,11 @@ lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {Y : Set ℕ} (hCf : Yᶜ.Finit
   simp only [LetterlessFormulaSet.lift, Set.image_singleton, FormulaSet.trace_singleton,
     Formula.trace_lift, LetterlessFormula.trace_TBBMinus hCf, compl_compl];
 
-/-- `LogicGLBetaMinus` only depends on `Y` (the finiteness proof of `Yᶜ` is
+/-- `LogicGLBetaMinus` only depends on `X` (the finiteness proof of `Xᶜ` is
 irrelevant, by proof irrelevance). -/
-lemma LogicGLBetaMinus.congr [DecidableEq α] {Y₁ Y₂ : Set ℕ} (h : Y₁ = Y₂)
-    (hCf₁ : Y₁ᶜ.Finite) (hCf₂ : Y₂ᶜ.Finite) :
-    (LogicGLBetaMinus Y₁ hCf₁ : Logic α) = LogicGLBetaMinus Y₂ hCf₂ := by
+lemma LogicGLBetaMinus.congr [DecidableEq α] {X Y : Set ℕ} (h : X = Y)
+    (hCf₁ : Xᶜ.Finite) (hCf₂ : Yᶜ.Finite) :
+    (LogicGLBetaMinus X hCf₁ : Logic α) = LogicGLBetaMinus Y hCf₂ := by
   subst h;
   rfl;
 
@@ -393,7 +393,7 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
   exact Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hL, rfl, rfl⟩;
 
 /--
-If `Y` is the universal set, `LogicGLBetaMinus Y hCf` proves `⊥`.
+If the trace set is the universal set, `LogicGLBetaMinus Set.univ hCf` proves `⊥`.
 
 - [AB05, Lemma 49]
 -/

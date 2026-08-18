@@ -363,19 +363,6 @@ theorem LogicA_subset_LogicD [DecidableEq α] : @LogicA α ⊆ LogicD := by
   exact Logic.sumQuasiNormal.mdp (LogicD.provable_of_provable_GL h) LogicD.provable_neg_boxItr_bot;
 
 
-section
-
-open LO
-
-variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁]
-
-theorem LogicA.eq_provabilityLogicRelativeTo
-  : LogicA (α := α) = T.provabilityLogicRelativeTo (T ∪ (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
-  apply LogicGLAlpha.eq_provabilityLogicRelativeTo;
-
-end
-
-
 section axiomD
 
 /-! ### The axiom `D` is not a theorem of `LogicA` -/

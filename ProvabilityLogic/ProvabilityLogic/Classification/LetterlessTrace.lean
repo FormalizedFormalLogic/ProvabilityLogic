@@ -906,6 +906,11 @@ theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {X : Set ℕ}
   ext i;
   simp;
 
+omit [ℕ↓[ℒₒᵣ] ⊧* T] in
+theorem LogicA.eq_provabilityLogicRelativeTo
+  : LogicGLAlpha (α := α) Set.univ = T.provabilityLogicRelativeTo (T ∪ (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) :=
+  LogicGLAlpha.eq_provabilityLogicRelativeTo
+
 end
 
 end
