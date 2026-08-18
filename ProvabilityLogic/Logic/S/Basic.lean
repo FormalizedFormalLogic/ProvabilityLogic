@@ -169,7 +169,7 @@ lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   apply Model.World.forces_singleton_sequent.mpr;
   grind
 
-/-- Direction `4 → 5` of `provability_TFAE`: `GL`-provability of `⋀A.subfmlsS 🡒 A` yields a
+/-- Direction `6 → 2` of `provability_TFAE`: `GL`-provability of `⋀A.subfmlsS 🡒 A` yields a
 `LogicS.ProofGentzen`-proof of the level-`1` sequent `∅ ⟹[1] {A}`. -/
 lemma provableGentzen_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
@@ -180,7 +180,7 @@ lemma provableGentzen_of_GL_provable [DecidableEq α]
   obtain ⟨i, hi⟩ := eventually_forces_of_exists_isReflexive_forces (fun {κ} _ M _ => ⟨X, hX M⟩) M w hw;
   exact ⟨i, hi i (le_refl i)⟩;
 
-/-- Direction `5 → 2` of `provability_TFAE`: `LogicS.ProofGentzen`-provability of the level-`1`
+/-- Direction `2 → 3` of `provability_TFAE`: `LogicS.ProofGentzen`-provability of the level-`1`
 sequent `∅ ⟹[1] {A}` yields eventual forcing of `A` along the tail-model chain. -/
 lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
   (h : ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
@@ -211,40 +211,40 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
 -/
 theorem provability_TFAE [DecidableEq α] : [
     A ∈ LogicS,
+    ⊢ᵍ[S] (∅ ⟹[1] {A}),
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A),
-    (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
-    ⊢ᵍ[S] (∅ ⟹[1] {A}),
     ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ (tail : M.World),
-      ∃ k : ℕ, ∀ m : ℕ, k ≤ m → toTail.chainPoint m ⊩[(M.toTail tail).toModel] A
+      ∃ k : ℕ, ∀ m : ℕ, k ≤ m → toTail.chainPoint m ⊩[(M.toTail tail).toModel] A,
+    (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
   ].TFAE := by
-  tfae_have 1 → 2 := eventually_forces_tail_nat_of_provable;
-  tfae_have 2 → 3 := root_forces_subfmlsS_imp;
-  tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
-  tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
-  tfae_have 4 → 5 := provableGentzen_of_GL_provable;
-  tfae_have 5 → 2 := eventually_forces_tail_nat_of_provableGentzen;
-  tfae_have 2 → 6 := by
+  tfae_have 1 → 3 := eventually_forces_tail_nat_of_provable;
+  tfae_have 3 → 4 := root_forces_subfmlsS_imp;
+  tfae_have 4 ↔ 6 := LogicGL.iff_forces_root.symm;
+  tfae_have 6 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
+  tfae_have 6 → 2 := provableGentzen_of_GL_provable;
+  tfae_have 2 → 3 := eventually_forces_tail_nat_of_provableGentzen;
+  tfae_have 3 → 5 := by
     intro h n _ M _ tail;
     obtain ⟨k, hk⟩ :=
       h (M.reindex (Equiv.ulift (α := Fin n)).symm) ((Equiv.ulift (α := Fin n)).symm tail);
     exact ⟨k, fun m hm => Model.forces_toTail_reindex_chainPoint_iff.mp (hk m hm)⟩;
-  tfae_have 6 → 2 := by
+  tfae_have 5 → 3 := by
     intro h κ _ M _ tail;
     obtain ⟨k, hk⟩ := h M.card M.toConcrete (Finite.equivFin κ tail);
     exact ⟨k, fun m hm => Model.forces_toTail_reindex_chainPoint_iff.mp (hk m hm)⟩;
   tfae_finish;
 
 theorem iff_provable_S_provable_GL [DecidableEq α] :
-    A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+    A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
 
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
     A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
       ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
         toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 0 4
 
 /-- `LogicS` is consistent: `⊥` is not a theorem. -/
 lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
@@ -263,7 +263,7 @@ lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
 -/
 theorem iff_provable_provableGentzen [DecidableEq α] :
     A ∈ LogicS ↔ ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 0 1
 
 end LogicS
 

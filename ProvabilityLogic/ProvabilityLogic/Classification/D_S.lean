@@ -202,7 +202,7 @@ lemma not_mem_LogicS_neg_of_graftOmega_root_forces_modalized [DecidableEq α]
   -- `graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`), so the
   -- tail-model semantics of `S` (`LogicS.provability_TFAE`) refutes the negation.
   intro hS;
-  have hall := LogicS.provability_TFAE (A := ∼C) |>.out 0 1 |>.mp hS;
+  have hall := LogicS.provability_TFAE (A := ∼C) |>.out 0 2 |>.mp hS;
   obtain ⟨k₀, h₀⟩ := hall (Model.toRootedModel M.toModel a).toModel (Model.toRootedModel M.toModel a).root.1;
   obtain ⟨k₁, h₁⟩ := graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized Rra hlat hmod;
   have h₂ := h₁ (max k₀ k₁) (by omega) |>.mpr hC;

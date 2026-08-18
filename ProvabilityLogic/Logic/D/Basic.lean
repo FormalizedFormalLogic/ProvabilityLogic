@@ -338,47 +338,45 @@ lemma root_forces_subfmlsD_imp [DecidableEq α]
   - [KKIM25, Proposition 3.6]
 -/
 theorem provability_TFAE [DecidableEq α] :
-  -- Proved semantically via pseudo-tail models.
   [
     A ∈ LogicD,
+    ⊢ᵍ[D] (∅ ⟹[2] {A}),
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩[_] A,
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩[_] (⋀A.subfmlsD 🡒 A),
-    (⋀A.subfmlsD 🡒 A) ∈ LogicGL,
-    ⊢ᵍ[D] ((∅ : FormulaFinset α) ⟹[2] {A}),
     ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
-      (M.toPseudoTail r o).root.1 ⊩[_] A
+      (M.toPseudoTail r o).root.1 ⊩[_] A,
+    (⋀A.subfmlsD 🡒 A) ∈ LogicGL,
   ].TFAE := by
-  tfae_have 1 → 2 := forces_pseudoTail_root_of_provable;
-  tfae_have 2 → 3 := root_forces_subfmlsD_imp;
-  tfae_have 3 ↔ 4 := LogicGL.iff_forces_root.symm;
-  tfae_have 4 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
-  tfae_have 2 → 5 := fun h =>
+  tfae_have 1 → 3 := forces_pseudoTail_root_of_provable;
+  tfae_have 3 → 4 := root_forces_subfmlsD_imp;
+  tfae_have 4 ↔ 6 := LogicGL.iff_forces_root.symm;
+  tfae_have 6 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsD;
+  tfae_have 3 → 2 := fun h =>
     ProvableGentzen.Kripke.completeness_finite
       (fun {κ} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL] tail o =>
         Model.World.forces_singleton_sequent.mpr (h M tail o));
-  tfae_have 5 → 2 := by
+  tfae_have 2 → 3 := by
     intro h κ _ M _ r o;
     exact Model.World.forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness (GentzenWithCutProvable.of_without_cut h) M _);
-  tfae_have 2 → 6 := by
+  tfae_have 3 → 5 := by
     intro h n _ M _ r o;
     exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
       h (M.reindex (Equiv.ulift (α := Fin n)).symm) ((Equiv.ulift (α := Fin n)).symm r) o;
-  tfae_have 6 → 2 := by
+  tfae_have 5 → 3 := by
     intro h κ _ M _ r o;
     exact Model.forces_toPseudoTail_reindex_root_iff.mp <|
       h M.card M.toConcrete (Finite.equivFin κ r) o;
   tfae_finish;
 
 theorem iff_provable_D_provable_GL [DecidableEq α] :
-    A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 3
+    A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
 
 /-- `□A` is a theorem of `D` if and only if `A` is a theorem of `GL`. Original to this
 formalization. -/
-theorem iff_provable_box_provable_GL [DecidableEq α] :
-    □A ∈ LogicD ↔ A ∈ LogicGL := by
+theorem iff_provable_box_provable_GL [DecidableEq α] : □A ∈ LogicD ↔ A ∈ LogicGL := by
   constructor;
   · intro h;
     apply LogicGL.provable_of_valid;
@@ -391,22 +389,18 @@ theorem iff_provable_box_provable_GL [DecidableEq α] :
 theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] :
     A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩[_] A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 0 4
 
 theorem not_mem_of_concrete_pseudoTail_root_not_forces [DecidableEq α] {n : ℕ} [NeZero n]
     (M : Model (Fin n) α) [M.IsFiniteGL] (r : M.World) (o : α → Prop)
     (h : (M.toPseudoTail r o).root.1 ⊮[_] A) : A ∉ LogicD :=
   fun hA => h <| iff_forces_pseudoTail_root_concrete.mp hA n M r o
 
-/--
-  The existential, contrapositive form of `provability_TFAE`'s clause 2: a formula not
-  provable in `D` has a pseudo-tail model refuting it at the root.
--/
 theorem exists_not_forces_toPseudoTail_of_not_mem [DecidableEq α] {A : Formula α}
     (hA : A ∉ LogicD) :
     ∃ (κ : Type u) (_ : Nonempty κ) (M : Model κ α), M.IsFiniteGL ∧ ∃ (r : M.World)
       (o : α → Prop), ¬(M.toPseudoTail r o).root.1 ⊩[_] A := by
-  have h := provability_TFAE (A := A) |>.out 0 1 |>.not.mp hA;
+  have h := provability_TFAE (A := A) |>.out 0 2 |>.not.mp hA;
   push Not at h;
   exact h;
 
@@ -416,9 +410,9 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
   -- Argued semantically via pseudo-tail models.
   intro hc;
   apply h;
-  apply LogicD.provability_TFAE.out 1 0 |>.mp;
+  apply LogicD.provability_TFAE.out 2 0 |>.mp;
   intro κ _ M _ r o;
-  have hall := LogicD.provability_TFAE (A := A.map some) |>.out 0 1 |>.mp hc;
+  have hall := LogicD.provability_TFAE (A := A.map some) |>.out 0 2 |>.mp hc;
   have hfrc := hall (κ := κ) (M.optionExtend) r
     (fun a => match a with | some a => o a | none => False);
   have e : ((M.optionExtend).toPseudoTail r

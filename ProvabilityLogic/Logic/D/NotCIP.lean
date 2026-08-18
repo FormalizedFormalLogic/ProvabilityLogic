@@ -362,7 +362,7 @@ lemma exists_modalized_equiv_of_indep
   use C.modalize, Formula.modalized_modalize, ?_, Formula.atoms_modalize_subset;
   -- By the semantic characterization of `D`, it suffices to force `C 🡘 C.modalize` at the
   -- root of every pseudo-tail D-model.
-  apply (LogicD.provability_TFAE.out 1 0).mp;
+  apply (LogicD.provability_TFAE.out 2 0).mp;
   intro κ _ M _ r o;
   -- The all-false lower valuation, at which `C` and `C.modalize` agree at the root.
   let o₀ : α → Prop := fun _ => False;
@@ -442,9 +442,9 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
   -- The modalization `C'` of the interpolant is modalized and still only contains `a`.
   have hC'mod : C.modalize.Modalized := Formula.modalized_modalize;
   have hC'atoms : C.modalize.atoms ⊆ {a} := Formula.atoms_modalize_subset.trans hCatoms;
-  -- `S ⊢ C' 🡘 a`, via the GL-characterization of `S` (item 3 of `provability_TFAE`).
+  -- `S ⊢ C' 🡘 a`, via the GL-characterization of `S` (item 4 of `provability_TFAE`).
   have hS : (C.modalize 🡘 #a) ∈ @LogicS α := by
-    apply (LogicS.provability_TFAE.out 2 0).mp;
+    apply (LogicS.provability_TFAE.out 3 0).mp;
     intro κ _ M _ hant;
     -- Each `□E 🡒 E` with `□E` a subformula of `C' 🡘 a` holds at the root.
     have hΓ : ∀ E ∈ (C.modalize 🡘 #a).subfmls.prebox,
