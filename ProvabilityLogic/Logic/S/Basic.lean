@@ -240,6 +240,21 @@ theorem provability_TFAE [DecidableEq α] : [
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
 
+/-- `LogicS`-provability characterized by eventual forcing along the tail-model chain of any
+finite `GL` model, over an arbitrary index type `κ`. -/
+theorem iff_eventually_forces_tail_nat [DecidableEq α] :
+    A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
+      ∀ (tail : M.World),
+      ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A :=
+  provability_TFAE.out 0 2
+
+/-- `LogicS`-provability characterized by root-forcing of `⋀A.subfmlsS 🡒 A` at every finite `GL`
+rooted model. -/
+theorem iff_forces_root_subfmlsS_imp [DecidableEq α] :
+    A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
+      M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) :=
+  provability_TFAE.out 0 3
+
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
     A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
       ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →

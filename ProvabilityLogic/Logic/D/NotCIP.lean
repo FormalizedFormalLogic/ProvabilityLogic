@@ -444,7 +444,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
   have hC'atoms : C.modalize.atoms ⊆ {a} := Formula.atoms_modalize_subset.trans hCatoms;
   -- `S ⊢ C' 🡘 a`, via the GL-characterization of `S` (item 4 of `provability_TFAE`).
   have hS : (C.modalize 🡘 #a) ∈ @LogicS α := by
-    apply (LogicS.provability_TFAE.out 3 0).mp;
+    apply LogicS.iff_forces_root_subfmlsS_imp.mpr;
     intro κ _ M _ hant;
     -- Each `□E 🡒 E` with `□E` a subformula of `C' 🡘 a` holds at the root.
     have hΓ : ∀ E ∈ (C.modalize 🡘 #a).subfmls.prebox,
