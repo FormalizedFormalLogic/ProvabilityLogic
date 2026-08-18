@@ -182,6 +182,66 @@ jobs:
           retention-days: 1
           include-hidden-files: true
 
+  # doc-gen4 needs to load Mathlib + Foundation's entire combined environment into memory at
+  # once (to cross-reference every declaration across the import closure). That already sits
+  # close to a standard runner's 16GB ceiling for a typical Mathlib-only project, and
+  # Foundation's extra ~135 modules push it over the edge: a prior attempt OOM'd building
+  # `coreDocs`, after which every process it subsequently forked (e.g. the `srcUri.github` git
+  # lookups) failed too, with "resource exhausted (error code: 12, cannot allocate memory)".
+  # Isolated into its own job so a slow/flaky docs build never blocks `build`,
+  # `check-references`, or `mk-all-check`; only runs on pushes to `main` (or manual dispatch, to
+  # validate before merging) since it can take a long time and doesn't need to run on every PR.
+  docs:
+    name: Build documentation
+    needs:
+      - deps
+      - build
+    runs-on: ubuntu-26.04
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-github-cache: false
+      - name: Restore Foundation build (warnings cleared)
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/packages/Foundation/.lake/build
+          key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
+          fail-on-cache-miss: true
+      - name: Restore project cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
+          fail-on-cache-miss: true
+      - name: Unpack project cache
+        run: lake unpack
+
+      # doc-gen4 briefly holds the whole Mathlib+Foundation environment in memory while
+      # building `coreDocs`; swap gives the runner headroom to survive that peak instead of
+      # every process it forks afterwards failing with ENOMEM.
+      - name: Add swap space
+        run: |
+          df -h /
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+
+      - name: Build docs
+        run: lake build ProvabilityLogic:docs
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: lean-docs
+          path: .lake/build/doc
+          retention-days: 1
+          include-hidden-files: true
+
   check-references:
     name: Check references.bib format
     runs-on: ubuntu-latest
@@ -222,11 +282,19 @@ jobs:
   deploy:
     name: Generate page
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # `docs` is a soft dependency: it's in `needs` purely so this job waits for it to finish,
+    # not so its failure blocks the deploy — see the comment on `docs` for why it can OOM.
+    if: |
+      github.ref == 'refs/heads/main' &&
+      !cancelled() &&
+      needs.build.result == 'success' &&
+      needs.check-references.result == 'success' &&
+      needs.mk-all-check.result == 'success'
     needs:
       - build
       - check-references
       - mk-all-check
+      - docs
     permissions:
       pages: write
       id-token: write
@@ -238,6 +306,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: lean-artifacts
+      - name: Download docs artifact
+        if: needs.docs.result == 'success'
+        uses: actions/download-artifact@v8
+        with:
+          name: lean-docs
+          path: pages/docs
       - name: Copy from artifacts to pages
         run: |
           mkdir -p pages

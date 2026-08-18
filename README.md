@@ -5,6 +5,10 @@
 
 Lean 4 Mechanization about Provability Logics
 
+## Documentation
+
+https://formalizedformallogic.github.io/ProvabilityLogic/docs/
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution flow and [contribute/style.md](contribute/style.md) for the coding conventions.
