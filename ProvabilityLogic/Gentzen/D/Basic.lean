@@ -146,39 +146,39 @@ variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 3}
 
 lemma axm (l) (A : Formula α) : ⊢ᵍ[D] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
 lemma botL (l) : ⊢ᵍ[D] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
-lemma wkL (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[D] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[D] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma impL (π₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
-  ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma liftUp₀₁ (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp₀₁ π.some⟩
-lemma boxGL (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})) : ⊢ᵍ[D] (□Γ ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
-lemma boxL (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
-lemma liftUp₁₂ (π : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)) : ⊢ᵍ[D] (□Γ ⟹[2] □Δ) := ⟨ProofGentzen.liftUp₁₂ π.some⟩
+lemma wkL (h : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[D] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[D] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma impL (h₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
+  ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[D] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma liftUp₀₁ (h : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp₀₁ h.some⟩
+lemma boxGL (h : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})) : ⊢ᵍ[D] (□Γ ⟹[0] {□A}) := ⟨ProofGentzen.boxGL h.some⟩
+lemma boxL (h : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[D] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL h.some⟩
+lemma liftUp₁₂ (h : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)) : ⊢ᵍ[D] (□Γ ⟹[2] □Δ) := ⟨ProofGentzen.liftUp₁₂ h.some⟩
 
 @[induction_eliminator]
 lemma rec
   {motive : (S : ThreeLayeredSequent α) → ⊢ᵍ[D] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (ProvableGentzen.axm l A))
   (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (ProvableGentzen.botL l))
-  (wkL : ∀ {l Γ Γ' Δ} (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) π → motive (Γ' ⟹[l] Δ) (wkL π h))
-  (wkR : ∀ {l Γ Δ Δ'} (π : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) π → motive (Γ ⟹[l] Δ') (wkR π h))
-  (impL : ∀ {l Γ Δ A B} (π₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)),
-    motive (Γ ⟹[l] insert A Δ) π₁ → motive (insert B Γ ⟹[l] Δ) π₂ →
-    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL π₁ π₂)
+  (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h hΓ))
+  (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍ[D] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h hΔ))
+  (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)),
+    motive (Γ ⟹[l] insert A Δ) h₁ → motive (insert B Γ ⟹[l] Δ) h₂ →
+    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL h₁ h₂)
   )
-  (impR : ∀ {l Γ Δ A B} (π : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))),
-    motive ((insert A Γ) ⟹[l] (insert B Δ)) π → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR π)
+  (impR : ∀ {l Γ Δ A B} (h : ⊢ᵍ[D] ((insert A Γ) ⟹[l] (insert B Δ))),
+    motive ((insert A Γ) ⟹[l] (insert B Δ)) h → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR h)
   )
-  (liftUp₀₁ : ∀ {Γ Δ} (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp₀₁ π))
-  (boxGL : ∀ {Γ : FormulaFinset α} {A} (π : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})),
-    motive ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A}) π → motive (□Γ ⟹[0] {□A}) (boxGL π)
+  (liftUp₀₁ : ∀ {Γ Δ} (h : ⊢ᵍ[D] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp₀₁ h))
+  (boxGL : ∀ {Γ : FormulaFinset α} {A} (h : ⊢ᵍ[D] ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A})),
+    motive ((insert (□A) (Γ ∪ □Γ)) ⟹[0] {A}) h → motive (□Γ ⟹[0] {□A}) (boxGL h)
   )
-  (boxL : ∀ {Γ Δ A} (π : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)),
-    motive (insert A Γ ⟹[1] Δ) π → motive (insert (□A) Γ ⟹[1] Δ) (boxL π)
+  (boxL : ∀ {Γ Δ A} (h : ⊢ᵍ[D] (insert A Γ ⟹[1] Δ)),
+    motive (insert A Γ ⟹[1] Δ) h → motive (insert (□A) Γ ⟹[1] Δ) (boxL h)
   )
-  (liftUp₁₂ : ∀ {Γ Δ : FormulaFinset α} (π : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)),
-    motive (□Γ ⟹[1] □Δ) π → motive (□Γ ⟹[2] □Δ) (liftUp₁₂ π)
+  (liftUp₁₂ : ∀ {Γ Δ : FormulaFinset α} (h : ⊢ᵍ[D] (□Γ ⟹[1] □Δ)),
+    motive (□Γ ⟹[1] □Δ) h → motive (□Γ ⟹[2] □Δ) (liftUp₁₂ h)
   )
   : ∀ {S : ThreeLayeredSequent α} (h : ⊢ᵍ[D] S), motive S h := by
     rintro S ⟨h⟩;
@@ -204,23 +204,23 @@ lemma not_provable_0_of_not_provable_1 : ⊬ᵍ[D] (Γ ⟹[1] Δ) → ⊬ᵍ[D] 
   apply liftUp₀₁;
 
 /-- Disjunction left, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`. -/
-lemma orL (π₁ : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) (π₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] (insert (A ⋎ B) Γ ⟹[l] Δ) :=
-  impL (impR (wkR π₁ (by grind))) π₂
+lemma orL (h₁ : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) (h₂ : ⊢ᵍ[D] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[D] (insert (A ⋎ B) Γ ⟹[l] Δ) :=
+  impL (impR (wkR h₁ (by grind))) h₂
 
 /-- Disjunction right, the derived rule for the abbreviation `A ⋎ B := ∼A 🡒 B`. -/
-lemma orR (π : ⊢ᵍ[D] (Γ ⟹[l] (insert A (insert B Δ)))) : ⊢ᵍ[D] (Γ ⟹[l] insert (A ⋎ B) Δ) :=
-  impR (impL π (botL_mem l))
+lemma orR (h : ⊢ᵍ[D] (Γ ⟹[l] (insert A (insert B Δ)))) : ⊢ᵍ[D] (Γ ⟹[l] insert (A ⋎ B) Δ) :=
+  impR (impL h (botL_mem l))
 
 /-- Negation left, the derived rule for the abbreviation `∼A := A 🡒 ⊥`. -/
-lemma negL (π : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) Γ ⟹[l] Δ) :=
-  impL π (botL_mem l)
+lemma negL (h : ⊢ᵍ[D] (Γ ⟹[l] insert A Δ)) : ⊢ᵍ[D] (insert (∼A) Γ ⟹[l] Δ) :=
+  impL h (botL_mem l)
 
 /-- Negation right, the derived rule for the abbreviation `∼A := A 🡒 ⊥`. -/
-lemma negR (π : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] insert (∼A) Δ) :=
-  impR (wkR π (by grind))
+lemma negR (h : ⊢ᵍ[D] (insert A Γ ⟹[l] Δ)) : ⊢ᵍ[D] (Γ ⟹[l] insert (∼A) Δ) :=
+  impR (wkR h (by grind))
 
 /-- `Prop`-level version of `LogicD.ProofGentzen.liftUp₀₂`. -/
-lemma liftUp₀₂ (π : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := ⟨ProofGentzen.liftUp₀₂ π.some⟩
+lemma liftUp₀₂ (h : ⊢ᵍ[D] (Γ ⟹[0] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) := ⟨ProofGentzen.liftUp₀₂ h.some⟩
 
 /--
   `LogicD.ProvableGentzen`-provability of the axiom `□(□A ⋎ □B) 🡒 (□A ⋎ □B)`.

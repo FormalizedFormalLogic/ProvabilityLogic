@@ -214,13 +214,13 @@ lemma union' (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (
 lemma botL : ⊢ᵍ[Grz] ({⊥} ⟹ (∅ : FormulaFinset α)) := ⟨ProofGentzen.botL⟩
 @[grind =>] lemma botL_mem (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[Grz] (Γ ⟹ Δ) := ⟨ProofGentzen.botL_mem h⟩
 @[grind =>] lemma botL_mem' (S : Sequent α) (h : ⊥ ∈ S.ant := by grind) : ⊢ᵍ[Grz] S := botL_mem h
-lemma wkL (π : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[Grz] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[Grz] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma wk (π : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[Grz] (Γ' ⟹ Δ') := wkR (wkL π hΓ) hΔ
-lemma impL (π₁ : ⊢ᵍ[Grz] (Γ ⟹ insert A Δ)) (π₂ : ⊢ᵍ[Grz] (insert B Γ ⟹ Δ)) : ⊢ᵍ[Grz] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[Grz] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[Grz] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma boxT (π : ⊢ᵍ[Grz] (insert B Γ ⟹ Δ)) : ⊢ᵍ[Grz] (insert (□B) Γ ⟹ Δ) := ⟨ProofGentzen.boxT π.some⟩
-lemma boxGrz (π : ⊢ᵍ[Grz] (insert (□(A 🡒 □A)) (□Γ) ⟹ {A})) : ⊢ᵍ[Grz] (□Γ ⟹ {□A}) := ⟨ProofGentzen.boxGrz π.some⟩
+lemma wkL (h : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[Grz] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[Grz] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma wk (h : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[Grz] (Γ' ⟹ Δ') := wkR (wkL h hΓ) hΔ
+lemma impL (h₁ : ⊢ᵍ[Grz] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[Grz] (insert B Γ ⟹ Δ)) : ⊢ᵍ[Grz] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[Grz] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[Grz] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma boxT (h : ⊢ᵍ[Grz] (insert B Γ ⟹ Δ)) : ⊢ᵍ[Grz] (insert (□B) Γ ⟹ Δ) := ⟨ProofGentzen.boxT h.some⟩
+lemma boxGrz (h : ⊢ᵍ[Grz] (insert (□(A 🡒 □A)) (□Γ) ⟹ {A})) : ⊢ᵍ[Grz] (□Γ ⟹ {□A}) := ⟨ProofGentzen.boxGrz h.some⟩
 
 lemma orR (h : ⊢ᵍ[Grz] (Γ ⟹ insert A (insert B Δ))) : ⊢ᵍ[Grz] (Γ ⟹ insert (A ⋎ B) Δ) :=
   ⟨ProofGentzen.orR h.some⟩
@@ -246,7 +246,7 @@ lemma orIntroL : ⊢ᵍ[Grz] (∅ ⟹ {A 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orI
 lemma orIntroR : ⊢ᵍ[Grz] (∅ ⟹ {B 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroR⟩
 lemma orElim : ⊢ᵍ[Grz] (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := ⟨ProofGentzen.orElim⟩
 
-theorem deductionTheorem (π : ⊢ᵍ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍ[Grz] (Γ ⟹ {A 🡒 B}) := ⟨π.some.deductionTheorem⟩
+theorem deductionTheorem (h : ⊢ᵍ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍ[Grz] (Γ ⟹ {A 🡒 B}) := ⟨h.some.deductionTheorem⟩
 
 lemma seq_T : ⊢ᵍ[Grz] ({□A} ⟹ {A}) := ⟨ProofGentzen.seq_T⟩
 lemma modalT : ⊢ᵍ[Grz] (∅ ⟹ {□A 🡒 A}) := ⟨ProofGentzen.modalT⟩
@@ -367,7 +367,7 @@ lemma rec
     | boxGrz h ih => apply boxGrz ⟨h⟩ ih;
 
 /-- One direction of the deduction theorem for the cut-full calculus. -/
-theorem deductionTheorem (π : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
+theorem deductionTheorem (h : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
   rw [(show ({A 🡒 B} : FormulaFinset α) = insert (A 🡒 B) ∅ by grind)];
   apply impR;
   rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];

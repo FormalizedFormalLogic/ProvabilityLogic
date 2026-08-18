@@ -387,7 +387,7 @@ theorem fixpoint_existence (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.
   have h₈ : ⊢ᵍ[GL] (({□((A⟦p ↦ D⟧) 🡘 D)} : FormulaFinset α) ⟹ {(A⟦p ↦ D⟧) 🡘 D}) := by
     have := subst (Substitution.single p D) h₇
     simpa [subst_single_eq_self_of_not_mem_atoms hpD] using this
-  have := ruleLoeb (Γ := (∅ : FormulaFinset α)) (A := (A⟦p ↦ D⟧) 🡘 D)
+  have := ruleLöb (Γ := (∅ : FormulaFinset α)) (A := (A⟦p ↦ D⟧) 🡘 D)
     (by simpa [FormulaFinset.box] using h₈)
   simpa [FormulaFinset.box] using this
 

@@ -577,7 +577,7 @@ theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → �
   exact GentzenWithCutProvable.cut_elimination $ GentzenWithCutProvable.cut q p;
 
 /-- Löb's rule is admissible in `ProofGentzen`. Proved via cut. -/
-theorem ruleLoeb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
+theorem ruleLöb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
   apply of_with_cut
   have h₁ : ⊢ᵍᶜ[GL] ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=
     GentzenWithCutProvable.wkR

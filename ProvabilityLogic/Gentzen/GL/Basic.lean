@@ -221,12 +221,12 @@ lemma union' (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (
 lemma botL : ⊢ᵍ[GL] ({⊥} ⟹ (∅ : FormulaFinset α)) := ⟨ProofGentzen.botL⟩
 @[grind =>] lemma botL_mem (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[GL] (Γ ⟹ Δ) := ⟨ProofGentzen.botL_mem h⟩
 @[grind =>] lemma botL_mem' (S : Sequent α) (h : ⊥ ∈ S.ant := by grind) : ⊢ᵍ[GL] S := botL_mem h
-lemma wkL (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[GL] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma wk (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ' ⟹ Δ') := wkR (wkL π hΓ) hΔ
-lemma impL (π₁ : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) (π₂ : ⊢ᵍ[GL] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GL] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[GL] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma boxGL (π : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ.box ⟹ {□A}) := ⟨ProofGentzen.boxGL π.some⟩
+lemma wkL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[GL] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma wk (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ' ⟹ Δ') := wkR (wkL h hΓ) hΔ
+lemma impL (h₁ : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GL] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[GL] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma boxGL (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ.box ⟹ {□A}) := ⟨ProofGentzen.boxGL h.some⟩
 
 lemma orR (h : ⊢ᵍ[GL] (Γ ⟹ insert A (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ insert (A ⋎ B) Δ) :=
   ⟨ProofGentzen.orR h.some⟩
