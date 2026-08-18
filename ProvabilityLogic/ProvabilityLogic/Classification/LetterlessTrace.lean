@@ -1,11 +1,5 @@
 module
 
-public import ProvabilityLogic.Logic.GL.Letterless
-public import ProvabilityLogic.Kripke.FiniteLineModel
-public import ProvabilityLogic.ToFoundation.Vorspiel.Set.Basic
-public import ProvabilityLogic.Formula.Countable
-public import ProvabilityLogic.ProvabilityLogic.GL.Uniform
-public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 public import ProvabilityLogic.Logic.GLAlpha.Basic
 public import ProvabilityLogic.Logic.GLBetaMinus.Basic
 
