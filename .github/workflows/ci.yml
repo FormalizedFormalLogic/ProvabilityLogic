@@ -22,9 +22,6 @@ concurrency:
 permissions:
   contents: read
 
-# Runners are pinned to ubuntu-26.04 (NOT `ubuntu-latest`): a floating image is a
-# silent explosion waiting for GitHub's next bump. 26.04 is the newest LTS — if it
-# breaks it's a clean upstream bug report, which is the point. Bump by hand.
 jobs:
   # ── Job 1: hydrate + cleanse the dependency layer ──────────────────────────────────────────────
   # Absorb ALL the dependency-build noise HERE, off in its own job, so the build job below is clean.
@@ -38,7 +35,7 @@ jobs:
   # Bonus: keyed on toolchain+manifest, so Foundation only recompiles when its pinned rev bumps.
   deps:
     name: Build Foundation (cached)
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       # Probe the Foundation cache FIRST. On a hit this job's product already exists, so every step
@@ -90,7 +87,7 @@ jobs:
   build:
     name: Build project
     needs: deps
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
@@ -164,15 +161,6 @@ jobs:
         with:
           path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
-
-      # doc-gen4 holds the whole environment in one process, then forks a git child per package for
-      # the `srcUri.github` targets — many at once, under lake's parallelism. The kernel's default
-      # overcommit heuristic refuses to fork a process that large, so those (and only those: every
-      # `docInfo` target succeeds) fail with "resource exhausted (error code: 12, cannot allocate
-      # memory)". The forks are copy-on-write and immediately exec a small binary, so nothing
-      # actually claims that memory; `overcommit_memory=1` stops the kernel from refusing them.
-      - name: Allow overcommit so doc-gen4 can fork
-        run: sudo sysctl -w vm.overcommit_memory=1
 
       # Generated after the project cache is packed, so the archive stays lean and doesn't carry
       # doc-gen4's HTML output.
