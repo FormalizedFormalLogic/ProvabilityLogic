@@ -27,6 +27,9 @@ public section
 universe u
 variable {α : Type u}
 
+/-- **Artemov's logic `A`** (also written `GLαω = GLα ω`): `GL` extended by all `TBB n`. -/
+abbrev LogicA {α} : Logic α := LogicGLAlpha Set.univ
+
 namespace LogicA
 
 open LogicGL
@@ -358,6 +361,19 @@ theorem LogicA_subset_LogicD [DecidableEq α] : @LogicA α ⊆ LogicD := by
   intro A hA;
   obtain ⟨n, h⟩ := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp hA;
   exact Logic.sumQuasiNormal.mdp (LogicD.provable_of_provable_GL h) LogicD.provable_neg_boxItr_bot;
+
+
+section
+
+open LO
+
+variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁]
+
+theorem LogicA.eq_provabilityLogicRelativeTo
+  : LogicA (α := α) = T.provabilityLogicRelativeTo (T ∪ (Set.univ.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
+  apply LogicGLAlpha.eq_provabilityLogicRelativeTo;
+
+end
 
 
 section axiomD

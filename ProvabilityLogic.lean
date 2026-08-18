@@ -14,6 +14,7 @@ public import ProvabilityLogic.Gentzen.GL.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 public import ProvabilityLogic.Gentzen.GL.Maehara
 public import ProvabilityLogic.Gentzen.GL.WithCut
+-- public import ProvabilityLogic.Gentzen.GLAlpha.Basic  -- WIP, not yet building; excluded from mk-all sweep for now
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
 public import ProvabilityLogic.Gentzen.Grz.Basic
@@ -61,6 +62,8 @@ public import ProvabilityLogic.Logic.GL.CIP
 public import ProvabilityLogic.Logic.GL.Fixedpoint
 public import ProvabilityLogic.Logic.GL.Letterless
 public import ProvabilityLogic.Logic.GL.Theorems
+public import ProvabilityLogic.Logic.GLAlpha.Basic
+public import ProvabilityLogic.Logic.GLBetaMinus.Basic
 public import ProvabilityLogic.Logic.GLPlusBoxBot.Basic
 public import ProvabilityLogic.Logic.GLPoint2.Basic
 public import ProvabilityLogic.Logic.GLPoint3.Basic
