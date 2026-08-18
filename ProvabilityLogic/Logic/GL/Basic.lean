@@ -119,7 +119,7 @@ theorem concrete_forces_of_mem (M : Model (Fin n) α) [M.IsFiniteGL] (h : A ∈ 
   iff_forces_concrete.mp h n M x
 
 theorem provableHilbert_of_provableGentzen : ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ʰ[GL] A :=
-  fun h => provability_TFAE.out 2 1 |>.mp h
+  fun h => iff_provableHilbert.mp (iff_provableGentzen.mpr h)
 
 end LogicGL
 

@@ -70,7 +70,7 @@ variable [DecidableEq α] {A : Formula α}
 
 lemma provable_boxdot_GL_of_provable_Grz : A ∈ LogicGrz → Aᵇ ∈ LogicGL := by
   intro h;
-  replace h := LogicGrz.provability_TFAE |>.out 0 1 |>.mp h;
+  replace h := LogicGrz.iff_provableHilbert.mp h;
   induction h with
   | modal4 =>
     apply LogicGL.iff_forces.mpr;
