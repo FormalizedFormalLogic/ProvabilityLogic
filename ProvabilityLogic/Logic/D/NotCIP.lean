@@ -442,7 +442,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
   -- The modalization `C'` of the interpolant is modalized and still only contains `a`.
   have hC'mod : C.modalize.Modalized := Formula.modalized_modalize;
   have hC'atoms : C.modalize.atoms ⊆ {a} := Formula.atoms_modalize_subset.trans hCatoms;
-  -- `S ⊢ C' 🡘 a`, via the GL-characterization of `S` (item 4 of `provability_TFAE`).
+  -- `S ⊢ C' 🡘 a`, via `LogicS.iff_forces_root_subfmlsS_imp`.
   have hS : (C.modalize 🡘 #a) ∈ @LogicS α := by
     apply LogicS.iff_forces_root_subfmlsS_imp.mpr;
     intro κ _ M _ hant;

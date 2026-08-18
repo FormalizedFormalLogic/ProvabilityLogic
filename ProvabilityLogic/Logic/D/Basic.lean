@@ -229,8 +229,6 @@ lemma provable_fconj_subfmlsD [DecidableEq α] : (⋀A.subfmlsD) ∈ LogicD := b
 
 open Model Model.World
 
-/-- Every theorem of `LogicD` is forced at the root (ω) of the pseudo-tail model of any
-finite GL model. -/
 lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
       ∀ (r : M.World) (o : α → Prop), (M.toPseudoTail r o).root.1 ⊩[_] A := by
@@ -268,8 +266,6 @@ lemma forces_pseudoTail_root_of_provable [DecidableEq α] (h : A ∈ LogicD) :
   | mdp ihAB ihA => exact ihAB ihA;
 
 open Classical in
-/-- From validity at the root of pseudo-tail models, `⋀A.subfmlsD 🡒 A` is forced at the
-root of every finite rooted GL model. -/
 lemma root_forces_subfmlsD_imp [DecidableEq α]
     (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩[_] A) :

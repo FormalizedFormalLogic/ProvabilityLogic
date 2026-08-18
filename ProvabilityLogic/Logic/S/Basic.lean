@@ -103,8 +103,6 @@ lemma provable_fconj_subfmlsS [DecidableEq α] : (⋀A.subfmlsS) ∈ LogicS := b
 
 open Model Model.World
 
-/-- Theorems of `LogicS` are eventually forced along the chain of the tail model of any
-finite GL model. -/
 lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A := by
@@ -126,8 +124,6 @@ lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS)
     exact ⟨max k₁ k₂, fun n hn =>
       h₁ n (le_trans (le_max_left _ _) hn) (h₂ n (le_trans (le_max_right _ _) hn))⟩;
 
-/-- From eventual forcing along the tail-model chain, the root of any finite rooted GL model
-forces `⋀A.subfmlsS 🡒 A`. -/
 lemma root_forces_subfmlsS_imp [DecidableEq α]
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
        ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A) :
@@ -144,10 +140,6 @@ lemma root_forces_subfmlsS_imp [DecidableEq α]
     (fun B hB => Formula.subfmls_trans hB) hΓ A Formula.mem_subfmls_self k).mpr (hk k le_rfl);
 
 
-/--
-  Bridge between `Model.World.IsReflexiveOf` (over the boxed prebox-subformulas of `A`) and
-  forcing the conjunction `⋀A.subfmlsS` of the corresponding instances of the T axiom.
--/
 lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
   {κ : Type v} [Nonempty κ] {M : Model κ α} {x : M.World} :
   x.IsReflexiveOf (A.subfmls.prebox.box) ↔ x ⊩[_] ⋀A.subfmlsS := by
@@ -169,8 +161,6 @@ lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   apply Model.World.forces_singleton_sequent.mpr;
   grind
 
-/-- Direction `6 → 2` of `provability_TFAE`: `GL`-provability of `⋀A.subfmlsS 🡒 A` yields a
-`LogicS.ProofGentzen`-proof of the level-`1` sequent `∅ ⟹[1] {A}`. -/
 lemma provableGentzen_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
   ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) := by
@@ -180,8 +170,6 @@ lemma provableGentzen_of_GL_provable [DecidableEq α]
   obtain ⟨i, hi⟩ := eventually_forces_of_exists_isReflexive_forces (fun {κ} _ M _ => ⟨X, hX M⟩) M w hw;
   exact ⟨i, hi i (le_refl i)⟩;
 
-/-- Direction `2 → 3` of `provability_TFAE`: `LogicS.ProofGentzen`-provability of the level-`1`
-sequent `∅ ⟹[1] {A}` yields eventual forcing of `A` along the tail-model chain. -/
 lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
   (h : ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
@@ -248,8 +236,6 @@ theorem iff_eventually_forces_tail_nat [DecidableEq α] :
       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A :=
   provability_TFAE.out 0 2
 
-/-- `LogicS`-provability characterized by root-forcing of `⋀A.subfmlsS 🡒 A` at every finite `GL`
-rooted model. -/
 theorem iff_forces_root_subfmlsS_imp [DecidableEq α] :
     A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
       M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) :=
@@ -261,7 +247,6 @@ theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
         toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
   provability_TFAE.out 0 4
 
-/-- `LogicS` is consistent: `⊥` is not a theorem. -/
 lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
   intro h;
   -- A theorem of `S` is eventually forced on the chain of the tail model of any finite GL

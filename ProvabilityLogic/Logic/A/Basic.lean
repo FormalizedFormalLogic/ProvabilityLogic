@@ -114,8 +114,7 @@ lemma provable_neg_boxItr_bot : ∼□^[n]⊥ ∈ @LogicA α := by
     have hK : TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥  ∈ @LogicGL α := LogicGL.iff_forces.mpr (by grind);
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL hK) hTBB) ih;
 
-/-- The easy direction of the deduction-theorem characterization: if `GL ⊢ ∼□^[n]⊥ 🡒 A`,
-then `A ∈ LogicA`. -/
+/-- The easy direction of `LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp`. -/
 lemma provable_of_provable_GL_neg_boxItr_bot_imp (h : (∼□^[n]⊥) 🡒 A ∈ LogicGL) : A ∈ LogicA :=
   Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_neg_boxItr_bot
 
@@ -185,10 +184,6 @@ end
 
 open Model Model.World
 
-/--
-  For every theorem `A` of `LogicA` there is an `N` such that `A` is forced at every world
-  of every finite `GL` model at which `TBB 0, …, TBB (N - 1)` hold.
--/
 lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
   ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (x : M.World),
   (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A := by
@@ -210,9 +205,6 @@ lemma exists_forces_of_forces_instancesBelow_of_provable (h : A ∈ LogicA) :
     grind;
 
 omit [DecidableEq α] in
-/-- If `A` is forced at every world of every finite `GL` model at which
-`TBB 0, …, TBB (N - 1)` hold, then the root of every finite rooted `GL` model forces
-`∼□^[N]⊥ 🡒 A`. -/
 lemma root_forces_neg_boxItr_bot_imp
   (h : ∃ N : ℕ, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
     ∀ (x : M.World), (∀ n < N, x ⊩[_] TBB n) → x ⊩[_] A)
@@ -233,10 +225,7 @@ lemma root_forces_neg_boxItr_bot_imp
     fun hc => (forces_neg.mp h₁) (Model.iff_rank_lt_forces_boxItr_bot.mp hc);
   omega;
 
-/--
-  Deduction-theorem-style `GL`-characterization of `LogicA`: `A ∈ LogicA` iff
-  `GL ⊢ ∼□^[n]⊥ 🡒 A` for some `n`.
--/
+/-- Deduction-theorem-style `GL`-characterization of `LogicA`. -/
 theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
   A ∈ LogicA ↔ ∃ n : ℕ, (∼□^[n]⊥) 🡒 A ∈ LogicGL := by
   constructor;
@@ -341,16 +330,10 @@ theorem iff_provable_forces_graftOmega_root :
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
   LogicA.provability_TFAE.out 0 3
 
-/--
-  `LogicA`-provability is characterized by provability in the with-cut two-layered
-  sequent calculus for `A`, at level `1`.
--/
 theorem iff_provable_provableGentzenWithCut :
   A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
   LogicA.provability_TFAE.out 0 2
 
-/-- `LogicA`-provability is characterized by cut-free provability in the two-layered
-sequent calculus for `A`, at level `1`. -/
 theorem iff_provable_provableGentzen :
   A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
   LogicA.provability_TFAE.out 0 1
