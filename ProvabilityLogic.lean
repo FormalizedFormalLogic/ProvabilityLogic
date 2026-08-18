@@ -9,7 +9,6 @@ public import ProvabilityLogic.Gentzen.A.Basic
 public import ProvabilityLogic.Gentzen.A.Kripke
 public import ProvabilityLogic.Gentzen.D.Basic
 public import ProvabilityLogic.Gentzen.D.Kripke
-public import ProvabilityLogic.Gentzen.D.WithCut
 public import ProvabilityLogic.Gentzen.GL.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 public import ProvabilityLogic.Gentzen.GL.Maehara
