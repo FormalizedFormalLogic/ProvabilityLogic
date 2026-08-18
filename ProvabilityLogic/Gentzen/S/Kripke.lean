@@ -648,7 +648,7 @@ end GentzenWithCutProvable
 
   - [KK23, Theorem 3.1]
 -/
-theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
+theorem sequent_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1
     ∃ X : FormulaFinset α, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
       ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
@@ -680,15 +680,14 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
   tfae_have 6 → 1 := GentzenWithCutProvable.soundness;
   tfae_finish;
 
-namespace GentzenWithCutProvable
+namespace ProvableGentzen
 
-/--
-  Cut elimination corollary: every `LogicS.GentzenWithCutProof`-proof yields a cut-free `LogicS.ProofGentzen`-proof.
--/
-theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) :=
-  (semantical_TFAE.out 5 4).mp h
+theorem of_with_cut {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) :=
+  (sequent_TFAE.out 5 4).mp h
 
-end GentzenWithCutProvable
+end ProvableGentzen
+
+alias GentzenWithCutProvable.cut_elimination := ProvableGentzen.of_with_cut
 
 end LogicS
 
