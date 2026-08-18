@@ -1,7 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.GL.Basic
-public import ProvabilityLogic.Gentzen.GL.WithCut
+public import ProvabilityLogic.Gentzen.GL.Kripke
 
 @[expose]
 public section

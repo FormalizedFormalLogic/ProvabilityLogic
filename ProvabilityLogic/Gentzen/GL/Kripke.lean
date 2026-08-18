@@ -538,4 +538,54 @@ end Kripke
 
 end ProvableGentzen
 
+
+namespace ProvableGentzen
+
+variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
+
+/-- Cut-elimination: any sequent provable with the cut rule (`⊢ᵍᶜ[GL]`) is also provable without it (`⊢ᵍ[GL]`). -/
+theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[GL] S → ⊢ᵍ[GL] S := by
+  intro h;
+  induction h using GentzenWithCutProvable.rec with
+  | axm A => exact ProvableGentzen.axm A
+  | botL => exact ProvableGentzen.botL
+  | wkL _ h ih => exact ProvableGentzen.wkL ih h
+  | wkR _ h ih => exact ProvableGentzen.wkR ih h
+  | impL _ _ ih₁ ih₂ => exact ProvableGentzen.impL ih₁ ih₂
+  | impR _ ih => exact ProvableGentzen.impR ih
+  | boxGL _ ih => exact ProvableGentzen.boxGL ih
+  | cut _ _ ih₁ ih₂ =>
+    -- The cut rule has no direct syntactic elimination here; instead we argue
+    -- semantically via completeness, using soundness of both cut premises.
+    apply Kripke.completeness;
+    rintro κ _ M _ x;
+    have := Kripke.finite_soundness ih₁ M x;
+    have := Kripke.finite_soundness ih₂ M x;
+    grind;
+
+end ProvableGentzen
+
+alias GentzenWithCutProvable.cut_elimination := ProvableGentzen.of_with_cut
+
+namespace ProvableGentzen
+
+variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
+
+theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ᵍ[GL] (∅ ⟹ {B}) := λ p q => by
+  replace p : ⊢ᵍᶜ[GL] (insert A ∅ ⟹ {B}) := GentzenWithCutProvable.of_without_cut $ deduction_theorem.mpr p;
+  replace q : ⊢ᵍᶜ[GL] (∅ ⟹ insert A ∅) := GentzenWithCutProvable.of_without_cut q;
+  exact GentzenWithCutProvable.cut_elimination $ GentzenWithCutProvable.cut q p;
+
+/-- Löb's rule is admissible in `ProofGentzen`. Proved via cut. -/
+theorem ruleLoeb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
+  apply of_with_cut
+  have h₁ : ⊢ᵍᶜ[GL] ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=
+    GentzenWithCutProvable.wkR
+      (GentzenWithCutProvable.wkL (GentzenWithCutProvable.of_without_cut (boxGL h)) (by grind))
+      (by grind)
+  have h₂ : ⊢ᵍᶜ[GL] (insert (□A) (Γ ∪ Γ.box) ⟹ {A}) := GentzenWithCutProvable.of_without_cut h
+  simpa using GentzenWithCutProvable.cut h₁ h₂
+
+end ProvableGentzen
+
 end LogicGL

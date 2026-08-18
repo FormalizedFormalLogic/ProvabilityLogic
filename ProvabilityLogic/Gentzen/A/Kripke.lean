@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Gentzen.A.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
-public import ProvabilityLogic.Gentzen.GL.WithCut
 public import ProvabilityLogic.Kripke.GraftOmega
 
 /-!

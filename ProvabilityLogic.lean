@@ -13,12 +13,10 @@ public import ProvabilityLogic.Gentzen.D.WithCut
 public import ProvabilityLogic.Gentzen.GL.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 public import ProvabilityLogic.Gentzen.GL.Maehara
-public import ProvabilityLogic.Gentzen.GL.WithCut
 public import ProvabilityLogic.Gentzen.GLPoint3.Basic
 public import ProvabilityLogic.Gentzen.GLPoint3.Kripke
 public import ProvabilityLogic.Gentzen.Grz.Basic
 public import ProvabilityLogic.Gentzen.Grz.Kripke
-public import ProvabilityLogic.Gentzen.Grz.WithCut
 public import ProvabilityLogic.Gentzen.S.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
 public import ProvabilityLogic.Gentzen.Sequent
