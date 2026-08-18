@@ -64,35 +64,35 @@ variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
 lemma axm (l) (A : Formula α) : ⊢ᵍ[S] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
 lemma botL (l) : ⊢ᵍ[S] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
-lemma wkL (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[S] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[S] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma impL (π₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[S] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
-  ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[S] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma liftUp (π : ⊢ᵍ[S] (Γ ⟹[0] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
-lemma boxGL (π : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[S] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
-lemma boxL (π : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[S] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL π.some⟩
+lemma wkL (h : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[S] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[S] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma impL (h₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[S] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
+  ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[S] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma liftUp (h : ⊢ᵍ[S] (Γ ⟹[0] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp h.some⟩
+lemma boxGL (h : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[S] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL h.some⟩
+lemma boxL (h : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)) : ⊢ᵍ[S] (insert (□A) Γ ⟹[1] Δ) := ⟨ProofGentzen.boxL h.some⟩
 
 @[induction_eliminator]
 lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍ[S] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (ProvableGentzen.axm l A))
   (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (ProvableGentzen.botL l))
-  (wkL : ∀ {l Γ Γ' Δ} (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) π → motive (Γ' ⟹[l] Δ) (wkL π h))
-  (wkR : ∀ {l Γ Δ Δ'} (π : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) π → motive (Γ ⟹[l] Δ') (wkR π h))
-  (impL : ∀ {l Γ Δ A B} (π₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)),
-    motive (Γ ⟹[l] insert A Δ) π₁ → motive (insert B Γ ⟹[l] Δ) π₂ →
-    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL π₁ π₂)
+  (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h hΓ))
+  (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍ[S] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h hΔ))
+  (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍ[S] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[S] (insert B Γ ⟹[l] Δ)),
+    motive (Γ ⟹[l] insert A Δ) h₁ → motive (insert B Γ ⟹[l] Δ) h₂ →
+    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL h₁ h₂)
   )
-  (impR : ∀ {l Γ Δ A B} (π : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))),
-    motive ((insert A Γ) ⟹[l] (insert B Δ)) π → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR π)
+  (impR : ∀ {l Γ Δ A B} (h : ⊢ᵍ[S] ((insert A Γ) ⟹[l] (insert B Δ))),
+    motive ((insert A Γ) ⟹[l] (insert B Δ)) h → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR h)
   )
-  (liftUp : ∀ {Γ Δ} (π : ⊢ᵍ[S] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp π))
-  (boxGL : ∀ {Γ A} (π : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
-    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) π → motive (Γ.box ⟹[0] {□A}) (boxGL π)
+  (liftUp : ∀ {Γ Δ} (h : ⊢ᵍ[S] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp h))
+  (boxGL : ∀ {Γ A} (h : ⊢ᵍ[S] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
+    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) h → motive (Γ.box ⟹[0] {□A}) (boxGL h)
   )
-  (boxL : ∀ {Γ Δ A} (π : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)),
-    motive (insert A Γ ⟹[1] Δ) π → motive (insert (□A) Γ ⟹[1] Δ) (boxL π)
+  (boxL : ∀ {Γ Δ A} (h : ⊢ᵍ[S] (insert A Γ ⟹[1] Δ)),
+    motive (insert A Γ ⟹[1] Δ) h → motive (insert (□A) Γ ⟹[1] Δ) (boxL h)
   )
   : ∀ {S : TwoLayeredSequent α} (h : ⊢ᵍ[S] S), motive S h := by
     rintro S ⟨h⟩;

@@ -232,27 +232,27 @@ namespace LogicGL
 namespace ProvableLabelledGentzen
 
 lemma transMany (T : Finset Label) (hzy : (z, y) ∈ R) (hT : ∀ x ∈ T, (x, z) ∈ R)
-  (π : ⊢ˡᵍ[GL] ((R ∪ T.image (·, y)) ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
+  (h : ⊢ˡᵍ[GL] ((R ∪ T.image (·, y)) ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   induction T using Finset.induction generalizing R with
-  | empty => simpa using π;
+  | empty => simpa using h;
   | insert x T hxT ih =>
     apply trans (hxy := hT x (by simp)) (hyz := hzy);
     apply ih (by grind) (by grind);
-    apply wkRel π;
+    apply wkRel h;
     intro p hp;
     simp only [Finset.image_insert, Finset.mem_union, Finset.mem_insert] at hp ⊢;
     grind;
 
 lemma boxLMany (T : Finset (Label × Formula α)) (hT : ∀ p ∈ T, (p.1, y) ∈ R ∧ (p.1 ∶ □p.2) ∈ ℓΓ)
-  (π : ⊢ˡᵍ[GL] (R ⸴ (ℓΓ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
+  (h : ⊢ˡᵍ[GL] (R ⸴ (ℓΓ ∪ T.image (fun p => y ∶ p.2)) ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   induction T using Finset.induction generalizing ℓΓ with
-  | empty => simpa using π;
+  | empty => simpa using h;
   | insert p T hpT ih =>
     apply boxL (hT p (by simp)).1 (hT p (by simp)).2;
     apply ih (fun q hq =>
       ⟨(hT q (Finset.mem_insert_of_mem hq)).1,
         Finset.mem_insert_of_mem (hT q (Finset.mem_insert_of_mem hq)).2⟩);
-    apply wkAnt π;
+    apply wkAnt h;
     intro ℓA hf;
     simp only [Finset.image_insert, Finset.mem_union, Finset.mem_insert] at hf ⊢;
     grind;

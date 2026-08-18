@@ -221,12 +221,12 @@ lemma union' (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (
 lemma botL : ⊢ᵍ[GL] ({⊥} ⟹ (∅ : FormulaFinset α)) := ⟨ProofGentzen.botL⟩
 @[grind =>] lemma botL_mem (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[GL] (Γ ⟹ Δ) := ⟨ProofGentzen.botL_mem h⟩
 @[grind =>] lemma botL_mem' (S : Sequent α) (h : ⊥ ∈ S.ant := by grind) : ⊢ᵍ[GL] S := botL_mem h
-lemma wkL (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[GL] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma wk (π : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ' ⟹ Δ') := wkR (wkL π hΓ) hΔ
-lemma impL (π₁ : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) (π₂ : ⊢ᵍ[GL] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GL] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[GL] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma boxGL (π : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ.box ⟹ {□A}) := ⟨ProofGentzen.boxGL π.some⟩
+lemma wkL (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[GL] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma wk (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GL] (Γ' ⟹ Δ') := wkR (wkL h hΓ) hΔ
+lemma impL (h₁ : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GL] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[GL] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma boxGL (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ.box ⟹ {□A}) := ⟨ProofGentzen.boxGL h.some⟩
 
 lemma orR (h : ⊢ᵍ[GL] (Γ ⟹ insert A (insert B Δ))) : ⊢ᵍ[GL] (Γ ⟹ insert (A ⋎ B) Δ) :=
   ⟨ProofGentzen.orR h.some⟩
@@ -319,6 +319,80 @@ notation:120 "⊬ᵍ[GL] " S:121 => ¬ ProvableGentzen S
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : Sequent α} : (⊬ᵍ[GL] S) ↔ (IsEmpty (⊢ᵍ[GL]! S)) := by simp [ProvableGentzen];
 
 end ProvableGentzen
+
+
+inductive GentzenWithCutProof : Sequent α → Type u
+| axm (A) : GentzenWithCutProof ({A} ⟹ {A})
+| botL : GentzenWithCutProof ({⊥} ⟹ ∅)
+| wkL  {Γ Γ' Δ}  : GentzenWithCutProof (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → GentzenWithCutProof (Γ' ⟹ Δ)
+| wkR  {Γ Δ Δ'}  : GentzenWithCutProof (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → GentzenWithCutProof (Γ ⟹ Δ')
+| impL {Γ Δ A B} : GentzenWithCutProof (Γ ⟹ (insert A Δ)) → GentzenWithCutProof (insert B Γ ⟹ Δ) → GentzenWithCutProof ((insert (A 🡒 B) Γ) ⟹ Δ)
+| impR {Γ Δ A B} : GentzenWithCutProof ((insert A Γ) ⟹ (insert B Δ)) → GentzenWithCutProof (Γ ⟹ (insert (A 🡒 B) Δ))
+| boxGL {Γ A} : GentzenWithCutProof ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A}) → GentzenWithCutProof (Γ.box ⟹ {□A})
+| cut {Γ₁ Γ₂ Δ₁ Δ₂ A} : GentzenWithCutProof (Γ₁ ⟹ insert A Δ₁) → GentzenWithCutProof (insert A Γ₂ ⟹ Δ₂) → GentzenWithCutProof (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂)
+notation:120 "⊢ᵍᶜ[GL]! " S:121 => GentzenWithCutProof S
+
+abbrev GentzenWithCutProvable (S : Sequent α) : Prop := Nonempty (⊢ᵍᶜ[GL]! S)
+notation:120 "⊢ᵍᶜ[GL] " S:121 => GentzenWithCutProvable S
+
+
+def GentzenWithCutProof.ofGentzenProof {S : Sequent α} : ⊢ᵍ[GL]! S → ⊢ᵍᶜ[GL]! S
+| .axm A => .axm A
+| .botL => .botL
+| .wkL h h' => .wkL (ofGentzenProof h) h'
+| .wkR h h' => .wkR (ofGentzenProof h) h'
+| .impL h₁ h₂ => .impL (ofGentzenProof h₁) (ofGentzenProof h₂)
+| .impR h => .impR (ofGentzenProof h)
+| .boxGL h => .boxGL (ofGentzenProof h)
+
+namespace GentzenWithCutProvable
+
+variable {S : Sequent α} {A B : Formula α} {Γ Γ' Γ₁ Γ₂ Δ Δ' Δ₁ Δ₂ : FormulaFinset α}
+
+theorem of_without_cut : ⊢ᵍ[GL] S → ⊢ᵍᶜ[GL] S := λ ⟨p⟩ => ⟨GentzenWithCutProof.ofGentzenProof p⟩
+
+lemma axm (A : Formula α) : ⊢ᵍᶜ[GL] ({A} ⟹ {A}) := ⟨GentzenWithCutProof.axm A⟩
+lemma botL : ⊢ᵍᶜ[GL] ({⊥} ⟹ ∅ : Sequent α) := ⟨GentzenWithCutProof.botL⟩
+lemma wkL (h : ⊢ᵍᶜ[GL] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ') : ⊢ᵍᶜ[GL] (Γ' ⟹ Δ) := ⟨GentzenWithCutProof.wkL h.some h'⟩
+lemma wkR (h : ⊢ᵍᶜ[GL] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ') : ⊢ᵍᶜ[GL] (Γ ⟹ Δ') := ⟨GentzenWithCutProof.wkR h.some h'⟩
+lemma impL (h₁ : ⊢ᵍᶜ[GL] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍᶜ[GL] (insert B Γ ⟹ Δ)) : ⊢ᵍᶜ[GL] ((insert (A 🡒 B) Γ) ⟹ Δ) := ⟨GentzenWithCutProof.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍᶜ[GL] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍᶜ[GL] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨GentzenWithCutProof.impR h.some⟩
+lemma boxGL (h : ⊢ᵍᶜ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍᶜ[GL] (Γ.box ⟹ {□A}) := ⟨GentzenWithCutProof.boxGL h.some⟩
+lemma cut (h₁ : ⊢ᵍᶜ[GL] (Γ₁ ⟹ insert A Δ₁)) (h₂ : ⊢ᵍᶜ[GL] (insert A Γ₂ ⟹ Δ₂)) : ⊢ᵍᶜ[GL] (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) := ⟨GentzenWithCutProof.cut h₁.some h₂.some⟩
+
+lemma rec
+  {motive : (S : Sequent α) → ⊢ᵍᶜ[GL] S → Prop}
+  (axm : ∀ A : Formula α, motive ({A} ⟹ {A}) (GentzenWithCutProvable.axm A))
+  (botL : motive ({⊥} ⟹ ∅ : Sequent α) GentzenWithCutProvable.botL)
+  (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍᶜ[GL] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
+  (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍᶜ[GL] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
+  (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍᶜ[GL] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍᶜ[GL] (insert B Γ ⟹ Δ)),
+    motive (Γ ⟹ insert A Δ) h₁ → motive (insert B Γ ⟹ Δ) h₂ → motive ((insert (A 🡒 B) Γ) ⟹ Δ) (impL h₁ h₂)
+  )
+  (impR : ∀ {Γ Δ A B} (h : ⊢ᵍᶜ[GL] ((insert A Γ) ⟹ (insert B Δ))),
+    motive ((insert A Γ) ⟹ (insert B Δ)) h → motive (Γ ⟹ (insert (A 🡒 B) Δ)) (impR h)
+  )
+  (boxGL : ∀ {Γ A} (h : ⊢ᵍᶜ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})),
+    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A}) h → motive (Γ.box ⟹ {□A}) (boxGL h)
+  )
+  (cut : ∀ {Γ₁ Γ₂ Δ₁ Δ₂ A}
+    (h₁ : ⊢ᵍᶜ[GL] (Γ₁ ⟹ insert A Δ₁)) (h₂ : ⊢ᵍᶜ[GL] (insert A Γ₂ ⟹ Δ₂)),
+    (motive (Γ₁ ⟹ insert A Δ₁) h₁) → (motive (insert A Γ₂ ⟹ Δ₂) h₂) →
+    motive (Γ₁ ∪ Γ₂ ⟹ Δ₁ ∪ Δ₂) (GentzenWithCutProvable.cut h₁ h₂)
+  )
+  : ∀ {S : Sequent α} (h : ⊢ᵍᶜ[GL] S), motive S h := by
+    rintro S ⟨h⟩;
+    induction h with
+    | axm A => apply axm;
+    | botL => apply botL;
+    | wkL h h' ih => apply wkL ⟨h⟩ h' ih;
+    | wkR h h' ih => apply wkR ⟨h⟩ h' ih;
+    | cut h₁ h₂ ih₁ ih₂ => apply cut ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
+    | impL h₁ h₂ ih₁ ih₂ => apply impL ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
+    | impR h ih => apply impR ⟨h⟩ ih;
+    | boxGL h ih => apply boxGL ⟨h⟩ ih;
+
+end GentzenWithCutProvable
 
 end LogicGL
 

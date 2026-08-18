@@ -59,23 +59,23 @@ variable {R R' : Finset LabelRel} {ℓΓ ℓΓ' ℓΔ ℓΔ' : Finset (LabelledF
 
 lemma axm (x : Label) (A : Formula α) : ⊢ˡᵍ[GLPoint3] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := ⟨ProofLabelledGentzen.axm x A⟩
 lemma botL (x : Label) : ⊢ˡᵍ[GLPoint3] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := ⟨ProofLabelledGentzen.botL x⟩
-lemma wkRel (π : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : R ⊆ R') : ⊢ˡᵍ[GLPoint3] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel π.some h⟩
-lemma wkAnt (π : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt π.some h⟩
-lemma wkSuc (π : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc π.some h⟩
-lemma impL (π₁ : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (π₂ : ⊢ˡᵍ[GLPoint3] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ˡᵍ[GLPoint3] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) := ⟨ProofLabelledGentzen.impR π.some⟩
-lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (π : ⊢ˡᵍ[GLPoint3] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
-  ⟨ProofLabelledGentzen.boxL x y A hxy hxA π.some⟩
+lemma wkRel (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hR : R ⊆ R') : ⊢ˡᵍ[GLPoint3] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel h.some hR⟩
+lemma wkAnt (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΓ : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt h.some hΓ⟩
+lemma wkSuc (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΔ : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc h.some hΔ⟩
+lemma impL (h₁ : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ A) ℓΔ)) (h₂ : ⊢ˡᵍ[GLPoint3] (R ⸴ insert (x ∶ B) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ (insert (x ∶ A 🡒 B) ℓΓ) ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ˡᵍ[GLPoint3] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ))) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ)) := ⟨ProofLabelledGentzen.impR h.some⟩
+lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (h : ⊢ˡᵍ[GLPoint3] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.boxL x y A hxy hxA h.some⟩
 lemma boxRLob (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind)
-  (π : ⊢ˡᵍ[GLPoint3] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
-  ⟨ProofLabelledGentzen.boxRLob x y A hfresh π.some⟩
+  (h : ⊢ˡᵍ[GLPoint3] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
+  ⟨ProofLabelledGentzen.boxRLob x y A hfresh h.some⟩
 lemma irref (h : (x, x) ∈ R := by grind) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.irref x h⟩
-lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (π : ⊢ˡᵍ[GLPoint3] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
-  ⟨ProofLabelledGentzen.trans x y z hxy hyz π.some⟩
+lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (h : ⊢ˡᵍ[GLPoint3] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.trans x y z hxy hyz h.some⟩
 lemma lin (hxy : (x, y) ∈ R := by grind) (hxz : (x, z) ∈ R := by grind)
-  (π₁ : ⊢ˡᵍ[GLPoint3] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) (π₂ : ⊢ˡᵍ[GLPoint3] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
-  (π₃ : ⊢ˡᵍ[GLPoint3] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
-  ⟨ProofLabelledGentzen.lin x y z hxy hxz π₁.some π₂.some π₃.some⟩
+  (h₁ : ⊢ˡᵍ[GLPoint3] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h₂ : ⊢ˡᵍ[GLPoint3] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+  (h₃ : ⊢ˡᵍ[GLPoint3] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z)) : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
+  ⟨ProofLabelledGentzen.lin x y z hxy hxz h₁.some h₂.some h₃.some⟩
 
 @[induction_eliminator]
 lemma rec

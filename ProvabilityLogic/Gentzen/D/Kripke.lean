@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.D.WithCut
+public import ProvabilityLogic.Gentzen.D.Basic
 public import ProvabilityLogic.Gentzen.S.Kripke
 public import ProvabilityLogic.Kripke.PseudoTail
 public import ProvabilityLogic.Kripke.Cone
@@ -514,7 +514,7 @@ end ProvableGentzen.Kripke
 
   - [KKIM25, Theorem 5.8]
 -/
-theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
+theorem sequent_TFAE {Γ Δ : FormulaFinset α} : [
     -- condition 1
     ⊢ᵍᶜ[D] (Γ ⟹[2] Δ),
     -- condition 2
@@ -532,18 +532,14 @@ theorem semantical_TFAE {Γ Δ : FormulaFinset α} : [
   tfae_have 3 → 2 := Kripke.completeness;
   tfae_finish;
 
-namespace GentzenWithCutProvable
+namespace ProvableGentzen
 
-/--
-  Cut-elimination for the sequent calculus for `D`: a proof with cut of a level-`2` sequent
-  gives a cut-free proof of the same sequent.
+theorem of_with_cut {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
+  (sequent_TFAE.out 0 1).mp h
 
-  - [KKIM25, Theorem 5.8]
--/
-theorem cutElimination {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
-  (semantical_TFAE.out 0 1).mp h
+end ProvableGentzen
 
-end GentzenWithCutProvable
+alias GentzenWithCutProvable.cut_elimination := ProvableGentzen.of_with_cut
 
 end LogicD
 

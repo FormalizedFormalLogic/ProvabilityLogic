@@ -1,7 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.GL.Basic
-public import ProvabilityLogic.Gentzen.GL.WithCut
+public import ProvabilityLogic.Gentzen.GL.Kripke
 
 @[expose]
 public section
@@ -59,13 +58,13 @@ variable {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
 lemma axm (l) (A : Formula α) : ⊢ᵍ[A] ({A} ⟹[l] {A}) := ⟨ProofGentzen.axm l A⟩
 lemma botL (l) : ⊢ᵍ[A] (({⊥} : FormulaFinset α) ⟹[l] ∅) := ⟨ProofGentzen.botL l⟩
-lemma wkL (π : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[A] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL π.some h⟩
-lemma wkR (π : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[A] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR π.some h⟩
-lemma impL (π₁ : ⊢ᵍ[A] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[A] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[A] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
-  ⟨ProofGentzen.impL π₁.some π₂.some⟩
-lemma impR (π : ⊢ᵍ[A] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[A] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
-lemma liftUp (π : ⊢ᵍ[A] (Γ ⟹[0] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp π.some⟩
-lemma boxGL (π : ⊢ᵍ[A] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[A] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL π.some⟩
+lemma wkL (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[A] (Γ' ⟹[l] Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
+lemma wkR (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[A] (Γ ⟹[l] Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
+lemma impL (h₁ : ⊢ᵍ[A] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[A] (insert B Γ ⟹[l] Δ)) : ⊢ᵍ[A] ((insert (A 🡒 B) Γ) ⟹[l] Δ) :=
+  ⟨ProofGentzen.impL h₁.some h₂.some⟩
+lemma impR (h : ⊢ᵍ[A] ((insert A Γ) ⟹[l] (insert B Δ))) : ⊢ᵍ[A] (Γ ⟹[l] (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
+lemma liftUp (h : ⊢ᵍ[A] (Γ ⟹[0] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) := ⟨ProofGentzen.liftUp h.some⟩
+lemma boxGL (h : ⊢ᵍ[A] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})) : ⊢ᵍ[A] (Γ.box ⟹[0] {□A}) := ⟨ProofGentzen.boxGL h.some⟩
 lemma boxGP : ⊢ᵍ[A] (Γ ⟹[1] insert (□^[n] ⊥) Δ) → ⊢ᵍ[A] (Γ ⟹[1] Δ) := λ ⟨π⟩ => ⟨ProofGentzen.boxGP π⟩
 
 @[induction_eliminator]
@@ -73,18 +72,18 @@ lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍ[A] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (ProvableGentzen.axm l A))
   (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (ProvableGentzen.botL l))
-  (wkL : ∀ {l Γ Γ' Δ} (π : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (h : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) π → motive (Γ' ⟹[l] Δ) (wkL π h))
-  (wkR : ∀ {l Γ Δ Δ'} (π : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (h : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) π → motive (Γ ⟹[l] Δ') (wkR π h))
-  (impL : ∀ {l Γ Δ A B} (π₁ : ⊢ᵍ[A] (Γ ⟹[l] insert A Δ)) (π₂ : ⊢ᵍ[A] (insert B Γ ⟹[l] Δ)),
-    motive (Γ ⟹[l] insert A Δ) π₁ → motive (insert B Γ ⟹[l] Δ) π₂ →
-    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL π₁ π₂)
+  (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h hΓ))
+  (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h hΔ))
+  (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍ[A] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[A] (insert B Γ ⟹[l] Δ)),
+    motive (Γ ⟹[l] insert A Δ) h₁ → motive (insert B Γ ⟹[l] Δ) h₂ →
+    motive ((insert (A 🡒 B) Γ) ⟹[l] Δ) (impL h₁ h₂)
   )
-  (impR : ∀ {l Γ Δ A B} (π : ⊢ᵍ[A] ((insert A Γ) ⟹[l] (insert B Δ))),
-    motive ((insert A Γ) ⟹[l] (insert B Δ)) π → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR π)
+  (impR : ∀ {l Γ Δ A B} (h : ⊢ᵍ[A] ((insert A Γ) ⟹[l] (insert B Δ))),
+    motive ((insert A Γ) ⟹[l] (insert B Δ)) h → motive (Γ ⟹[l] (insert (A 🡒 B) Δ)) (impR h)
   )
-  (liftUp : ∀ {Γ Δ} (π : ⊢ᵍ[A] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) π → motive (Γ ⟹[1] Δ) (liftUp π))
-  (boxGL : ∀ {Γ A} (π : ⊢ᵍ[A] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
-    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) π → motive (Γ.box ⟹[0] {□A}) (boxGL π)
+  (liftUp : ∀ {Γ Δ} (h : ⊢ᵍ[A] (Γ ⟹[0] Δ)), motive (Γ ⟹[0] Δ) h → motive (Γ ⟹[1] Δ) (liftUp h))
+  (boxGL : ∀ {Γ A} (h : ⊢ᵍ[A] ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A})),
+    motive ((insert (□A) (Γ ∪ Γ.box)) ⟹[0] {A}) h → motive (Γ.box ⟹[0] {□A}) (boxGL h)
   )
   (boxGP : ∀ {Γ Δ n} (h : ⊢ᵍ[A] (Γ ⟹[1] insert (□^[n] ⊥) Δ)),
     motive (Γ ⟹[1] insert (□^[n] ⊥) Δ) h → motive (Γ ⟹[1] Δ) (boxGP h)

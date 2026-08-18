@@ -60,16 +60,16 @@ lemma botL : ⊢ᵍ[GLPoint3] ({⊥} ⟹ (∅ : FormulaFinset α)) := ⟨ProofGe
 
 @[grind =>] lemma botL_mem' (S : Sequent α) (h : ⊥ ∈ S.ant := by grind) : ⊢ᵍ[GLPoint3] S := botL_mem h
 
-lemma wkL (π : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h : Γ ⊆ Γ') : ⊢ᵍ[GLPoint3] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL π.some h⟩
+lemma wkL (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') : ⊢ᵍ[GLPoint3] (Γ' ⟹ Δ) := ⟨ProofGentzen.wkL h.some hΓ⟩
 
-lemma wkR (π : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h : Δ ⊆ Δ') : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR π.some h⟩
+lemma wkR (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ') := ⟨ProofGentzen.wkR h.some hΔ⟩
 
-lemma wk (π : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GLPoint3] (Γ' ⟹ Δ') := wkR (wkL π hΓ) hΔ
+lemma wk (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (hΓ : Γ ⊆ Γ') (hΔ : Δ ⊆ Δ') : ⊢ᵍ[GLPoint3] (Γ' ⟹ Δ') := wkR (wkL h hΓ) hΔ
 
-lemma impL (π₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (π₂ : ⊢ᵍ[GLPoint3] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GLPoint3] ((insert (A 🡒 B) Γ) ⟹ Δ) :=
-  ⟨ProofGentzen.impL π₁.some π₂.some⟩
+lemma impL (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint3] (insert B Γ ⟹ Δ)) : ⊢ᵍ[GLPoint3] ((insert (A 🡒 B) Γ) ⟹ Δ) :=
+  ⟨ProofGentzen.impL h₁.some h₂.some⟩
 
-lemma impR (π : ⊢ᵍ[GLPoint3] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GLPoint3] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR π.some⟩
+lemma impR (h : ⊢ᵍ[GLPoint3] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GLPoint3] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
 
 lemma boxGLPoint3 (hΔ : Δ.Nonempty)
     (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →

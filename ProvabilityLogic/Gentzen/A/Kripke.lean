@@ -2,7 +2,6 @@ module
 
 public import ProvabilityLogic.Gentzen.A.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
-public import ProvabilityLogic.Gentzen.GL.WithCut
 public import ProvabilityLogic.Kripke.GraftOmega
 
 /-!
@@ -143,14 +142,16 @@ theorem LogicA.sequent_TFAE {Γ Δ : FormulaFinset α} : [
   tfae_have 4 → 2 := fun ⟨_, h⟩ => ProvableGentzen.of_provableGentzen_insert_boxItr_bot h;
   tfae_finish;
 
-namespace LogicA.GentzenWithCutProvable
+namespace LogicA.ProvableGentzen
 
 /-- Semantic cut elimination for level-`1` `LogicA`-Gentzen provability: every with-cut
 proof yields a cut-free proof. -/
-theorem cutElimination {Γ Δ : FormulaFinset α}
+theorem of_with_cut {Γ Δ : FormulaFinset α}
   (h : ⊢ᵍᶜ[A] (Γ ⟹[1] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
   sequent_TFAE.out 0 1 |>.mp h
 
-end LogicA.GentzenWithCutProvable
+end LogicA.ProvableGentzen
+
+alias LogicA.GentzenWithCutProvable.cut_elimination := LogicA.ProvableGentzen.of_with_cut
 
 end

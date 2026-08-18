@@ -1,6 +1,6 @@
 module
 
-public import ProvabilityLogic.Gentzen.Grz.WithCut
+public import ProvabilityLogic.Gentzen.Grz.Kripke
 
 @[expose]
 public section
