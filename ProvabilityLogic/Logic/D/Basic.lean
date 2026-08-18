@@ -386,6 +386,12 @@ theorem iff_provable_box_provable_GL [DecidableEq α] : □A ∈ LogicD ↔ A �
   · intro h;
     exact provable_of_provable_GL (ProvableHilbert.nec h);
 
+/-- General-`κ` analogue of `iff_forces_pseudoTail_root_concrete`. -/
+theorem iff_forces_pseudoTail_root [DecidableEq α] :
+    A ∈ LogicD ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
+      (M.toPseudoTail r o).root.1 ⊩[_] A :=
+  provability_TFAE.out 0 2
+
 theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] :
     A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
       (M.toPseudoTail r o).root.1 ⊩[_] A :=
@@ -400,7 +406,7 @@ theorem exists_not_forces_toPseudoTail_of_not_mem [DecidableEq α] {A : Formula 
     (hA : A ∉ LogicD) :
     ∃ (κ : Type u) (_ : Nonempty κ) (M : Model κ α), M.IsFiniteGL ∧ ∃ (r : M.World)
       (o : α → Prop), ¬(M.toPseudoTail r o).root.1 ⊩[_] A := by
-  have h := provability_TFAE (A := A) |>.out 0 2 |>.not.mp hA;
+  have h := iff_forces_pseudoTail_root.not.mp hA;
   push Not at h;
   exact h;
 
@@ -410,10 +416,10 @@ lemma not_provable_map_some [DecidableEq α] {A : Formula α}
   -- Argued semantically via pseudo-tail models.
   intro hc;
   apply h;
-  apply LogicD.provability_TFAE.out 2 0 |>.mp;
+  apply LogicD.iff_forces_pseudoTail_root.mpr;
   intro κ _ M _ r o;
-  have hall := LogicD.provability_TFAE (A := A.map some) |>.out 0 2 |>.mp hc;
-  have hfrc := hall (κ := κ) (M.optionExtend) r
+  have hall := LogicD.iff_forces_pseudoTail_root.mp hc (κ := κ);
+  have hfrc := hall (M.optionExtend) r
     (fun a => match a with | some a => o a | none => False);
   have e : ((M.optionExtend).toPseudoTail r
         (fun a => match a with | some a => o a | none => False)).root.1

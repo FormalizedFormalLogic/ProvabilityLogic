@@ -362,7 +362,7 @@ lemma exists_modalized_equiv_of_indep
   use C.modalize, Formula.modalized_modalize, ?_, Formula.atoms_modalize_subset;
   -- By the semantic characterization of `D`, it suffices to force `C 🡘 C.modalize` at the
   -- root of every pseudo-tail D-model.
-  apply (LogicD.provability_TFAE.out 2 0).mp;
+  apply LogicD.iff_forces_pseudoTail_root.mpr;
   intro κ _ M _ r o;
   -- The all-false lower valuation, at which `C` and `C.modalize` agree at the root.
   let o₀ : α → Prop := fun _ => False;
