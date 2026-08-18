@@ -899,10 +899,10 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ha) hb;
 
 omit [ℕ↓[ℒₒᵣ] ⊧* T] in
-theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {𝔸 : Set ℕ}
-  : LogicGLAlpha (α := α) 𝔸 = T.provabilityLogicRelativeTo (T ∪ (𝔸.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
-  suffices (LetterlessFormula.standardInterpret T '' TBB '' 𝔸) = (𝔸.image (λ i => LetterlessFormula.standardInterpret T (TBB i))) by
-    exact this ▸ (letterless_provabilityLogic (X := 𝔸.image TBB));
+theorem LogicGLAlpha.eq_provabilityLogicRelativeTo {X : Set ℕ}
+  : LogicGLAlpha (α := α) X = T.provabilityLogicRelativeTo (T ∪ (X.image (λ i => LetterlessFormula.standardInterpret T (TBB i)))) := by
+  suffices (LetterlessFormula.standardInterpret T '' TBB '' X) = (X.image (λ i => LetterlessFormula.standardInterpret T (TBB i))) by
+    exact this ▸ (letterless_provabilityLogic (X := X.image TBB));
   ext i;
   simp;
 

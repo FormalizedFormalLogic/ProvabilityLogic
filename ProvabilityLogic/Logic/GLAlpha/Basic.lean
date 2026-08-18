@@ -10,6 +10,6 @@ public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 @[expose]
 public section
 
-abbrev LogicGLAlpha {α} (𝔸 : Set ℕ) : Logic α := (@LogicGL α) +ᴸ ↑(𝔸.image $ TBB (α := Empty))
+abbrev LogicGLAlpha {α} (X : Set ℕ) : Logic α := (@LogicGL α) +ᴸ ↑(X.image $ TBB (α := Empty))
 
 end

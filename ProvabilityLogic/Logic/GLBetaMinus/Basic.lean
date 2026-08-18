@@ -12,6 +12,6 @@ public section
 
 noncomputable abbrev TBBMinus [DecidableEq α] (X : Set ℕ) (X_finite : X.Finite := by grind) : Formula α := ∼⋀(X_finite.toFinset.image TBB)
 
-abbrev LogicGLBetaMinus {α} [DecidableEq α] (𝔹 : Set ℕ) (𝔹_cofinite : 𝔹ᶜ.Finite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ 𝔹_cofinite })
+abbrev LogicGLBetaMinus {α} [DecidableEq α] (Y : Set ℕ) (Y_cofinite : Yᶜ.Finite := by grind) : Logic α := (@LogicGL α) +ᴸ (LetterlessFormulaSet.lift { TBBMinus _ Y_cofinite })
 
 end
