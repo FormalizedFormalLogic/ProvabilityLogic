@@ -221,14 +221,17 @@ jobs:
 
       # doc-gen4 briefly holds the whole Mathlib+Foundation environment in memory while
       # building `coreDocs`; swap gives the runner headroom to survive that peak instead of
-      # every process it forks afterwards failing with ENOMEM.
+      # every process it forks afterwards failing with ENOMEM. Runner images already ship
+      # with an active `/swapfile`, so add extra swap under a different name.
       - name: Add swap space
         run: |
+          free -h
+          swapon --show
           df -h /
-          sudo fallocate -l 16G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          sudo fallocate -l 16G /swapfile-docs
+          sudo chmod 600 /swapfile-docs
+          sudo mkswap /swapfile-docs
+          sudo swapon /swapfile-docs
           free -h
 
       - name: Build docs
