@@ -13,22 +13,17 @@ open LogicGL
 open scoped FormulaFinset
 
 /--
-Cut-free Gentzen sequent calculus `GrzSeq` for the Grzegorczyk logic `Grz`.
+Cut-free Gentzen sequent calculus `GrzSeq` for the Grzegorczyk logic `Grz`. It adds to the
+propositional rules of `LogicGL.ProofGentzen` the reflexivity rule `boxT` and the box-right
+rule `boxGrz`, the latter without the source's built-in side formulas, which are recovered
+by `wkL`/`wkR` as for `LogicGL.ProofGentzen.boxGL`.
 
-Besides the propositional rules shared with `LogicGL.ProofGentzen`, two modal rules are added:
-- `boxT`: the reflexivity (`T`) rule, allowing `B` to be assumed once `□B` sits in the
-  antecedent.
-- `boxGrz`: the Grz box-right rule. Its conclusion's antecedent must be exactly a boxed
-  finset `□Γ` and its succedent must be exactly the singleton `{□A}`; side formulas are
-  recovered afterwards via `wkL`/`wkR`. The source rule bakes side formulas into the rule
-  itself, but we follow the more economical presentation already used for
-  `LogicGL.ProofGentzen.boxGL`, adding weakening explicitly instead.
 - [SS21, Figure 1]
 - [Avr84, §I]
 -/
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
-| botL : ProofGentzen ({⊥} ⟹ (∅ : FormulaFinset α))
+| botL : ProofGentzen ({⊥} ⟹ ∅)
 | wkL  {Γ Γ' Δ}  : ProofGentzen (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹ Δ)
 | wkR  {Γ Δ Δ'}  : ProofGentzen (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹ Δ')
 | impL {Γ Δ A B} : ProofGentzen (Γ ⟹ (insert A Δ)) → ProofGentzen (insert B Γ ⟹ Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹ Δ)
@@ -61,25 +56,29 @@ def negL : ⊢ᵍ[Grz]! (Γ ⟹ (insert A Δ)) → ⊢ᵍ[Grz]! ((insert (∼A) 
 
 def negR : ⊢ᵍ[Grz]! ((insert A Γ) ⟹ Δ) → ⊢ᵍ[Grz]! (Γ ⟹ (insert (∼A) Δ)) := λ p => impR $ wkR $ wkL p
 
-def andL : ⊢ᵍ[Grz]! ((insert A $ insert B $ Γ) ⟹ Δ) → ⊢ᵍ[Grz]! (insert (A ⋏ B) Γ ⟹ Δ) := λ p => by
+def andL : ⊢ᵍ[Grz]! ((insert A $ insert B $ Γ) ⟹ Δ) → ⊢ᵍ[Grz]! (insert (A ⋏ B) Γ ⟹ Δ) := by
+  intro p;
   apply impL;
   . apply impR;
     apply negR;
     simpa [(show (insert A $ insert B Γ) = (insert B $ insert A Γ) by grind)] using p;
   . exact botL_mem;
 
-def andR : ⊢ᵍ[Grz]! (Γ ⟹ insert A Δ) → ⊢ᵍ[Grz]! (Γ ⟹ insert B Δ) → ⊢ᵍ[Grz]! (Γ ⟹ insert (A ⋏ B) Δ) := λ p q => by
+def andR : ⊢ᵍ[Grz]! (Γ ⟹ insert A Δ) → ⊢ᵍ[Grz]! (Γ ⟹ insert B Δ) → ⊢ᵍ[Grz]! (Γ ⟹ insert (A ⋏ B) Δ) := by
+  intro p q;
   apply impR;
   apply impL;
   . exact wkR p;
   . exact negL $ wkR q;
 
-def orL : ⊢ᵍ[Grz]! (insert A Γ ⟹ Δ) → ⊢ᵍ[Grz]! (insert B Γ ⟹ Δ) → ⊢ᵍ[Grz]! (insert (A ⋎ B) Γ ⟹ Δ) := λ p q => by
+def orL : ⊢ᵍ[Grz]! (insert A Γ ⟹ Δ) → ⊢ᵍ[Grz]! (insert B Γ ⟹ Δ) → ⊢ᵍ[Grz]! (insert (A ⋎ B) Γ ⟹ Δ) := by
+  intro p q;
   apply impL;
   . exact negR p;
   . exact q;
 
-def orR : ⊢ᵍ[Grz]! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ[Grz]! (Γ ⟹ insert (A ⋎ B) Δ) := λ p => by
+def orR : ⊢ᵍ[Grz]! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ[Grz]! (Γ ⟹ insert (A ⋎ B) Δ) := by
+  intro p;
   apply impR;
   apply negL;
   simpa;
@@ -153,7 +152,7 @@ def seq_T : ⊢ᵍ[Grz]! ({□A} ⟹ {A}) := by
 def modalT : ⊢ᵍ[Grz]! (∅ ⟹ {□A 🡒 A}) := deductionTheorem $ wkL seq_T (by grind)
 
 def seq_four : ⊢ᵍ[Grz]! ({□A} ⟹ {□□A}) := by
-  rw [(show ({□A} : FormulaFinset α) = □({A} : FormulaFinset α) by grind)];
+  rw [(show ({□A} : FormulaFinset α) = □{A} by grind)];
   apply boxGrz;
   rw [(show □({A} : FormulaFinset α) = {□A} by grind)];
   exact union (□A);
@@ -167,7 +166,7 @@ def seq_grz_core : ⊢ᵍ[Grz]! ({□(A 🡒 □A), □(□(A 🡒 □A) 🡒 A)
   apply mdpL_mem (□(A 🡒 □A)) A;
 
 def seq_grz_box : ⊢ᵍ[Grz]! ({□(□(A 🡒 □A) 🡒 A)} ⟹ {□A}) := by
-  rw [(show ({□(□(A 🡒 □A) 🡒 A)} : FormulaFinset α) = □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) by grind)];
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} : FormulaFinset α) = □{□(A 🡒 □A) 🡒 A} by grind)];
   apply boxGrz;
   rw [(show □({□(A 🡒 □A) 🡒 A} : FormulaFinset α) = {□(□(A 🡒 □A) 🡒 A)} by grind)];
   exact seq_grz_core;
@@ -176,7 +175,7 @@ def modalGrzAux : ⊢ᵍ[Grz]! (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 □A}
 
 
 def seq_K_core : ⊢ᵍ[Grz]! ({□A, □(A 🡒 B)} ⟹ {□B}) := by
-  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = □({A, A 🡒 B} : FormulaFinset α) by grind)];
+  rw [(show ({□A, □(A 🡒 B)} : FormulaFinset α) = □{A, A 🡒 B} by grind)];
   apply boxGrz;
   rw [(show □({A, A 🡒 B} : FormulaFinset α) = {□A, □(A 🡒 B)} by grind)];
   rw [(show insert (□(B 🡒 □B)) ({□A, □(A 🡒 B)} : FormulaFinset α)
@@ -191,7 +190,7 @@ def modalK : ⊢ᵍ[Grz]! (∅ ⟹ {□(A 🡒 B) 🡒 (□A 🡒 □B)}) := ded
 
 
 def nec (p : ⊢ᵍ[Grz]! (∅ ⟹ {A})) : ⊢ᵍ[Grz]! (∅ ⟹ {□A}) := by
-  rw [(show (∅ : FormulaFinset α) = □(∅ : FormulaFinset α) by grind)];
+  rw [(show (∅ : FormulaFinset α) = □∅ by grind)];
   apply boxGrz;
   rw [(show □(∅ : FormulaFinset α) = ∅ by grind)];
   exact wkL p (by grind);
@@ -263,7 +262,7 @@ lemma nec : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ᵍ[Grz] (∅ ⟹ {□A}) := λ ⟨
 lemma rec
   {motive : (S : Sequent α) → ⊢ᵍ[Grz] S → Prop}
   (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableGentzen.axm A))
-  (botL : motive ({⊥} ⟹ (∅ : FormulaFinset α)) ProvableGentzen.botL)
+  (botL : motive ({⊥} ⟹ ∅) ProvableGentzen.botL)
   (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
   (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍ[Grz] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
   (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍ[Grz] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[Grz] (insert B Γ ⟹ Δ)),
@@ -355,34 +354,23 @@ lemma rec
   )
   : ∀ {S : Sequent α} (h : ⊢ᵍᶜ[Grz] S), motive S h := by
     rintro S ⟨h⟩;
-    induction h with
-    | axm A => apply axm;
-    | botL => apply botL;
-    | wkL h h' ih => apply wkL ⟨h⟩ h' ih;
-    | wkR h h' ih => apply wkR ⟨h⟩ h' ih;
-    | cut h₁ h₂ ih₁ ih₂ => apply cut ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
-    | impL h₁ h₂ ih₁ ih₂ => apply impL ⟨h₁⟩ ⟨h₂⟩ ih₁ ih₂;
-    | impR h ih => apply impR ⟨h⟩ ih;
-    | boxT h ih => apply boxT ⟨h⟩ ih;
-    | boxGrz h ih => apply boxGrz ⟨h⟩ ih;
+    induction h <;> grind;
 
-/-- One direction of the deduction theorem for the cut-full calculus. -/
 theorem deductionTheorem (h : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
-  rw [(show ({A 🡒 B} : FormulaFinset α) = insert (A 🡒 B) ∅ by grind)];
+  rw [(show {A 🡒 B} = insert (A 🡒 B) ∅ by grind)];
   apply impR;
-  rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];
+  rwa [(show insert B ∅ = {B} by grind)];
 
-/-- The standard form of the Grz axiom, derived from the boxed `ProofGentzen.modalGrzAux` by a
-cut against the reflexivity axiom. -/
+/-- The Grz axiom in its standard form. -/
 theorem modalGrz {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
   have h₁ : ⊢ᵍᶜ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ insert (□A) ∅) := by
-    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+    rw [(show insert (□A) ∅ = {□A} by grind)];
     exact of_without_cut ProvableGentzen.seq_grz_box;
-  have h₂ : ⊢ᵍᶜ[Grz] (insert (□A) (∅ : FormulaFinset α) ⟹ {A}) := by
-    rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];
+  have h₂ : ⊢ᵍᶜ[Grz] (insert (□A) ∅ ⟹ {A}) := by
+    rw [(show insert (□A) ∅ = {□A} by grind)];
     exact of_without_cut ProvableGentzen.seq_T;
   have h₃ := cut h₁ h₂;
-  rw [(show ({□(□(A 🡒 □A) 🡒 A)} ∪ (∅ : FormulaFinset α)) = {□(□(A 🡒 □A) 🡒 A)} by grind),
+  rw [(show ({□(□(A 🡒 □A) 🡒 A)} ∪ ∅) = {□(□(A 🡒 □A) 🡒 A)} by grind),
       (show ((∅ : FormulaFinset α) ∪ {A}) = {A} by grind)] at h₃;
   exact deductionTheorem h₃;
 

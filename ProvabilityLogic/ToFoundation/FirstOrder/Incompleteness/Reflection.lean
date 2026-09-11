@@ -20,7 +20,6 @@ def localReflection
     FirstOrder.ArithmeticTheory :=
   { (T.standardProvability σ) 🡒 σ | (σ) (_ : Arithmetic.Hierarchy Γ n σ) }
 
-/-- The reflection instance at a `Γₙ`-sentence `σ` belongs to `Rfn_Γₙ(T)`. -/
 lemma mem_localReflection
     {T : FirstOrder.ArithmeticTheory} [T.Δ₁] {Γ : Polarity} {n : ℕ}
     {σ : FirstOrder.ArithmeticSentence} (hσ : Arithmetic.Hierarchy Γ n σ) :
@@ -32,26 +31,21 @@ section
 
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁]
 
-/-- If `T` is sound, then `T + Rfn_Γₙ(T)` is sound as well: every local reflection
-instance for `T` is true in the standard model. -/
 instance models_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : ℕ}
   : ℕ↓[ℒₒᵣ] ⊧* (T ∪ T.localReflection Γ n) := by
   apply Semantics.modelsSet_iff.mpr;
   rintro φ (hφ | ⟨σ, hσ, rfl⟩);
   . exact Semantics.modelsSet_iff.mp inferInstance hφ;
-  . -- if `Pr_T(σ)` holds in `ℕ` then `T ⊢ σ` (`Provability.SoundOn`), hence `σ` is
-    -- true by the soundness of `T`.
-    have : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability σ) → ℕ↓[ℒₒᵣ] ⊧ σ := fun h =>
+  . have : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability σ) → ℕ↓[ℒₒᵣ] ⊧ σ := fun h =>
       models_of_provable inferInstance (T.standardProvability.sound_on h);
     simpa using this;
 
-/--
-  The instance of the **unboundedness theorem**, originally due to Kreisel and Lévy (1968),
-  needed for the `⊆` half of Example 60: `T + Rfn_Σ₁(T)`, being a consistent extension
-  of `T` by `Π₂`-sentences, cannot prove the full local reflection schema `Rfn(T)`
-  (already its `Σ₂`-instances are out of reach).
+/-- The **unboundedness theorem**: `T + Rfn_Σ₁(T)`, being a consistent extension of `T` by
+`Π₂`-sentences, does not prove the full local reflection schema `Rfn(T)` — already its
+`Σ₂`-instances are out of reach.
 
-  - [AB05, Theorem 23]
+- [AB05, Theorem 23]
+- [KL68]
 -/
 theorem unbounded_localReflection
   (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]

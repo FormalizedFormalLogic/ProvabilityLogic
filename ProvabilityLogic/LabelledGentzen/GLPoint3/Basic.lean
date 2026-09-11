@@ -3,9 +3,13 @@ module
 public import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
-Labelled sequent calculus for `LogicGLPoint3`, extending the calculus for `GL`
-with the linearity rule `Lin`. Original to this formalization, applying the method of
-[Neg14] — read a frame condition off as a structural rule — to weak connectedness.
+# Labelled sequent calculus for `GLPoint3`
+
+The labelled sequent calculus for `LogicGLPoint3`: the calculus for `GL` extended by the
+linearity rule `Lin`. Original to this formalization, obtained by reading weak
+connectedness off as a structural rule, following the method of the reference below.
+
+## References
 
 - [Neg14, §5]
 -/
@@ -19,7 +23,7 @@ namespace LogicGLPoint3
 
 inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | axm (x A) : ProofLabelledGentzen (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A})
-| botL (x) : ProofLabelledGentzen (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α)))
+| botL (x) : ProofLabelledGentzen (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅)
 | wkRel {R R' ℓΓ ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : R ⊆ R' := by grind) → ProofLabelledGentzen (R' ⸴ ℓΓ ⟹ˡ ℓΔ)
 | wkAnt {R ℓΓ ℓΓ' ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΓ ⊆ ℓΓ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ' ⟹ˡ ℓΔ)
 | wkSuc {R ℓΓ ℓΔ ℓΔ'} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΔ ⊆ ℓΔ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ')
@@ -58,7 +62,7 @@ namespace ProvableLabelledGentzen
 variable {R R' : Finset LabelRel} {ℓΓ ℓΓ' ℓΔ ℓΔ' : Finset (LabelledFormula α)} {x y z : Label} {A B : Formula α}
 
 lemma axm (x : Label) (A : Formula α) : ⊢ˡᵍ[GLPoint3] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := ⟨ProofLabelledGentzen.axm x A⟩
-lemma botL (x : Label) : ⊢ˡᵍ[GLPoint3] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := ⟨ProofLabelledGentzen.botL x⟩
+lemma botL (x : Label) : ⊢ˡᵍ[GLPoint3] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅) := ⟨ProofLabelledGentzen.botL x⟩
 lemma wkRel (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hR : R ⊆ R') : ⊢ˡᵍ[GLPoint3] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel h.some hR⟩
 lemma wkAnt (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΓ : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt h.some hΓ⟩
 lemma wkSuc (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΔ : ℓΔ ⊆ ℓΔ') : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ') := ⟨ProofLabelledGentzen.wkSuc h.some hΔ⟩
@@ -81,7 +85,7 @@ lemma lin (hxy : (x, y) ∈ R := by grind) (hxz : (x, z) ∈ R := by grind)
 lemma rec
   {motive : (S : LabelledSequent α) → ⊢ˡᵍ[GLPoint3] S → Prop}
   (axm : ∀ x A, motive (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) (ProvableLabelledGentzen.axm x A))
-  (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) (ProvableLabelledGentzen.botL x))
+  (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅) (ProvableLabelledGentzen.botL x))
   (wkRel : ∀ {R R' ℓΓ ℓΔ} (h : ⊢ˡᵍ[GLPoint3] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h' : R ⊆ R'),
     motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R' ⸴ ℓΓ ⟹ˡ ℓΔ) (wkRel h h')
   )
@@ -102,7 +106,7 @@ lemma rec
     motive (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (boxL hxy hxA h)
   )
   (boxRLob : ∀ {R ℓΓ ℓΔ x y A} (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels)
-      (h : ⊢ˡᵍ[GLPoint3] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)),
+    (h : ⊢ˡᵍ[GLPoint3] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)),
     motive (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ) h →
     motive (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) (boxRLob hfresh h)
   )
@@ -111,8 +115,8 @@ lemma rec
     motive (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (trans hxy hyz h)
   )
   (lin : ∀ {R ℓΓ ℓΔ x y z} (hxy : (x, y) ∈ R) (hxz : (x, z) ∈ R)
-      (h₁ : ⊢ˡᵍ[GLPoint3] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h₂ : ⊢ˡᵍ[GLPoint3] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
-      (h₃ : ⊢ˡᵍ[GLPoint3] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z)),
+    (h₁ : ⊢ˡᵍ[GLPoint3] (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h₂ : ⊢ˡᵍ[GLPoint3] (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ))
+    (h₃ : ⊢ˡᵍ[GLPoint3] ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z)),
     motive (insert (y, z) R ⸴ ℓΓ ⟹ˡ ℓΔ) h₁ → motive (insert (z, y) R ⸴ ℓΓ ⟹ˡ ℓΔ) h₂ →
     motive ((R ⸴ ℓΓ ⟹ˡ ℓΔ).relabel y z) h₃ → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (lin hxy hxz h₁ h₂ h₃)
   )

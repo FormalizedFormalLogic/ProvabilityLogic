@@ -6,20 +6,12 @@ public import ProvabilityLogic.Kripke.GraftOmega
 /-!
 # `P`-simplification of GL-models
 
-This file formalizes "removal of a redundant cone" and the
-`P`-simplification lemmas (Lemma 6 for finite GL-models, Lemma 8 for ω-models).
+This file formalizes removal of a redundant cone and the `P`-simplification lemmas, for
+finite GL-models and for `graftOmega`-shaped ω-models. Tree-ness, which `Model.IsFiniteGL`
+does not encode but the cone-removal argument needs, is a standing explicit hypothesis
+`RootedModel.IsTree`; `P`-isomorphism of cones is formalized as `Model.BisimulationUnder`.
 
-**A note on scope.** The classical "GL-model" of [Bek90] (going back to
-Segerberg/Boolos) is a finite irreflexive TREE frame, not an arbitrary finite transitive
-converse-well-founded frame. ProvabilityLogic's `Model.IsFiniteGL` class does not encode tree-ness
-(no requirement that ancestors of a point be linearly ordered), so we make this a
-standing explicit hypothesis (`RootedModel.IsTree`) on the lemmas below, matching the
-paper's implicit convention. Without it, a point could be reached from outside its
-"cone" through more than one branch, and the local cone-removal argument does not go
-through as stated. Also, "cone `𝒳_a`, `𝒳_y` are `p̄`-isomorphic" from the paper is
-formalized here via `Model.BisimulationUnder` (bisimilarity restricted to atoms in `P`)
-rather than a literal frame isomorphism -- the modally correct and sufficient notion,
-see `ProvabilityLogic/Kripke/Preservation.lean`.
+## References
 
 - [Bek90, §4, item 3, Lemma 6, Lemma 8]
 -/
@@ -33,23 +25,13 @@ variable [Nonempty κ] {α : Type u}
 
 namespace RootedModel
 
-/--
-  `M` has the tree property if the `≺`-ancestors of any point are linearly ordered:
-  whenever `x ≺ z` and `y ≺ z`, `x` and `y` are comparable. This is the standing
-  assumption on "GL-models" in the classification literature.
-
-  - [Bek90]
--/
+/-- `M` has the tree property if the `≺`-ancestors of any point are linearly ordered.
+This is the standing assumption on "GL-models" in the classification literature. -/
 class IsTree (M : RootedModel κ α) : Prop where
   tree : ∀ x y z : M.World, x ≺ z → y ≺ z → x = y ∨ x ≺ y ∨ y ≺ x
 
-/--
-  A *finite GL tree* model: a finite GL-model whose frame is a tree. This is the
-  model class of the classical "GL-models" in the classification literature:
-  finite irreflexive transitive trees.
-
-  - [Bek90]
--/
+/-- A *finite GL tree*: a finite GL-model whose frame is a tree. This is the model class
+of the classical "GL-models", i.e. finite irreflexive transitive trees. -/
 class IsFiniteGLTree (M : RootedModel κ α) : Prop extends Model.IsFiniteGL M.toModel, IsTree M
 
 instance {M : RootedModel κ α} [M.IsFiniteGL] [M.IsTree] : M.IsFiniteGLTree where
@@ -60,9 +42,8 @@ open Model (BisimulationUnder World.forces_iff_of_pbisimilar)
 open Model.World (IsInConeOf IsProperPredecessorOf)
 
 /--
-  A non-root point `a` is `P`-redundant ("Removal of a redundant cone") if every
-  ancestor `x ≺ a` has an alternative successor `y` -- incomparable with `a` (so that
-  its cone is disjoint from `a`'s) -- whose cone is `P`-bisimilar to the cone above `a`.
+  A non-root point `a` is `P`-**redundant** if every ancestor `x ≺ a` has an alternative
+  successor `y`, incomparable with `a`, whose cone is `P`-bisimilar to the cone above `a`.
 
   - [Bek90, §4, item 3]
 -/
@@ -71,24 +52,14 @@ def Redundant (M : RootedModel κ α) (P : Finset α) (a : M.NonRoot) : Prop :=
     ∃ (y : M.World) (Bi : BisimulationUnder P M.toModel M.toModel),
       x ≺ y ∧ ¬ y ≺ a.1 ∧ ¬ a.1 ≺ y ∧ y ≠ a.1 ∧ Bi y a.1
 
-/-- `M` is simple-under-`P` if it has no `P`-redundant point. -/
 def IsSimpleUnder (M : RootedModel κ α) (P : Finset α) : Prop :=
   ∀ a : M.NonRoot, ¬ Redundant M P a
 
-/--
-A `P`-redundant point is also `(P ∪ {p})`-redundant when `□p` is forced at the root.
-This is the "every `(q̄,p)`-redundant point is also `q̄`-redundant" step of the proof
-(in contrapositive form).
-
-- [Bek90, Lemma 1, §5]
--/
+/-- - [Bek90, Lemma 1, §5] -/
 lemma Redundant.insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ α}
   [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α} {w : M.NonRoot}
   (hred : Redundant M P w) (hbox : M.root.1 ⊩[_] (□(#p))) :
   Redundant M (insert p P) w := by
-  -- Every point above the root forces `p` (by `hbox`), so the atomic clause for `p` is
-  -- free on every pair of non-root points, and all points involved in a redundancy
-  -- certificate are above the root.
   intro x Rxw;
   obtain ⟨y, Bi, hxy, hynw, hnwy, hyne, hBiyw⟩ := hred x Rxw;
   let Bi' : BisimulationUnder (insert p P) M.toModel M.toModel :=
@@ -111,11 +82,7 @@ lemma Redundant.insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ �
   exact ⟨y, Bi', hxy, hynw, hnwy, hyne,
     hBiyw, fun h => not_rel_root (h ▸ hxy), w.2⟩;
 
-/--
-If `□p` is forced at the root, `(P ∪ {p})`-simplicity already implies `P`-simplicity.
-
-- [Bek90, Lemma 1, §5]
--/
+/-- - [Bek90, Lemma 1, §5] -/
 lemma IsSimpleUnder.of_insert_of_root_forces_box [DecidableEq α] {M : RootedModel κ α}
   [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {P : Finset α} {p : α}
   (h : M.IsSimpleUnder (insert p P)) (hbox : M.root.1 ⊩[_] (□(#p))) :
@@ -132,7 +99,6 @@ lemma not_isInConeOf_root_of_ne {a : M.World} (ha : a ≠ M.root.1) :
   . exact ha h.symm;
   . exact Std.Irrefl.irrefl M.root.1 (IsTrans.trans _ _ _ (M.root.2 a ha) h);
 
-/-- The carrier of `removeCone`. -/
 abbrev removeCone.World (M : RootedModel κ α) (a : M.NonRoot) : Type _ :=
   {x : M.World // ¬ x.IsInConeOf a.1}
 
@@ -162,12 +128,12 @@ instance (a : M.NonRoot) : Std.Irrefl (M.removeCone a).Rel :=
 
 lemma isTree {a : M.NonRoot} [hTree : M.IsTree] :
   (M.removeCone a).IsTree := by
-  refine ⟨?_⟩;
+  constructor;
   intro x y z hxz hyz;
   rcases hTree.tree x.1 y.1 z.1 hxz hyz with h | h | h;
-  . exact Or.inl (Subtype.ext h);
-  . exact Or.inr (Or.inl h);
-  . exact Or.inr (Or.inr h);
+  . left; exact Subtype.ext h;
+  . right; left; exact h;
+  . right; right; exact h;
 
 section Finite
 
@@ -178,10 +144,8 @@ lemma card_lt (a : M.NonRoot) [Fintype M.World] [Fintype (M.removeCone a).World]
 
 variable [M.IsFiniteGL]
 
--- `M.IsGL` and `M.IsFiniteGL` both imply `IsTrans M.World Model.Rel` here, but we keep
--- the explicit `[M.IsGL]` from the section variables intentionally: it documents that
--- `removeCone` is only meaningful for GL-models, independently of the finiteness
--- hypothesis that happens to already carry that fact.
+-- `M.IsGL` and `M.IsFiniteGL` both supply `IsTrans M.World Model.Rel` here; the overlap
+-- is deliberate, the explicit `[M.IsGL]` recording that `removeCone` is GL-only.
 set_option linter.overlappingInstances false in
 instance (a : M.NonRoot) : Finite (M.removeCone a).World :=
   Subtype.finite
@@ -192,10 +156,9 @@ instance (a : M.NonRoot) : (M.removeCone a).IsFiniteGL where
 end Finite
 
 /--
-  **Forcing preservation under removal of a redundant cone** (this is the core of the
-  proof of the lemma below): if `M` is a tree and `a` is `P`-redundant, then for every
-  point `x` outside `a`'s cone and every formula `C` depending on `P`, forcing of `C`
-  at `x` in `M.removeCone a` agrees with forcing of `C` at `x` in `M`.
+  **Forcing preservation under removal of a redundant cone**: if `M` is a tree and `a` is
+  `P`-redundant, a formula depending on `P` is forced at a point outside `a`'s cone in
+  `M.removeCone a` exactly when it is forced there in `M`.
 
   - [Bek90, Lemma 6, §4]
 -/
@@ -214,8 +177,7 @@ theorem forces_iff [DecidableEq α] {a : M.NonRoot} [hTree : M.IsTree] (hred : R
     constructor;
     . intro h z hxz;
       by_cases hzS : z.IsInConeOf a.1;
-      . -- `z` was removed: transport the box-witness through the redundancy of `a`.
-        have hxa : x ≺ a.1 := by
+      . have hxa : x ≺ a.1 := by
           rcases hzS with rfl | haz;
           . exact hxz;
           . rcases hTree.tree x a.1 z hxz haz with (rfl | hxa | hax);
@@ -252,9 +214,8 @@ section Simplification
 
 open Classical in
 /--
-**Simplification-under-`P` of a finite GL-model** (under the standing tree hypothesis,
-see the module docstring): every finite GL-tree model admits a `P`-simplification with
-the same forcing, at the root, of every formula depending on `P`.
+**Simplification-under-`P` of a finite GL-model**: every finite GL tree admits a
+`P`-simplification with the same forcing, at the root, of every formula depending on `P`.
 
 - [Bek90, Lemma 6, §4]
 -/
@@ -265,7 +226,6 @@ theorem exists_simplificationUnder :
     (_ : M'.IsFiniteGL), M'.IsTree ∧ IsSimpleUnder M' P ∧
   ∀ C : Formula α, C.atoms ⊆ P → (M.root.1 ⊩[M.toModel] C ↔ M'.root.1 ⊩[M'.toModel] C) := by
   intro n;
-  -- Iterate removal of redundant cones; this terminates since the model is finite.
   induction n using Nat.strong_induction_on with
   | _ n ih =>
     intro κ _ M _ _ hcard;
@@ -287,10 +247,8 @@ end Simplification
 section OmegaSimplification
 
 /--
-  **`M.graftOmega a` is a tree** (`RootedModel.IsTree`), provided `M` is a tree and
-  `a` *covers* the root directly (no point strictly between `M.root.1` and `a`). The
-  "covers the root" hypothesis is condition 6/7 of the ω-model definition and is
-  necessary for tree-ness.
+  `M.graftOmega a` is a tree provided `M` is a tree and `a` *covers* the root directly.
+  The covering hypothesis is necessary for tree-ness.
 
   - [Bek90, condition 6/7]
 -/
@@ -312,22 +270,15 @@ lemma graftOmega.isTree {M : RootedModel κ α} [hTree : M.IsFiniteGLTree] {a : 
   . grind;
   . grind;
 
-/-- The embedded copy of a non-root point is not the root of `M.graftOmega a`. -/
 lemma graftOmega.inl_ne_root {M : RootedModel κ α} {a : M.NonRoot} {m : M.World} (hm : m ≠ M.root.1) :
   (Sum.inl m : (M.graftOmega a).World) ≠ (M.graftOmega a).root.1 :=
   fun h => hm (Sum.inl.inj h)
 
-/--
-**Chain points of an ω-model are never `P`-redundant**.
-
-- [Bek90, Lemma 8, §4]
--/
+/-- - [Bek90, Lemma 8, §4] -/
 lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
   (a : M.NonRoot) (P : Finset α) (i : ℕ) :
   ¬ (M.graftOmega a).Redundant P ⟨Sum.inr i, inr_ne_root⟩ := by
   intro hred;
-  -- test `Redundant` at `chainPoint (i + 1)`: every candidate witness is comparable
-  -- to `chainPoint i`, contradicting the mutual-incomparability clause.
   have hwa : (M.graftOmega a).Rel (Sum.inr (i + 1)) (Sum.inr i) := by
     show i < i + 1;
     omega;
@@ -341,20 +292,14 @@ lemma graftOmega.not_redundant_chainPoint {M : RootedModel κ α} [M.IsFiniteGL]
     show j < i;
     omega;
 
-/--
-**The grafted point `a` itself is never `P`-redundant either**.
-
-- [Bek90, Lemma 8, §4]
--/
+/-- - [Bek90, Lemma 8, §4] -/
 lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
   (a : M.NonRoot) (P : Finset α) :
   ¬ (M.graftOmega a).Redundant P ⟨Sum.inl a.1, inl_ne_root a.2⟩ := by
   intro hred;
-  -- `chainPoint 0` is the unique point covering `embed a`, and every other successor of
-  -- `chainPoint 0` (a proper descendant of `a`) is already comparable to `a`.
   have hwa : (M.graftOmega a).Rel (Sum.inr 0) (Sum.inl a.1) := by
     show a.1 = a.1 ∨ M.Rel a.1 a.1;
-    exact Or.inl rfl;
+    left; rfl;
   obtain ⟨u, Bi, hxu, hune, hnau, hyne, hBiua⟩ := hred (Sum.inr 0) hwa;
   apply hnau;
   rcases u with z | j;
@@ -364,8 +309,6 @@ lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
     . exact hMaz;
   . exact absurd hxu (by omega);
 
-/-- Any `P`-redundant point of `M.graftOmega a` is embedded and distinct from `a`
-(an immediate corollary of `not_redundant_chainPoint` and `not_redundant_embed_a`). -/
 lemma graftOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL] {a : M.NonRoot}
   {P : Finset α} {a' : (M.graftOmega a).NonRoot} (hred : (M.graftOmega a).Redundant P a') :
   ∃ (m : M.World) (hm : m ≠ M.root.1), m ≠ a.1 ∧ a' = ⟨Sum.inl m, inl_ne_root hm⟩ := by
@@ -375,7 +318,6 @@ lemma graftOmega.exists_of_redundant {M : RootedModel κ α} [M.IsFiniteGL] {a :
       fun h => not_redundant_embed_a a P (h ▸ hred), rfl⟩;
   . exact absurd hred (not_redundant_chainPoint a P i);
 
-/-- `a` is never a successor of a `P`-redundant (embedded) point of `M.graftOmega a`. -/
 lemma graftOmega.not_isInConeOf_of_redundant {M : RootedModel κ α} [M.IsFiniteGL]
   {a : M.NonRoot} (_Rra : M.root.1 ≺ a.1)
   (hcov : ∀ x : M.World, x.IsProperPredecessorOf a.1 → x = M.root.1)
@@ -386,21 +328,17 @@ lemma graftOmega.not_isInConeOf_of_redundant {M : RootedModel κ α} [M.IsFinite
   . exact not_redundant_embed_a a P hred;
   . exact hm (hcov m ⟨fun h => Std.Irrefl.irrefl a.1 (h ▸ ham), ham⟩);
 
-/-- An embedded point of `M.graftOmega a` is a successor of the embedded `m` iff it
-is a successor of `m` in `M`. -/
 lemma graftOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a : M.NonRoot} {m x : M.World} :
   IsInConeOf (M := (M.graftOmega a).toModel) (Sum.inl x) (Sum.inl m) ↔
   x.IsInConeOf m := by
   constructor;
   . rintro (h | h);
-    . exact Or.inl (Sum.inl.inj h);
-    . exact Or.inr h;
+    . left; exact Sum.inl.inj h;
+    . right; exact h;
   . rintro (rfl | h);
-    . exact Or.inl rfl;
-    . exact Or.inr h;
+    . left; rfl;
+    . right; exact h;
 
-/-- Chain points of `M.graftOmega a` are never successors of an embedded non-root
-point, so they all survive removal of its cone. -/
 lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a : M.NonRoot} {m : M.World}
   (hm : m ≠ M.root.1) (i : ℕ) :
   ¬ IsInConeOf (M := (M.graftOmega a).toModel) (Sum.inr i) (Sum.inl m) := by
@@ -408,11 +346,9 @@ lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a : M.NonRoot} 
   . simp at h;
   . exact hm h;
 
-/--
-  **Removing an embedded cone commutes with grafting the ω-chain**: the evident
-  identification of `(M.graftOmega a).removeCone (Sum.inl m)` with
-  `(M.removeCone m).graftOmega a` is a pseudo-epimorphism (in fact an isomorphism).
--/
+/-- **Removing an embedded cone commutes with grafting the ω-chain**: the evident
+identification of `(M.graftOmega a).removeCone (Sum.inl m)` with
+`(M.removeCone m).graftOmega a` is a pseudo-epimorphism. -/
 def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
   {a : M.NonRoot} {m : M.World} [(M.graftOmega a).IsGL]
   (hm : m ≠ M.root.1) (hma : ¬ a.1.IsInConeOf m) :
@@ -427,25 +363,23 @@ def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
     . exact Rxy;
     . exact Subtype.ext Rxy;
     . rcases Rxy with rfl | h;
-      . exact Or.inl (Subtype.ext rfl);
-      . exact Or.inr h;
+      . left; exact Subtype.ext rfl;
+      . right; exact h;
     . exact Rxy;
   back := by
     rintro ⟨(x | i), hx⟩ (⟨y, hy⟩ | j) h;
     . exact ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, h⟩;
     . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, congrArg Subtype.val h⟩;
-    . refine ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, ?_⟩;
-      rcases h with h | h;
-      . exact Or.inl (congrArg Subtype.val h);
-      . exact Or.inr h;
+    . exact ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, by
+        rcases h with h | h;
+        . left; exact congrArg Subtype.val h;
+        . right; exact h⟩;
     . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, h⟩;
   atomic := by
     rintro ⟨(x | i), hx⟩ b;
     . exact Iff.rfl;
     . exact Iff.rfl;
 
-/-- Root forcing transfers between `(M.graftOmega a).removeCone (Sum.inl m)` and
-`(M.removeCone m).graftOmega a`. -/
 lemma graftOmega.removeCone_root_forces_iff {M : RootedModel κ α} [M.IsGL]
   {a : M.NonRoot} {m : M.World} [(M.graftOmega a).IsGL]
   (hm : m ≠ M.root.1) (hma : ¬ a.1.IsInConeOf m) {C : Formula α} :
@@ -459,12 +393,8 @@ lemma graftOmega.removeCone_root_forces_iff {M : RootedModel κ α} [M.IsGL]
 
 open Classical in
 /--
-Auxiliary statement for `exists_simplificationUnder_omega'`: a `graftOmega`-shaped
-ω-model over a finite tree `M` at a point `a` covering the root admits a
-`P`-simplification that is again of the shape `M'.graftOmega a'` for a finite tree
-`M'` and a point `a'` covering its root; moreover if `M` has no lateral cones at `a`
-(every point above the root lies in `a`'s cone, i.e. the ω-model is a *D-model*),
-neither has `M'` at `a'`.
+Auxiliary form of `exists_simplificationUnder_omega'` carrying the induction on the
+cardinality of the underlying finite tree.
 
 - [Bek90, Lemma 8, §4]
 -/
@@ -485,8 +415,6 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
     ⊩[(M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).toModel] C ↔
     (M'.graftOmega a').root.1 ⊩[(M'.graftOmega a').toModel] C) := by
   intro n;
-  -- Strong induction on the cardinality of the underlying finite tree `M`: `M'` is
-  -- obtained from `M` by finitely many `removeCone` steps.
   induction n using Nat.strong_induction_on with
   | _ n ih =>
     intro κ _ M _ _ a Rra hcov hcard;
@@ -510,24 +438,24 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
             IsInConeOf (M := (M.removeCone ⟨m, hm⟩).toModel) x ⟨a, hma⟩ := by
         rintro h ⟨x, hx⟩ Rrx;
         rcases h x Rrx with rfl | hax;
-        . exact Or.inl (Subtype.ext rfl);
-        . exact Or.inr hax;
+        . left; exact Subtype.ext rfl;
+        . right; exact hax;
       obtain ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov'', hlat'', hSimple', hEq'⟩ :=
         ih (Fintype.card (M.removeCone ⟨m, hm⟩).World)
           (by rw [← hcard]; exact removeCone.card_lt ⟨m, hm⟩)
           (M.removeCone ⟨m, hm⟩) ⟨a, hma⟩ Rra hcov' rfl;
       refine ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov'',
-        fun h => hlat'' (hlat' h), hSimple', fun C hC => ?_⟩;
+        fun h => hlat'' (hlat' h), hSimple', ?_⟩;
+      intro C hC;
       exact (removeCone.forces_iff (a := ⟨Sum.inl m, graftOmega.inl_ne_root hm⟩) hred hC _).symm.trans
         ((graftOmega.removeCone_root_forces_iff hm hma).trans (hEq' C hC));
     . exact ⟨κ, ‹Nonempty κ›, M, inferInstance, inferInstance, ⟨a, hane⟩, Rra, hcov,
         fun h => h, fun w hw => hex ⟨w, hw⟩, fun C _ => Iff.rfl⟩;
 
 /--
-  **Shape-exposing form**: a `graftOmega`-shaped ω-model over a finite tree `M` at
-  a point `a` covering the root admits a `P`-simplification that is again of the
-  shape `M'.graftOmega a'` for a finite tree `M'` and a point `a'` covering its root.
-  Lateral-cone-freeness ("being a D-model") is preserved along the simplification.
+  **Shape-exposing form**: the `P`-simplification of a `graftOmega`-shaped ω-model is
+  again of the shape `M'.graftOmega a'` for a finite tree `M'` and a point `a'` covering
+  its root, and lateral-cone-freeness ("being a D-model") is preserved.
 
   - [Bek90, Lemma 8, §4]
 -/

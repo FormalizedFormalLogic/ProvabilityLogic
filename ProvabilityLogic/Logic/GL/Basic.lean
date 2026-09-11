@@ -26,8 +26,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A,
   ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → M ⊧ A,
   ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGL] → M.root.1 ⊩[_] A
-].TFAE
-  := by
+].TFAE := by
   tfae_have 1 ↔ 2 := by grind;
   tfae_have 2 → 3 := ProvableGentzen.of_provableHilbert;
   tfae_have 3 → 2 := by
@@ -85,9 +84,6 @@ theorem iff_forces_root : A ∈ LogicGL ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 6
 
-/-- GL-provability is characterized by validity over the (smaller) class of finite
-GL *tree* models (`IsFiniteGLTree`): it suffices to check finite GL-models that
-are trees. -/
 theorem iff_forces_root_tree : A ∈ LogicGL ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 7
@@ -123,13 +119,10 @@ theorem provableHilbert_of_provableGentzen : ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ʰ[
 
 end LogicGL
 
-/-- Provability of a formula in the label-free Gentzen calculus `⊢ᵍ[GL]` is decidable,
-via the labelled proof search. -/
 instance decidable_provableGentzen_formula (A : Formula α) [DecidableEq α] :
   Decidable (⊢ᵍ[GL] (∅ ⟹ {A})) :=
   decidable_of_iff _ (LogicGL.iff_provableGentzen_provableLabelledGentzen (x := 0)).symm
 
-/-- Membership in `LogicGL` is decidable, via the labelled proof search. -/
 instance LogicGL.decidableMem (A : Formula α) [DecidableEq α] : Decidable (A ∈ LogicGL) :=
   decidable_of_iff _ LogicGL.iff_provableGentzen.symm
 

@@ -5,19 +5,11 @@ public import ProvabilityLogic.Kripke.Simplification
 /-!
 # Tree unravelling of GL-models
 
-This file ports Foundation's `Frame.mkTransTreeUnravelling` to ProvabilityLogic's model
-setting. Given a rooted model `M`, its *tree unravelling* `M.unravelling`
-is the rooted model whose worlds are the `M.Rel`-chains starting at `M`'s root,
-ordered by proper prefix. Since GL-models are transitive, the (transitively
-closed) accessibility relation is exactly *proper prefix extension*, which is
-automatically transitive, irreflexive and a tree (`RootedModel.IsTree`): the
-ancestors of a chain are precisely its prefixes, which are linearly ordered.
-
-The last-element map `x ↦ x.1.getLast` is a p-morphism onto `M`, so the root of
-the unravelling is modally equivalent to `M`'s root. When `M` is a finite
-GL-model, so is its unravelling; hence validity over the (smaller) class of
-finite GL *tree* models already entails GL-provability -- the new item of
-`LogicGL.provability_TFAE`.
+The *tree unravelling* `M.unravelling` of a rooted model `M` is the rooted model whose
+worlds are the `M.Rel`-chains starting at `M`'s root, ordered by proper prefix; it is
+automatically a `RootedModel.IsTree`, and it is finite and GL whenever `M` is. The
+last-element map is a p-morphism onto `M`, so the two roots are modally equivalent.
+This is Foundation's `Frame.mkTransTreeUnravelling` in ProvabilityLogic's model setting.
 -/
 
 @[expose]
@@ -65,11 +57,12 @@ def unravelling : RootedModel (unravelling.World M) α where
   Val' x q := M.Val (unravelling.World.last x) q
   root := ⟨⟨[M.root.1], List.prefix_refl _, by simp⟩, by
     rintro ⟨x, hx₁, hx₂⟩ hx;
-    refine ⟨hx₁, ?_⟩;
-    obtain ⟨t, rfl⟩ := hx₁;
-    cases t with
-    | nil => simp at hx;
-    | cons a t => simp;⟩
+    and_intros;
+    . exact hx₁;
+    . obtain ⟨t, rfl⟩ := hx₁;
+      cases t with
+      | nil => simp at hx;
+      | cons a t => simp;⟩
 
 namespace unravelling
 
@@ -145,15 +138,11 @@ def pMorphism [M.IsGL] : (M.unravelling).toModel →ₚ M.toModel where
       exact hd (e ▸ List.getLast_mem (ne_nil x)) (List.getLast_mem htne);
   back := by
     rintro x v hv;
-    refine ⟨⟨x.1.concat v, ?_, ?_⟩, ?_, ?_, ?_⟩;
-    . exact x.2.1.trans (by simp);
-    . exact (List.isChain_concat_of_not_nil (ne_nil x)).mpr ⟨isChain x, hv⟩;
-    . simp [World.last];
-    . simp;
-    . simp;
+    exact ⟨⟨x.1.concat v, x.2.1.trans (by simp),
+        (List.isChain_concat_of_not_nil (ne_nil x)).mpr ⟨isChain x, hv⟩⟩,
+      by simp [World.last], by simp, by simp⟩;
   atomic := Iff.rfl
 
-/-- The root of the tree unravelling is modally equivalent to `M`'s root. -/
 lemma modal_equivalence_root [M.IsGL] :
     (M.unravelling).root.1 ↭ M.root.1 := by
   have h : (M.unravelling).root.1 ↭ (pMorphism (M := M)).toFun (M.unravelling).root.1 :=
@@ -178,13 +167,10 @@ lemma coverPoint_last {a : M.World} (Rra : M.root.1 ≺ a) :
   World.last (coverPoint Rra).1 = a := by
   simp [coverPoint, World.last];
 
-/-- `coverPoint Rra` lies above the unravelling's root. -/
 lemma root_rel_coverPoint {a : M.World} (Rra : M.root.1 ≺ a) :
   (M.unravelling).root.1 ≺ (coverPoint Rra).1 :=
   ⟨⟨[a], rfl⟩, by simp [coverPoint]⟩
 
-/-- `coverPoint Rra` covers the unravelling's root: its only proper predecessor is the
-root itself. -/
 lemma coverPoint_covers_root {a : M.World} (Rra : M.root.1 ≺ a) :
   ∀ x : (M.unravelling).World,
   IsProperPredecessorOf (M := (M.unravelling).toModel) x (coverPoint Rra).1 →
@@ -198,12 +184,8 @@ lemma coverPoint_covers_root {a : M.World} (Rra : M.root.1 ≺ a) :
     omega;
   exact hpre.eq_of_length (by simp [hlen]) |>.symm;
 
-/-- The root of the tree unravelling is the only unravelling world whose last
-element is `M`'s root. -/
 lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
   (h : World.last t = M.root.1) : t = (M.unravelling).root.1 := by
-  -- In a GL model nothing lies below the root, so a chain from the root ends at
-  -- the root only if it is the trivial chain.
   apply Subtype.ext;
   obtain ⟨rest, hrest⟩ := root_prefix t;
   match rest, hrest with
@@ -225,9 +207,7 @@ lemma eq_root_of_last_eq_root [M.IsGL] {t : (M.unravelling).World}
 /--
   Unravelling commutes with grafting the ω-chain, up to a pseudo-epimorphism: the
   last-element map sends `(M.unravelling).graftOmega (coverPoint Rra)` onto
-  `M.graftOmega a`. This converts an arbitrary `graftOmega`-shaped ω-model
-  into one over a finite *tree* whose grafted point *covers* the root -- the standing
-  hypotheses of the simplification machinery.
+  `M.graftOmega a`.
 
   - [Bek90, Lemma 8, §4]
 -/
@@ -246,8 +226,8 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
       exact root_last;
     . show World.last s = a ∨ M.Rel a (World.last s);
       rcases Rxy with rfl | hR;
-      . exact Or.inl (coverPoint_last Rra);
-      . exact Or.inr (coverPoint_last Rra ▸ (pMorphism (M := M)).forth hR);
+      . left; exact coverPoint_last Rra;
+      . right; exact coverPoint_last Rra ▸ (pMorphism (M := M)).forth hR;
     . exact Rxy;
   back := by
     rintro (t | i) ((w | j)) h;
@@ -269,8 +249,6 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
     . show M.Val (World.last (coverPoint Rra).1) q ↔ M.Val a q;
       rw [coverPoint_last Rra];
 
-/-- Root forcing transfers from an arbitrary `graftOmega`-shaped ω-model to its
-tree unravelling counterpart. -/
 lemma graftOmega_root_forces_iff [M.IsGL] {a : M.World} (Rra : M.root.1 ≺ a)
   {C : Formula α} :
   ((M.unravelling).graftOmega (coverPoint Rra)).root.1

@@ -5,21 +5,12 @@ public import ProvabilityLogic.Kripke.Simplification
 /-!
 # Defining formulas for finite GL-models
 
-This file defines defining formulas and proves Lemma 7: every finite GL-model has a
-defining formula over any finite set of variables `P`.
+A *defining formula* for a model is a formula over a finite set of variables `P` that
+pins the model down up to bisimilarity-under-`P` of the roots. This file builds the
+characteristic formula of a world and shows that the characteristic formula of the root
+is a defining formula of any finite GL-model.
 
-[Bek90] states Lemma 7 for models simple-under-`P`, with uniqueness up to
-`P`-isomorphism. ProvabilityLogic's `IsDefiningFormula` instead phrases uniqueness via
-`Model.BisimulationUnder` (bisimilarity-under-`P` of the roots), and under this
-formulation the lemma reduces to the classical characteristic formula construction:
-for each world `x` (by well-founded recursion on `World.rank`) take
-
-`χ_x := p̄^(x) ⋏ ⋀_{x ≺ y} ◇χ_y ⋏ □(⋁_{x ≺ y} χ_y)`
-
-where `p̄^(x)` (`World.valuationConj`) pins down `x`'s valuation on `P`. The relation
-`fun x w => w ⊩[N] χ_x` is then a bisimulation-under-`P` against an *arbitrary* model
-(`Model.charBisimulationUnder`), so no simpleness or tree-ness hypotheses are needed
-anywhere.
+## References
 
 - [Bek90, §4, Lemma 7]
 -/
@@ -39,16 +30,10 @@ open Classical
 
 variable {M : Model κ α} {P : Finset α} {x y : M.World} {N : Model κ' α}
 
-/--
-  The conjunction of literals over `P` pinning down the valuation of `x` on `P`:
-  `a` for each `a ∈ P` true at `x`, and `∼a` for each `a ∈ P` false at `x`.
-
-  - [Bek90]
--/
+/-- The conjunction of literals over `P` pinning down the valuation of `x` on `P`. -/
 def World.valuationConj (P : Finset α) (x : M.World) : Formula α :=
   ⋀(P.image fun a => if M.Val x a then #a else ∼#a)
 
-/-- The atoms of `x.valuationConj P` are contained in `P`. -/
 @[grind .]
 lemma World.atoms_valuationConj : (x.valuationConj P).atoms ⊆ P := by
   intro b hb;
@@ -57,15 +42,14 @@ lemma World.atoms_valuationConj : (x.valuationConj P).atoms ⊆ P := by
   obtain ⟨A, ⟨a, ha, rfl⟩, hbA⟩ := hb';
   split at hbA <;> simp_all [Formula.atoms];
 
-/-- A world `w` (of any model) forces `x.valuationConj P` iff it agrees with `x` on `P`. -/
 @[grind =]
 lemma World.forces_valuationConj {w : N.World} :
   w ⊩[N] x.valuationConj P ↔ ∀ a ∈ P, (M.Val x a ↔ N.Val w a) := by
   constructor;
-  · intro h a ha;
+  . intro h a ha;
     have := World.forces_fconj.mp h _ (Finset.mem_image_of_mem _ ha);
     split at this <;> grind [World.Forces];
-  · intro h;
+  . intro h;
     apply World.forces_fconj.mpr;
     rintro A hA;
     obtain ⟨a, ha, rfl⟩ := Finset.mem_image.mp hA;
@@ -75,18 +59,11 @@ section
 
 variable [Fintype M.World]
 
-/-- The type of all (proper) successors of `x`. -/
 abbrev World.Successors (x : M.World) := { y : M.World // x ≺ y }
 
 instance : Fintype (x.Successors) := Subtype.fintype _
 
-/--
-  The characteristic formula of `x` over `P`: it pins down the valuation of `x` on
-  `P`, asserts that each successor's characteristic formula is possible, and
-  asserts that every successor satisfies some successor's characteristic formula.
-
-  - [Bek90]
--/
+/-- The characteristic formula of `x` over `P`, defined by recursion on `World.rank`. -/
 def World.charFormulaUnder [M.IsGL] (P : Finset α) (x : M.World) : Formula α :=
   x.valuationConj P
   ⋏ ⋀(Finset.univ.image fun y : x.Successors => ◇(y.1.charFormulaUnder P))
@@ -103,7 +80,6 @@ lemma World.charFormulaUnder_def :
   ⋏ □(⋁(Finset.univ.image fun y : x.Successors => y.1.charFormulaUnder P)) := by
   rw [World.charFormulaUnder];
 
-/-- The atoms of `x.charFormulaUnder P` are contained in `P`. -/
 @[grind .]
 lemma World.atoms_charFormulaUnder : (x.charFormulaUnder P).atoms ⊆ P := by
   suffices h : ∀ n (x : M.World), x.rank = n → (x.charFormulaUnder P).atoms ⊆ P from
@@ -116,24 +92,19 @@ lemma World.atoms_charFormulaUnder : (x.charFormulaUnder P).atoms ⊆ P := by
     simp only [Formula.atoms_and, Finset.union_subset_iff];
     and_intros;
     . exact World.atoms_valuationConj;
-    · apply subset_trans (FormulaFinset.atoms_conj_subset _);
+    . apply subset_trans (FormulaFinset.atoms_conj_subset _);
       intro a ha;
       simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_image] at ha;
       obtain ⟨A, ⟨y, -, rfl⟩, haA⟩ := ha;
       rw [Formula.atoms_dia] at haA;
       exact ih y.1.rank (rank_lt_of_rel y.2) y.1 rfl haA;
-    · rw [Formula.atoms_box];
+    . rw [Formula.atoms_box];
       apply subset_trans (FormulaFinset.atoms_disj_subset _);
       intro a ha;
       simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_image] at ha;
       obtain ⟨A, ⟨y, -, rfl⟩, haA⟩ := ha;
       exact ih y.1.rank (rank_lt_of_rel y.2) y.1 rfl haA;
 
-/--
-  A world `w` (of any model) forces `x.charFormulaUnder P` iff it agrees with `x` on
-  `P` and the forth/back conditions of a bisimulation-under-`P` hold at `(x, w)` with
-  respect to the characteristic-formula relation.
--/
 lemma World.forces_charFormulaUnder_iff {w : N.World} :
   w ⊩[N] x.charFormulaUnder P ↔
   (∀ a ∈ P, (M.Val x a ↔ N.Val w a)) ∧
@@ -141,32 +112,31 @@ lemma World.forces_charFormulaUnder_iff {w : N.World} :
   (∀ v : N.World, w ≺ v → ∃ y : M.World, x ≺ y ∧ v ⊩[N] y.charFormulaUnder P) := by
   rw [World.charFormulaUnder_def, World.forces_and, World.forces_and];
   constructor;
-  · rintro ⟨⟨h1, h2⟩, h3⟩;
+  . rintro ⟨⟨h1, h2⟩, h3⟩;
     and_intros;
     . exact World.forces_valuationConj.mp h1;
-    · intro y Rxy;
+    . intro y Rxy;
       have := World.forces_fconj.mp h2 (◇(y.charFormulaUnder P)) $
         Finset.mem_image_of_mem _ (Finset.mem_univ (⟨y, Rxy⟩ : x.Successors));
       exact World.forces_dia.mp this;
-    · intro v Rwv;
+    . intro v Rwv;
       obtain ⟨A, hA, hvA⟩ := World.forces_fdisj.mp (h3 v Rwv);
       obtain ⟨y, -, rfl⟩ := Finset.mem_image.mp hA;
       exact ⟨y.1, y.2, hvA⟩;
-  · rintro ⟨h1, h2, h3⟩;
+  . rintro ⟨h1, h2, h3⟩;
     and_intros;
     . exact World.forces_valuationConj.mpr h1;
-    · apply World.forces_fconj.mpr;
+    . apply World.forces_fconj.mpr;
       rintro A hA;
       obtain ⟨y, -, rfl⟩ := Finset.mem_image.mp hA;
       obtain ⟨v, Rwv, hv⟩ := h2 y.1 y.2;
       exact World.forces_dia.mpr ⟨v, Rwv, hv⟩;
-    · intro v Rwv;
+    . intro v Rwv;
       apply World.forces_fdisj.mpr;
       obtain ⟨y, Rxy, hv⟩ := h3 v Rwv;
       exact ⟨y.charFormulaUnder P,
         Finset.mem_image_of_mem _ (Finset.mem_univ (⟨y, Rxy⟩ : x.Successors)), hv⟩;
 
-/-- Every world forces its own characteristic formula. -/
 @[grind .]
 lemma World.forces_charFormulaUnder_self : x ⊩[_] x.charFormulaUnder P := by
   suffices h : ∀ n (x : M.World), x.rank = n → x ⊩[_] x.charFormulaUnder P from
@@ -176,20 +146,17 @@ lemma World.forces_charFormulaUnder_self : x ⊩[_] x.charFormulaUnder P := by
   | _ n ih =>
     rintro x rfl;
     apply World.forces_charFormulaUnder_iff.mpr;
-    refine ⟨by grind, ?_, ?_⟩;
-    · intro y Rxy;
+    and_intros;
+    . grind;
+    . intro y Rxy;
       exact ⟨y, Rxy, ih y.rank (rank_lt_of_rel Rxy) y rfl⟩;
-    · intro v Rxv;
+    . intro v Rxv;
       exact ⟨v, Rxv, ih v.rank (rank_lt_of_rel Rxv) v rfl⟩;
 
 end
 
-/--
-  The characteristic-formula relation `fun x w => w ⊩[N] x.charFormulaUnder P` is a
-  bisimulation-under-`P` between a finite GL-model `M` and an *arbitrary* model `N`:
-  the atomic/forth/back conditions are exactly the three components of
-  `World.forces_charFormulaUnder_iff`.
--/
+/-- The characteristic-formula relation is a bisimulation-under-`P` between a finite
+GL-model and an *arbitrary* model. -/
 def charBisimulationUnder (P : Finset α) (M : Model κ α) [Fintype M.World] [M.IsGL]
   (N : Model κ' α) : M ⇄[P] N where
   toRel x w := w ⊩[N] x.charFormulaUnder P
@@ -210,13 +177,9 @@ namespace RootedModel
 open scoped Model
 
 /--
-  A formula `A` is a **defining formula** for a (finite) GL-model `M` simple-under-`P`
-  if `A` depends only on `P`, is true at `M`'s root, and `M` is
-  the *unique* model simple-under-`P` (up to bisimilarity-under-`P` of the roots,
-  our surrogate for "`P`-isomorphism", see `Model.BisimulationUnder` in
-  `ProvabilityLogic/Kripke/Preservation.lean`) in which `A` is true.
-
-  - [Bek90]
+  `A` is a **defining formula** for a GL-model `M` under `P` if `A` depends only on `P`,
+  is true at `M`'s root, and `M` is the unique model simple-under-`P` in which `A` is
+  true, up to bisimilarity-under-`P` of the roots.
 -/
 structure IsDefiningFormula (P : Finset α) (M : RootedModel κ α) (A : Formula α) : Prop where
   atoms_subset : A.atoms ⊆ P
@@ -226,14 +189,9 @@ structure IsDefiningFormula (P : Finset α) (M : RootedModel κ α) (A : Formula
     ∃ Bi : M.toModel ⇄[P] N.toModel, Bi M.root.1 N.root.1
 
 /--
-  If the set of variables `P` is finite, every finite GL-model has a defining
-  formula, namely the characteristic formula of its root.
-
-  Note that no simpleness (nor tree-ness) hypothesis on `M` is needed: the paper
-  states the lemma for models simple-under-`P` because its uniqueness is up to
-  `P`-isomorphism, whereas our `IsDefiningFormula` phrases uniqueness via
-  `Model.BisimulationUnder`, for which `Model.charBisimulationUnder` works against
-  arbitrary models.
+  Every finite GL-model has a defining formula over a finite `P`, namely the
+  characteristic formula of its root. No simpleness or tree-ness hypothesis is needed,
+  since `Model.charBisimulationUnder` works against arbitrary models.
 
   - [Bek90, Lemma 7]
 -/

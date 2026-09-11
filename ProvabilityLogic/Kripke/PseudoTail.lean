@@ -16,10 +16,9 @@ namespace Model
 abbrev toFreeTail.World (M : Model κ α) : Type _ := M.World ⊕ ℕ∞
 
 /--
-  The free-tail model (an ω-extension of `M`): rooted at ω (`chainPoint ⊤`), with an
-  infinite descending chain `chainPoint n` (`n : ℕ`) attached below it, connecting to
-  the whole of the original model `M`. Chain point `chainPoint i` takes the valuation
-  `V i`.
+  The free-tail model (an ω-extension of `M`): rooted at ω (`chainPoint ⊤`), with an infinite
+  descending chain `chainPoint n` (`n : ℕ`) below it, each chain point seeing the whole of `M`
+  and carrying the valuation `V i`.
 -/
 abbrev toFreeTail (M : Model κ α) (V : ℕ∞ → α → Prop) :
     RootedModel (toFreeTail.World M) α where
@@ -43,9 +42,8 @@ abbrev toFreeTail (M : Model κ α) (V : ℕ∞ → α → Prop) :
   ⟩
 
 /--
-  The pseudo-tail model (a constant ω-extension of `M`): the free-tail model whose
-  chain points below ω all share the valuation `M tail`, while ω itself takes the
-  valuation `o`.
+  The pseudo-tail model (a constant ω-extension of `M`): the free-tail model whose chain points
+  below ω all share the valuation `M tail`, while ω itself takes the valuation `o`.
 -/
 abbrev toPseudoTail (M : Model κ α) (tail : M.World) (o : α → Prop) :=
   M.toFreeTail (fun i a => if i = (⊤ : ℕ∞) then o a else M tail a)
@@ -54,12 +52,9 @@ namespace toFreeTail
 
 variable {V : ℕ∞ → α → Prop}
 
-/-- The embedding of a world of the original model `M` into the free-tail model
-`M.toFreeTail V`. -/
 protected abbrev embed (x : M.World) : (M.toFreeTail V).World := .inl x
 
-/-- The world in the chain, indexed by `i : ℕ∞` (`⊤` is the free-tail model's own
-root, ω). -/
+/-- The world in the chain, indexed by `i : ℕ∞`; `⊤` is the root ω. -/
 protected abbrev chainPoint (i : ℕ∞) : (M.toFreeTail V).World := .inr i
 
 @[simp] lemma root_eq : (M.toFreeTail V).root.1 = toFreeTail.chainPoint ⊤ := rfl
@@ -126,7 +121,6 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toFreeTail
 
 instance [M.IsGL] : (M.toFreeTail V).IsGL where
 
-/-- The embedding of the original model into the free-tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (V : ℕ∞ → α → Prop) :
     M →ₚ (M.toFreeTail V).toModel where
   toFun := toFreeTail.embed
@@ -141,13 +135,10 @@ lemma modal_equivalent_original {x : M.World} :
     Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toFreeTail V).toModel) x (toFreeTail.embed x) :=
   (pMorphismOriginal M V).modal_equivalence x
 
-/-- At an original-model world (`embed x`), forcing in the free-tail model agrees
-with forcing in the original model. -/
 lemma forces_inl {x : M.World} :
     toFreeTail.embed x ⊩[(M.toFreeTail V).toModel] A ↔ x ⊩[M] A :=
   modal_equivalent_original.symm
 
-/-- If `□A` holds at the free-tail model's root (ω), it holds at every point. -/
 lemma forces_box_of_root_forces_box {x : (M.toFreeTail V).World}
   (h : (M.toFreeTail V).root.1 ⊩[_] (□A)) :
   x ⊩[_] (□A) := by
@@ -158,11 +149,7 @@ lemma forces_box_of_root_forces_box {x : (M.toFreeTail V).World}
   | .inl x, .inr j => exact absurd Rxy not_rel_embed_chainPoint;
   | .inr i, .inr j => exact rel_chainPoint_chainPoint.mpr $ lt_of_lt_of_le (rel_chainPoint_chainPoint.mp Rxy) le_top;
 
-/--
-  If `□A` holds at cofinally many chain points, it holds at the free-tail model's root (ω).
-
-  - [KKIM25, Theorem 5.7]
--/
+/-- - [KKIM25, Theorem 5.7] -/
 lemma root_forces_box_of_frequently_chainPoint_forces
   (h : ∀ n : ℕ, ∃ j ≥ n, toFreeTail.chainPoint (j : ℕ∞) ⊩[(M.toFreeTail V).toModel] (□A)) :
   (M.toFreeTail V).root.1 ⊩[_] (□A) := by
@@ -180,11 +167,6 @@ namespace toPseudoTail
 
 variable {tail : M.World} {o : α → Prop}
 
-/--
-  If `S` is closed under subformulas and the root forces `□B 🡒 B` for every `□B ∈ S`,
-  then forcing of every formula in `S` at the root agrees with forcing at every chain
-  point (`chainPoint n`).
--/
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {o : α → Prop} {S : FormulaFinset α}
   (Sclosed : ∀ B ∈ S, B.subfmls ⊆ S)
@@ -232,9 +214,6 @@ section Reindex
 
 variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {o : α → Prop} {e : κ ≃ κ'}
 
-/-- Re-indexing the base model along `e` does not change the pseudo-tail construction, up to
-transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
-the literature. -/
 lemma forces_toPseudoTail_reindex_iff {x : (M.toPseudoTail tail o).World} :
   Sum.map e id x ⊩[((M.reindex e).toPseudoTail (e tail) o).toModel] A ↔
   x ⊩[(M.toPseudoTail tail o).toModel] A := by
@@ -243,9 +222,9 @@ lemma forces_toPseudoTail_reindex_iff {x : (M.toPseudoTail tail o).World} :
       Sum.map e id x
         ⊩[(M.toPseudoTail tail o).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞))] A := by
     apply Model.forces_congr;
-    · funext y z;
+    . funext y z;
       rcases y with y | i <;> rcases z with z | j <;> rfl;
-    · rintro (y | i) a <;> simp [Model.reindex];
+    . rintro (y | i) a <;> simp [Model.reindex];
   rw [h];
   exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
 

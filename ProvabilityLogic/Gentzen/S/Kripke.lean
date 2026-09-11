@@ -16,10 +16,6 @@ variable {α : Type u} [DecidableEq α]
 variable {κ : Type v} [Nonempty κ] {M : Model κ α} [M.IsGL] {w : ℕ → M.World}
 
 omit [DecidableEq α] in
-/--
-  Along a strictly descending sequence of worlds `w`, an earlier index is reachable (via `≺`)
-  from any later index.
--/
 lemma Model.rel_of_descending_lt (hw : ∀ n, w (n + 1) ≺ w n) {n j : ℕ} (hnj : n < j) : w j ≺ w n := by
   have hnj' : n + 1 ≤ j := Nat.succ_le_of_lt hnj;
   clear hnj;
@@ -28,16 +24,12 @@ lemma Model.rel_of_descending_lt (hw : ∀ n, w (n + 1) ≺ w n) {n j : ℕ} (hn
   | succ j _ ih => exact _root_.trans (hw j) ih;
 
 omit [DecidableEq α] in
-/--
-  Along a strictly descending sequence of worlds, `□A → A` is eventually forced.
-
-  - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2]
--/
+/-- - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2] -/
 lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w n) (A : Formula α) :
   ∃ i, ∀ j ≥ i, w j ⊩[_] (□A 🡒 A) := by
   by_cases h : ∀ n, w n ⊩[_] A;
-  · exact ⟨0, fun j _ => by rw [Model.World.forces_imp]; right; exact h j⟩;
-  · push Not at h;
+  . exact ⟨0, fun j _ => by rw [Model.World.forces_imp]; right; exact h j⟩;
+  . push Not at h;
     obtain ⟨n, hn⟩ := h;
     use n + 1;
     intro j hj;
@@ -48,12 +40,7 @@ lemma Model.eventually_forces_boxImp_of_descending (hw : ∀ n, w (n + 1) ≺ w 
     have : w n ⊩[_] A := (Model.World.forces_box).mp hcon (w n) hjn;
     exact hn this;
 
-/--
-  Along a strictly descending sequence of worlds, every world is eventually `X`-reflexive
-  for a fixed finite set `X`.
-
-  - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2]
--/
+/-- - [KK23, Theorem 3.1 (2 ⇒ 3), Lemma 3.2] -/
 lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n) (X : FormulaFinset α) :
   ∃ i, ∀ j ≥ i, (w j).IsReflexiveOf X := by
   induction X using Finset.induction with
@@ -63,29 +50,24 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
     match B with
     | □A =>
       obtain ⟨i₂, hi₂⟩ := Model.eventually_forces_boxImp_of_descending hw A;
-      refine ⟨max i₁ i₂, ?_⟩;
+      use max i₁ i₂;
       intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
-      · have hCA : C = A := by injection hC;
+      . have hCA : C = A := by injection hC;
         subst hCA;
         exact hi₂ j (le_of_max_le_right hj)
-      · exact hi₁ j (le_of_max_le_left hj) hC
+      . exact hi₁ j (le_of_max_le_left hj) hC
     | #_ | ⊥ | _ 🡒 _ =>
-      refine ⟨i₁, ?_⟩;
+      use i₁;
       intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
-      · exact absurd hC (by simp)
-      · exact hi₁ j hj hC
+      . exact absurd hC (by simp)
+      . exact hi₁ j hj hC
 
 omit [Nonempty κ] [M.IsGL] in
-/--
-  If there is a finite set `X` witnessing forcing at every `X`-reflexive world of every
-  `GL`-model, then forcing holds eventually along every infinitely descending sequence.
-
-  - [KK23, Theorem 3.1 (2 ⇒ 3)]
--/
+/-- - [KK23, Theorem 3.1 (2 ⇒ 3)] -/
 lemma eventually_forces_of_exists_isReflexive_forces {Γ Δ : FormulaFinset α}
   (h :
     ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
@@ -104,11 +86,7 @@ namespace LogicS
 
 open ProvableGentzen
 
-/--
-  A sequent saturated for the level-`1` fragment of `LogicS.ProofGentzen`.
-
-  - [KK23, Lemma 3.3]
--/
+/-- - [KK23, Lemma 3.3] -/
 structure ExpandedLayeredSequent (BS : Sequent α) extends Sequent α where
   saturated      : toSequent.Saturated
   boxL_closed    : ∀ {A : Formula α}, □A ∈ toSequent.ant → A ∈ toSequent.ant
@@ -122,10 +100,6 @@ attribute [grind .] saturated boxL_closed subset_subfmls unprovable
 variable {BS : Sequent α}
 
 open Classical in
-/--
-  One step of the Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen`
-  while preserving level-`1` unprovability.
--/
 @[grind]
 noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)) :
   FormulaList α → { S : Sequent α // ⊬ᵍ[S] (S.ant ⟹[1] S.suc) }
@@ -173,15 +147,15 @@ lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprova
     | A 🡒 B =>
       dsimp only [lindenbaum_indexed];
       split_ifs;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
-      · exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
-      · exact ⟨ih.1, ih.2⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      . exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
+      . exact ⟨ih.1, ih.2⟩;
     | □A =>
       dsimp only [lindenbaum_indexed];
       split_ifs;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
-      · exact ⟨ih.1, ih.2⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      . exact ⟨ih.1, ih.2⟩;
 
 lemma subfmls_lindenbaum_indexed (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
   (lindenbaum_indexed S₀ S₀_unprovable Γ).1.1 ∪ (lindenbaum_indexed S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
@@ -230,10 +204,11 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -272,10 +247,11 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -314,10 +290,11 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      have hmem' : □A ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -335,12 +312,6 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  Saturation of the Lindenbaum construction: the resulting sequent is simultaneously
-  `impL`-, `impR`- and `boxL`-saturated for the formulas listed in `Γ`.
-
-  - [KK23, Lemma 3.3]
--/
 lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
@@ -350,13 +321,7 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
    saturated_impR_lindenbaum_indexed hΓ,
    saturated_boxL_lindenbaum_indexed hΓ⟩
 
-/--
-  Lindenbaum-style saturation for level-`1` sequents of `LogicS.ProofGentzen`: every level-`1`
-  unprovable sequent within the subformulas of `BS` extends to a saturated, `boxL`-closed,
-  level-`1` unprovable sequent.
-
-  - [KK23, Lemma 3.3]
--/
+/-- - [KK23, Lemma 3.3] -/
 noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
   (S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)) (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) :
   ExpandedLayeredSequent BS :=
@@ -378,18 +343,18 @@ noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
         intro A B h;
         apply (saturated_lindenbaum_indexed hΓsorted).1 ?_ h;
         apply List.mem_insertionSort _ |>.mpr;
-        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_left _ h;
       impR := by
         intro A B h;
         apply (saturated_lindenbaum_indexed hΓsorted).2.1 ?_ h;
         apply List.mem_insertionSort _ |>.mpr;
-        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inr h;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_right _ h;
     },
     boxL_closed := by
       intro A h;
       apply (saturated_lindenbaum_indexed hΓsorted).2.2 ?_ h;
       apply List.mem_insertionSort _ |>.mpr;
-      exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
+      exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_left _ h;
   }
 
 lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
@@ -412,9 +377,8 @@ variable {BS : Sequent α} [Fact (⊬ᵍ[GL] BS)]
 
 instance : Nonempty (ExpandedSequent BS ⊕ ℕ) := ⟨.inr 0⟩
 
-/--
-  The countermodel for the cut-free completeness argument: the finite countermodel
-  `ProvableGentzen.Kripke.countermodelOf BS` extended by an infinite descending chain of copies of the world `t`.
+/-- The finite countermodel `countermodelOf BS` extended by an infinite descending chain of
+  copies of the world `t`.
 
   - [KK23, Theorem 3.1]
 -/
@@ -444,20 +408,20 @@ instance : (chainModel BS t).IsGL where
       rintro x ih;
       constructor;
       rintro (y | m) Rxy;
-      · exact ih y Rxy;
-      · exact Rxy.elim;
+      . exact ih y Rxy;
+      . exact Rxy.elim;
     have hInr : ∀ n : ℕ, Acc (flip (chainModel BS t).Rel) (.inr n) := by
       intro n;
       induction n using Nat.strong_induction_on with
       | _ n ih =>
         constructor;
         rintro (y | m) Rxy;
-        · exact hInl y;
-        · exact ih m Rxy;
+        . exact hInl y;
+        . exact ih m Rxy;
     constructor;
     rintro (x | n);
-    · exact hInl x;
-    · exact hInr n;
+    . exact hInl x;
+    . exact hInr n;
 
 lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
   ((.inl x) ⊩[chainModel BS t] A) ↔
@@ -470,62 +434,51 @@ lemma forces_chainModel_inl {x : ExpandedSequent BS} {A : Formula α} :
     rw [ihA, ihB];
   | box A ih =>
     constructor;
-    · intro h y Rxy;
+    . intro h y Rxy;
       exact ih.mp (h (.inl y) Rxy);
-    · rintro h (y | m) Rxy;
-      · exact ih.mpr (h y Rxy);
-      · exact Rxy.elim;
+    . rintro h (y | m) Rxy;
+      . exact ih.mpr (h y Rxy);
+      . exact Rxy.elim;
 
-/--
-  Truth lemma for the chain part of `chainModel BS t` when the antecedent is `boxL`-closed.
-
-  - [KK23, Theorem 3.1]
--/
 lemma truthlemma_inr (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.1) {n : ℕ} {A : Formula α} :
   (A ∈ t.1.1 → (.inr n) ⊩[chainModel BS t] A) ∧
   (A ∈ t.1.2 → (.inr n) ⊮[chainModel BS t] A) := by
   induction A generalizing n with
   | atom a =>
     constructor;
-    · intro h; exact h;
-    · intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩;
+    . intro h; exact h;
+    . intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩;
   | bot =>
     constructor;
-    · intro h; exact absurd h ExpandedSequent.not_mem_bot_ant;
-    · intro _ hf; exact hf;
+    . intro h; exact absurd h ExpandedSequent.not_mem_bot_ant;
+    . intro _ hf; exact hf;
   | imp A B ihA ihB =>
     constructor;
-    · intro h hsA;
+    . intro h hsA;
       rcases t.saturated.impL h with hA | hB;
-      · exact absurd hsA ((ihA (n := n)).2 hA);
-      · exact (ihB (n := n)).1 hB;
-    · intro h hf;
+      . exact absurd hsA ((ihA (n := n)).2 hA);
+      . exact (ihB (n := n)).1 hB;
+    . intro h hf;
       obtain ⟨hA, hB⟩ := t.saturated.impR h;
       exact ((ihB (n := n)).2 hB) (hf ((ihA (n := n)).1 hA));
   | box A ih =>
     constructor;
-    · intro h;
+    . intro h;
       rintro (y | m) Rny;
-      · rcases Rny with rfl | Rty;
-        · exact forces_chainModel_inl.mpr (truthlemma_ant (hbox h));
-        · exact forces_chainModel_inl.mpr (truthlemma_ant (Rty.2 (FormulaFinset.iff_mem_prebox_mem.mpr h)));
-      · exact (ih (n := m)).1 (hbox h);
-    · intro h hf;
+      . rcases Rny with rfl | Rty;
+        . exact forces_chainModel_inl.mpr (truthlemma_ant (hbox h));
+        . exact forces_chainModel_inl.mpr (truthlemma_ant (Rty.2 (FormulaFinset.iff_mem_prebox_mem.mpr h)));
+      . exact (ih (n := m)).1 (hbox h);
+    . intro h hf;
       obtain ⟨y, Rty, hy⟩ := Model.World.not_forces_box.mp (truthlemma_suc (x := t) h);
-      exact (forces_chainModel_inl.not.mpr hy) (hf (.inl y) (Or.inr Rty));
+      exact (forces_chainModel_inl.not.mpr hy) (hf (.inl y) (.inr Rty));
 
 end
 
 
 namespace ProvableGentzen.Kripke
 
-/--
-  Cut-free completeness of `LogicS.ProofGentzen` for level-`1` sequents: if `Γ ⟹ Δ` is forced
-  at some point along every infinitely descending sequence of every `GL`-model, then
-  `Γ ⟹[1] Δ` is provable in `LogicS.ProofGentzen`.
-
-  - [KK23, Theorem 3.1 (4 ⇒ 5)]
--/
+/-- - [KK23, Theorem 3.1 (4 ⇒ 5)] -/
 theorem completeness {Γ Δ : FormulaFinset α}
   (h :
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
@@ -548,55 +501,50 @@ namespace GentzenWithCutProvable
 
 variable {Γ Δ : FormulaFinset α}
 
-/--
-  Soundness of `LogicS.GentzenWithCutProof`.
-
-  - [KK23, Theorem 3.1 (6 ⇒ 1)]
--/
 theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (x : M.World),
   (S.level = 1 → x.IsReflexiveOf X) → x ⊩[_] S.toSequent := by
   induction h using LogicS.GentzenWithCutProvable.rec with
   | axm l A =>
-    refine ⟨∅, ?_⟩;
+    use ∅;
     intro κ _ M _ x _;
     exact Model.World.forces_sequent_axm;
   | botL l =>
-    refine ⟨∅, ?_⟩;
+    use ∅;
     intro κ _ M _ x _;
     exact Model.World.forces_sequent_botL;
   | wkL h h' ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_wkL (hX M x hrefl) h';
   | wkR h h' ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_wkR (hX M x hrefl) h';
   | impL h₁ h₂ ih₁ ih₂ =>
     obtain ⟨X₁, hX₁⟩ := ih₁;
     obtain ⟨X₂, hX₂⟩ := ih₂;
-    refine ⟨X₁ ∪ X₂, ?_⟩;
+    use X₁ ∪ X₂;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_impL
       (hX₁ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_left))
       (hX₂ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_right));
   | impR h ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_impR (hX M x hrefl);
   | liftUp h ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x _;
     exact hX M x (fun h => absurd (show (0 : Fin 2) = 1 from h) (by decide));
   | boxGL h ih =>
     rename_i Γ' A';
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x _;
     have hM : M ⊧ (insert (□A') (Γ' ∪ Γ'.box) ⟹ {A'}) :=
       fun x' => hX M x' (fun h => absurd (show (0 : Fin 2) = 1 from h) (by decide));
@@ -604,66 +552,52 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   | boxL h ih =>
     rename_i Γ' Δ' A';
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨insert (□A') X, ?_⟩;
+    use insert (□A') X;
     intro κ _ M _ x hrefl h;
     have hRefl : x.IsReflexiveOf (insert (□A') X) := hrefl rfl;
     have hBoxA : x ⊩[_] (□A') := h _ (Finset.mem_insert_self _ _);
     have hImp : x ⊩[_] (□A' 🡒 A') := hRefl (Finset.mem_insert_self _ _);
     have hA : x ⊩[_] A' := by
       rcases Model.World.forces_imp.mp hImp with h' | h';
-      · exact absurd hBoxA h';
-      · exact h';
+      . exact absurd hBoxA h';
+      . exact h';
     have hΓ : ∀ C ∈ insert A' Γ', x ⊩[_] C := by
       intro C hC;
       rcases Finset.mem_insert.mp hC with rfl | hC;
-      · exact hA;
-      · exact h C (Finset.mem_insert_of_mem hC);
+      . exact hA;
+      . exact h C (Finset.mem_insert_of_mem hC);
     exact hX M x (fun _ => hRefl.anti (Finset.subset_insert _ _)) hΓ;
   | cut h₁ h₂ ih₁ ih₂ =>
     obtain ⟨X₁, hX₁⟩ := ih₁;
     obtain ⟨X₂, hX₂⟩ := ih₂;
-    refine ⟨X₁ ∪ X₂, ?_⟩;
+    use X₁ ∪ X₂;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_cut
       (hX₁ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_left))
       (hX₂ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_right));
 
-/--
-  Soundness at the level of `LogicS.GentzenWithCutProvable`.
-
-  - [KK23, Theorem 3.1 (6 ⇒ 1)]
--/
+/-- - [KK23, Theorem 3.1 (6 ⇒ 1)] -/
 theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
   ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ) := by
   obtain ⟨X, hX⟩ := soundness_aux h;
-  refine ⟨X, ?_⟩;
+  use X;
   intro κ _ M _ x;
   exact hX M (x : M.World) (fun _ => x.2);
 
 end GentzenWithCutProvable
 
-/--
-  The six equivalent characterizations of `Γ ⟹ Δ` being a theorem of `LogicS.ProofGentzen` at level `1`.
-
-  - [KK23, Theorem 3.1]
--/
+/-- - [KK23, Theorem 3.1] -/
 theorem sequent_TFAE {Γ Δ : FormulaFinset α} : [
-    -- condition 1
     ∃ X : FormulaFinset α, ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
       ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
-    -- condition 2
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
       ∃ X : FormulaFinset α, ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ),
-    -- condition 3
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
       (∀ n, w (n + 1) ≺ w n) → ∃ i, ∀ j ≥ i, w j ⊩[_] (Γ ⟹ Δ),
-    -- condition 4
     ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] → ∀ (w : ℕ → M.World),
       (∀ n, w (n + 1) ≺ w n) → ∃ i, w i ⊩[_] (Γ ⟹ Δ),
-    -- condition 5
     ⊢ᵍ[S] (Γ ⟹[1] Δ),
-    -- condition 6
     ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)
   ].TFAE := by
   tfae_have 1 → 2 := by

@@ -12,10 +12,9 @@ namespace LogicS
 
 open Model.World
 
-/-- **`GL` and `S` agree on boxdot-translated formulas**: `GL ⊢ Aᵇ` ↔ `S ⊢ Aᵇ`. -/
+/-- **`GL` and `S` agree on boxdot-translated formulas.** -/
 theorem iff_provable_boxdot_GL_provable_boxdot_S [DecidableEq α] :
-    (Aᵇ) ∈ LogicGL ↔ (Aᵇ) ∈ LogicS := by
-  -- Semantic proof via the tail model, avoiding arithmetical completeness.
+  (Aᵇ) ∈ LogicGL ↔ (Aᵇ) ∈ LogicS := by
   constructor;
   . exact provable_of_provable_GL;
   . intro h;

@@ -6,12 +6,8 @@ public import ProvabilityLogic.Hilbert.Grz.Basic
 /-!
 # Soundness and Kripke completeness of `LogicGrz`
 
-This file bundles the equivalences between: membership in `LogicGrz` (Grz-provability),
-Hilbert-style provability, cut-free and cut-full Gentzen-style provability, validity over
-finite Grz-models, and validity at the root of finite rooted Grz-models.
-
-Unlike `LogicGL`, Grz has no labelled Gentzen calculus or tree-model unravelling in this
-repository, so the `provability_TFAE` equivalence list is shorter.
+`LogicGrz.provability_TFAE` collects the equivalences between membership in `LogicGrz`,
+Hilbert- and Gentzen-style provability, and validity over finite Grz-models.
 -/
 
 @[expose]
@@ -61,11 +57,11 @@ theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ Log
   provability_TFAE.out 0 3
 
 theorem iff_forces [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A :=
+  A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A :=
   provability_TFAE.out 0 4
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
+  A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
 end LogicGrz

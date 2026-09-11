@@ -38,8 +38,6 @@ lemma arithmetical_soundness (hA : A ∈ LogicGL) : T ⊢ A.interpret f 𝔅 := 
     dsimp [Formula.interpret];
     cl_prover;
 
-/-- Arithmetical soundness of `GL` at the object-theory level; corollary of
-`arithmetical_soundness`. -/
 lemma arithmetical_soundness' (hA : A ∈ LogicGL) : U ⊢ A.interpret f 𝔅 :=
   Entailment.WeakerThan.pbl (arithmetical_soundness hA)
 

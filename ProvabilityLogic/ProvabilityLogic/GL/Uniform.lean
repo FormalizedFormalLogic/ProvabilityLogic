@@ -4,13 +4,23 @@ public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 
 @[expose] public section
 
+/-!
+# Uniform arithmetical completeness of `GL`
+
+A single realization interpreting exactly the theorems of `GL` as theorems of `T`, taken
+here as an axiom: the result is not formalized in this repository.
+
+## References
+
+- [Art86]
+- [JdJ98]
+-/
+
 open Classical
 open FFL
 open FFL.FirstOrder.ProvabilityAbstraction
 
-variable {κ : Type*} [Nonempty κ]
-         {α : Type*}
-         {A B : _root_.Formula α}
+variable {α : Type*}
 
 namespace LogicGL
 

@@ -3,10 +3,11 @@ module
 public import ProvabilityLogic.Gentzen.GL.Basic
 
 /-!
-Sequent calculus for `LogicGLPoint3` (`GL.3`), obtained from the sequent calculus for `GL`
-(`ProvabilityLogic.Gentzen.GL.Basic`) by generalising `boxGL` to the rule `boxGLPoint3`: given a linear
-frame, two successors of a common world are comparable, so a boxed succedent `□Δ` can be
-established by exhausting every nonempty split `S ⊆ Δ`.
+# Sequent calculus for `GL.3`
+
+The sequent calculus for `LogicGLPoint3`, obtained from the one for `GL` by generalising `boxGL`
+to the rule `boxGLPoint3`: on a linear frame a boxed succedent `□Δ` is established by exhausting
+every nonempty split `S ⊆ Δ`.
 -/
 
 @[expose]
@@ -20,13 +21,12 @@ open LogicGL
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
-| botL : ProofGentzen ({⊥} ⟹ (∅ : FormulaFinset α))
+| botL : ProofGentzen ({⊥} ⟹ ∅)
 | wkL  {Γ Γ' Δ}  : ProofGentzen (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹ Δ)
 | wkR  {Γ Δ Δ'}  : ProofGentzen (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹ Δ')
 | impL {Γ Δ A B} : ProofGentzen (Γ ⟹ (insert A Δ)) → ProofGentzen (insert B Γ ⟹ Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹ Δ)
 | impR {Γ Δ A B} : ProofGentzen ((insert A Γ) ⟹ (insert B Δ)) → ProofGentzen (Γ ⟹ (insert (A 🡒 B) Δ))
-/-- `□GL.3`: the linear-frame generalisation of `boxGL`. For every nonempty `S ⊆ Δ`, the
-sequent `□Γ, Γ, □S ⟹ S, □(Δ \ S)` must hold; taking `Δ = {A}` recovers `boxGL`. -/
+/-- `□GL.3`, the linear-frame generalisation of `boxGL`; taking `Δ = {A}` recovers `boxGL`. -/
 | boxGLPoint3 {Γ Δ} (hΔ : Δ.Nonempty) :
     (∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
       ProofGentzen ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) →
@@ -37,9 +37,8 @@ notation:120 "⊢ᵍ[GLPoint3]! " S:121 => ProofGentzen S
 abbrev ProvableGentzen (S : Sequent α) : Prop := Nonempty (ProofGentzen S)
 notation:120 "⊢ᵍ[GLPoint3] " S:121 => ProvableGentzen S
 
-/-- Negated form of `LogicGLPoint3.ProvableGentzen`. Declared once here so that files depending on
-`LogicGLPoint3.Basic` (both `Completeness` and `Witness`) share a single notation instead of each
-redeclaring their own copy, which would make `⊬ᵍ[GLPoint3]` ambiguous whenever both are imported together. -/
+-- Declared here rather than in each dependent file, which would make `⊬ᵍ[GLPoint3]` ambiguous
+-- whenever two of them are imported together.
 notation:120 "⊬ᵍ[GLPoint3] " S:121 => ¬ ProvableGentzen S
 
 namespace ProvableGentzen
@@ -72,41 +71,39 @@ lemma impL (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint
 lemma impR (h : ⊢ᵍ[GLPoint3] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GLPoint3] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
 
 lemma boxGLPoint3 (hΔ : Δ.Nonempty)
-    (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
-      ⊢ᵍ[GLPoint3] ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
-    ⊢ᵍ[GLPoint3] (Γ.box ⟹ Δ.box) :=
+  (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
+    ⊢ᵍ[GLPoint3] ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
+  ⊢ᵍ[GLPoint3] (Γ.box ⟹ Δ.box) :=
   ⟨ProofGentzen.boxGLPoint3 hΔ (fun S hS hSne => (h S hS hSne).some)⟩
 
-/-- Embedding of the `GL` sequent calculus into the `GL.3` sequent calculus: every `GL`-provable
-sequent is `GL.3`-provable, since `boxGL` is the special case of `boxGLPoint3` with `Δ = {A}`. -/
 lemma of_gentzenGL {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ᵍ[GLPoint3] S := by
   induction h with
-  | axm A => exact axm A
-  | botL => exact botL
-  | wkL _ h' ih => exact wkL ih h'
-  | wkR _ h' ih => exact wkR ih h'
-  | impL _ _ ih₁ ih₂ => exact impL ih₁ ih₂
-  | impR _ ih => exact impR ih
+  | axm A => exact axm A;
+  | botL => exact botL;
+  | wkL _ h' ih => exact wkL ih h';
+  | wkR _ h' ih => exact wkR ih h';
+  | impL _ _ ih₁ ih₂ => exact impL ih₁ ih₂;
+  | impR _ ih => exact impR ih;
   | @boxGL Γ A _ ih =>
-    have hbox : ({A} : FormulaFinset α).box = {□A} := by simp [FormulaFinset.box]
-    rw [← hbox]
-    apply boxGLPoint3 (Δ := {A}) (by simp)
-    intro S hS hSne
+    have hbox : ({A} : FormulaFinset α).box = {□A} := by simp [FormulaFinset.box];
+    rw [← hbox];
+    apply boxGLPoint3 (Δ := {A}) (by simp);
+    intro S hS hSne;
     obtain rfl : S = {A} := by
-      rcases Finset.subset_singleton_iff.mp hS with h' | h'
-      · exact absurd h' hSne.ne_empty
-      · exact h'
+      rcases Finset.subset_singleton_iff.mp hS with h' | h';
+      . exact absurd h' hSne.ne_empty;
+      . exact h';
     have e1 : Γ.box ∪ Γ ∪ ({A} : FormulaFinset α).box = insert (□A) (Γ ∪ Γ.box) := by
-      rw [hbox]; grind
-    have e2 : ({A} : FormulaFinset α) ∪ (({A} : FormulaFinset α) \ {A}).box = {A} := by simp
-    rw [e1, e2]
-    exact ih
+      rw [hbox]; grind;
+    have e2 : ({A} : FormulaFinset α) ∪ (({A} : FormulaFinset α) \ {A}).box = {A} := by simp;
+    rw [e1, e2];
+    exact ih;
 
 @[induction_eliminator]
 lemma rec
   {motive : (S : Sequent α) → ⊢ᵍ[GLPoint3] S → Prop}
   (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableGentzen.axm A))
-  (botL : motive ({⊥} ⟹ (∅ : FormulaFinset α)) ProvableGentzen.botL)
+  (botL : motive ({⊥} ⟹ ∅) ProvableGentzen.botL)
   (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
   (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
   (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint3] (insert B Γ ⟹ Δ)),

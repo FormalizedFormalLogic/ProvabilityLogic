@@ -19,12 +19,12 @@ variable {M : Model κ α} [Fintype M.World] [M.IsGL] {x y : M.World} {n : ℕ}
 noncomputable def World.rank {M : Model κ α} [Fintype M.World] [M.IsGL] (x : M.World) : ℕ := cwfHeight (· ≺ ·) x
 
 @[grind ->]
-lemma rank_lt_of_rel (hij : x ≺ y) : y.rank < x.rank:= cwfHeight_gt_of hij
+lemma rank_lt_of_rel (hij : x ≺ y) : y.rank < x.rank := cwfHeight_gt_of hij
 
 @[grind =]
 lemma iff_rank_lt {n : ℕ} {x : M.World} : x.rank < n ↔ ∀ y, ¬x ≺^[n] y := by
   match n with
-  |     0 => simp_all
+  |     0 => simp_all;
   | n + 1 =>
     suffices x.rank ≤ n ↔ ∀ y : M.World, x ≺ y → y.rank < n by
       calc
@@ -33,14 +33,14 @@ lemma iff_rank_lt {n : ℕ} {x : M.World} : x.rank < n ↔ ∀ y, ¬x ≺^[n] y 
         _ ↔ ∀ y, x ≺ y → ∀ k, ¬y ≺^[n] k := by grind [iff_rank_lt (n := n)];
         _ ↔ ∀ k j, x ≺ j → ¬j ≺^[n] k    := by grind;
         _ ↔ ∀ j, ¬x ≺^[n + 1] j          := by simp;
-    constructor
-    · intro h y Rxy;
+    constructor;
+    . intro h y Rxy;
       exact lt_of_lt_of_le (cwfHeight_gt_of Rxy) h;
-    · exact cwfHeight_le;
+    . exact cwfHeight_le;
 
 lemma iff_le_rank : n ≤ x.rank ↔ ∃ y, x ≺^[n] y := calc
   _ ↔ ¬x.rank < n    := Iff.symm Nat.not_lt
-  _ ↔ ∃ y, x ≺^[n] y := by simp [iff_rank_lt]
+  _ ↔ ∃ y, x ≺^[n] y := by simp [iff_rank_lt];
 
 lemma iff_rank_eq : x.rank = n ↔ (∃ y, x ≺^[n] y) ∧ (∀ y, x ≺^[n] y → ∀ z, ¬y ≺ z) := calc
   _ ↔ x.rank < n + 1 ∧ n ≤ x.rank                       := by simpa [Nat.lt_succ_iff] using Nat.eq_iff_le_and_ge;
@@ -62,12 +62,7 @@ lemma iff_rank_eq_zero : x.rank = 0 ↔ ∀ y, ¬x ≺ y := by
 
 lemma of_lt_rank (hn : n < x.rank) : ∃ y : M.World, x ≺ y ∧ y.rank = n := cwfHeight_lt hn
 
-/--
-In a finite GL model, every world whose rank exceeds `Γ.card` has a strict successor
-forcing all axiom T instances `□B 🡒 B` for `B ∈ Γ`.
-
-- [AB05, Lemma 26]
--/
+/-- - [AB05, Lemma 26] -/
 lemma exists_forces_axiomT_of_card_lt_rank [DecidableEq α] {Γ : FormulaFinset α} {x : M.World}
     (hx : Γ.card < x.rank) : ∃ z, x ≺ z ∧ ∀ B ∈ Γ, z ⊩[_] ((□B) 🡒 B) := by
   generalize hn : Γ.card = n at hx;
@@ -112,8 +107,6 @@ lemma not_rel_over_rank (h : x.rank < n) : ¬x ≺^[n] y := by
 lemma iff_rank_lt_forces_boxItr_bot : x.rank < n ↔ x ⊩[_] (□^[n]⊥) := by grind;
 
 omit [Fintype M.World] [M.IsGL] in
-/-- Forcing of `□^[n]⊥` is monotone in `n`: a world with no outgoing chain of length
-`n` has none of length `m ≥ n` either. -/
 lemma World.forces_boxItr_bot_mono {n m : ℕ} (hnm : n ≤ m) (h : x ⊩[_] (□^[n]⊥)) :
   x ⊩[_] (□^[m]⊥) := by
   apply forces_boxItr.mpr;
@@ -157,10 +150,10 @@ lemma iff_forces_diaItr_top_lt_rank : (x ⊩[_] ◇^[n + 1]⊤) ↔ n < x.rank :
     . grind;
 
 lemma iff_not_forces_diaItr_top_le_rank : (x ⊮[_] ◇^[n + 1]⊤) ↔ x.rank ≤ n := by
-  grind [iff_forces_diaItr_top_lt_rank]
+  grind [iff_forces_diaItr_top_lt_rank];
 
-omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.forces_TBB : x ⊩[_] (TBB n) ↔ x ⊩[_] (◇^[n + 1]⊤) ∨ x ⊮[_] (◇^[n]⊤) := by grind
-omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.not_forces_TBB : x ⊮[_] (TBB n) ↔ x ⊮[_] (◇^[n + 1]⊤) ∧ x ⊩[_] (◇^[n]⊤) := by grind
+omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.forces_TBB : x ⊩[_] (TBB n) ↔ x ⊩[_] (◇^[n + 1]⊤) ∨ x ⊮[_] (◇^[n]⊤) := by grind;
+omit [Fintype M.World] [M.IsGL] in @[grind =] lemma World.not_forces_TBB : x ⊮[_] (TBB n) ↔ x ⊮[_] (◇^[n + 1]⊤) ∧ x ⊩[_] (◇^[n]⊤) := by grind;
 
 lemma iff_forces_TBB_zero_neq_rank : x ⊩[_] (TBB 0) ↔ x.rank ≠ 0 := by grind [iff_forces_diaItr_top_lt_rank];
 
@@ -216,8 +209,6 @@ section Reindex
 variable {κ' : Type*} [Nonempty κ'] [Fintype κ'] {M : Model κ α} [Fintype M.World] [M.IsGL]
   {e : M.World ≃ κ'} [(M.reindex e).IsGL]
 
-/-- Rank is invariant under re-indexing a model: `e x` has in `M.reindex e` the rank that `x`
-has in `M`. This is routine infrastructure with no counterpart in the literature. -/
 lemma rank_reindex (x : M.World) : World.rank (M := M.reindex e) (e x) = x.rank :=
   Eq.symm <| cwfHeight_congr (R := M.Rel) e (fun _ _ => by simp [Model.Rel, Model.reindex]) x
 
@@ -239,9 +230,9 @@ lemma rank_lt_height (Rrx : M.root.1 ≺ x) : x.rank < M.height := cwfHeight_gt_
 
 @[grind .]
 lemma rank_le_height : x.rank ≤ M.height := by
-  by_cases exi : x = M.root.1
-  · subst exi; rfl;
-  · apply le_of_lt;
+  by_cases exi : x = M.root.1;
+  . subst exi; rfl;
+  . apply le_of_lt;
     apply rank_lt_height;
     grind;
 
@@ -264,8 +255,6 @@ section Reindex
 
 variable {κ' : Type*} [Nonempty κ'] [Fintype κ'] {e : M.World ≃ κ'} [(M.reindex e).IsGL]
 
-/-- Height is invariant under re-indexing a rooted model. This is routine infrastructure with
-no counterpart in the literature. -/
 lemma height_reindex : (M.reindex e).height = M.height := by
   have : (M.toModel.reindex e).IsGL := inferInstanceAs (M.reindex e).IsGL;
   exact Model.rank_reindex _;
@@ -280,7 +269,7 @@ variable {n : ℕ+}
 
 @[simp, grind .]
 lemma eq_extendRoot_height_extendRoot_root_rank : (M.extendRoot n).height = (M.extendRoot n).root.1.rank := by
-  dsimp [height]
+  dsimp [height];
 
 @[simp, grind .]
 lemma height_pos : 0 < (M.extendRoot n).height := lt_cwfHeight (b := embed M.root.1) (by grind [embed]) (by omega)
@@ -293,8 +282,8 @@ lemma eq_height_original_height_succ : (M.extendRoot 1).height = M.height + 1 :=
   let r := (M.extendRoot 1).root;
 
   suffices h ≤ M.height + 1 ∧ M.height < h by omega;
-  constructor
-  · suffices h - 1 ≤ M.height from Nat.le_add_of_sub_le this;
+  constructor;
+  . suffices h - 1 ≤ M.height from Nat.le_add_of_sub_le this;
     apply iff_le_rank.mpr;
     wlog lpos : 0 < h - 1;
     . use M.root.1;
@@ -314,7 +303,7 @@ lemma eq_height_original_height_succ : (M.extendRoot 1).height = M.height + 1 :=
       have Rr₀x₀ := Model.relItr_comp Rr₀y₀ Ry₀x₀;
       exact Model.relItr_reduce_trans_pos (by grind) (by grind) (by omega) Rr₀x₀;
 
-  · suffices M.height + 1 ≤ r.1.rank from this;
+  . suffices M.height + 1 ≤ r.1.rank from this;
     apply iff_le_rank.mpr;
     rcases exists_rank_terminal M.root.1 with ⟨y, hy⟩;
     use ↑y, ↑M.root.1;

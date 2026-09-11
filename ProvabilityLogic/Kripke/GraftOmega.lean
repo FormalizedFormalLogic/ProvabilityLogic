@@ -5,12 +5,12 @@ public import ProvabilityLogic.Kripke.Graft
 /-!
 # The ω-grafted model `graftOmega`
 
-`RootedModel.graftOmega a` grafts an infinite descending chain between the root
-and a point `a` above it -- the "expansion of the point `a` to length ω". This file collects
-the generic structural facts about this construction (GL-ness, the depth/rank analysis of its
-embedded and chain points, the forcing-preservation main lemma) that are independent of any
-particular application. The D-model-specific material (`phi0`, almost-defining formulas, Lemma 9)
-lives in `ProvabilityLogic/Kripke/AlmostDefiningFormula.lean`.
+`RootedModel.graftOmega a` grafts an infinite descending chain between the root and a
+point `a` above it, the "expansion of the point `a` to length ω". This file collects the
+generic structural facts about the construction: GL-ness, the depth analysis of its
+embedded and chain points, and the forcing-preservation main lemma.
+
+## References
 
 - [Bek90, Lemma 5, Lemma 9]
 -/
@@ -57,8 +57,6 @@ open Model Model.World
 
 variable {a : M.NonRoot}
 
-/-- `M.graftOmega a` is a (necessarily infinite) GL model whenever `M` is a finite
-GL model and `a` lies strictly above the root. -/
 theorem isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graftOmega a).IsGL where
   trans := by
     have hne : a.1 ≠ M.root.1 := a.2;
@@ -70,8 +68,7 @@ theorem isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graftOmega a).IsGL whe
     apply ConverseWellFounded.iff_has_max.mpr;
     intro s hs;
     by_cases hs₁ : {x : M.World | Sum.inl x ∈ s ∧ x ≠ M.root.1}.Nonempty;
-    . -- A maximal non-root `inl` world of `s` is maximal in `s`.
-      obtain ⟨m, ⟨hm₁, hm₂⟩, hm₃⟩ :=
+    . obtain ⟨m, ⟨hm₁, hm₂⟩, hm₃⟩ :=
         ConverseWellFounded.has_max (IsConverseWellFounded.cwf (rel := M.Rel)) _ hs₁;
       use .inl m, hm₁;
       rintro (y | j) hy;
@@ -80,16 +77,14 @@ theorem isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graftOmega a).IsGL whe
         exact hm₃ y ⟨hy, fun h => not_rel_root (h ▸ R')⟩ R';
       . exact fun h => hm₂ h;
     . by_cases hs₂ : {i : ℕ | Sum.inr i ∈ s}.Nonempty;
-      . -- The least chain index in `s` is maximal in `s`.
-        obtain ⟨i₀, hi₀, hmin⟩ := (wellFounded_lt (α := ℕ)).has_min _ hs₂;
+      . obtain ⟨i₀, hi₀, hmin⟩ := (wellFounded_lt (α := ℕ)).has_min _ hs₂;
         use .inr i₀, hi₀;
         rintro (y | j) hy;
         . rintro (rfl | R);
           . exact hs₁ ⟨a.1, hy, hne⟩;
           . exact hs₁ ⟨y, hy, fun h => not_rel_root (h ▸ R)⟩;
         . exact fun R => hmin j hy R;
-      . -- Otherwise `s` can only contain the (embedded) root.
-        obtain ⟨w, hw⟩ := hs;
+      . obtain ⟨w, hw⟩ := hs;
         have hw_root : w = Sum.inl M.root.1 := by
           match w with
           | .inl x =>
@@ -104,7 +99,6 @@ theorem isGL [M.IsFiniteGL] (Rra : M.root.1 ≺ a.1) : (M.graftOmega a).IsGL whe
           exact hs₁ ⟨y, hy, fun h => not_rel_root (h ▸ R')⟩;
         . exact fun _ => hs₂ ⟨j, hy⟩;
 
-/-- There is a chain of length `n` from the grafted world `inr n` down to `inr 0`. -/
 lemma inr_relItr_inr_zero {n : ℕ} :
     Model.RelItr (M := (M.graftOmega a).toModel) n (.inr n) (.inr 0) := by
   induction n with
@@ -114,8 +108,6 @@ lemma inr_relItr_inr_zero {n : ℕ} :
     exact ⟨show n < n + 1 by omega, ih⟩;
 
 open Model.World in
-/-- The root of `M.graftOmega a` has infinite depth: it refutes `□^[n]⊥` for
-every `n`, hence forces every `TBB n` (and `∼(□^[n]⊥)`). -/
 lemma root_not_forces_boxItr_bot {n : ℕ} :
     ¬((M.graftOmega a).root.1 ⊩[_] (□^[n]⊥)) := by
   intro h;
@@ -127,7 +119,6 @@ lemma root_not_forces_boxItr_bot {n : ℕ} :
       ⟨.inr n, rfl, inr_relItr_inr_zero⟩;
     exact forces_boxItr.mp h _ hchain;
 
-/-- `Sum.inl` preserves chains of `M` in the ω-grafted model. -/
 lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
   Model.RelItr (M := (M.graftOmega a).toModel) n (.inl x) (.inl y) := by
   induction n generalizing x with
@@ -136,7 +127,6 @@ lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
     obtain ⟨z, Rxz, hz⟩ := h;
     exact ⟨.inl z, Rxz, ih hz⟩;
 
-/-- Chain points are never the root of the ω-grafted model. -/
 lemma inr_ne_root {i : ℕ} :
   (Sum.inr i : (M.graftOmega a).World) ≠ (M.graftOmega a).root.1 := by
   show (Sum.inr i : (M.graftOmega a).World) ≠ Sum.inl M.root.1;
@@ -145,7 +135,7 @@ lemma inr_ne_root {i : ℕ} :
 /-- `y` **covers** `x` if `y` is an immediate `≺`-successor of `x`: `x ≺ y` and
 nothing lies strictly between them.
 
-- [Bek90, Section 4]
+- [Bek90, §4]
 -/
 def _root_.Model.World.Covers {M : Model κ α} (y x : M.World) : Prop :=
   x ≺ y ∧ ∀ w : M.World, x ≺ w → w ≺ y → False
@@ -163,40 +153,30 @@ variable [IsTrans _ M.Rel] [Std.Irrefl M.Rel]
 
 omit [IsTrans _ M.Rel] [Std.Irrefl M.Rel] in
 /--
-  No chain point of the ω-grafted model is a branch point. `chainPoint i`'s
-  *unique* immediate cover is `chainPoint (i - 1)` if `i > 0`, or the embedded point
-  `a` if `i = 0`. Unlike arbitrary points of the base model `M`, the freshly grafted chain
-  points can never be branch points.
+  No chain point of the ω-grafted model is a branch point: its unique immediate cover is
+  `chainPoint (i - 1)` if `i > 0`, and the embedded point `a` if `i = 0`.
 
   - [Bek90, Lemma 9.2]
 -/
 lemma not_isBranchPoint_chainPoint (i : ℕ) :
   ¬ Model.World.IsBranchPoint (M := (M.graftOmega a).toModel) (Sum.inr i) := by
   rintro ⟨y₁, y₂, hne, ⟨h1, hcov1⟩, ⟨h2, hcov2⟩⟩;
-  -- Both `y₁`, `y₂` must equal the unique cover of `chainPoint i`, contradicting
-  -- `hne`.
   suffices h : ∀ y : (M.graftOmega a).World,
       Sum.inr i ≺ y → (∀ w, Sum.inr i ≺ w → w ≺ y → False) →
       y = (if h : i = 0 then Sum.inl a.1 else Sum.inr (i - 1)) by
     exact hne (h y₁ h1 hcov1 |>.trans (h y₂ h2 hcov2).symm);
   intro y hiy hcov;
   rcases i with _ | i;
-  · simp only [↓reduceDIte];
+  . simp only [↓reduceDIte];
     rcases y with z | j;
-    · -- `y = .inl z` with `z ∈ cone(a)`; if `z ≠ a` then `.inl a` lies strictly
-      -- between `chainPoint 0` and `y`, contradicting `hcov`.
-      have hz : z = a.1 ∨ M.Rel a.1 z := hiy;
+    . have hz : z = a.1 ∨ M.Rel a.1 z := hiy;
       rcases hz with rfl | haz;
-      · rfl;
-      · exact absurd haz (fun h => hcov (.inl a.1) (Or.inl rfl) h);
-    · exact absurd hiy (by omega);
-  · rcases y with z | j;
-    · -- `y = .inl z`; `chainPoint i` lies strictly between `chainPoint (i + 1)` and
-      -- `y`, contradicting `hcov`.
-      exact absurd (hcov (.inr i) (by omega) hiy) id;
-    · -- `y = .inr j`; if `j < i` then `.inr i` lies strictly between, contradicting
-      -- `hcov`; hence `j = i`.
-      have hj : j < i + 1 := hiy;
+      . rfl;
+      . exact absurd haz (fun h => hcov (.inl a.1) (Or.inl rfl) h);
+    . exact absurd hiy (by omega);
+  . rcases y with z | j;
+    . exact absurd (hcov (.inr i) (by omega) hiy) id;
+    . have hj : j < i + 1 := hiy;
       rw [dif_neg (Nat.succ_ne_zero i)];
       congr 1;
       by_contra hji;
@@ -208,8 +188,6 @@ section
 
 variable [IsTrans _ M.Rel] [Std.Irrefl M.Rel]
 
-/-- A chain starting from a non-root `inl` world of the ω-grafted model stays inside
-`inl` and projects to a chain in `M`. -/
 lemma relItr_from_inl {x : M.World} {n : ℕ}
   {w : (M.graftOmega a).World}
   (hx : x ≠ M.root.1) (h : Model.RelItr (M := (M.graftOmega a).toModel) n (.inl x) w) :
@@ -225,8 +203,6 @@ lemma relItr_from_inl {x : M.World} {n : ℕ}
       obtain ⟨z, rfl, hyz, hz⟩ := ih (fun h => not_rel_root (h ▸ Rxy)) hv;
       exact ⟨z, rfl, ⟨y, Rxy, hyz⟩, hz⟩;
 
-/-- A non-root world forcing `□^[n]⊥` in `M` also forces it as an `inl` world of the
-ω-grafted model. -/
 lemma inl_forces_boxItr_bot {x : M.World} {n : ℕ}
   (hx : x ≠ M.root.1) (h : x ⊩[M.toModel] (□^[n]⊥)) :
   (.inl x) ⊩[(M.graftOmega a).toModel] (□^[n]⊥) := by
@@ -244,12 +220,8 @@ open Model.World
 variable [DecidableEq α] {A : Formula α}
 
 omit [DecidableEq α] in
-/--
-  Forcing preservation for ω-expansion over a formula set `Φ` closed under immediate
-  subformulas of its implications and boxes: if `a` forces every axiom T instance for the
-  boxed formulas of `Φ`, forcing at grafted chain worlds agrees with `a`, and forcing at
-  `inl` worlds agrees with the original model, for every `C ∈ Φ`.
--/
+/-- Forcing preservation for the ω-expansion, over a formula set closed under the
+immediate subformulas of its implications and boxes. -/
 lemma mainlemma_of_closed [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Φ : FormulaFinset α}
   (hbox : ∀ {B : Formula α}, □B ∈ Φ → B ∈ Φ)
   (himp : ∀ {B C : Formula α}, (B 🡒 C) ∈ Φ → B ∈ Φ ∧ C ∈ Φ)
@@ -274,26 +246,26 @@ lemma mainlemma_of_closed [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Φ : FormulaFins
         . exact ihB₂ y |>.mpr (h y Rxy);
         . have hx : x = M.root.1 := Rxy;
           exact ihB₁ i |>.mpr (ihB₂ a |>.mpr (h a (by rw [hx]; exact Rra)));
-    refine ⟨?_, h₂⟩;
-    intro i;
-    constructor;
-    . rintro h (y | j) Ray;
-      . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray hane;
-    . intro h;
-      have haB : a.1 ⊩[M.toModel] B := a.2 hB (h₂ a |>.mp h);
-      rintro (y | j) Riy;
-      . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
-        . subst hya; exact ihB₂ _ |>.mpr haB;
-        . exact h (.inl y) hay;
-      . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    and_intros;
+    . intro i;
+      constructor;
+      . rintro h (y | j) Ray;
+        . exact h (.inl y) (Or.inr Ray);
+        . exact absurd Ray hane;
+      . intro h;
+        have haB : a.1 ⊩[M.toModel] B := a.2 hB (h₂ a |>.mp h);
+        rintro (y | j) Riy;
+        . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
+          . subst hya; exact ihB₂ _ |>.mpr haB;
+          . exact h (.inl y) hay;
+        . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    . exact h₂;
   | _ => grind;
 
 /--
-  Forcing preservation for ω-expansion: if `a` forces every axiom T instance for the boxed
-  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted
-  chain worlds agrees with `a`, and forcing at the `inl` worlds agrees with the
-  original model. The ω-analogue of `graft.mainlemma`.
+  Forcing preservation for the ω-expansion: if `a` forces every axiom T instance for the
+  boxed subformulas of `A`, then for every subformula of `A`, forcing at the grafted chain
+  worlds agrees with `a`, and forcing at the `inl` worlds agrees with the original model.
 
   - [Bek90, Lemma 5]
 -/

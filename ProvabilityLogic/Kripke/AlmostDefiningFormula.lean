@@ -7,34 +7,16 @@ public import ProvabilityLogic.Kripke.Tail
 /-!
 # Almost defining formulas for D-models
 
-This file treats the D-model case, together with the supporting notions:
+An *almost defining formula* is the D-model analogue of a defining formula: it pins a
+`P`-simple D-model down up to a bisimulation-under-`P` whose atomic clause is waived at
+the root. This file defines `RootedModel.StabilizedBisimulationUnder` and
+`RootedModel.AlmostDefines`, builds the almost defining formula `Φ₀` of every D-model
+over a finite GL tree with no lateral cones, and transfers the forcing of a modalized
+formula from such a D-model's root to the chain of the tail model over a cone.
 
-* `RootedModel.StabilizedBisimulationUnder`: a bisimulation-under-`P` whose atomic
-  clause is waived at the root of the second model. This formalizes the notion that
-  "the *stabilizations* are `p̄`-isomorphic": two D-models agree everywhere except
-  possibly in the valuation of their minimum points;
-* `RootedModel.AlmostDefines`: the *almost defining formula* property for D-models,
-  the D-model analogue of `RootedModel.IsDefiningFormula`;
-* `RootedModel.graftOmega.phi0` and the lemmas around it
-  (`forces_dia_and_valuationConj_of_not_forces_boxItr`,
-  `forces_fdisj_charFormulaUnder_of_forces_boxItr`, `val_eq_of_forces_phi0`): the
-  D-model form of `Φ₀` together with the direct consequences of it being forced at
-  the root of *another* `P`-simple D-model-shaped ω-model -- the D-model
-  specialization, which in this case needs no auxiliary "largest shallow-enough
-  predecessor" construction since there are no lateral cones to separate `a` from;
-* `RootedModel.graftOmega.exists_almostDefiningFormula`: every `P`-simple D-model
-  has an *almost defining* formula `Φ₀`. Uniqueness (`AlmostDefines.almost_unique`)
-  is proved via an explicit semantic bisimulation rather than the paper's
-  `P`-isomorphism -- embedded points matched by their characteristic formulas,
-  chain points by their *exact depth* (`exists_exact_depth`) -- which needs neither
-  a branch-point depth bound nor the `P`-simplicity of the other model, mirroring
-  how `RootedModel.exists_isDefiningFormula` sheds its simpleness hypothesis;
-* the "stabilization" transfer needed on the `LogicS` side: a modalized formula
-  forced at the root of a D-model `M.graftOmega a` is eventually forced along the
-  chain of the *tail model* over the cone of `a`
-  (`RootedModel.graftOmega.eventually_coneTail_chainPoint_forces_iff_of_modalized`).
+## References
 
-- [Bek90, Lemma 9, Remarks 1-2, Lemma 4 (§4)]
+- [Bek90, Lemma 1, Lemma 4, Lemma 9, Remark 1, Remark 2]
 -/
 
 @[expose]
@@ -50,14 +32,11 @@ variable [Nonempty κ]
 
 /--
   A **stabilized bisimulation-under-`P`** between rooted models `M₁` and `M₂`: a
-  bisimulation-under-`P` relating the roots, reflecting root-ness, whose atomic
-  clause is waived at `M₂`'s root. This formalizes the notion that "the
-  stabilizations of the D-models are `p̄`-isomorphic": the *stabilization*
-  of a D-model replaces the (free) valuation of its minimum point by the stable
-  tail valuation, so two D-models with `p̄`-isomorphic stabilizations agree on `p̄`
-  everywhere except possibly at their minimum points (= roots).
+  bisimulation-under-`P` relating the roots, reflecting root-ness, whose atomic clause
+  is waived at `M₂`'s root. Two D-models are related by one exactly when they agree on
+  `P` everywhere except possibly at their minimum points.
 
-  - [Bek90, Lemma 1 (§5, proof)]
+  - [Bek90, Lemma 1]
 -/
 structure StabilizedBisimulationUnder
   (P : Finset α)
@@ -80,12 +59,10 @@ instance : CoeFun (StabilizedBisimulationUnder P M₁ M₂) (fun _ => M₁.World
   ⟨StabilizedBisimulationUnder.toRel⟩
 
 /--
-  `A` **almost defines** the D-model `M` under `P`: `A` depends only on `P`, is
-  modalized, is true at `M`'s root, and any other `P`-simple D-model-shaped
-  ω-model forcing `A` admits a stabilized-bisimulation-under-`P` back from `M`.
-  The analogue of `RootedModel.IsDefiningFormula` for D-models.
+  `A` **almost defines** the D-model `M` under `P`: the D-model analogue of
+  `RootedModel.IsDefiningFormula`.
 
-  - [Bek90, Remarks 1-2 (p.265)]
+  - [Bek90, Remark 1, Remark 2]
 -/
 structure AlmostDefines [DecidableEq α]
   (P : Finset α) (M : RootedModel κ α) (A : Formula α) : Prop where
@@ -107,19 +84,11 @@ open Model.World (IsInConeOf IsProperPredecessorOf)
 
 variable {M : RootedModel κ α} {a : M.NonRoot}
 
-/-- A classically-chosen `Fintype` instance for a finite GL-model's cones, derived
-from `Finite (Cone M a)` (itself automatic from `Finite M.World`, see
-`Model.instFiniteCone` in `ProvabilityLogic/Kripke/Cone.lean`). Kept `local` (not a
-global instance) to avoid the diamond issues a general `Finite → Fintype` instance
-would cause; within this file it lets declarations that need `Fintype (M.toModel↾a)`
-(e.g. for `Model.World.charFormulaUnder`'s `Finset.univ`) take just `[M.IsFiniteGL]`,
-with the same canonical instance found everywhere it's needed (so no mismatch between
-separately-derived `Fintype` instances arises). -/
+-- Kept `local` rather than global: a general `Finite → Fintype` instance would create
+-- diamonds, while a file-local one is found canonically everywhere it is needed here.
 noncomputable local instance instFintypeConeOfIsFiniteGL {M' : RootedModel κ α}
   [M'.IsFiniteGL] {a' : M'.World} : Fintype (M'.toModel↾a') := Fintype.ofFinite _
 
-/-- A non-root world of `M` forces its own characteristic formula as an `inl` world
-of the ω-grafted model. -/
 lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL] [Fintype M.World]
   {x : M.World} (hx : x ≠ M.root.1) :
   (.inl x) ⊩[(M.graftOmega a).toModel] (x.charFormulaUnder P) := by
@@ -131,7 +100,8 @@ lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL] [Fintype M.Wor
   | _ n ih =>
     rintro x rfl hx;
     apply forces_charFormulaUnder_iff.mpr;
-    refine ⟨fun q _ => Iff.rfl, ?_, ?_⟩;
+    and_intros;
+    . exact fun q _ => Iff.rfl;
     . intro y Rxy;
       exact ⟨.inl y, Rxy, ih y.rank (rank_lt_of_rel Rxy) y rfl (fun h => not_rel_root (h ▸ Rxy))⟩;
     . rintro (y | i) Rxv;
@@ -143,8 +113,6 @@ section Depth
 
 variable [M.IsFiniteGL] [Fintype M.World]
 
-/-- Depth characterization of embedded non-root points of the ω-grafted model:
-`Sum.inl x` forces `□^[k]⊥` iff `x.rank < k`. -/
 lemma inl_forces_boxItr_bot_iff {x : M.World} (hx : x ≠ M.root.1) {k : ℕ} :
   (.inl x) ⊩[(M.graftOmega a).toModel] (□^[k]⊥) ↔ x.rank < k := by
   constructor;
@@ -155,8 +123,6 @@ lemma inl_forces_boxItr_bot_iff {x : M.World} (hx : x ≠ M.root.1) {k : ℕ} :
   . intro h;
     exact inl_forces_boxItr_bot hx (iff_rank_lt_forces_boxItr_bot.mp h);
 
-/-- The length of a chain starting from a chain point of the ω-grafted model is
-bounded by `i + 1 + a.1.rank`. The ω-analogue of `graft.relItr_from_inr_le`. -/
 lemma relItr_from_inr_le (Rra : M.root.1 ≺ a.1) {i n : ℕ} {w : (M.graftOmega a).World}
   (h : Model.RelItr (M := (M.graftOmega a).toModel) n (.inr i) w) :
   n ≤ i + 1 + a.1.rank := by
@@ -183,15 +149,11 @@ lemma relItr_from_inr_le (Rra : M.root.1 ≺ a.1) {i n : ℕ} {w : (M.graftOmega
         . exact le_of_lt (rank_lt_of_rel hay);
       omega;
 
-/-- Depth characterization of chain points of the ω-grafted model: `chainPoint i`
-forces `□^[k]⊥` iff `i + 1 + a.1.rank < k`. -/
 lemma inr_forces_boxItr_bot_iff (Rra : M.root.1 ≺ a.1) {i k : ℕ} :
   (.inr i) ⊩[(M.graftOmega a).toModel] (□^[k]⊥) ↔ i + 1 + a.1.rank < k := by
   constructor;
   . intro h;
     by_contra hk;
-    -- the full chain `chainPoint i ≺ ⋯ ≺ chainPoint 0 ≺ a ≺ ⋯ ≺ (rank-terminal)` has
-    -- length `i + 1 + a.1.rank ≥ k`, so `chainPoint i` refutes `□^[k]⊥`
     obtain ⟨t, ht⟩ := exists_rank_terminal a.1;
     have hfull : Model.RelItr (M := (M.graftOmega a).toModel) (k + (i + 1 + a.1.rank - k))
         (.inr i) (.inl t) := by
@@ -207,7 +169,6 @@ lemma inr_forces_boxItr_bot_iff (Rra : M.root.1 ≺ a.1) {i k : ℕ} :
     exact absurd (relItr_from_inr_le Rra hw) (by omega);
 
 omit [Fintype M.World] in
-/-- Every cone point of `a` lies above the root of the D-model. -/
 lemma root_rel_inl_of_isInConeOf (Rra : M.root.1 ≺ a.1) {x : M.World} (hx : x.IsInConeOf a.1) :
   (M.graftOmega a).root.1 ≺ (Sum.inl x : (M.graftOmega a).World) := by
   rcases hx with rfl | hax;
@@ -215,11 +176,6 @@ lemma root_rel_inl_of_isInConeOf (Rra : M.root.1 ≺ a.1) {x : M.World} (hx : x.
   . show M.Rel M.root.1 x;
     exact IsTrans.trans _ _ _ Rra hax;
 
-/--
-  The chain-and-cone part of the ω-grafted model realizes every exact depth `m`:
-  some point refuting `□^[m]⊥` but forcing `□^[m+1]⊥` lies above the root and above
-  every chain point `chainPoint j` with `m ≤ j + a.1.rank`.
--/
 lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
   ∃ w : (M.graftOmega a).World,
   (M.graftOmega a).root.1 ≺ w ∧
@@ -227,19 +183,20 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
   w ⊮[_] (□^[m]⊥) ∧
   w ⊩[_] (□^[m + 1]⊥) := by
   have hane : a.1 ≠ M.root.1 := graft.ne_root_of_rel Rra;
-  -- for `m ≤ a.1.rank` the witness lies in the cone of `a`, otherwise it is
-  -- `chainPoint (m - a.1.rank - 1)`
   rcases Nat.lt_trichotomy m a.1.rank with hm | hm | hm;
   . obtain ⟨y, Ray, hy⟩ := of_lt_rank hm;
     have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Ray);
-    refine ⟨.inl y, root_rel_inl_of_isInConeOf Rra (Or.inr Ray), fun j _ => Or.inr Ray, ?_, ?_⟩ <;>
+    use .inl y, root_rel_inl_of_isInConeOf Rra (Or.inr Ray), fun j _ => Or.inr Ray;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;>
       omega;
   . subst hm;
-    refine ⟨.inl a.1, Rra, fun j _ => Or.inl rfl, ?_, ?_⟩ <;>
+    use .inl a.1, Rra, fun j _ => Or.inl rfl;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hane] <;>
       omega;
-  . refine ⟨.inr (m - a.1.rank - 1), ?_, ?_, ?_, ?_⟩;
+  . use .inr (m - a.1.rank - 1);
+    and_intros;
     . show M.root.1 = M.root.1;
       rfl;
     . intro j hj;
@@ -250,28 +207,20 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
     . rw [inr_forces_boxItr_bot_iff Rra];
       omega;
 
-/-- Every non-root point of the ω-grafted model has an exact depth: it refutes
-`□^[m]⊥` but forces `□^[m+1]⊥` for some `m`. -/
 lemma exists_exact_depth_of_ne_root (Rra : M.root.1 ≺ a.1)
   {v : (M.graftOmega a).World} (hv : v ≠ (M.graftOmega a).root.1) :
   ∃ m : ℕ,
   v ⊮[_] (□^[m]⊥) ∧
   v ⊩[_] (□^[m + 1]⊥) := by
-  -- `m` is `x.rank` if embedded, `i + 1 + a.1.rank` if the chain point `chainPoint i`
   rcases v with x | j;
   . have hx : x ≠ M.root.1 := fun h => hv (congrArg Sum.inl h);
-    refine ⟨x.rank, ?_, ?_⟩ <;>
+    use x.rank;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hx] <;> omega;
-  . refine ⟨j + 1 + a.1.rank, ?_, ?_⟩ <;>
+  . use j + 1 + a.1.rank;
+    and_intros <;>
       simp only [Model.World.NotForces, inr_forces_boxItr_bot_iff Rra] <;> omega;
 
-/--
-  **Exact-depth successor** in the ω-grafted model: any point refuting `□^[m+1]⊥` has
-  a successor of exact depth `m`. The ω-grafted model thus shares with finite
-  GL-models the exact-depth-successor property `Model.of_lt_rank` despite its root
-  having infinite depth: below any sufficiently deep point, the grafted chain
-  together with the cone of `a` realizes every exact depth.
--/
 lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).World} {m : ℕ}
   (hv : v ⊮[_] (□^[m + 1]⊥)) :
   ∃ w, v ≺ w ∧
@@ -287,11 +236,13 @@ lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).Worl
         omega;
       obtain ⟨y, Rxy, hy⟩ := of_lt_rank hv;
       have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Rxy);
-      refine ⟨.inl y, Rxy, ?_, ?_⟩ <;>
+      use .inl y, Rxy;
+      and_intros <;>
         simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;> omega;
-  . refine ⟨w, hchain j ?_, hw₁, hw₂⟩;
-    have := (inr_forces_boxItr_bot_iff Rra (i := j) (k := m + 1)).not.mp hv;
-    omega;
+  . have h : m ≤ j + a.1.rank := by
+      have := (inr_forces_boxItr_bot_iff Rra (i := j) (k := m + 1)).not.mp hv;
+      omega;
+    exact ⟨w, hchain j h, hw₁, hw₂⟩;
 
 end Depth
 
@@ -300,25 +251,15 @@ section OtherModel
 variable {κ' : Type*} [Nonempty κ'] {N : RootedModel κ' α} {c : N.NonRoot} [DecidableEq α]
   [M.IsFiniteGL] [Fintype M.World]
 
-/-- The `Φ₀` formula of Remark 1 (p.265), abbreviated for the "almost defining"
-uniqueness lemmas below: `□(∼□^[N+1]⊥ 🡒 (◇φ_a ⋏ p̄^{(a)})) ⋏ □(□^[N+1]⊥ 🡒 ⋁_{x⪰a}φ_x)`
-with `N = a.rank`. -/
+/-- The formula `Φ₀` of the D-model case, with `N = a.rank`.
+
+- [Bek90, Remark 1] -/
 noncomputable abbrev phi0 (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World] (a : M.World)
   (P : Finset α) : Formula α :=
   □(∼(□^[a.rank + 1]⊥) 🡒 ((◇(a.charFormulaUnder P)) ⋏ a.valuationConj P))
     ⋏ □((□^[a.rank + 1]⊥) 🡒 ⋁(Finset.univ.image fun y : M.toModel↾a => y.1.charFormulaUnder P))
 
-/--
-  D-model case, first half: if `Φ₀` (built from `a`, `P`) is forced at the root of
-  another `P`-simple D-model-shaped ω-model `N.graftOmega c`, every point
-  reachable from its root that refutes `□^[a.1.rank+1]⊥` (i.e. is "deep") forces
-  `◇φ_a ⋏ p̄^{(a)}`. Unlike the general Lemma 9.1 (p.264), no auxiliary "largest
-  shallow-enough predecessor" construction is needed here: in the D-model
-  special case `Φ₀`'s first conjunct already speaks directly about `a` (there
-  are no lateral cones `r_1,…,r_n` to separate `a` from).
-
-  - [Bek90, Lemma 9.1 (§4, D-model case, first half)]
--/
+/-- - [Bek90, Lemma 9.1] -/
 lemma forces_dia_and_valuationConj_of_not_forces_boxItr
   (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {w : (N.graftOmega c).World} (Rrw : (N.graftOmega c).root.1 ≺ w)
@@ -326,14 +267,7 @@ lemma forces_dia_and_valuationConj_of_not_forces_boxItr
   w ⊩[(N.graftOmega c).toModel] (◇(a.1.charFormulaUnder P) ⋏ a.1.valuationConj P) :=
   (forces_and.mp hAroot).1 w Rrw (forces_neg.mpr hw)
 
-/--
-  D-model case, second half: if `Φ₀` is forced at the root of `N.graftOmega c`,
-  every point reachable from its root that forces `□^[a.1.rank+1]⊥` (i.e. is
-  "shallow") forces `⋁_{x⪰a}φ_x`, hence (via `Model.charBisimulationUnder`) is
-  `P`-bisimilar to some point of `a`'s cone in `M`.
-
-  - [Bek90, Lemma 9.1 (§4, D-model case, second half)]
--/
+/-- - [Bek90, Lemma 9.1] -/
 lemma forces_fdisj_charFormulaUnder_of_forces_boxItr
   (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
   {w : (N.graftOmega c).World} (Rrw : (N.graftOmega c).root.1 ≺ w)
@@ -342,21 +276,12 @@ lemma forces_fdisj_charFormulaUnder_of_forces_boxItr
     (⋁(Finset.univ.image fun y : M.toModel↾a.1 => y.1.charFormulaUnder P)) :=
   (forces_and.mp hAroot).2 w Rrw hw
 
-/--
-  Key structural fact for Remark 2 (p.265): if `Φ₀` is forced at the root of
-  `N.graftOmega c`, the tail element `c` agrees with `a` on the valuation of
-  every atom in `P`. This is `p̄^{(r₀)}` being forced "deep in the chain" of the
-  proof.
-
-  - [Bek90, Lemma 9 (p.263, proof)]
--/
+/-- - [Bek90, Lemma 9] -/
 lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P) {q : α}
   (hq : q ∈ P) : M.Val a.1 q ↔ N.Val c.1 q := by
   have Rrw : (N.graftOmega c).root.1 ≺ (Sum.inr a.1.rank : (N.graftOmega c).World) := by
     show (N.root.1 = N.root.1);
     rfl;
-  -- the point of the grafted chain exactly `a.1.rank` steps below the root reaches `c`
-  -- in `a.1.rank + 1` more steps, so it refutes `□^[a.1.rank+1]⊥`
   have hpath : Model.RelItr (M := (N.graftOmega c).toModel) (a.1.rank + 1)
       (Sum.inr a.1.rank) (Sum.inl c.1) :=
     Model.relItr_comp (graftOmega.inr_relItr_inr_zero (M := N) (a := c) (n := a.1.rank))
@@ -364,20 +289,10 @@ lemma val_eq_of_forces_phi0 (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega 
   have hw : (Sum.inr a.1.rank : (N.graftOmega c).World) ⊮[(N.graftOmega c).toModel]
       (□^[a.1.rank + 1]⊥) :=
     fun h => forces_boxItr.mp h (Sum.inl c.1) hpath;
-  -- hence, by the first conjunct of `Φ₀`, this point carries `a`'s valuation; but every
-  -- chain point of `N.graftOmega c` carries exactly `c`'s valuation by construction,
-  -- pinning `N.Val c` to agree with `M.Val a` on `P`
   have h := forces_dia_and_valuationConj_of_not_forces_boxItr hAroot Rrw hw;
   exact forces_valuationConj.mp (forces_and.mp h).2 q hq;
 
-/--
-  D-model case, cone-localized form: if `Φ₀` is forced at the root of
-  `N.graftOmega c`, every point above the root that refutes `□^[a.1.rank+1]⊥` has,
-  for each `x` in the cone of `a`, a successor forcing `φ_x` (through `◇φ_a`
-  and the forth clauses of `φ_a`).
-
-  - [Bek90, Lemma 9.1 (§4, D-model case, cone-localized form)]
--/
+/-- - [Bek90, Lemma 9.1] -/
 lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
   (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
@@ -394,9 +309,6 @@ lemma exists_forces_charFormulaUnder_of_not_forces_boxItr [N.IsFiniteGL] [Fintyp
   . obtain ⟨w, Rw₀w, hw⟩ := (forces_charFormulaUnder_iff.mp hw₀).2.1 x hax;
     exact ⟨w, IsTrans.trans _ _ _ Rvw₀ Rw₀w, hw⟩;
 
-/-- Root form of `exists_forces_charFormulaUnder_of_not_forces_boxItr`: the root of
-`N.graftOmega c` forcing `Φ₀` sees a point forcing `φ_x` for every `x` in the
-cone of `a` (through the grafted chain, which is unboundedly deep). -/
 lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL] [Fintype N.World]
   (Rrc : N.root.1 ≺ c.1)
   (hAroot : (N.graftOmega c).root.1 ⊩[(N.graftOmega c).toModel] phi0 M a.1 P)
@@ -417,23 +329,12 @@ lemma root_exists_forces_charFormulaUnder [N.IsFiniteGL] [Fintype N.World]
 end OtherModel
 
 /--
-  D-model case: every D-model `M.graftOmega a` over a finite GL tree `M` with no
-  lateral cones (`hlat`) admits an *almost defining* formula `Φ₀` (`AlmostDefines`).
+  Every D-model `M.graftOmega a` over a finite GL tree `M` with no lateral cones
+  (`hlat`) admits an almost defining formula. The general case with lateral cones is
+  not needed here: the D-model countermodel of `LogicD` has none, and the shape is
+  preserved by `P`-simplification.
 
-  This is stated only for the D-model special case (`n = 0` in the paper's
-  notation): by Remark 1 (p.265) the formula then takes the simpler form
-  `Φ₀ = □(∼□^[N+1]⊥ 🡒 (◇φ_{r₀} ⋏ p̄^{(r₀)})) ⋏ □(□^[N+1]⊥ 🡒 ⋁_{x ⪰ r₀} φ_x)`,
-  where `N` is the depth of the tail element `r₀ = a`, the `φ_x` are the defining
-  formulas of the cones (here realized as `Model.World.charFormulaUnder`, cf. Lemma 7,
-  `RootedModel.exists_isDefiningFormula`), and `p̄^{(r₀)}` pins down the valuation of
-  `r₀` (`Model.World.valuationConj`); Remark 2 (p.265) provides the almost-defining
-  property (the `almost_unique` field). The general case with lateral cones
-  (`n > 0`) is not needed for the proof of Lemma 1 -- the D-model countermodel
-  produced by Lemma 3 has no lateral cones, and this shape is preserved by the
-  `P`-simplification (`exists_simplificationUnder_omega'`) -- and is left as
-  future work.
-
-  - [Bek90, Lemma 9 (§4, D-model case), Lemma 1 (§5)]
+  - [Bek90, Lemma 9, Lemma 1]
 -/
 theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintype M.World]
   (Rra : M.root.1 ≺ a.1)
@@ -443,8 +344,6 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
   have hane : a.1 ≠ M.root.1 := graft.ne_root_of_rel Rra;
   have hbot : ∀ n : ℕ, ((□^[n]⊥ : Formula α)).atoms = ∅ := by
     intro n; induction n <;> simp_all [Formula.boxItr, Formula.atoms];
-  -- `Φ₀` of Remark 1 (p.265): with `N := a.1.rank` the depth of the tail element,
-  -- `Φ₀ = □(∼□^[N+1]⊥ 🡒 (◇φ_a ⋏ p̄^{(a)})) ⋏ □(□^[N+1]⊥ 🡒 ⋁_{x ⪰ a} φ_x)`.
   use phi0 M a.1 P;
   constructor;
   case atoms_subset =>
@@ -467,10 +366,8 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
     exact ⟨⟨trivial, trivial, trivial⟩, trivial⟩;
   case root_forces =>
     apply forces_and.mpr;
-    constructor;
-    . -- first conjunct: only the grafted chain points refute `□^[N+1]⊥`, and they
-      -- see the cone of `a` and carry its stable valuation
-      rintro (x | i) Rrw hw;
+    and_intros;
+    . rintro (x | i) Rrw hw;
       . exfalso;
         have Rrx : M.root.1 ≺ x := Rrw;
         apply forces_neg.mp hw;
@@ -480,18 +377,17 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
         . omega;
         . have := rank_lt_of_rel hax; omega;
       . apply forces_and.mpr;
-        constructor;
+        and_intros;
         . apply forces_dia.mpr;
           exact ⟨.inl a.1, Or.inl rfl, inl_forces_charFormulaUnder hane⟩;
         . apply forces_valuationConj.mpr;
           intro q _;
           exact Iff.rfl;
-    . -- second conjunct: the worlds forcing `□^[N+1]⊥` are exactly the cone points
-      -- of `a`, each of which forces its own characteristic formula
-      rintro (x | i) Rrw hw;
+    . rintro (x | i) Rrw hw;
       . have Rrx : M.root.1 ≺ x := Rrw;
         apply forces_fdisj.mpr;
-        refine ⟨x.charFormulaUnder P, ?_, ?_⟩;
+        use x.charFormulaUnder P;
+        and_intros;
         . exact Finset.mem_image.mpr ⟨⟨x, hlat x Rrx⟩, Finset.mem_univ _, rfl⟩;
         . exact inl_forces_charFormulaUnder (fun h => not_rel_root (h ▸ Rrx));
       . exfalso;
@@ -506,10 +402,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
     have := hGL.toIsTrans;
     have : Std.Irrefl (N.graftOmega c').Rel :=
       @ConverseWellFounded.irrefl _ _ hGL.toIsConverseWellFounded;
-    -- Unlike a `P`-isomorphism, this bisimulation may relate chain points of the two
-    -- ω-models of matching depth regardless of where the respective base trees end,
-    -- so no branch-point depth analysis is needed.
-    refine ⟨{
+    exact ⟨{
       toRel := fun u v =>
         (u = (M.graftOmega a).root.1 ∧ v = (N.graftOmega c').root.1) ∨
         (u ≠ (M.graftOmega a).root.1 ∧ v ≠ (N.graftOmega c').root.1 ∧
@@ -528,9 +421,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
         . exact absurd rfl hvne;
         . rcases u with x | i;
           . exact (forces_charFormulaUnder_iff.mp hC).1 q hq;
-          . -- a chain point carries `a`'s valuation; `v` is deep, so it forces
-            -- `p̄^{(a)}` by the first conjunct of `Φ₀`
-            have hdeep : v ⊮[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥) :=
+          . have hdeep : v ⊮[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥) :=
               fun h => hC.1 (forces_boxItr_bot_mono (by omega) h);
             have h := forces_dia_and_valuationConj_of_not_forces_boxItr hAroot
               ((N.graftOmega c').root.2 v hv) hdeep;
@@ -538,9 +429,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
       forth := by
         rintro u u' v (⟨rfl, rfl⟩ | ⟨hu, hv, hC⟩) Ruu';
         . rcases u' with x | i;
-          . -- an embedded point above the root lies in the cone of `a` (`hlat`) and
-            -- its characteristic formula is forced somewhere above the other root
-            have Rrx : M.root.1 ≺ x := Ruu';
+          . have Rrx : M.root.1 ≺ x := Ruu';
             obtain ⟨w, Rrw, hw⟩ := root_exists_forces_charFormulaUnder Rrc hAroot (hlat x Rrx);
             exact ⟨w, Or.inr ⟨inl_ne_root (fun h => not_rel_root (h ▸ Rrx)),
               fun h => not_rel_root (h ▸ Rrw), hw⟩, Rrw⟩;
@@ -554,9 +443,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                 fun h => not_rel_root (h ▸ Rvw), hw⟩, Rvw⟩;
             . exact absurd (show x = M.root.1 from Ruu') (fun h => hu (congrArg Sum.inl h));
           . rcases u' with y | j;
-            . -- `chainPoint i ≺ y` puts `y` in the cone of `a`; `v` is deep, so
-              -- Lemma 9.1 provides a successor forcing `φ_y`
-              have hy : y.IsInConeOf a.1 := Ruu';
+            . have hy : y.IsInConeOf a.1 := Ruu';
               have hyne : y ≠ M.root.1 := by
                 rcases hy with rfl | hay;
                 . exact hane;
@@ -573,9 +460,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
       back := by
         rintro u v v' (⟨rfl, rfl⟩ | ⟨hu, hv, hC⟩) Rvv';
         . by_cases hsh : v' ⊩[(N.graftOmega c').toModel] (□^[a.1.rank + 1]⊥);
-          . -- a shallow point forces some `φ_t`, `t` in the cone of `a`, by the
-            -- second conjunct of `Φ₀`
-            obtain ⟨B, hB, hv'B⟩ :=
+          . obtain ⟨B, hB, hv'B⟩ :=
               forces_fdisj.mp (forces_fdisj_charFormulaUnder_of_forces_boxItr hAroot Rvv' hsh);
             obtain ⟨t, -, rfl⟩ := Finset.mem_image.mp hB;
             have htne : t.1 ≠ M.root.1 := by
@@ -585,20 +470,16 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
               exact not_isInConeOf_root_of_ne hane h2;
             exact ⟨.inl t.1, Or.inr ⟨inl_ne_root htne, fun h => not_rel_root (h ▸ Rvv'), hv'B⟩,
               root_rel_inl_of_isInConeOf Rra t.2⟩;
-          . -- a deep point has an exact depth `≥ a.1.rank + 1`: it matches a chain point
-            obtain ⟨m, hm₁, hm₂⟩ :=
+          . obtain ⟨m, hm₁, hm₂⟩ :=
               exists_exact_depth_of_ne_root (a := c') (v := v') Rrc (fun h => not_rel_root (h ▸ Rvv'));
             have hge : a.1.rank + 1 ≤ m := by
               by_contra hlt;
               exact hsh (forces_boxItr_bot_mono (by omega) hm₂);
-            refine ⟨.inr (m - a.1.rank - 1),
-              Or.inr ⟨inr_ne_root, fun h => not_rel_root (h ▸ Rvv'), ?_, ?_⟩, ?_⟩;
-            . rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega];
-              exact hm₁;
-            . rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega];
-              exact hm₂;
-            . show M.root.1 = M.root.1;
-              rfl;
+            exact ⟨.inr (m - a.1.rank - 1),
+              Or.inr ⟨inr_ne_root, fun h => not_rel_root (h ▸ Rvv'),
+                by rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega]; exact hm₁,
+                by rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega]; exact hm₂⟩,
+              show M.root.1 = M.root.1 from rfl⟩;
         . have hv'ne : v' ≠ (N.graftOmega c').root.1 := fun h => not_rel_root (h ▸ Rvv');
           rcases u with x | i;
           . obtain ⟨y, Rxy, hy⟩ := (forces_charFormulaUnder_iff.mp hC).2.2 v' Rvv';
@@ -615,10 +496,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                 exact not_isInConeOf_root_of_ne hane h2;
               exact ⟨.inl t.1, Or.inr ⟨inl_ne_root htne, hv'ne, hv'B⟩,
                 show t.1 = a.1 ∨ a.1 ≺ t.1 from t.2⟩;
-            . -- a deep successor of the chain point `chainPoint i` has an exact depth
-              -- `m` with `a.1.rank + 1 ≤ m < i + 1 + a.1.rank`: it matches `chainPoint j`
-              -- with `j = m - a.1.rank - 1 < i`
-              obtain ⟨m, hm₁, hm₂⟩ := exists_exact_depth_of_ne_root (a := c') Rrc hv'ne;
+            . obtain ⟨m, hm₁, hm₂⟩ := exists_exact_depth_of_ne_root (a := c') Rrc hv'ne;
               have hge : a.1.rank + 1 ≤ m := by
                 by_contra hlt;
                 exact hsh (forces_boxItr_bot_mono (by omega) hm₂);
@@ -630,35 +508,25 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                   intro z hz;
                   exact forces_boxItr.mp hC.2 z ⟨v', Rvv', hz⟩;
                 exact hm₁ (forces_boxItr_bot_mono (by omega) hstep);
-              refine ⟨.inr (m - a.1.rank - 1), Or.inr ⟨inr_ne_root, hv'ne, ?_, ?_⟩, ?_⟩;
-              . rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega];
-                exact hm₁;
-              . rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega];
-                exact hm₂;
-              . show m - a.1.rank - 1 < i;
-                omega;
+              exact ⟨.inr (m - a.1.rank - 1),
+                Or.inr ⟨inr_ne_root, hv'ne,
+                  by rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega]; exact hm₁,
+                  by rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega]; exact hm₂⟩,
+                show m - a.1.rank - 1 < i by omega⟩;
     }⟩;
 
 section ConeTail
 
-/--
-The tail model over the cone of `a` in `M`: the stabilization of the D-model
-`M.graftOmega a` (its chain points carry the stable valuation `M.Val a` and see
-exactly the cone of `a`).
-
-- [Bek90]
--/
+/-- The tail model over the cone of `a` in `M`: the stabilization of the D-model
+`M.graftOmega a`. -/
 abbrev coneTail (M : RootedModel κ α) (a : M.World) :
   RootedModel (Model.toTail.World (Model.toRootedModel M.toModel a).toModel) α :=
   (Model.toRootedModel M.toModel a).toModel.toTail (Model.toRootedModel M.toModel a).root.1
 
 variable [M.IsFiniteGL] [Fintype M.World]
 
-/--
-  The chain-and-cone part of the D-model `M.graftOmega a` is bisimilar to the
-  tail model over the cone of `a`: chain point `i` corresponds to `chainPoint i`,
-  cone points to themselves.
--/
+/-- The chain-and-cone part of the D-model `M.graftOmega a` is bisimilar to the tail
+model over the cone of `a`. -/
 def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
   (Rra : M.root.1 ≺ a) :
   (M.graftOmega ⟨a, fun h => not_rel_root (h ▸ Rra)⟩).toModel ⇄ (coneTail M a).toModel where
@@ -685,9 +553,7 @@ def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
     . exact ⟨.inl ⟨u, Rxu⟩, rfl, trivial⟩;
     . exact h.elim;
     . subst h;
-      refine ⟨.inr (i' : ℕ∞), rfl, ?_⟩;
-      show (i' : ℕ∞) < (i : ℕ∞);
-      exact_mod_cast Rxu;
+      exact ⟨.inr (i' : ℕ∞), rfl, show (i' : ℕ∞) < (i : ℕ∞) by exact_mod_cast Rxu⟩;
   back := by
     rintro (x | i) (y | j) (v | j') h Rv;
     . subst h;
@@ -702,14 +568,10 @@ def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
     . subst h;
       have hj' : j' ≠ (⊤ : ℕ∞) := ne_top_of_lt (show j' < (i : ℕ∞) from Rv);
       obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp hj';
-      refine ⟨.inr m, rfl, ?_⟩;
-      show m < i;
       have hmi : (m : ℕ∞) < (i : ℕ∞) := Rv;
-      exact_mod_cast hmi;
+      exact ⟨.inr m, rfl, by exact_mod_cast hmi⟩;
 
 omit [Fintype M.World] in
-/-- The grafted chain point `i` of the D-model is modally equivalent to `chainPoint i`
-of the tail model over the cone of `a`. -/
 lemma coneTail_chainPoint_modal_equivalent (Rra : M.root.1 ≺ a.1) (i : ℕ) :
   ModalEquivalent (M₁ := (M.graftOmega a).toModel) (M₂ := (coneTail M a.1).toModel)
     (Sum.inr i) (Sum.inr (i : ℕ∞)) :=
@@ -717,8 +579,6 @@ lemma coneTail_chainPoint_modal_equivalent (Rra : M.root.1 ≺ a.1) (i : ℕ) :
     (show (coneTailBisimulation M a.1 Rra).toRel (Sum.inr i) (Sum.inr (i : ℕ∞)) from rfl)
 
 omit [Fintype M.World] in
-/-- An embedded cone point of the D-model is modally equivalent to its copy in the
-tail model over the cone of `a`. -/
 lemma coneTail_embed_modal_equivalent (Rra : M.root.1 ≺ a.1) (y : M.toModel↾a.1) :
   ModalEquivalent (M₁ := (M.graftOmega a).toModel) (M₂ := (coneTail M a.1).toModel)
     (Sum.inl y.1) (Sum.inl y) :=
@@ -727,15 +587,11 @@ lemma coneTail_embed_modal_equivalent (Rra : M.root.1 ≺ a.1) (y : M.toModel↾
 
 omit [Fintype M.World] in
 /--
-  **Stabilization transfer for modalized formulas**: for a D-model
-  `M.graftOmega a` (no lateral cones, `hlat`), the forcing of a modalized
-  formula at the root agrees, eventually along the chain, with its forcing at
-  the chain points of the tail model over the cone of `a`. In particular a
-  modalized formula true at the D-model's root is eventually true along the
-  tail model's chain, which is exactly what the `LogicS` tail-model semantics
-  consumes.
+  **Stabilization transfer for modalized formulas**: for a D-model `M.graftOmega a`
+  with no lateral cones, a modalized formula is forced at the root exactly when it is
+  eventually forced along the chain of the tail model over the cone of `a`.
 
-  - [Bek90, Lemma 4 (§4)]
+  - [Bek90, Lemma 4]
 -/
 theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   (Rra : M.root.1 ≺ a) (hlat : ∀ x : M.World, M.root.1 ≺ x → x.IsInConeOf a)
@@ -749,7 +605,7 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA (fun q => (hC q).1);
     obtain ⟨k₂, h₂⟩ := ihB (fun q => (hC q).2);
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
@@ -758,7 +614,7 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A ihA =>
     by_cases h : (M.graftOmega a).root.1 ⊩[(M.graftOmega a).toModel] (□A);
-    . refine ⟨0, ?_⟩;
+    . use 0;
       intro n _;
       refine iff_of_true ?_ h;
       rintro (y | j) Rny;
@@ -774,19 +630,15 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
         push Not at this;
         exact this;
       rcases w with x | i;
-      . -- the refuting point is a cone point (no lateral cones), visible from every
-        -- chain point of the tail model
-        have hx : x.IsInConeOf a := hlat x Rrw;
-        refine ⟨0, ?_⟩;
+      . have hx : x.IsInConeOf a := hlat x Rrw;
+        use 0;
         intro n _;
         refine iff_of_false ?_ h;
         intro hbox;
         apply hwA;
         apply (coneTail_embed_modal_equivalent Rra ⟨x, hx⟩).mpr;
         exact hbox (Sum.inl ⟨x, hx⟩) trivial;
-      . -- the refuting point is a grafted chain point, visible from every later
-        -- chain point of the tail model
-        refine ⟨i + 1, ?_⟩;
+      . use i + 1;
         intro n hn;
         refine iff_of_false ?_ h;
         intro hbox;

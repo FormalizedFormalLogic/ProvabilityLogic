@@ -10,7 +10,6 @@ namespace Formula
 
 variable {α : Type*} [Encodable α]
 
-/-- Injectively encodes `Formula α` into `ℕ`. -/
 def toNat : Formula α → ℕ
   | atom a => Nat.pair 0 (Encodable.encode a)
   | ⊥      => Nat.pair 1 0
@@ -18,7 +17,7 @@ def toNat : Formula α → ℕ
   | □A     => Nat.pair 3 A.toNat
 
 lemma toNat_injective : Function.Injective (toNat : Formula α → ℕ) := by
-  suffices H : ∀ A B : Formula α, toNat A = toNat B → A = B by intro a b; exact H a b;
+  suffices H : ∀ A B : Formula α, toNat A = toNat B → A = B from H;
   intro A;
   induction A with
   | atom a => intro B h; cases B <;> simp_all [toNat, Nat.pair_eq_pair, Encodable.encode_inj];

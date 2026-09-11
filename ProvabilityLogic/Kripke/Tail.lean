@@ -39,10 +39,9 @@ namespace toTail
 
 variable {tail : M.World}
 
-/-- The embedding of a world of the original model `M` into the tail model `M.toTail tail`. -/
 protected abbrev embed (x : M.World) : (M.toTail tail).World := .inl x
 
-/-- The world in the chain attached above `tail`, indexed by `i : ℕ∞` (`⊤` is the tail model's own root). -/
+/-- The world in the chain attached above `tail`, indexed by `i : ℕ∞`; `⊤` is the root. -/
 protected abbrev chainPoint (i : ℕ∞) : (M.toTail tail).World := .inr i
 
 @[simp] lemma root_eq : (M.toTail tail).root.1 = toTail.chainPoint ⊤ := rfl
@@ -85,7 +84,6 @@ instance [Std.Irrefl M.Rel] : Std.Irrefl (M.toTail tail).Rel := by
   | .inl x => simp_all only [Model.Rel]; apply Std.Irrefl.irrefl
   | .inr i => simp [Model.Rel];
 
-/-- The chain of `ℕ∞`-worlds attached above `tail`. -/
 protected abbrev chain (M : Model κ α) (tail : M.World) : ℕ+ → (M.toTail tail).World := λ n => toTail.chainPoint n
 
 @[simp]
@@ -116,7 +114,6 @@ instance [IsConverseWellFounded _ M.Rel] : IsConverseWellFounded _ (M.toTail tai
 
 instance [M.IsGL] : (M.toTail tail).IsGL where
 
-/-- The embedding of the original model into the tail model is a p-morphism. -/
 def pMorphismOriginal (M : Model κ α) (tail : M.World) : M →ₚ (M.toTail tail).toModel where
   toFun := toTail.embed
   forth := rel_embed_embed.mpr
@@ -130,13 +127,9 @@ lemma modal_equivalent_original {x : M.World} :
     Model.World.ModalEquivalent (M₁ := M) (M₂ := (M.toTail tail).toModel) x (toTail.embed x) :=
   (pMorphismOriginal M tail).modal_equivalence x
 
-/-- At an original-model world (`embed x`), forcing in the tail model agrees with
-forcing in the original model. -/
 lemma forces_inl {x : M.World} : (toTail.embed x) ⊩[(M.toTail tail).toModel] A ↔ x ⊩[M] A :=
   modal_equivalent_original.symm
 
-/-- Forcing of `□A` is downward closed on the chain: if it holds at `chainPoint n`,
-it also holds at any `chainPoint m` below it. -/
 lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
   (h : (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A)) :
   (toTail.chainPoint m) ⊩[(M.toTail tail).toModel] (□A) := by
@@ -146,7 +139,6 @@ lemma forces_nat_box_antitone {m n : ℕ} (hmn : m ≤ n)
     apply rel_chainPoint_chainPoint.mpr;
     exact lt_of_lt_of_le (rel_chainPoint_chainPoint.mp Rmy) (by exact_mod_cast hmn);
 
-/-- Forcing at chain points (`chainPoint n`) eventually stabilizes as `n` grows. -/
 lemma forces_nat_eventually_stable (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
     ((toTail.chainPoint n) ⊩[(M.toTail tail).toModel] A ↔
@@ -157,7 +149,7 @@ lemma forces_nat_eventually_stable (A : Formula α) :
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA;
     obtain ⟨k₂, h₂⟩ := ihB;
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := (h₁ n (le_trans (le_max_left _ _) hn)).trans (h₁ (max k₁ k₂) (le_max_left _ _)).symm;
     have hB := (h₂ n (le_trans (le_max_right _ _) hn)).trans (h₂ (max k₁ k₂) (le_max_right _ _)).symm;
@@ -171,8 +163,6 @@ lemma forces_nat_eventually_stable (A : Formula α) :
       obtain ⟨m, hm⟩ := hf;
       exact ⟨m, fun n hn => iff_of_false (fun h => hm (forces_nat_box_antitone hn h)) hm⟩;
 
-/-- Forcing at chain points (`chainPoint n`) eventually stabilizes, as `n` grows, to the
-forcing value at the tail model's own root (`chainPoint ⊤`). -/
 lemma forces_nat_eventually_root (A : Formula α) :
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n →
     ((toTail.chainPoint n) ⊩[(M.toTail tail).toModel] A ↔
@@ -183,7 +173,7 @@ lemma forces_nat_eventually_root (A : Formula α) :
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA;
     obtain ⟨k₂, h₂⟩ := ihB;
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
@@ -192,9 +182,9 @@ lemma forces_nat_eventually_root (A : Formula α) :
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A _ =>
     by_cases hf : ∀ n : ℕ, (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A);
-    . refine ⟨0, ?_⟩;
+    . use 0;
       intro n _;
-      refine iff_of_true (hf n) ?_;
+      apply iff_of_true (hf n);
       rintro (x | j) hxy;
       . exact hf 0 (toTail.embed x) rel_chainPoint_embed;
       . obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp (ne_top_of_lt (rel_chainPoint_chainPoint.mp hxy));
@@ -208,9 +198,9 @@ lemma forces_nat_eventually_root (A : Formula α) :
       exact ⟨m, fun n hn => iff_of_false (fun h => hm (forces_nat_box_antitone hn h)) hm'⟩;
 
 /--
-  **Tail Lemma** (`Visser1984` Lemma 2.2): `A` is forced at the tail model's own root
-  (`chainPoint ⊤`) iff `A` is eventually forced along the chain (`chainPoint n` for all
-  sufficiently large `n`).
+  **Tail Lemma**.
+
+  - [Vis84, Lemma 2.2]
 -/
 lemma tailLemma (A : Formula α) :
   (toTail.chainPoint ⊤) ⊩[(M.toTail tail).toModel] A ↔
@@ -221,11 +211,6 @@ lemma tailLemma (A : Formula α) :
   . rintro ⟨k', hk'⟩;
     exact (hk (max k k') (le_max_left _ _)).mp (hk' (max k k') (le_max_right _ _));
 
-/--
-  If `Γ` is closed under subformulas and the root forces `□B 🡒 B` for every `□B ∈ Γ`,
-  then forcing of every formula in `Γ` at the root agrees with forcing at every chain
-  point (`chainPoint n`).
--/
 lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTrans _ M.Rel]
   {Γ : FormulaFinset α}
   (Γclosed : ∀ B ∈ Γ, B.subfmls ⊆ Γ)
@@ -264,9 +249,6 @@ section Reindex
 
 variable {κ' : Type*} [Nonempty κ'] {tail : M.World} {e : κ ≃ κ'}
 
-/-- Re-indexing the base model along `e` does not change the tail construction, up to
-transporting the worlds by `Sum.map e id`. This is routine infrastructure with no counterpart in
-the literature. -/
 lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
   Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
   x ⊩[(M.toTail tail).toModel] A := by
@@ -274,9 +256,9 @@ lemma forces_toTail_reindex_iff {x : (M.toTail tail).World} :
       Sum.map e id x ⊩[((M.reindex e).toTail (e tail)).toModel] A ↔
       Sum.map e id x ⊩[(M.toTail tail).toModel.reindex (e.sumCongr (Equiv.refl ℕ∞))] A := by
     apply Model.forces_congr;
-    · funext y z;
+    . funext y z;
       rcases y with y | i <;> rcases z with z | j <;> rfl;
-    · rintro (y | i) a <;> simp [Model.reindex];
+    . rintro (y | i) a <;> simp [Model.reindex];
   rw [h];
   exact Model.forces_reindex_iff (e := e.sumCongr (Equiv.refl ℕ∞)) (x := x);
 

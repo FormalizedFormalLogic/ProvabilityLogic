@@ -9,15 +9,9 @@ variable {α : Type u}
 
 namespace LogicGL
 
-/--
-Hilbert-style proof system for `GL`, over a `Minimal + DNE` propositional base.
-
-The propositional primitives (`implyK`, `implyS`, `dne`, `andElimL`, `andElimR`,
-`andIntro`, `orIntroL`, `orIntroR`, `orElim`) mirror `Foundation`'s minimal Hilbert
-calculus (`Foundation.Propositional.Hilbert.Minimal`), extended with double negation
-elimination (`dne`) to make the propositional fragment classical. The Łukasiewicz-style
-axiom `elimContra : (∼A 🡒 ∼B) 🡒 (B 🡒 A)` is recovered as a derived lemma.
--/
+/-- Hilbert-style proof system for `GL`. Its propositional primitives mirror
+`Foundation`'s minimal Hilbert calculus (`Foundation.Propositional.Hilbert.Minimal`),
+extended by double negation elimination to make the propositional fragment classical. -/
 inductive ProofHilbert : Formula α → Type u
 | implyK   {A B}   : ProofHilbert $ A 🡒 B 🡒 A
 | implyS   {A B C} : ProofHilbert $ (A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)
@@ -58,9 +52,7 @@ variable {A B C : Formula α}
 @[simp, grind .] lemma modal4 : ⊢ʰ[GL] □A 🡒 □□A := ⟨ProofHilbert.modal4⟩
 @[simp, grind .] lemma modalL : ⊢ʰ[GL] □(□A 🡒 A) 🡒 □A := ⟨ProofHilbert.modalL⟩
 
-/-- Compatibility alias for the Łukasiewicz-style axiom `implyK`. -/
 @[simp, grind .] lemma prop1 : ⊢ʰ[GL] A 🡒 B 🡒 A := implyK
-/-- Compatibility alias for the Łukasiewicz-style axiom `implyS`. -/
 @[simp, grind .] lemma prop2 : ⊢ʰ[GL] (A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C) := implyS
 
 @[grind <=] lemma af :  ⊢ʰ[GL] A → ⊢ʰ[GL] B 🡒 A := λ h => mdp implyK h
@@ -129,11 +121,8 @@ protected lemma rec
 
 lemma of_subset_ctx (hXY : X ⊆ Y) : (X ⊢ʰ[GL] A) → (Y ⊢ʰ[GL] A) := λ h => by induction h <;> grind;
 
-lemma to_ctx : (X ⊢ʰ[GL] A 🡒 B) → (insert A X ⊢ʰ[GL] B) := λ h => by
-  apply mdp;
-  . show insert A X ⊢ʰ[GL] A 🡒 B;
-    exact of_subset_ctx (by simp) h;
-  . exact ofContext (by simp);
+lemma to_ctx : (X ⊢ʰ[GL] A 🡒 B) → (insert A X ⊢ʰ[GL] B) :=
+  fun h => mdp (of_subset_ctx (by simp) h) (ofContext (by simp))
 
 lemma drop_ctx (h : insert A X ⊢ʰ[GL] B) : (X ⊢ʰ[GL] A 🡒 B) := by
   generalize e : insert A X = Y at h;
@@ -167,7 +156,6 @@ lemma iff_singleton_deducible_provable : ({A} ⊢ʰ[GL] B) ↔ (⊢ʰ[GL] A 🡒
   rw [show ({A} : FormulaSet α) = insert A ∅ by simp];
   apply Iff.trans deduction_theorem iff_empty_ctx;
 
-/-- Context-level transitivity of implication. -/
 lemma impTrans (p : X ⊢ʰ[GL] A 🡒 B) (q : X ⊢ʰ[GL] B 🡒 C) : X ⊢ʰ[GL] A 🡒 C :=
   mdp (mdp (ofProvable ProvableHilbert.prop2) (mdp (ofProvable ProvableHilbert.prop1) q)) p
 
@@ -211,24 +199,18 @@ lemma impTrans : ⊢ʰ[GL] A 🡒 B → ⊢ʰ[GL] B 🡒 C → ⊢ʰ[GL] A 🡒 
   replace h₂ : {A} ⊢ʰ[GL] B 🡒 C := DeducibleHilbert.ofProvable h₂;
   exact DeducibleHilbert.iff_singleton_deducible_provable.mp $ DeducibleHilbert.mdp h₂ h₁;
 
-/-- Double negation introduction: `A 🡒 ∼∼A`. -/
 @[grind =>] lemma dni : ⊢ʰ[GL] A 🡒 ∼∼A := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{∼A, A}`, goal `⊥`
   have hA  : ({∼A, A}) ⊢ʰ[GL] A     := DeducibleHilbert.ofContext (by grind);
   have hnA : ({∼A, A}) ⊢ʰ[GL] A 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.mdp hnA hA;
 
-/-- The Łukasiewicz-style contraposition axiom: `(∼A 🡒 ∼B) 🡒 (B 🡒 A)`. -/
 @[simp, grind .] lemma elimContra : ⊢ʰ[GL] (∼A 🡒 ∼B) 🡒 (B 🡒 A) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{B, ∼A 🡒 ∼B}`, goal `A`
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
-  -- goal `∼∼A`, i.e. `∼A 🡒 ⊥`
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{∼A, B, ∼A 🡒 ∼B}`, goal `⊥`
   have hnA  : ({∼A, B, ∼A 🡒 ∼B}) ⊢ʰ[GL] ∼A      := DeducibleHilbert.ofContext (by grind);
   have himp : ({∼A, B, ∼A 🡒 ∼B}) ⊢ʰ[GL] ∼A 🡒 ∼B := DeducibleHilbert.ofContext (by grind);
   have hnB  : ({∼A, B, ∼A 🡒 ∼B}) ⊢ʰ[GL] ∼B      := DeducibleHilbert.mdp himp hnA;
@@ -238,17 +220,13 @@ lemma impTrans : ⊢ʰ[GL] A 🡒 B → ⊢ʰ[GL] B 🡒 C → ⊢ʰ[GL] A 🡒 
 @[simp, grind .] lemma efq : ⊢ʰ[GL] ⊥ 🡒 A := mdp elimContra (af top)
 @[grind <=] lemma efqRule : ⊢ʰ[GL] (⊥ : Formula α) → ⊢ʰ[GL] A := mdp efq
 
-/-- Left conjunction elimination (alias for the primitive `andElimL`). -/
 @[simp, grind .] lemma andL : ⊢ʰ[GL] (A ⋏ B) 🡒 A := andElimL
-/-- Right conjunction elimination (alias for the primitive `andElimR`). -/
 @[simp, grind .] lemma andR : ⊢ʰ[GL] (A ⋏ B) 🡒 B := andElimR
 
 @[grind =>] lemma andLRule : ⊢ʰ[GL] (A ⋏ B) → ⊢ʰ[GL] A := mdp andL
 @[grind =>] lemma andRRule : ⊢ʰ[GL] (A ⋏ B) → ⊢ʰ[GL] B := mdp andR
 
-/-- Left disjunction introduction (alias for the primitive `orIntroL`). -/
 @[simp, grind .] lemma orL : ⊢ʰ[GL] A 🡒 (A ⋎ B) := orIntroL
-/-- Right disjunction introduction (alias for the primitive `orIntroR`). -/
 @[simp, grind .] lemma orR : ⊢ʰ[GL] B 🡒 (A ⋎ B) := orIntroR
 
 @[grind =>] lemma orLRule : ⊢ʰ[GL] A → ⊢ʰ[GL] (A ⋎ B) := mdp orL
@@ -303,7 +281,6 @@ lemma imp_fconj_fconj_of_subset {Γ Γ' : FormulaFinset α} (h : Γ' ⊆ Γ) : �
   intro A;
   simpa using @h A;
 
-/-- Combinatory reassociation of a conjunction: `(A ⋏ B) 🡒 (C 🡒 D)` derives `(A ⋏ C) 🡒 (B 🡒 D)`. -/
 @[simp, grind .]
 lemma imp_reassoc : ⊢ʰ[GL] ((A ⋏ B) 🡒 (C 🡒 D)) 🡒 ((A ⋏ C) 🡒 (B 🡒 D)) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp
@@ -321,7 +298,6 @@ lemma imp_reassoc : ⊢ʰ[GL] ((A ⋏ B) 🡒 (C 🡒 D)) 🡒 ((A ⋏ C) 🡒 (
     DeducibleHilbert.ofContext (by grind)
   exact DeducibleHilbert.mdp (DeducibleHilbert.mdp himp hAB) hC
 
-/-- Elimination of a conjunction: `(A ⋏ B) 🡒 C` derives `A 🡒 (B 🡒 C)`. -/
 @[simp, grind .]
 lemma imp_uncurry_and : ⊢ʰ[GL] ((A ⋏ B) 🡒 C) 🡒 (A 🡒 (B 🡒 C)) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp
@@ -334,7 +310,6 @@ lemma imp_uncurry_and : ⊢ʰ[GL] ((A ⋏ B) 🡒 C) 🡒 (A 🡒 (B 🡒 C)) :=
   have himp : ({B, A, (A ⋏ B) 🡒 C}) ⊢ʰ[GL] (A ⋏ B) 🡒 C := DeducibleHilbert.ofContext (by grind)
   exact DeducibleHilbert.mdp himp hAB
 
-/-- Swapping antecedents: `A 🡒 (B 🡒 C)` derives `B 🡒 (A 🡒 C)`. -/
 @[simp, grind .]
 lemma imp_swap : ⊢ʰ[GL] (A 🡒 (B 🡒 C)) 🡒 (B 🡒 (A 🡒 C)) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp
@@ -346,16 +321,12 @@ lemma imp_swap : ⊢ʰ[GL] (A 🡒 (B 🡒 C)) 🡒 (B 🡒 (A 🡒 C)) := by
   exact DeducibleHilbert.mdp (DeducibleHilbert.mdp himp hA) hB
 
 
-/-- Disjunction elimination (Minimal-style `orElim`), recovered classically:
-from `A 🡒 C` and `B 🡒 C` derive `(A ⋎ B) 🡒 C`. -/
 lemma orElim' (h₁ : ⊢ʰ[GL] A 🡒 C) (h₂ : ⊢ʰ[GL] B 🡒 C) : ⊢ʰ[GL] (A ⋎ B) 🡒 C := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{∼C, A ⋎ B}`, goal `⊥`
   have key : ({∼C, A ⋎ B}) ⊢ʰ[GL] A 🡒 ⊥ := by
     apply DeducibleHilbert.deduction_theorem.mp;
-    -- context `{A, ∼C, A ⋎ B}`, goal `⊥`
     have hA  : ({A, ∼C, A ⋎ B}) ⊢ʰ[GL] A     := DeducibleHilbert.ofContext (by grind);
     have hnC : ({A, ∼C, A ⋎ B}) ⊢ʰ[GL] C 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
     exact DeducibleHilbert.mdp hnC (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable h₁) hA);
@@ -393,7 +364,6 @@ lemma imp_fdisj_fdisj_of_subset {Γ Γ' : FormulaFinset α} (h : Γ ⊆ Γ') : �
 
 /-! ### Introduction/elimination for list and finset conjunctions/disjunctions -/
 
-/-- If `B` implies every member of `Γ`, it implies their conjunction. -/
 lemma imp_lconj_of_forall {Γ : FormulaList α} (h : ∀ A ∈ Γ, ⊢ʰ[GL] B 🡒 A) : ⊢ʰ[GL] B 🡒 ⋀Γ := by
   match Γ with
   | [] => exact af top;
@@ -401,7 +371,6 @@ lemma imp_lconj_of_forall {Γ : FormulaList α} (h : ∀ A ∈ Γ, ⊢ʰ[GL] B �
   | C :: D :: Γ =>
     exact ctxAndIntroRule (h C (by simp)) (imp_lconj_of_forall (fun A hA => h A (List.mem_cons_of_mem _ hA)));
 
-/-- If every member of `Γ` implies `D`, their disjunction implies `D`. -/
 lemma imp_ldisj_elim {Γ : FormulaList α} (h : ∀ A ∈ Γ, ⊢ʰ[GL] A 🡒 D) : ⊢ʰ[GL] ⋁Γ 🡒 D := by
   match Γ with
   | [] => exact (efq : ⊢ʰ[GL] ⊥ 🡒 D);
@@ -421,33 +390,28 @@ lemma imp_fconj_of_forall {Δ : FormulaFinset α} (h : ∀ A ∈ Δ, ⊢ʰ[GL] B
 lemma imp_fdisj_elim {Δ : FormulaFinset α} (h : ∀ A ∈ Δ, ⊢ʰ[GL] A 🡒 D) : ⊢ʰ[GL] ⋁Δ 🡒 D :=
   imp_ldisj_elim (fun A hA => h A (Finset.mem_toList.mp hA))
 
-/-- `B ⋏ ⋀Δ` implies `⋀(insert B Δ)`. -/
 lemma imp_fconj_insert [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[GL] (B ⋏ ⋀Δ) 🡒 ⋀(insert B Δ) := by
   apply imp_fconj_of_forall;
   intro A hA;
   rcases Finset.mem_insert.mp hA with rfl | hA;
-  · exact andL;
-  · exact impTrans andR (imp_fconj_of_mem hA);
+  . exact andL;
+  . exact impTrans andR (imp_fconj_of_mem hA);
 
-/-- `⋁(insert B Δ)` implies `B ⋎ ⋁Δ`. -/
 lemma imp_fdisj_insert [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[GL] ⋁(insert B Δ) 🡒 (B ⋎ ⋁Δ) := by
   apply imp_fdisj_elim;
   intro A hA;
   rcases Finset.mem_insert.mp hA with rfl | hA;
-  · exact orL;
-  · exact impTrans (imp_mem_fdisj hA) orR;
+  . exact orL;
+  . exact impTrans (imp_mem_fdisj hA) orR;
 
-/-- `B ⋎ ⋁Δ` implies `⋁(insert B Δ)`. -/
 lemma imp_insert_fdisj [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[GL] (B ⋎ ⋁Δ) 🡒 ⋁(insert B Δ) :=
   orElim' (imp_mem_fdisj (by simp)) (imp_fdisj_fdisj_of_subset (by simp))
 
-/-- Classical case split: from `A 🡒 C` and `A ⋎ C` conclude `C`. -/
 lemma orCasesImp : ⊢ʰ[GL] (A 🡒 C) 🡒 (A ⋎ C) 🡒 C := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{∼C, A ⋎ C, A 🡒 C}`, goal `⊥`
   have hnC : ({∼C, A ⋎ C, A 🡒 C}) ⊢ʰ[GL] C 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   have hnA : ({∼C, A ⋎ C, A 🡒 C}) ⊢ʰ[GL] A 🡒 ⊥ := by
     apply DeducibleHilbert.deduction_theorem.mp;
@@ -458,12 +422,10 @@ lemma orCasesImp : ⊢ʰ[GL] (A 🡒 C) 🡒 (A ⋎ C) 🡒 C := by
   have hAvC : ({∼C, A ⋎ C, A 🡒 C}) ⊢ʰ[GL] (A 🡒 ⊥) 🡒 C := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.mdp hnC (DeducibleHilbert.mdp hAvC hnA);
 
-/-- From `∼(A 🡒 B)` we recover `A`. -/
 lemma neg_imp_left : ⊢ʰ[GL] ∼(A 🡒 B) 🡒 A := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{∼A, ∼(A 🡒 B)}`, goal `⊥`
   have hAB : ({∼A, ∼(A 🡒 B)}) ⊢ʰ[GL] A 🡒 B := by
     apply DeducibleHilbert.deduction_theorem.mp;
     apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable efq);
@@ -473,23 +435,19 @@ lemma neg_imp_left : ⊢ʰ[GL] ∼(A 🡒 B) 🡒 A := by
   have hnAB : ({∼A, ∼(A 🡒 B)}) ⊢ʰ[GL] (A 🡒 B) 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.mdp hnAB hAB;
 
-/-- From `∼(A 🡒 B)` we recover `∼B`. -/
 lemma neg_imp_right : ⊢ʰ[GL] ∼(A 🡒 B) 🡒 ∼B := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `{B, ∼(A 🡒 B)}`, goal `⊥` (since `∼B = B 🡒 ⊥`)
   have hAB : ({B, ∼(A 🡒 B)}) ⊢ʰ[GL] A 🡒 B := by
     apply DeducibleHilbert.deduction_theorem.mp;
     exact DeducibleHilbert.ofContext (by grind);
   have hnAB : ({B, ∼(A 🡒 B)}) ⊢ʰ[GL] (A 🡒 B) 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   exact DeducibleHilbert.mdp hnAB hAB;
 
-/-- Context-level disjunction elimination, recovered classically via `dne`. -/
 lemma _root_.LogicGL.DeducibleHilbert.orElim {X : FormulaSet α}
     (h₁ : X ⊢ʰ[GL] A 🡒 C) (h₂ : X ⊢ʰ[GL] B 🡒 C) (h : X ⊢ʰ[GL] A ⋎ B) : X ⊢ʰ[GL] C := by
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context `insert (∼C) X`, goal `⊥`
   have hnC : (insert (∼C) X) ⊢ʰ[GL] C 🡒 ⊥ := DeducibleHilbert.ofContext (by grind);
   have h₁' : (insert (∼C) X) ⊢ʰ[GL] A 🡒 C := DeducibleHilbert.of_subset_ctx (by grind) h₁;
   have h₂' : (insert (∼C) X) ⊢ʰ[GL] B 🡒 C := DeducibleHilbert.of_subset_ctx (by grind) h₂;
@@ -499,41 +457,33 @@ lemma _root_.LogicGL.DeducibleHilbert.orElim {X : FormulaSet α}
   have hC  : (insert (∼C) X) ⊢ʰ[GL] C := DeducibleHilbert.mdp h₂' hB;
   exact DeducibleHilbert.mdp hnC hC;
 
-/-- `⋀(insert B Δ)` decomposes into `B ⋏ ⋀Δ`. -/
 lemma imp_insert_fconj [DecidableEq α] {Δ : FormulaFinset α} :
     ⊢ʰ[GL] ⋀(insert B Δ) 🡒 (B ⋏ ⋀Δ) :=
   ctxAndIntroRule (imp_fconj_of_mem (by simp)) (imp_fconj_fconj_of_subset (by simp))
 
-/-- Classical push of an implication across a disjunction: `A 🡒 (B ⋎ D)` derives `(A 🡒 B) ⋎ D`. -/
 lemma imp_push_disj : ⊢ʰ[GL] (A 🡒 (B ⋎ D)) 🡒 ((A 🡒 B) ⋎ D) := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
-  -- context `{A 🡒 (B ⋎ D)}`, goal `(A 🡒 B) ⋎ D`
   apply DeducibleHilbert.mdp (DeducibleHilbert.ofProvable dne);
   apply DeducibleHilbert.deduction_theorem.mp;
-  -- context now also holds `∼((A 🡒 B) ⋎ D)`, goal `⊥`
   have hn : ({∼(A 🡒 B ⋎ D), A 🡒 (B ⋎ D)}) ⊢ʰ[GL] ((A 🡒 B) ⋎ D) 🡒 ⊥ :=
     DeducibleHilbert.ofContext (by grind);
   have hmain : ({∼(A 🡒 B ⋎ D), A 🡒 (B ⋎ D)}) ⊢ʰ[GL] A 🡒 (B ⋎ D) :=
     DeducibleHilbert.ofContext (by grind);
   have hnAB : ({∼(A 🡒 B ⋎ D), A 🡒 (B ⋎ D)}) ⊢ʰ[GL] (A 🡒 B) 🡒 ⊥ :=
     DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orL) hn;
-  refine DeducibleHilbert.orElim (A := B) (B := D) (C := ⊥) ?_ ?_ ?_;
-  · exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_right) hnAB;
-  · exact DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orR) hn;
-  · exact DeducibleHilbert.mdp hmain (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_left) hnAB);
+  exact DeducibleHilbert.orElim (A := B) (B := D) (C := ⊥)
+    (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_right) hnAB)
+    (DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orR) hn)
+    (DeducibleHilbert.mdp hmain (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_left) hnAB));
 
-/-- Bridge lemma for the `(→L)` rule: from `⋀Γ 🡒 (A ⋎ ⋁Δ)` and `(B ⋏ ⋀Γ) 🡒 ⋁Δ`
-conclude `((A 🡒 B) ⋏ ⋀Γ) 🡒 ⋁Δ`. -/
 lemma bridge_impL (ha : ⊢ʰ[GL] C 🡒 (A ⋎ D)) (hb : ⊢ʰ[GL] (B ⋏ C) 🡒 D) :
     ⊢ʰ[GL] ((A 🡒 B) ⋏ C) 🡒 D := by
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
-  -- context `X = {(A 🡒 B) ⋏ C}`, goal `D`
   have hmem : ({(A 🡒 B) ⋏ C}) ⊢ʰ[GL] (A 🡒 B) ⋏ C := DeducibleHilbert.ofContext (by grind);
   have hC  : ({(A 🡒 B) ⋏ C}) ⊢ʰ[GL] C := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hmem;
   have hAD : ({(A 🡒 B) ⋏ C}) ⊢ʰ[GL] A ⋎ D := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable ha) hC;
   have hAtoD : ({(A 🡒 B) ⋏ C}) ⊢ʰ[GL] A 🡒 D := by
     apply DeducibleHilbert.deduction_theorem.mp;
-    -- context `insert A {(A 🡒 B) ⋏ C}`, goal `D`
     have hmem' : (insert A {(A 🡒 B) ⋏ C}) ⊢ʰ[GL] (A 🡒 B) ⋏ C := DeducibleHilbert.ofContext (by grind);
     have hAB : (insert A {(A 🡒 B) ⋏ C}) ⊢ʰ[GL] A 🡒 B := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andL) hmem';
     have hCi : (insert A {(A 🡒 B) ⋏ C}) ⊢ʰ[GL] C := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hmem';
@@ -544,15 +494,12 @@ lemma bridge_impL (ha : ⊢ʰ[GL] C 🡒 (A ⋎ D)) (hb : ⊢ʰ[GL] (B ⋏ C) �
   have hDtoD : ({(A 🡒 B) ⋏ C}) ⊢ʰ[GL] D 🡒 D := DeducibleHilbert.ofProvable impId;
   exact DeducibleHilbert.orElim hAtoD hDtoD hAD;
 
-/-- Bridge lemma for the `(→R)` rule: from `(A ⋏ C) 🡒 (B ⋎ D)` conclude `C 🡒 ((A 🡒 B) ⋎ D)`. -/
 lemma bridge_impR (h : ⊢ʰ[GL] (A ⋏ C) 🡒 (B ⋎ D)) : ⊢ʰ[GL] C 🡒 ((A 🡒 B) ⋎ D) := by
   have h2 : ⊢ʰ[GL] C 🡒 (A 🡒 (B ⋎ D)) := mdp imp_swap (mdp imp_uncurry_and h);
   exact impTrans h2 imp_push_disj;
 
-/-- Necessitation is monotone over implication: `A 🡒 B` yields `□A 🡒 □B`. -/
 lemma boxImp (h : ⊢ʰ[GL] A 🡒 B) : ⊢ʰ[GL] □A 🡒 □B := mdp modalK (nec h)
 
-/-- `□` collects binary conjunctions: `□A ⋏ □B` derives `□(A ⋏ B)`. -/
 lemma imp_box_and : ⊢ʰ[GL] (□A ⋏ □B) 🡒 □(A ⋏ B) := by
   have h3 : ⊢ʰ[GL] □A 🡒 (□B 🡒 □(A ⋏ B)) := impTrans (boxImp andIntro) modalK;
   apply DeducibleHilbert.iff_singleton_deducible_provable.mp;
@@ -561,14 +508,13 @@ lemma imp_box_and : ⊢ʰ[GL] (□A ⋏ □B) 🡒 □(A ⋏ B) := by
   have hB : ({□A ⋏ □B}) ⊢ʰ[GL] □B := DeducibleHilbert.mdp (DeducibleHilbert.ofProvable andR) hmem;
   exact DeducibleHilbert.mdp (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable h3) hA) hB;
 
-/-- `□` collects a finset conjunction: `⋀(Δ.box)` derives `□(⋀Δ)` (analogue of `collect_box_conj`). -/
 lemma imp_conj_box [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[GL] ⋀(Δ.box) 🡒 □(⋀Δ) := by
   induction Δ using Finset.induction with
   | empty => simp only [FormulaFinset.box, Finset.image_empty, FormulaFinset.conj_empty]; exact af (nec top);
   | insert A Δ' _ ih =>
     rw [show FormulaFinset.box (insert A Δ') = insert (□A) (FormulaFinset.box Δ') from Finset.image_insert ..];
-    refine impTrans imp_insert_fconj ?_;
-    exact impTrans (ctxAndIntroRule andL (impTrans andR ih)) (impTrans imp_box_and (boxImp imp_fconj_insert));
+    exact impTrans imp_insert_fconj
+      (impTrans (ctxAndIntroRule andL (impTrans andR ih)) (impTrans imp_box_and (boxImp imp_fconj_insert)));
 
 theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[GL] S → ⊢ʰ[GL] (⋀S.ant) 🡒 (⋁S.suc) := by
   intro h;
@@ -580,20 +526,14 @@ theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[GL] S → 
   | wkR _ hΔ ih =>
     exact ProvableHilbert.impTrans ih (imp_fdisj_fdisj_of_subset (by grind));
   | impL h₁ h₂ ih₁ ih₂ =>
-    -- ih₁ : ⊢ʰ[GL] ⋀Γ 🡒 ⋁insert A Δ,  ih₂ : ⊢ʰ[GL] ⋀insert B Γ 🡒 ⋁Δ
-    -- goal : ⊢ʰ[GL] ⋀insert (A 🡒 B) Γ 🡒 ⋁Δ
     have e₁ := impTrans ih₁ imp_fdisj_insert;
     have e₂ := impTrans imp_fconj_insert ih₂;
     exact impTrans imp_insert_fconj (bridge_impL e₁ e₂);
   | impR h ih =>
-    -- ih : ⊢ʰ[GL] ⋀insert A Γ 🡒 ⋁insert B Δ
-    -- goal : ⊢ʰ[GL] ⋀Γ 🡒 ⋁insert (A 🡒 B) Δ
     have e := impTrans imp_fconj_insert (impTrans ih imp_fdisj_insert);
     exact impTrans (bridge_impR e) imp_insert_fdisj;
   | @boxGL Γ A h ih =>
-    -- ih : ⊢ʰ[GL] ⋀insert (□A) (Γ ∪ Γ.box) 🡒 A,  goal : ⊢ʰ[GL] ⋀Γ.box 🡒 □A
     simp_all;
-    -- `P := ⋀(Γ ∪ Γ.box)`
     have ih' : ⊢ʰ[GL] (□A ⋏ ⋀(Γ ∪ Γ.box)) 🡒 A := impTrans imp_fconj_insert ih;
     have step2 : ⊢ʰ[GL] ⋀(Γ ∪ Γ.box) 🡒 (□A 🡒 A) := mdp imp_swap (mdp imp_uncurry_and ih');
     have step4 : ⊢ʰ[GL] □(⋀(Γ ∪ Γ.box)) 🡒 □A := impTrans (boxImp step2) modalL;
@@ -602,8 +542,8 @@ theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[GL] S → 
       intro F hF;
       obtain ⟨E, hE, rfl⟩ := Finset.mem_image.mp hF;
       rcases Finset.mem_union.mp hE with hEΓ | hEbox;
-      · exact imp_fconj_of_mem (Finset.mem_image.mpr ⟨E, hEΓ, rfl⟩);
-      · obtain ⟨C, hC, rfl⟩ := Finset.mem_image.mp hEbox;
+      . exact imp_fconj_of_mem (Finset.mem_image.mpr ⟨E, hEΓ, rfl⟩);
+      . obtain ⟨C, hC, rfl⟩ := Finset.mem_image.mp hEbox;
         exact impTrans (imp_fconj_of_mem (Finset.mem_image.mpr ⟨C, hC, rfl⟩)) modal4;
     exact impTrans (impTrans step5 imp_conj_box) step4;
 
@@ -633,7 +573,6 @@ theorem completeness [DecidableEq α] (h : ∀ {κ : Type u}, [Nonempty κ] → 
 
 end Kripke
 
-/-- `⋀Γ ⋏ ⋀Δ` derives `⋀(Γ ∪ Δ)`. -/
 @[grind <=]
 lemma imp_fconj_union [DecidableEq α] (Γ Δ : FormulaFinset α) : ⊢ʰ[GL] ((⋀Γ) ⋏ (⋀Δ)) 🡒 ⋀(Γ ∪ Δ) := by
   apply Kripke.completeness
@@ -643,7 +582,6 @@ lemma imp_fconj_union [DecidableEq α] (Γ Δ : FormulaFinset α) : ⊢ʰ[GL] ((
 
 end ProvableHilbert
 
-/-- Hilbert provability is preserved under renaming of atoms. -/
 lemma ProvableHilbert.map {β : Type*} (f : α → β) {A : Formula α} (h : ⊢ʰ[GL] A) : ⊢ʰ[GL] (A.map f) := by
   induction h using ProvableHilbert.rec with
   | implyK => exact ProvableHilbert.implyK
@@ -661,8 +599,6 @@ lemma ProvableHilbert.map {β : Type*} (f : α → β) {A : Formula α} (h : ⊢
   | mdp h₁ h₂ ih₁ ih₂ => exact ProvableHilbert.mdp ih₁ ih₂
   | nec h ih => exact ProvableHilbert.nec ih
 
-/-- Hilbert provability is preserved under substitution of atoms by arbitrary formulas,
-even across a change of alphabet. -/
 lemma ProvableHilbert.subst {β : Type*} {s : α → Formula β} {A : Formula α} (h : ⊢ʰ[GL] A) : ⊢ʰ[GL] (A⟦s⟧) := by
   induction h using ProvableHilbert.rec with
   | implyK => exact ProvableHilbert.implyK

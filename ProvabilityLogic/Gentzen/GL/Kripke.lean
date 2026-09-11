@@ -87,7 +87,6 @@ infix:50 " ⊧ " => ValidateSequent
 variable {M : Model κ α} {Γ Γ' Δ Δ' : FormulaFinset α} {A B : Formula α}
 
 omit [DecidableEq α] in
-/-- Validity of the singleton sequent `∅ ⟹ {A}` is exactly validity of `A`. -/
 lemma validateSequent_singleton_iff : M ⊧ (∅ ⟹ {A}) ↔ M.Validate A :=
   forall_congr' fun _ => World.forces_singleton_sequent
 
@@ -231,8 +230,7 @@ variable {BS : Sequent α} {S : ExpandedSequent BS} {A : Formula α}
 lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
   push Not;
   intro h₁ h₂;
-  apply S.unprovable;
-  exact ProvableGentzen.union' _ h₁ h₂;
+  exact S.unprovable (ProvableGentzen.union' _ h₁ h₂);
 @[grind .] lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by grind;
 @[grind =>] lemma of_mem_imp_ant (h : A 🡒 B ∈ S.1.1 := by grind) : A ∈ S.1.2 ∨ B ∈ S.1.1 := S.saturated.impL h
 @[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
@@ -275,10 +273,10 @@ lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ[GL] BS} {S₀ : Sequent 
     | A 🡒 B =>
       dsimp only [lindenbaum_indexed];
       split_ifs;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
-      · exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
-      · exact ⟨ih.1, ih.2⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      . exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
+      . exact ⟨ih.1, ih.2⟩;
 
 lemma subfmls_lindenbaum_indexed
   {BS_unprovable : ⊬ᵍ[GL] BS}
@@ -321,22 +319,16 @@ lemma saturated_lindenbaum_indexed
     match x with
     | #a | □C | ⊥ =>
       constructor
-      · intro A B hmem hx
-        refine ihL ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        · simp at h
-        · exact h
-      · intro A B hmem hx
-        refine ihR ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        · simp at h
-        · exact h
+      . intro A B hmem hx
+        exact ihL ((List.mem_cons.mp hmem).resolve_left (by simp)) hx
+      . intro A B hmem hx
+        exact ihR ((List.mem_cons.mp hmem).resolve_left (by simp)) hx
     | C 🡒 D =>
       have hunp : ⊬ᵍ[GL] (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2
       dsimp only [lindenbaum_indexed]
       split_ifs with h1 h2 h3 <;>
-        refine ⟨?_, ?_⟩ <;>
+        and_intros <;>
         intro A B hmem hx <;>
         simp only [List.mem_cons] at hmem <;>
         grind [ProvableGentzen.union']
@@ -388,14 +380,12 @@ noncomputable def lindenbaum
     unprovable := S.2,
     subset_subfmls := subfmls_lindenbaum_indexed ‹_› ‹_›
     saturated := {
-      impL := by
-        intro A B h;
-        apply lindenbaum_indexed_saturated_impL ?_ h;
-        exact Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union.mpr $ Or.inl h;
-      impR := by
-        intro A B h;
-        apply lindenbaum_indexed_saturated_impR ?_ h;
-        exact Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union.mpr $ Or.inr h;
+      impL := fun {A B} h =>
+        lindenbaum_indexed_saturated_impL
+          (Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union_left _ h) h
+      impR := fun {A B} h =>
+        lindenbaum_indexed_saturated_impR
+          (Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union_right _ h) h
     }
   }
 
@@ -502,19 +492,19 @@ lemma truthlemma :
         simp;
   | atom a =>
     constructor
-    · intro h; exact h
-    · intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩
+    . intro h; exact h
+    . intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩
   | bot =>
     constructor
-    · intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
-    · intro _ hf; exact hf
+    . intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
+    . intro _ hf; exact hf
   | imp A B ihA ihB =>
     constructor
-    · intro h hsA
+    . intro h hsA
       rcases x.saturated.impL h with hA | hB
-      · exact absurd hsA (ihA.2 hA)
-      · exact ihB.1 hB
-    · intro h hf
+      . exact absurd hsA (ihA.2 hA)
+      . exact ihB.1 hB
+    . intro h hf
       obtain ⟨hA, hB⟩ := x.saturated.impR h
       exact (ihB.2 hB) (hf (ihA.1 hA))
 
@@ -543,7 +533,7 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
 
-/-- Cut-elimination: any sequent provable with the cut rule (`⊢ᵍᶜ[GL]`) is also provable without it (`⊢ᵍ[GL]`). -/
+/-- Cut-elimination. -/
 theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[GL] S → ⊢ᵍ[GL] S := by
   intro h;
   induction h using GentzenWithCutProvable.rec with
@@ -555,8 +545,7 @@ theorem of_with_cut {S : Sequent α} : ⊢ᵍᶜ[GL] S → ⊢ᵍ[GL] S := by
   | impR _ ih => exact ProvableGentzen.impR ih
   | boxGL _ ih => exact ProvableGentzen.boxGL ih
   | cut _ _ ih₁ ih₂ =>
-    -- The cut rule has no direct syntactic elimination here; instead we argue
-    -- semantically via completeness, using soundness of both cut premises.
+    -- Cut has no direct syntactic elimination here; the argument goes through completeness.
     apply Kripke.completeness;
     rintro κ _ M _ x;
     have := Kripke.finite_soundness ih₁ M x;
@@ -571,12 +560,13 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
 
-theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ᵍ[GL] (∅ ⟹ {B}) := λ p q => by
+theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ᵍ[GL] (∅ ⟹ {B}) := by
+  intro p q;
   replace p : ⊢ᵍᶜ[GL] (insert A ∅ ⟹ {B}) := GentzenWithCutProvable.of_without_cut $ deduction_theorem.mpr p;
   replace q : ⊢ᵍᶜ[GL] (∅ ⟹ insert A ∅) := GentzenWithCutProvable.of_without_cut q;
   exact GentzenWithCutProvable.cut_elimination $ GentzenWithCutProvable.cut q p;
 
-/-- Löb's rule is admissible in `ProofGentzen`. Proved via cut. -/
+/-- Löb's rule is admissible. -/
 theorem ruleLöb (h : ⊢ᵍ[GL] ((insert (□A) (Γ ∪ Γ.box)) ⟹ {A})) : ⊢ᵍ[GL] (Γ ∪ Γ.box ⟹ {A}) := by
   apply of_with_cut
   have h₁ : ⊢ᵍᶜ[GL] ((Γ ∪ Γ.box) ⟹ insert (□A) ∅) :=

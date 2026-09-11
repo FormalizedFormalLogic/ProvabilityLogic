@@ -4,9 +4,12 @@ public import Mathlib.Data.Fintype.List
 public import Foundation.Vorspiel.Fin.Basic
 
 /-!
-Foundation removed `Foundation.Vorspiel.List.Chain` as unused code (#866), but
-`List.IsChain` and the API developed here are used pervasively across the Kripke
-semantics development in this repository. This file vendors that removed content.
+# `List.IsChain`
+
+`List.IsChain` and its API — chains built from `List.range` and `List.finRange`,
+duplicate-freeness under an irreflexive transitive relation, and the behaviour of
+endpoints under prefixes — used pervasively by the Kripke semantics development in this
+repository. Vendored from Foundation, which no longer provides it.
 -/
 
 @[expose]
@@ -24,7 +27,7 @@ variable [DecidableEq α]
 def finIdxOf (l : List α) (hx : x ∈ l) : Fin l.length := ⟨l.idxOf x, idxOf_lt_length_of_mem hx⟩
 
 @[simp, grind! →]
-lemma get_finIdxOf (hx : x ∈ l) : l.get (l.finIdxOf hx) = x := by simp [finIdxOf]
+lemma get_finIdxOf (hx : x ∈ l) : l.get (l.finIdxOf hx) = x := by simp [finIdxOf];
 
 @[simp, grind! →]
 lemma getElem_finIdxOf (hx : x ∈ l) : l[l.finIdxOf hx] = x := by grind;
@@ -71,20 +74,11 @@ lemma range.lt_isChain_map_strictAnti (f : ℕ → α) (f_anti : StrictAnti f) :
 lemma finRange.le_isChain_succ : List.IsChain (· < ·) (List.finRange (n + 1)) := by
   rw [finRange_succ];
   induction n with
-  | zero => simp [finRange]
+  | zero => simp [finRange];
   | succ n ih =>
-    rw [List.finRange_succ, List.map]
+    rw [List.finRange_succ, List.map];
     apply List.isChain_append_cons_cons (α := Fin (n + 2)) (l₁ := []) |>.mpr;
-    refine ⟨?_, ?_, ?_⟩;
-    . tauto;
-    . tauto;
-    . have := @List.isChain_map_of_isChain
-        (α := Fin (n + 1)) (β := Fin (n + 2)) (R := (· < ·)) (S := (· < ·))
-        (f := Fin.succ)
-        (by simp)
-        (l := 0 :: (map Fin.succ (finRange n)))
-      apply this;
-      exact ih;
+    exact ⟨by tauto, by tauto, List.isChain_map_of_isChain (f := Fin.succ) (by simp) ih⟩;
 
 lemma finRange.le_isChain_map_strictMono_succ (f : Fin (n + 1) → α) (f_mono : StrictMono f)
   : List.IsChain (· < ·) (List.map f (List.finRange (n + 1))) := by
@@ -150,8 +144,8 @@ lemma noDup_of_irrefl_trans (h : List.IsChain R l) [Std.Irrefl R] : l.Nodup := b
   let j' : Fin l.length := ⟨j, by omega⟩;
   by_contra hC;
   replace hC : l.get i' = l.get j' := by simpa [
-    (show l[i]? = l.get i' by exact List.getElem?_eq_getElem (by omega)),
-    (show l[j]? = l.get j' by exact List.getElem?_eq_getElem (by omega))
+    (show l[i]? = l.get i' from List.getElem?_eq_getElem (by omega)),
+    (show l[j]? = l.get j' from List.getElem?_eq_getElem (by omega))
   ] using hC;
   have : R (l.get i') (l.get j') := of_lt h (by simpa);
   rw [hC] at this;
@@ -172,7 +166,7 @@ instance finiteNodupList [DecidableEq α] [Finite α] : Finite { l : List α // 
 
 lemma chains_finite [DecidableEq α] [Finite α] [IsTrans _ R] [Std.Irrefl R] : Finite { l : List α // l.IsChain R } := by
   apply @Finite.of_injective { l : List α // l.IsChain R } { l : List α // l.Nodup } _ ?f;
-  case f => intro ⟨l, hl⟩; refine ⟨l, List.IsChain.nodup_of_trans_irreflex hl⟩;
+  case f => intro ⟨l, hl⟩; exact ⟨l, List.IsChain.nodup_of_trans_irreflex hl⟩;
   simp [Function.Injective];
 
 
@@ -188,18 +182,14 @@ lemma concat_head?_eq_head (lh : l ≠ []) : (l.concat a).head? = some (l.head l
   | [] => contradiction;
   | _::_ => simp;
 
-lemma isChain_concat :  List.IsChain R (l.concat a) ↔ List.IsChain R l ∧ ∀ x ∈ l.getLast?, R x a := by
-  rw [List.concat_eq_append]
+lemma isChain_concat : List.IsChain R (l.concat a) ↔ List.IsChain R l ∧ ∀ x ∈ l.getLast?, R x a := by
+  rw [List.concat_eq_append];
   constructor;
   . intro h;
     simpa using List.isChain_append.mp h;
   . rintro ⟨h₁, h₂⟩;
     apply List.isChain_append.mpr;
-    refine ⟨h₁, ?_, ?_⟩;
-    . simp;
-    . intro x hx;
-      have : R x a := h₂ x hx;
-      simpa;
+    exact ⟨h₁, by simp, by intro x hx; have : R x a := h₂ x hx; simpa⟩;
 
 lemma isChain_concat_of_not_nil (hl : l ≠ []) : List.IsChain R (l.concat a) ↔ List.IsChain R l ∧ R (l.getLast hl) a := by
   apply Iff.trans List.isChain_concat;
@@ -249,14 +239,12 @@ lemma rel_getLast_of_isChain_preorder [IsPreorder _ R] (h : List.IsChain R l) (l
 end
 
 def embedding_of_exists_noDup {l : List α} (hl₁ : l.Nodup) (hl₂ : l.length = n) : Fin n ↪ α := by
-  refine ⟨λ ⟨i, hi⟩ => l.get ⟨i, by omega⟩, ?_⟩;
-  . rintro ⟨i, hi⟩ ⟨j, hj⟩ hij;
-    simpa using (List.nodup_iff_injective_get (l := l) |>.mp hl₁) hij;
+  exact ⟨λ ⟨i, hi⟩ => l.get ⟨i, by omega⟩, by
+    rintro ⟨i, hi⟩ ⟨j, hj⟩ hij;
+    simpa using (List.nodup_iff_injective_get (l := l) |>.mp hl₁) hij⟩;
 
 end List
 
-/-- In a chain under an irreflexive transitive relation, the last element of a proper
-prefix relates to the last element of the whole chain. -/
 lemma List.rel_getLast_getLast_of_prefix {α : Type*} {R : α → α → Prop} [DecidableEq α] [IsTrans α R] [Std.Irrefl R] {l₁ l₂ : List α}
   (hc : l₂.IsChain R) (hp : l₁ <+: l₂) (hlt : l₁.length < l₂.length)
   (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ []) :

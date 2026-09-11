@@ -24,16 +24,14 @@ yields a countermodel of `A` in the sense of `StrongReflexiveCountermodel`.
 - [Bek90, Lemma 5]
 -/
 noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ : Type u} [Nonempty κ]
-    {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World]
-    (hnA : M.root.1 ⊮[_] A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩[_] ⋀A.subfmlsS) :
-    StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
-  -- Both extra conditions (the reflexive node's unique predecessor being the root, and
-  -- rank maximality) are achieved by grafting a chain of copies of `r` of length
-  -- `M.height + 2` between the root and `r` (`RootedModel.graft`), which is
-  -- forcing-preserving because `r` is `A`-reflexive.
+  {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World]
+  (hnA : M.root.1 ⊮[_] A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩[_] ⋀A.subfmlsS) :
+  StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
+  -- Grafting a chain of copies of `r` between the root and `r` preserves forcing because
+  -- `r` is `A`-reflexive, and buys the unique-predecessor and rank-maximality conditions.
   have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
     intro B hB;
-    exact Model.World.forces_fconj.mp hrS _
+    exact forces_fconj.mp hrS _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
   let r' : M.ReflexiveWorldOf A.subfmls := ⟨r, fun {B} hB => ha B hB⟩;
   have hrne : r ≠ M.root.1 := fun h => Std.Irrefl.irrefl _ (h ▸ hr);
@@ -48,7 +46,7 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     show M.root.1 = M.root.1;
     rfl;
   . -- the bottom of the grafted chain is still `A`-reflexive.
-    apply Model.World.forces_fconj.mpr;
+    apply forces_fconj.mpr;
     intro C hC;
     obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
     replace hB : (□B) ∈ A.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hB;
@@ -71,13 +69,13 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     rintro (y | i) hz hzr;
     . replace hz : y ≠ M.root.1 := by simpa using hz;
       rw [RootedModel.graft.rank_inl hz, RootedModel.graft.rank_inr hr];
-      have : Model.World.rank y < M.height := RootedModel.rank_lt_height (M.root.2 y hz);
-      show Model.World.rank y < M.height + 1 + 1 + Model.World.rank r;
+      have : rank y < M.height := RootedModel.rank_lt_height (M.root.2 y hz);
+      show rank y < M.height + 1 + 1 + rank r;
       omega;
     . replace hzr : (i : ℕ) ≠ M.height + 1 := by simpa [Fin.ext_iff] using hzr;
       rw [RootedModel.graft.rank_inr hr, RootedModel.graft.rank_inr hr];
       have hik : (i : ℕ) < M.height + 2 := lt_of_lt_of_eq i.2 hk;
-      show (i : ℕ) + 1 + Model.World.rank r < M.height + 1 + 1 + Model.World.rank r;
+      show (i : ℕ) + 1 + rank r < M.height + 1 + 1 + rank r;
       omega;
   . -- the bottom of the chain sees the next chain world.
     show (M.height : ℕ) < M.height + 1;
@@ -96,24 +94,21 @@ such that, provably in `𝗜𝚺₁`, the `n`-times iterated consistency of `T` 
 - [AB05, Lemma 51]
 -/
 theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
-    {A : Formula α} (hA : A ∉ LogicA)
-    {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
-    ∃ (n : ℕ) (f : Realization α ℒₒᵣ),
-      𝗜𝚺₁ ⊢ (f T ((∼(□^[n]⊥)) ⋏ A : Formula α)) 🡒 ((T.standardProvability σ) 🡒 σ) := by
-  -- Obtained by the Solovay construction on the countermodel given by
-  -- `StrongReflexiveCountermodel.ofReflexive`, modified so that the limit jumps from
-  -- the root to the `A`-reflexive node `r` as soon as a witness of `σ` is found.
+  {A : Formula α} (hA : A ∉ LogicA)
+  {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
+  ∃ (n : ℕ) (f : Realization α ℒₒᵣ),
+    𝗜𝚺₁ ⊢ (f T ((∼(□^[n]⊥)) ⋏ A : Formula α)) 🡒 ((T.standardProvability σ) 🡒 σ) := by
   obtain ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩ := LogicA.exists_reflexive_countermodel_of_not_mem_LogicA hA;
   have := hne;
   have := hfgl;
   have : Fintype M.World := Fintype.ofFinite _;
   let X := StrongReflexiveCountermodel.ofReflexive M hnA r hr hrS;
-  let S := FFL.FirstOrder.Theory.standardProvability.modifiedSolovaySentences T X hσ;
-  use Model.World.rank X.r, S.realization;
+  let S := Theory.standardProvability.modifiedSolovaySentences T X hσ;
+  use rank X.r, S.realization;
   have h := S.reflection;
-  unfold FFL.FirstOrder.ProvabilityAbstraction.Provability.conItr at h;
-  have e : (S.realization T ((∼(□^[Model.World.rank X.r]⊥)) ⋏ A : Formula α))
-      = ((((T.standardProvability^[Model.World.rank X.r] ⊥) 🡒 (⊥ : ArithmeticSentence))
+  unfold Provability.conItr at h;
+  have e : (S.realization T ((∼(□^[rank X.r]⊥)) ⋏ A : Formula α))
+      = ((((T.standardProvability^[rank X.r] ⊥) 🡒 (⊥ : ArithmeticSentence))
           🡒 ((S.realization T A) 🡒 (⊥ : ArithmeticSentence))) 🡒 (⊥ : ArithmeticSentence)) := by
     simp [Formula.interpret];
   rw [e];
@@ -129,19 +124,19 @@ If the provability logic of `T` relative to `U` has trace `ω` and contains some
 - [AB05, Lemma 51]
 -/
 theorem provable_sigma1_reflection_of_mem_not_LogicA :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    L.trace = Set.univ → ∀ {A : Formula α}, A ∈ L → A ∉ LogicA →
-    ∀ σ : ArithmeticSentence, Arithmetic.Hierarchy 𝚺 1 σ →
-      U ⊢ (T.standardProvability σ) 🡒 σ := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  L.trace = Set.univ → ∀ {A : Formula α}, A ∈ L → A ∉ LogicA →
+  ∀ σ : ArithmeticSentence, Arithmetic.Hierarchy 𝚺 1 σ →
+    U ⊢ (T.standardProvability σ) 🡒 σ := by
   intro hT A hAL hAA σ hσ;
   classical
   obtain ⟨n, f, hf⟩ := exists_realization_sigma1_reflection_of_not_mem_LogicA (T := T) hAA hσ;
-  have hmem : (((∼(□^[n]⊥)) ⋏ A : Formula α)) ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
+  have hmem : ((∼(□^[n]⊥)) ⋏ A) ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
     provabilityLogic_mdp
       (provabilityLogic_mdp (provabilityLogic_of_GL ProvableHilbert.andIntro)
         (subset_LogicA_of_univ_trace hT LogicA.provable_neg_boxItr_bot))
       hAL;
-  exact (Entailment.WeakerThan.pbl hf) ⨀ (hmem f);
+  exact (WeakerThan.pbl hf) ⨀ (hmem f);
 
 /--
 If the provability logic of `T` relative to `U` has trace `ω` and strictly contains
@@ -150,8 +145,8 @@ If the provability logic of `T` relative to `U` has trace `ω` and strictly cont
 - [AB05, Corollary 52(2), Lemma 51]
 -/
 theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    L.trace = Set.univ → LogicA ⊂ L → LogicD ⊆ L := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  L.trace = Set.univ → LogicA ⊂ L → LogicD ⊆ L := by
   intro hT h;
   obtain ⟨A, hAL, hAA⟩ := Set.exists_of_ssubset h;
   intro B hB;
@@ -159,7 +154,7 @@ theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
   | mem₁ hB => exact provabilityLogic_of_GL hB;
   | mem₂ hB =>
     rcases Set.mem_insert_iff.mp hB with (rfl | ⟨C, D, rfl⟩);
-    . -- the axiom `P`, i.e. `∼□⊥`, is already a theorem of `GLαω`.
+    . -- the axiom `P`, i.e. `∼□⊥`, is already a theorem of `LogicA`.
       exact subset_LogicA_of_univ_trace hT
         (Formula.boxItr_one (A := (⊥ : Formula α)) ▸ LogicA.provable_neg_boxItr_bot (n := 1));
     . -- the axiom `D`: its interpretation is a `𝚺₁`-reflection instance.
@@ -176,8 +171,8 @@ No provability logic lies strictly between `LogicA` and `D`.
 - [AB05, Corollary 55]
 -/
 theorem no_logic_between_LogicA_LogicD :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    L.trace = Set.univ → ¬((LogicA ⊂ L) ∧ (L ⊂ LogicD)) := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  L.trace = Set.univ → ¬((LogicA ⊂ L) ∧ (L ⊂ LogicD)) := by
   rintro hT ⟨h₁, h₂⟩;
   exact h₂.not_subset (subset_LogicD_of_ssubset_LogicA_of_univ_trace hT h₁);
 

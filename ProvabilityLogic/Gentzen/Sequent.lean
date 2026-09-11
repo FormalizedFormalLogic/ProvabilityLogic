@@ -3,8 +3,10 @@ module
 public import ProvabilityLogic.Formula.Basic
 
 /-!
-This file defines the two-sided sequent `Γ ⟹ Δ`. Every sequent calculus in this repository
-(`GL`, `Grz`, `S`, `GL.3`) shares this type.
+# Sequents
+
+The two-sided sequent `Γ ⟹ Δ`, shared by every sequent calculus in this repository
+(`GL`, `Grz`, `S`, `GL.3`).
 -/
 
 @[expose]
@@ -35,8 +37,7 @@ variable {S : Sequent α}
 
 @[grind →]
 lemma mem_subfmls_subfmls {S : Sequent α} {B C : Formula α} (hB : B ∈ S.subfmls) (hC : C ∈ B.subfmls) : C ∈ S.subfmls := by
-  simp only [Sequent.subfmls, Finset.mem_union] at hB ⊢
-  grind [FormulaFinset.mem_subfmls_subfmls]
+  grind [FormulaFinset.mem_subfmls_subfmls, Sequent.subfmls]
 
 structure Saturated (S : Sequent α) where
   impL : ∀ {A B}, A 🡒 B ∈ S.1 → A ∈ S.2 ∨ B ∈ S.1

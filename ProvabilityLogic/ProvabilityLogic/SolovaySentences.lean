@@ -7,8 +7,8 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 /-!
 # Construction of Solovay sentences
 
-Port of the construction in `Foundation.ProvabilityLogic.SolovaySentences`
-(`FFL.FirstOrder.Arithmetic.Bootstrapping.SolovaySentences`) to ProvabilityLogic's Kripke models.
+The Solovay conditions `SC1`–`SC4` over a finite rooted Kripke model, the main lemma tying
+them to forcing, and the arithmetical fixed point that realizes them.
 -/
 
 @[expose] public section
@@ -140,23 +140,20 @@ open RootedModel.extendRoot
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [DecidableEq α]
 
 /--
-  **Reflexive main lemma** (cf. `SolovaySentences.rfl_mainlemma` in Foundation, used in
-  the proofs of the arithmetical completeness of `S`): when the root of `M` forces
-  all axiom T instances for boxed subformulas of `A` (i.e. the root is
-  `A`-reflexive), the Solovay sentence of the *new* root of `M.extendRoot 1` decides
-  the realizations of all subformulas of `A` according to their truth at the root of
-  `M`.
+  **Reflexive main lemma**: when the root of `M` is `A`-reflexive, the Solovay sentence of
+  the new root of `M.extendRoot 1` decides the realizations of the subformulas of `A`
+  according to their truth at the root of `M`.
 
   - [AB05, Lemma 49]
 -/
 lemma rfl_mainlemma
-    {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}
-    (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
-    ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
-      (M.root.1 ⊩[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T B)) ∧
-      (M.root.1 ⊮[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T B)) := by
+  {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}
+  (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
+  ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
+    (M.root.1 ⊩[M.toModel] B →
+      𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T B)) ∧
+    (M.root.1 ⊮[M.toModel] B →
+      𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T B)) := by
   intro B;
   induction B with
   | bot =>
@@ -255,7 +252,7 @@ variable (T) {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 def NegativeSuccessor (φ ψ : V) : Prop := T.ProvabilityComparisonLE (neg ℒₒᵣ φ) (neg ℒₒᵣ ψ)
 
 lemma NegativeSuccessor.quote_iff_provabilityComparisonLE {φ ψ : ArithmeticSentence} :
-    NegativeSuccessor (V := V) T ⌜φ⌝ ⌜ψ⌝ ↔ T.ProvabilityComparisonLE (V := V) ⌜∼φ⌝ ⌜∼ψ⌝ := by
+  NegativeSuccessor (V := V) T ⌜φ⌝ ⌜ψ⌝ ↔ T.ProvabilityComparisonLE (V := V) ⌜∼φ⌝ ⌜∼ψ⌝ := by
   simp [NegativeSuccessor, Sentence.quote_def, Semiformula.quote_def]
 
 section
@@ -268,7 +265,7 @@ instance negativeSuccessor_defined : 𝚺₁-Relation[V] NegativeSuccessor T via
 
 instance negativeSuccessor_definable : 𝚺₁-Relation (NegativeSuccessor T : V → V → Prop) := (negativeSuccessor_defined T).to_definable
 
-/-- instance for definability tactic-/
+/-- Instance for the definability tactic. -/
 instance negativeSuccessor_definable' : 𝚺-[0 + 1]-Relation (NegativeSuccessor T : V → V → Prop) := (negativeSuccessor_defined T).to_definable
 
 end
@@ -298,13 +295,13 @@ def θChainAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) : List M.
 
 omit [M.IsGL] in
 lemma rew_twoPointAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) :
-    Rew.subst w ▹ twoPointAux T M t i j = twoPointAux T M (fun i ↦ Rew.subst w (t i)) i j := by
+  Rew.subst w ▹ twoPointAux T M t i j = twoPointAux T M (fun i ↦ Rew.subst w (t i)) i j := by
   simp [twoPointAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
 
 omit [M.IsGL] in
 lemma rew_θChainAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List M.World) :
-    Rew.subst w ▹ θChainAux T M t ε = θChainAux T M (fun i ↦ Rew.subst w (t i)) ε := by
+  Rew.subst w ▹ θChainAux T M t ε = θChainAux T M (fun i ↦ Rew.subst w (t i)) ε := by
   match ε with
   |          [] => simp [θChainAux]
   |         [_] => simp [θChainAux]
@@ -315,7 +312,7 @@ def θAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) 
   ⩖ ε : WChain M M.root.1 i, θChainAux T M t ε
 
 lemma rew_θAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) :
-    Rew.subst w ▹ θAux T M t i = θAux T M (fun i ↦ Rew.subst w (t i)) i := by
+  Rew.subst w ▹ θAux T M t i = θAux T M (fun i ↦ Rew.subst w (t i)) i := by
   simp [Finset.map_udisj, θAux, rew_θChainAux]
 
 def _root_.FFL.FirstOrder.Theory.solovay (i : M.World) : ArithmeticSentence := exclusiveMultifixedpoint
@@ -331,7 +328,7 @@ def θChain (ε : List M.World) : ArithmeticSentence := θChainAux T M (fun i �
 def θ (i : M.World) : ArithmeticSentence := θAux T M (fun i ↦ ⌜T.solovay M i⌝) i
 
 lemma solovay_diag (i : M.World) :
-    𝗜𝚺₁ ⊢ (T.solovay M i) 🡘 ((θ T M i) ⋏ (⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith.val/[⌜T.solovay M j⌝])) := by
+  𝗜𝚺₁ ⊢ (T.solovay M i) 🡘 ((θ T M i) ⋏ (⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith.val/[⌜T.solovay M j⌝])) := by
   have : 𝗜𝚺₁ ⊢ (T.solovay M i) 🡘
       (Rew.subst fun j ↦ ⌜T.solovay M ((Fintype.equivFin M.World).symm j)⌝) ▹
         ((θAux T M (fun i ↦ #(Fintype.equivFin M.World i)) i) ⋏ (⩕ k ∈ { k : M.World | i ≺ k }, T.consistentWith.val/[#(Fintype.equivFin M.World k)])) := by
@@ -366,7 +363,7 @@ variable (T) (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
 variable {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
 @[simp] lemma val_twoPoint (i j : M.World) :
-    V ⊧/![] (twoPoint T M i j) ↔ ∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝ := by
+  V ⊧/![] (twoPoint T M i j) ↔ ∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝ := by
   simp [twoPoint, twoPointAux]
 
 variable (V)
@@ -387,30 +384,30 @@ attribute [simp] ΘChain.singleton
 @[simp] lemma ΘChain.not_nil : ¬ΘChain T M V ([] : List M.World) := by rintro ⟨⟩
 
 lemma ΘChain.doubleton_iff {i j : M.World} :
-    ΘChain T M V [j, i] ↔ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
+  ΘChain T M V [j, i] ↔ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
   constructor
-  · rintro ⟨⟩; simp_all
-  · rintro h; exact .cons h (by simp)
+  . rintro ⟨⟩; simp_all
+  . rintro h; exact .cons h (by simp)
 
 lemma ΘChain.cons_cons_iff {i j : M.World} {ε} :
-    ΘChain T M V (j :: i :: ε) ↔
-    ΘChain T M V (i :: ε) ∧ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
+  ΘChain T M V (j :: i :: ε) ↔
+  ΘChain T M V (i :: ε) ∧ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
   constructor
-  · rintro ⟨⟩; simp_all
-  · rintro ⟨ih, h⟩; exact .cons h ih
+  . rintro ⟨⟩; simp_all
+  . rintro ⟨ih, h⟩; exact .cons h ih
 
 lemma ΘChain.cons_cons_iff' {i j : M.World} {ε} :
-    ΘChain T M V (j :: i :: ε) ↔ ΘChain T M V [j, i] ∧ ΘChain T M V (i :: ε) := by
+  ΘChain T M V (j :: i :: ε) ↔ ΘChain T M V [j, i] ∧ ΘChain T M V (i :: ε) := by
   constructor
-  · rintro ⟨⟩; simpa [ΘChain.doubleton_iff, *]
-  · rintro ⟨ih, h⟩; exact h.cons (by rcases ih; assumption)
+  . rintro ⟨⟩; simpa [ΘChain.doubleton_iff, *]
+  . rintro ⟨ih, h⟩; exact h.cons (by rcases ih; assumption)
 
 lemma ΘChain.cons_of {m i j : M.World} {ε}
-    (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
-    (hΘ : ΘChain T M V ε)
-    (H : (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝))
-    (hij : i ≺ j) :
-    ΘChain T M V (j :: ε) := by
+  (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
+  (hΘ : ΘChain T M V ε)
+  (H : (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝))
+  (hij : i ≺ j) :
+  ΘChain T M V (j :: ε) := by
   rcases hc
   case singleton => exact .cons H hΘ
   case cons => exact .cons H hΘ
@@ -449,20 +446,20 @@ lemma ΘChain.append_iff {ε₁ ε₂ : List M.World} : ΘChain T M V (ε₁ ++ 
     simp [cons_cons_iff' (ε := ε₁ ++ i :: ε₂), cons_cons_iff' (ε := ε₁ ++ [i]), and_assoc, this]
 
 private lemma Solovay.exclusive.comparable {i₁ i₂ : M.World} {ε₁ ε₂ : List M.World}
-    (ne : i₁ ≠ i₂)
-    (h : ε₁ <:+ ε₂)
-    (Hi₁ : ∀ j, i₁ ≺ j → T.ConsistentWith (⌜T.solovay M j⌝ : V))
-    (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ r ε₁)
-    (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ r ε₂)
-    (Θε₂ : ΘChain T M V ε₂) : False := by
+  (ne : i₁ ≠ i₂)
+  (h : ε₁ <:+ ε₂)
+  (Hi₁ : ∀ j, i₁ ≺ j → T.ConsistentWith (⌜T.solovay M j⌝ : V))
+  (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ r ε₁)
+  (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ r ε₂)
+  (Θε₂ : ΘChain T M V ε₂) : False := by
   have : ∃ a, a :: ε₁ <:+ ε₂ := by
     rcases List.IsSuffix.eq_or_cons_suffix h with (e | h)
-    · have : ε₁ ≠ ε₂ := by
+    . have : ε₁ ≠ ε₂ := by
         rintro rfl
         have : i₁ = i₂ := (List.ChainI.eq_of cε₁ cε₂).1
         contradiction
       contradiction
-    · exact h
+    . exact h
   rcases this with ⟨j, hj⟩
   have hji₁ε₂ : [j, i₁] <:+: ε₂ := by
     rcases cε₁.tail_exists with ⟨ε₁', rfl⟩
@@ -479,15 +476,15 @@ private lemma Solovay.exclusive.comparable {i₁ i₂ : M.World} {ε₁ ε₂ : 
     exact (ProvabilityComparison.iff_le_refl_provable (L := ℒₒᵣ)).mp (this j hij₁)
   contradiction
 
-/-- Condition 1.-/
+/-- Solovay condition `SC1`. -/
 lemma Solovay.exclusive {i₁ i₂ : M.World} (ne : i₁ ≠ i₂) : T.Solovay M V i₁ → ¬T.Solovay M V i₂ := by
   intro S₁ S₂
   rcases S₁ with ⟨⟨ε₁, cε₁, Θε₁⟩, Hi₁⟩
   rcases S₂ with ⟨⟨ε₂, cε₂, Θε₂⟩, Hi₂⟩
   by_cases hε₁₂ : ε₁ <:+ ε₂
-  · exact Solovay.exclusive.comparable ne hε₁₂ Hi₁ cε₁ cε₂ Θε₂
+  . exact Solovay.exclusive.comparable ne hε₁₂ Hi₁ cε₁ cε₂ Θε₂
   by_cases hε₂₁ : ε₂ <:+ ε₁
-  · exact Solovay.exclusive.comparable (Ne.symm ne) hε₂₁ Hi₂ cε₂ cε₁ Θε₁
+  . exact Solovay.exclusive.comparable (Ne.symm ne) hε₂₁ Hi₂ cε₂ cε₁ Θε₁
   have : ∃ ε k j₁ j₂, j₁ ≠ j₂ ∧ j₁ :: k :: ε <:+ ε₁ ∧ j₂ :: k :: ε <:+ ε₂ := by
     rcases List.suffix_trichotomy hε₁₂ hε₂₁ with ⟨ε', j₁, j₂, nej, h₁, h₂⟩
     match ε' with
@@ -517,7 +514,7 @@ lemma Solovay.exclusive {i₁ i₂ : M.World} (ne : i₁ ≠ i₂) : T.Solovay M
   have : j₁ = j₂ := by simpa using! ProvabilityComparison.le_antisymm (V := V) P₁ P₂
   contradiction
 
-/-- Condition 2.-/
+/-- Solovay condition `SC2`. -/
 lemma Solovay.consistent {i j : M.World} (hij : i ≺ j) : T.Solovay M V i → ¬Provable T (⌜∼T.solovay M j⌝ : V) := fun h ↦
   (Theory.ConsistentWith.quote_iff T).mp (h.2 j hij)
 
@@ -535,8 +532,8 @@ lemma Θ.disjunction (i : M.World) : Θ T M V i → T.Solovay M V i ∨ ∃ j, i
   apply WellFounded.induction this.cwf i
   intro i ih hΘ
   by_cases hS : T.Solovay M V i
-  · left; exact hS
-  · right
+  . left; exact hS
+  . right
     have : ∃ j, i ≺ j ∧ ∀ k, i ≺ k → T.ProvabilityComparisonLE (V := V) ⌜∼T.solovay M j⌝ ⌜∼T.solovay M k⌝ := by
       have : ∃ j, i ≺ j ∧ Provable T (⌜∼T.solovay M j⌝ : V) := by
         have : Θ T M V i → ∃ x, i ≺ x ∧ Provable T (⌜∼T.solovay M x⌝ : V) := by
@@ -555,16 +552,16 @@ lemma Θ.disjunction (i : M.World) : Θ T M V i → T.Solovay M V i ∨ ∃ j, i
         cε.cons_of hε (by simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE]) hij⟩
     have : T.Solovay M V j ∨ ∃ k, j ≺ k ∧ T.Solovay M V k := ih j hij this
     rcases this with (hSj | ⟨k, hjk, hSk⟩)
-    · exact ⟨j, hij, hSj⟩
-    · exact ⟨k, IsTrans.trans _ _ _ hij hjk, hSk⟩
+    . exact ⟨j, hij, hSj⟩
+    . exact ⟨k, IsTrans.trans _ _ _ hij hjk, hSk⟩
 
-/-- Condition 4.-/
+/-- Solovay condition `SC4`. -/
 lemma disjunctive : ∃ i : M.World, T.Solovay M V i := by
   rcases Θ.disjunction (V := V) (T := T) M.root.1 ⟨[M.root.1], by simp⟩ with (H | ⟨i, _, H⟩);
   . use M.root.1;
   . use i;
 
-/-- Condition 3.-/
+/-- Solovay condition `SC3`. -/
 lemma Solovay.box_disjunction [𝗜𝚺₁ ⪯ T] {i : M.World} (ne : M.root.1 ≠ i) :
     T.Solovay M V i → Provable T (⌜⩖ j ∈ {j : M.World | i ≺ j}, T.solovay M j⌝ : V) := by
   intro hS
@@ -587,10 +584,6 @@ section
 
 variable {T : ArithmeticTheory} [T.Δ₁] {M : RootedModel κ α} [Fintype M.World] [M.IsGL]
 
-/--
-  The Solovay sentence of the root is true in the standard model `ℕ`
-  (port of `SolovaySentences.solovay_root_sound` in Foundation).
--/
 lemma solovay_root_sound [𝗜𝚺₁ ⪯ T] [sound : T.SoundOn (Arithmetic.Hierarchy 𝚷 2)] :
     T.Solovay M ℕ M.root.1 := by
   have : 𝗜𝚺₁ ⪯ T := inferInstance
@@ -619,8 +612,8 @@ lemma solovay_root_sound [𝗜𝚺₁ ⪯ T] [sound : T.SoundOn (Arithmetic.Hier
   have : T.Solovay M ℕ M.root.1 ∨ ∃ j, M.root.1 ≺ j ∧ T.Solovay M ℕ j :=
     Θ.disjunction (V := ℕ) (T := T) M.root.1 ⟨[M.root.1], by simp⟩
   rcases this with (H | ⟨i, hri, Hi⟩)
-  · assumption
-  · have : ¬T.Solovay M ℕ i := NS i (by rintro rfl; exact Std.Irrefl.irrefl M.root.1 hri)
+  . assumption
+  . have : ¬T.Solovay M ℕ i := NS i (by rintro rfl; exact Std.Irrefl.irrefl M.root.1 hri)
     contradiction
 
 end
