@@ -10,8 +10,8 @@ public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
 the local `Σ₁`-reflection formulation, together with its specialization to `T = 𝗣𝗔`.
 
 `LogicD.arithmetical_completeness` and the unboundedness theorem
-`FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection` it relies on still rest on
-`sorry`, and so does everything below that depends on them.
+`FFL.FirstOrder.Arithmetic.not_localReflection_weakerThan_union_localReflection` it relies
+on still rest on `sorry`, and so does everything below that depends on them.
 
 ## References
 
@@ -36,19 +36,19 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T]
 - [AB05, Example 60]
 -/
 theorem arithmetical_soundness (h : A ∈ LogicD) (f : Realization α ℒₒᵣ) :
-    (T ∪ T.localReflection 𝚺 1) ⊢ f T A := by
+    (T ∪ 𝗥𝗳𝗻[𝚺 1] T) ⊢ f T A := by
   induction h using LogicD.substlessInduction with
   | provable_GL h => exact Entailment.WeakerThan.pbl $ LogicGL.arithmetical_soundness' h;
   | axiomP | axiomD =>
     apply Entailment.by_axm;
     right;
-    apply FirstOrder.ArithmeticTheory.mem_localReflection;
+    refine (Provability.mem_localReflectionOn_iff _).mpr ⟨_, ?_, rfl⟩;
     simp [Formula.interpret, Arithmetic.standardProvability_def];
   | mdp ihAB ihA => exact ihAB ⨀ ihA;
 
 /-- - [AB05, Example 60] -/
 theorem arithmetical_soundness_PA (h : A ∈ LogicD) (f : Realization α ℒₒᵣ) :
-  (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) ⊢ f 𝗣𝗔 A :=
+  (𝗣𝗔 ∪ 𝗥𝗳𝗻[𝚺 1] 𝗣𝗔) ⊢ f 𝗣𝗔 A :=
   arithmetical_soundness h f
 
 
@@ -64,7 +64,7 @@ proof still rests on `sorry`.
 - [AB05, Example 60]
 -/
 theorem arithmetical_completeness
-    (H : ∀ f : Realization α ℒₒᵣ, T ∪ T.localReflection 𝚺 1 ⊢ f T A) :
+    (H : ∀ f : Realization α ℒₒᵣ, T ∪ 𝗥𝗳𝗻[𝚺 1] T ⊢ f T A) :
     A ∈ LogicD := by
   contrapose! H;
   replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_D_provable_GL.not.mp H;
@@ -79,7 +79,7 @@ theorem arithmetical_completeness
   sorry;
 
 lemma trace_univ_provabilityLogicRelativeTo_localReflection :
-  (T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) : Logic α).trace = Set.univ := by
+  (T.provabilityLogicRelativeTo (T ∪ 𝗥𝗳𝗻[𝚺 1] T) : Logic α).trace = Set.univ := by
   apply Set.eq_univ_of_forall;
   intro n;
   apply mem_trace_of_provable_TBB;
@@ -91,25 +91,24 @@ For sound `T`, `D` is the provability logic of `T` relative to `T + Rfn_Σ₁(T)
 - [AB05, Example 60]
 -/
 theorem eq_provabilityLogicRelativeTo_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] :
-  @LogicD α = T.provabilityLogicRelativeTo (T ∪ T.localReflection 𝚺 1) := by
-  -- Still rests on two `sorry`s: the semantic core behind
-  -- `provable_reflection_of_mem_not_LogicD`, and the unboundedness theorem.
-  have hTU : T ⪯ (T ∪ T.localReflection 𝚺 1) := inferInstance;
-  have : 𝗜𝚺₁ ⪯ (T ∪ T.localReflection 𝚺 1) := Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ T)) hTU;
-  have : Entailment.Consistent (T ∪ T.localReflection 𝚺 1) := consistent_of_model (T ∪ T.localReflection 𝚺 1) ℕ;
+  @LogicD α = T.provabilityLogicRelativeTo (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := by
+  have hTU : T ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := inferInstance;
+  have : 𝗜𝚺₁ ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ T)) hTU;
+  have : Entailment.Consistent (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := consistent_of_model (T ∪ 𝗥𝗳𝗻[𝚺 1] T) ℕ;
   apply Set.Subset.antisymm;
   . grind [arithmetical_soundness];
   . intro A hAL;
     by_contra hAD;
-    apply T.unbounded_localReflection;
-    apply provable_reflection_of_mem_not_LogicD (A := A);
-    . exact trace_univ_provabilityLogicRelativeTo_localReflection;
-    . exact hAL;
-    . exact hAD;
+    apply Arithmetic.not_localReflection_weakerThan_union_localReflection T;
+    apply Entailment.WeakerThan.ofAxm!;
+    intro φ hφ;
+    obtain ⟨σ, -, rfl⟩ := (Provability.mem_localReflectionOn_iff _).mp hφ;
+    exact provable_reflection_of_mem_not_LogicD (A := A)
+      trace_univ_provabilityLogicRelativeTo_localReflection hAL hAD σ;
 
 /-- - [AB05, Example 60] -/
 theorem eq_provabilityLogic_PA_localReflection :
-  @LogicD α = 𝗣𝗔.provabilityLogicRelativeTo (𝗣𝗔 ∪ 𝗣𝗔.localReflection 𝚺 1) :=
+  @LogicD α = 𝗣𝗔.provabilityLogicRelativeTo (𝗣𝗔 ∪ 𝗥𝗳𝗻[𝚺 1] 𝗣𝗔) :=
   eq_provabilityLogicRelativeTo_localReflection
 
 end completeness
