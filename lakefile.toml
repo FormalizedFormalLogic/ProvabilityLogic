@@ -13,6 +13,14 @@ name = "Foundation"
 git = "https://github.com/FormalizedFormalLogic/Foundation"
 rev = "master"
 
+# The arithmetical side of the metamathematics used here (reflection schemata, the
+# unboundedness theorem). Pinned to an exact revision; the pin must stay compatible with the
+# `Foundation` revision resolved above, which is the one AlphaCentauri itself pins.
+[[require]]
+name = "AlphaCentauri"
+git = "https://github.com/FormalizedFormalLogic/AlphaCentauri"
+rev = "3efc61513ecb258f804b2f12fbb7c51f9665d63d"
+
 [[require]]
 name = "LeanTypst"
 git = "https://github.com/SnO2WMaN/lean-typst.git"

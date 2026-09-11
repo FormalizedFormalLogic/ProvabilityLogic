@@ -1,74 +1,79 @@
 module
 
-public import Foundation.FirstOrder.Incompleteness.Löb
+public import AlphaCentauri.Reflection.Unboundedness
 
-@[expose] public section
+/-!
+# The unboundedness theorem for `Rfn_{𝚺 1}(T)`
 
-open FFL
-open FFL.Entailment
-open FFL.FirstOrder FFL.FirstOrder.ProvabilityAbstraction
+The instance of the unboundedness theorem that the arithmetical completeness of `D` rests on:
+a consistent `T + Rfn_{𝚺 1}(T)` does not prove the full local reflection schema `Rfn(T)`.
 
-namespace FFL.FirstOrder.ArithmeticTheory
+`AlphaCentauri.Reflection.Unboundedness` proves the theorem for an extension by a `Δ₁`-presented
+set of sentences in a *strict* prenex class. `Rfn_{𝚺 1}(T)` comes as neither: its members
+`Pr_T(σ) 🡒 σ` are `𝚷₂` but not prenex, and no `Δ₁` presentation of the schema is at hand. The
+missing bridge is `exists_delta1_strictHierarchy_equiv_localReflection`, which is still `sorry`.
 
-/-- The local reflection schema `Rfn_Γₙ(T) = { Pr_T(σ) 🡒 σ | σ a Γₙ-sentence }` for the
-standard provability predicate of `T`.
-
-- [AB05, §1.3]
--/
-def localReflection
-    (T : FirstOrder.ArithmeticTheory) [T.Δ₁] (Γ : Polarity) (n : ℕ) :
-    FirstOrder.ArithmeticTheory :=
-  { (T.standardProvability σ) 🡒 σ | (σ) (_ : Arithmetic.Hierarchy Γ n σ) }
-
-lemma mem_localReflection
-    {T : FirstOrder.ArithmeticTheory} [T.Δ₁] {Γ : Polarity} {n : ℕ}
-    {σ : FirstOrder.ArithmeticSentence} (hσ : Arithmetic.Hierarchy Γ n σ) :
-    ((T.standardProvability σ) 🡒 σ) ∈ T.localReflection Γ n :=
-  ⟨σ, hσ, rfl⟩
-
-
-section
-
-variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁]
-
-instance models_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] {Γ : Polarity} {n : ℕ}
-  : ℕ↓[ℒₒᵣ] ⊧* (T ∪ T.localReflection Γ n) := by
-  apply Semantics.modelsSet_iff.mpr;
-  rintro φ (hφ | ⟨σ, hσ, rfl⟩);
-  . exact Semantics.modelsSet_iff.mp inferInstance hφ;
-  . have : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability σ) → ℕ↓[ℒₒᵣ] ⊧ σ := fun h =>
-      models_of_provable inferInstance (T.standardProvability.sound_on h);
-    simpa using this;
-
-/-- The **unboundedness theorem**: `T + Rfn_Σ₁(T)`, being a consistent extension of `T` by
-`Π₂`-sentences, does not prove the full local reflection schema `Rfn(T)` — already its
-`Σ₂`-instances are out of reach.
+## References
 
 - [AB05, Theorem 23]
 - [KL68]
 -/
-theorem unbounded_localReflection
-  (T : FirstOrder.ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
-  [Entailment.Consistent (T ∪ T.localReflection 𝚺 1)] :
-  ¬∀ σ : FirstOrder.ArithmeticSentence, (T ∪ T.localReflection 𝚺 1) ⊢ (T.standardProvability σ) 🡒 σ := by
-  intro h
-  -- It suffices to reduce the schema `T + Rfn_Σ₁(T)` to a *finite* extension `T + π`
-  -- (`π ∈ Π₂`): every reflection instance provable from the schema is already provable
-  -- from finitely many of its instances, and finitely many `Σ₂`-instances (in particular
-  -- the one at `∼π` for a suitable `Π₂`-sentence `π`) can be packaged into a single
-  -- `Π₂`-sentence `π` by conjunction. This is the "trick, akin to Rosser's" omitted in
-  -- [AB05]; it requires an arithmetized deduction theorem and a partial truth predicate
-  -- for `Σ₁`-sentences, neither of which is currently available in Foundation.
-  suffices key : ∀ π : FirstOrder.ArithmeticSentence,
-      T ⊢ (T.standardProvability (∼π)) 🡒 ∼π →
-      Entailment.Inconsistent (insert π T : FirstOrder.ArithmeticTheory) by
-    sorry
-  intro π h1
-  have h2 : T ⊢ (∼π) := FFL.FirstOrder.Arithmetic.löb_theorem h1
-  have h3 : (insert π T : FirstOrder.ArithmeticTheory) ⊢ π := Entailment.by_axm (Set.mem_insert π T)
-  have h4 : (insert π T : FirstOrder.ArithmeticTheory) ⊢ (∼π) := Entailment.wk! (Set.subset_insert π T) h2
-  exact Entailment.inconsistent_of_provable (by cl_prover [h3, h4])
 
-end
+@[expose] public section
 
-end FFL.FirstOrder.ArithmeticTheory
+open FFL.Entailment
+open FFL.FirstOrder FFL.FirstOrder.ProvabilityAbstraction
+
+namespace FFL.FirstOrder.Arithmetic
+
+variable {T : ArithmeticTheory} [T.Δ₁] {Γ : Polarity} {n : ℕ}
+
+/-- `T + Rfn_{Γ n}(T)` holds in the standard model whenever `T` does. -/
+instance models_localReflectionOnHierarchy [ℕ↓[ℒₒᵣ] ⊧* T] :
+  ℕ↓[ℒₒᵣ] ⊧* (T ∪ 𝗥𝗳𝗻[Γ n] T) := by
+  apply Semantics.modelsSet_iff.mpr;
+  rintro φ (hφ | hφ);
+  . exact Semantics.modelsSet_iff.mp inferInstance hφ;
+  . obtain ⟨σ, -, rfl⟩ := (Provability.mem_localReflectionOn_iff _).mp hφ;
+    have : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability σ) → ℕ↓[ℒₒᵣ] ⊧ σ := fun h =>
+      models_of_provable inferInstance (T.standardProvability.sound_on h);
+    simpa using this;
+
+variable (T) [𝗜𝚺₁ ⪯ T]
+
+/-- `Rfn_{𝚺 1}(T)` is equivalent over `T` to a `Δ₁`-presented set of strict `𝚷₂` sentences.
+
+This is the hypothesis under which `AlphaCentauri.Reflection.Unboundedness` states the
+unboundedness theorem, and it is the one thing separating that theorem from
+`not_localReflection_weakerThan_union_localReflection` below. Both halves exist separately —
+Craig's trick turns the r.e. schema into a `Δ₁`-presented one, and the prenex normal form theorem
+turns each `𝚷₂` member into a strict one — but Craig's padding `σ ⋏ ⊤ ⋏ ⋯ ⋏ ⊤` destroys the
+prenex shape, and padding *inside* the `𝚫₀` matrix, which would not, is available in neither
+Foundation nor AlphaCentauri. Hence the `sorry`.
+
+- [AB05, Theorem 23]
+-/
+theorem exists_delta1_strictHierarchy_equiv_localReflection :
+  ∃ (U : ArithmeticTheory) (_ : U.Δ₁),
+  (∀ σ ∈ U, StrictHierarchy 𝚷 2 σ) ∧ T ∪ U ≊ T ∪ 𝗥𝗳𝗻[𝚺 1] T := by
+  sorry
+
+/-- **The unboundedness theorem** for `Rfn_{𝚺 1}(T)`: a consistent `T + Rfn_{𝚺 1}(T)`, an
+extension of `T` by `𝚷₂`-sentences, does not prove the full local reflection schema `Rfn(T)` —
+already its `𝚺₂`-instances are out of reach.
+
+- [AB05, Theorem 23]
+- [KL68]
+-/
+theorem not_localReflection_weakerThan_union_localReflection
+  [Consistent (T ∪ 𝗥𝗳𝗻[𝚺 1] T)] : ¬𝗥𝗳𝗻 T ⪯ T ∪ 𝗥𝗳𝗻[𝚺 1] T := by
+  intro h;
+  obtain ⟨U, dU, hU, hequiv⟩ := exists_delta1_strictHierarchy_equiv_localReflection T;
+  let := dU;
+  obtain ⟨h₁, h₂⟩ := Equiv.antisymm_iff.mp hequiv;
+  have : Consistent (T ∪ U) := Consistent.of_le inferInstance h₁;
+  exact not_localReflectionOnHierarchy_weakerThan_union (Γ := 𝚷) (n := 1) hU
+    (((WeakerThan.ofSubset
+      (T.standardProvability.localReflectionOn_mono fun _ _ => trivial)).trans h).trans h₂);
+
+end FFL.FirstOrder.Arithmetic
