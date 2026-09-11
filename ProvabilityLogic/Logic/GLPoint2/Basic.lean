@@ -18,7 +18,7 @@ lemma provable_of_provable_GL {A : Formula α} (h : A ∈ LogicGL) : A ∈ Logic
   Logic.sumNormal.mem₁ h
 
 lemma provable_axiomWeakPoint2 {A B : Formula α} :
-    ((◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B)) ∈ LogicGLPoint2 :=
+  ((◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B)) ∈ LogicGLPoint2 :=
   Logic.sumNormal.mem₂ ⟨A, B, rfl⟩
 
 section
@@ -83,17 +83,16 @@ protected lemma substlessInduction
 
 end
 
-
 universe u
 variable {α : Type u}
 
 open Model Model.World
 
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
-    [M.IsFiniteGLPoint2] {A : Formula α} (h : A ∈ LogicGLPoint2) : M ⊧ A := by
+  [M.IsFiniteGLPoint2] {A : Formula α} (h : A ∈ LogicGLPoint2) : M ⊧ A := by
   induction h using LogicGLPoint2.substlessInduction with
   | provable_GL h => exact ProvableHilbert.Kripke.finite_soundness h M;
-  | axiomWeakPoint2 => exact Model.validate_axiomWeakPoint2;
+  | axiomWeakPoint2 => exact validate_axiomWeakPoint2;
   | mdp ihAB ihA => exact fun x => (ihAB x) (ihA x);
   | nec ih => exact fun x y _ => ih y;
 
@@ -101,7 +100,7 @@ variable [DecidableEq α] {A B C : Formula α}
 
 omit [DecidableEq α] in
 lemma imp_trans (hAB : (A 🡒 B) ∈ @LogicGLPoint2 α) (hBC : (B 🡒 C) ∈ LogicGLPoint2) :
-    (A 🡒 C) ∈ LogicGLPoint2 :=
+  (A 🡒 C) ∈ LogicGLPoint2 :=
   Logic.sumNormal.imp_trans LogicGL.imp_trans hAB hBC
 
 lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
@@ -114,16 +113,18 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
     apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x;
-    apply Model.World.forces_imp.mpr;
+    apply forces_imp.mpr;
     by_cases h : x ⊩[_] ◇□⊥;
     . right;
-      obtain ⟨y, hxy, hy⟩ := Model.World.forces_dia.mp h;
-      apply Model.World.forces_dia.mpr;
+      obtain ⟨y, hxy, hy⟩ := forces_dia.mp h;
+      apply forces_dia.mpr;
       use y, hxy;
-      refine Model.World.forces_and.mpr ⟨?_, hy⟩
-      apply Model.World.forces_box.mpr;
-      intro z hyz;
-      exact absurd (Model.World.forces_box.mp hy z hyz) Model.World.not_forces_bot;
+      apply forces_and.mpr;
+      and_intros;
+      . apply forces_box.mpr;
+        intro z hyz;
+        exact absurd (forces_box.mp hy z hyz) not_forces_bot;
+      . exact hy;
     . left; exact h;
   have s2 : (◇(□(∼□⊥) ⋏ □⊥) 🡒 □(◇(∼□⊥) ⋎ □⊥)) ∈ @LogicGLPoint2 α :=
     provable_axiomWeakPoint2;
@@ -153,22 +154,24 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
     apply LogicGL.iff_forces.mpr;
     intro κ _ M _ x hL h4 hdia;
-    obtain ⟨y, hxy, hyD⟩ := Model.World.forces_dia.mp hdia;
+    obtain ⟨y, hxy, hyD⟩ := forces_dia.mp hdia;
     by_cases hbox : x ⊩[_] □(∼(C ⋏ □C));
     . grind;
     . have hx : x ⊮[_] □(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) := fun h => hbox (hL h);
-      obtain ⟨w, hxw, hw⟩ := Model.World.not_forces_box.mp hx;
-      obtain ⟨hw₁, hw₂⟩ := Model.World.not_forces_imp.mp hw;
-      obtain ⟨hwC, hwBC⟩ := Model.World.forces_and.mp (Model.World.not_forces_neg.mp hw₂);
-      have hwBBC : w ⊩[_] □□C := Model.World.forces_box.mp h4 w hxw hwBC;
-      apply Model.World.forces_dia.mpr;
+      obtain ⟨w, hxw, hw⟩ := not_forces_box.mp hx;
+      obtain ⟨hw₁, hw₂⟩ := not_forces_imp.mp hw;
+      obtain ⟨hwC, hwBC⟩ := forces_and.mp (not_forces_neg.mp hw₂);
+      have hwBBC : w ⊩[_] □□C := forces_box.mp h4 w hxw hwBC;
+      apply forces_dia.mpr;
       use w, hxw;
-      refine Model.World.forces_and.mpr ⟨?_, hwC⟩
-      apply Model.World.forces_box.mpr;
-      intro z hwz;
-      have hzD : z ⊩[_] C ⋏ □C := Model.World.forces_and.mpr
-        ⟨Model.World.forces_box.mp hwBC z hwz, Model.World.forces_box.mp hwBBC z hwz⟩;
-      exact absurd hzD (Model.World.forces_neg.mp (Model.World.forces_box.mp hw₁ z hwz));
+      apply forces_and.mpr;
+      and_intros;
+      . apply forces_box.mpr;
+        intro z hwz;
+        have hzD : z ⊩[_] C ⋏ □C := forces_and.mpr
+          ⟨forces_box.mp hwBC z hwz, forces_box.mp hwBBC z hwz⟩;
+        exact absurd hzD (forces_neg.mp (forces_box.mp hw₁ z hwz));
+      . exact hwC;
   have h₁ : (◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α :=
     Logic.sumNormal.mdp (Logic.sumNormal.mdp hMeta hLöb) hFour;
   have h₂ : (◇(□⊥ ⋏ C) 🡒 □(◇⊥ ⋎ C)) ∈ @LogicGLPoint2 α := provable_axiomWeakPoint2;
@@ -194,14 +197,13 @@ lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ Log
 
 end LogicGLPoint2
 
-
 lemma LogicGLPoint3_subset_LogicGLPoint2 [DecidableEq α] :
-    LogicGLPoint3 ⊆ (LogicGLPoint2 : Logic α) := by
-  intro A h
+  LogicGLPoint3 ⊆ (LogicGLPoint2 : Logic α) := by
+  intro A h;
   induction h using LogicGLPoint3.substlessInduction with
-  | provable_GL h => exact LogicGLPoint2.provable_of_provable_GL h
-  | axiomWeakPoint3 => exact LogicGLPoint2.provable_axiomWeakPoint3
-  | mdp ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA
-  | nec ih => exact Logic.sumNormal.nec ih
+  | provable_GL h => exact LogicGLPoint2.provable_of_provable_GL h;
+  | axiomWeakPoint3 => exact LogicGLPoint2.provable_axiomWeakPoint3;
+  | mdp ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA;
+  | nec ih => exact Logic.sumNormal.nec ih;
 
 end

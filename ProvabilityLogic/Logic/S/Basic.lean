@@ -13,24 +13,25 @@ universe u v
 variable {α : Type u}
 
 open LogicGL
+open Logic.sumQuasiNormal
 
 namespace LogicS
 
 @[grind →]
 lemma provable_of_provable_GL {A : Formula α} (h : A ∈ LogicGL) : A ∈ LogicS :=
-  Logic.sumQuasiNormal.mem₁ h
+  mem₁ h
 
-lemma provable_axiomT {A : Formula α} : (□A 🡒 A) ∈ LogicS := Logic.sumQuasiNormal.mem₂ ⟨A, rfl⟩
+lemma provable_axiomT {A : Formula α} : (□A 🡒 A) ∈ LogicS := mem₂ ⟨A, rfl⟩
 
 section
 
 /-- Intrinsic definition of `LogicS` avoiding `subst`. -/
 private inductive substless : Logic α
-  | provable_GL {A} : A ∈ LogicGL → LogicS.substless A
-  | axiomT (A) : LogicS.substless (□A 🡒 A)
-  | mdp {A B} : LogicS.substless (A 🡒 B) → LogicS.substless A → LogicS.substless B
+  | provable_GL {A} : A ∈ LogicGL → substless A
+  | axiomT (A) : substless (□A 🡒 A)
+  | mdp {A B} : substless (A 🡒 B) → substless A → substless B
 
-private lemma substless.eq_LogicS : LogicS.substless (α := α) = LogicS := by
+private lemma substless.eq_LogicS : substless (α := α) = LogicS := by
   ext A;
   constructor;
   . intro h;
@@ -40,23 +41,23 @@ private lemma substless.eq_LogicS : LogicS.substless (α := α) = LogicS := by
     | mdp _ _ ihAB ihA => exact Logic.sumQuasiNormal.mdp ihAB ihA;
   . intro h;
     induction h with
-    | mem₁ h => exact LogicS.substless.provable_GL h;
+    | mem₁ h => exact substless.provable_GL h;
     | mem₂ h =>
       obtain ⟨B, rfl⟩ := h;
-      exact LogicS.substless.axiomT B;
-    | mdp _ _ ihAB ihA => exact LogicS.substless.mdp ihAB ihA;
+      exact substless.axiomT B;
+    | mdp _ _ ihAB ihA => exact substless.mdp ihAB ihA;
     | subst hA ihA =>
       clear hA;
       induction ihA with
-      | provable_GL h => exact LogicS.substless.provable_GL (ProvableHilbert.subst h);
-      | axiomT B => exact LogicS.substless.axiomT _;
-      | mdp _ _ ihAB ihA => exact LogicS.substless.mdp ihAB ihA;
+      | provable_GL h => exact substless.provable_GL (ProvableHilbert.subst h);
+      | axiomT B => exact substless.axiomT _;
+      | mdp _ _ ihAB ihA => exact substless.mdp ihAB ihA;
 
-private lemma substless.toLogicS {A : Formula α} (h : LogicS.substless A) : A ∈ LogicS :=
-  LogicS.substless.eq_LogicS ▸ h
+private lemma substless.toLogicS {A : Formula α} (h : substless A) : A ∈ LogicS :=
+  substless.eq_LogicS ▸ h
 
-private lemma substless.ofLogicS {A : Formula α} (h : A ∈ LogicS) : LogicS.substless A :=
-  LogicS.substless.eq_LogicS.symm ▸ h
+private lemma substless.ofLogicS {A : Formula α} (h : A ∈ LogicS) : substless A :=
+  substless.eq_LogicS.symm ▸ h
 
 /-- Induction principle for `LogicS` avoiding `subst`. -/
 protected lemma substlessInduction
@@ -67,11 +68,11 @@ protected lemma substlessInduction
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
   : ∀ {A}, (h : A ∈ LogicS) → motive A h := by
   intro A h;
-  induction LogicS.substless.ofLogicS h with
+  induction substless.ofLogicS h with
   | provable_GL hg => exact provable_GL hg;
   | axiomT A => exact axiomT;
   | mdp hAB hA ihAB ihA =>
-    exact mdp (hAB := LogicS.substless.toLogicS hAB) (hA := LogicS.substless.toLogicS hA)
+    exact mdp (hAB := substless.toLogicS hAB) (hA := substless.toLogicS hA)
       (ihAB _) (ihA _);
 
 end
@@ -80,7 +81,7 @@ end
 variable {A B C : Formula α}
 
 lemma provable_lconj_of_forall_provable {Γ : FormulaList α} (h : ∀ B ∈ Γ, B ∈ LogicS) :
-    (⋀Γ) ∈ LogicS := by
+  (⋀Γ) ∈ LogicS := by
   match Γ with
   | [] => exact provable_of_provable_GL ProvableHilbert.top;
   | [B] => exact h B (by simp);
@@ -90,7 +91,7 @@ lemma provable_lconj_of_forall_provable {Γ : FormulaList α} (h : ∀ B ∈ Γ,
       (provable_lconj_of_forall_provable (Γ := C :: Γ) (by grind));
 
 lemma provable_fconj_of_forall_provable {Γ : FormulaFinset α} (h : ∀ B ∈ Γ, B ∈ LogicS) :
-    (⋀Γ) ∈ LogicS :=
+  (⋀Γ) ∈ LogicS :=
   provable_lconj_of_forall_provable (by simpa)
 
 lemma provable_fconj_subfmlsS [DecidableEq α] : (⋀A.subfmlsS) ∈ LogicS := by
@@ -126,7 +127,7 @@ lemma eventually_forces_tail_nat_of_provable [DecidableEq α] (h : A ∈ LogicS)
 
 lemma root_forces_subfmlsS_imp [DecidableEq α]
   (h : ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-       ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A) :
+    ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
   M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) := by
   intro κ _ M _ h₁;
@@ -148,7 +149,7 @@ lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
 lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
-  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] ((∅ : FormulaFinset α) ⟹ {A}) := by
+  ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (∅ ⟹ {A}) := by
   use A.subfmls.prebox.box;
   intro κ _ M _ x;
   have hHilbert := LogicGL.iff_provableHilbert.mp h;
@@ -159,7 +160,7 @@ lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
 
 lemma provableGentzen_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
-  ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) := by
+  ⊢ᵍ[S] (∅ ⟹[1] {A}) := by
   apply ProvableGentzen.Kripke.completeness;
   intro κ _ M _ w hw;
   obtain ⟨X, hX⟩ := exists_isReflexive_forces_of_GL_provable h;
@@ -167,7 +168,7 @@ lemma provableGentzen_of_GL_provable [DecidableEq α]
   exact ⟨i, hi i (le_refl i)⟩;
 
 lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
-  (h : ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α))) :
+  (h : ⊢ᵍ[S] (∅ ⟹[1] {A})) :
   ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A := by
   intro κ _ M _ tail;
@@ -193,20 +194,20 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
   - [KK23]
 -/
 theorem provability_TFAE [DecidableEq α] : [
-    A ∈ LogicS,
-    ⊢ᵍ[S] (∅ ⟹[1] {A}),
-    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
-      ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A,
-    ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-      M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A),
-    ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ (tail : M.World),
-      ∃ k : ℕ, ∀ m : ℕ, k ≤ m → toTail.chainPoint m ⊩[(M.toTail tail).toModel] A,
-    (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
-  ].TFAE := by
+  A ∈ LogicS,
+  ⊢ᵍ[S] (∅ ⟹[1] {A}),
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ (tail : M.World),
+    ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A,
+  ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
+    M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A),
+  ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ (tail : M.World),
+    ∃ k : ℕ, ∀ m : ℕ, k ≤ m → toTail.chainPoint m ⊩[(M.toTail tail).toModel] A,
+  (⋀A.subfmlsS 🡒 A) ∈ LogicGL,
+].TFAE := by
   tfae_have 1 → 3 := eventually_forces_tail_nat_of_provable;
   tfae_have 3 → 4 := root_forces_subfmlsS_imp;
   tfae_have 4 ↔ 6 := LogicGL.iff_forces_root.symm;
-  tfae_have 6 → 1 := fun h => Logic.sumQuasiNormal.mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
+  tfae_have 6 → 1 := fun h => mdp (provable_of_provable_GL h) provable_fconj_subfmlsS;
   tfae_have 6 → 2 := provableGentzen_of_GL_provable;
   tfae_have 2 → 3 := eventually_forces_tail_nat_of_provableGentzen;
   tfae_have 3 → 5 := by
@@ -221,23 +222,23 @@ theorem provability_TFAE [DecidableEq α] : [
   tfae_finish;
 
 theorem iff_provable_S_provable_GL [DecidableEq α] :
-    A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
+  A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
 
 theorem iff_eventually_forces_tail_nat [DecidableEq α] :
-    A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
-      ∀ (tail : M.World),
-      ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A :=
+  A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
+  ∀ (tail : M.World),
+  ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A :=
   provability_TFAE.out 0 2
 
 theorem iff_forces_root_subfmlsS_imp [DecidableEq α] :
-    A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
-      M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) :=
+  A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
+  M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) :=
   provability_TFAE.out 0 3
 
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
-    A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
-      ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
-        toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
+  A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
+  ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
+  toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
   provability_TFAE.out 0 4
 
 lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
@@ -248,7 +249,7 @@ lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
 
 /-- - [KK23] -/
 theorem iff_provable_provableGentzen [DecidableEq α] :
-    A ∈ LogicS ↔ ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
+    A ∈ LogicS ↔ ⊢ᵍ[S] (∅ ⟹[1] {A}) :=
   provability_TFAE.out 0 1
 
 end LogicS

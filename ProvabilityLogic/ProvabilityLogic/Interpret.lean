@@ -48,53 +48,53 @@ lemma interpret_boxItr {n : ℕ} : (□^[n]A).interpret f 𝔅 = 𝔅^[n] (A.int
 end Formula
 
 
-section interpret_map
+namespace Formula
 
 variable {β : Type*}
 
-lemma Formula.interpret_map {f : Realization β L} {g : α → β} {A : Formula α} :
+lemma interpret_map {f : Realization β L} {g : α → β} {A : Formula α} :
   (A.map g).interpret f 𝔅 = A.interpret (⟨f.val ∘ g⟩ : Realization α L) 𝔅 := by
   induction A with
   | atom a => rfl
   | bot => rfl
-  | imp A B ihA ihB => simp only [Formula.subst_imp, Formula.interpret, ihA, ihB]
-  | box A ih => simp only [Formula.subst_box, Formula.interpret, ih]
+  | imp A B ihA ihB => simp only [subst_imp, interpret, ihA, ihB]
+  | box A ih => simp only [subst_box, interpret, ih]
 
-lemma Formula.interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α L} {A : Formula α}
-    (h : ∀ a ∈ A.atoms, f₁.val a = f₂.val a) :
-    A.interpret f₁ 𝔅 = A.interpret f₂ 𝔅 := by
+lemma interpret_congr_atoms [DecidableEq α] {f₁ f₂ : Realization α L} {A : Formula α}
+  (h : ∀ a ∈ A.atoms, f₁.val a = f₂.val a) :
+  A.interpret f₁ 𝔅 = A.interpret f₂ 𝔅 := by
   induction A with
-  | atom a => exact h a (by simp [Formula.atoms])
+  | atom a => exact h a (by simp [atoms])
   | bot => rfl
   | imp A B ihA ihB =>
-    simp only [Formula.interpret];
-    rw [ihA (fun a ha => h a (by simp [Formula.atoms, ha])),
-      ihB (fun a ha => h a (by simp [Formula.atoms, ha]))];
+    simp only [interpret];
+    rw [ihA (fun a ha => h a (by simp [atoms, ha])),
+      ihB (fun a ha => h a (by simp [atoms, ha]))];
   | box A ih =>
-    simp only [Formula.interpret];
-    rw [ih (fun a ha => h a (by simpa [Formula.atoms] using ha))];
+    simp only [interpret];
+    rw [ih (fun a ha => h a (by simpa [atoms] using ha))];
 
-lemma Formula.interpret_subst {f : Realization α L} {s : Formula.Substitution α α} {A : Formula α} :
+lemma interpret_subst {f : Realization α L} {s : Substitution α α} {A : Formula α} :
   (A⟦s⟧).interpret f 𝔅 = A.interpret (⟨fun a ↦ (s a).interpret f 𝔅⟩ : Realization α L) 𝔅 := by
   induction A with
   | atom a => rfl
-  | _ => simp_all [Formula.interpret, Formula.subst_imp, Formula.subst_box]
+  | _ => simp_all [interpret, subst_imp, subst_box]
 
-lemma Formula.interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α L}
-    (h : ∀ a, T₀ ⊢ (f₁.val a) 🡘 (f₂.val a)) (A : Formula α) :
-    T₀ ⊢ (A.interpret f₁ 𝔅) 🡘 (A.interpret f₂ 𝔅) := by
+lemma interpret_iff_congr [L.DecidableEq] [T₀ ⪯ T] [𝔅.Ext] {f₁ f₂ : Realization α L}
+  (h : ∀ a, T₀ ⊢ (f₁.val a) 🡘 (f₂.val a)) (A : Formula α) :
+  T₀ ⊢ (A.interpret f₁ 𝔅) 🡘 (A.interpret f₂ 𝔅) := by
   induction A with
   | atom a => exact h a
-  | bot => dsimp [Formula.interpret]; cl_prover
-  | imp A B ihA ihB => dsimp [Formula.interpret]; cl_prover [ihA, ihB]
+  | bot => dsimp [interpret]; cl_prover
+  | imp A B ihA ihB => dsimp [interpret]; cl_prover [ihA, ihB]
   | box A ih => exact 𝔅.ext' ih
 
-lemma Formula.interpret_boxdot_inside [L.DecidableEq] {f : Realization α L} {A : Formula α} :
-    T ⊢ (⊡A).interpret f 𝔅 🡘 (A.interpret f 𝔅) ⋏ 𝔅 (A.interpret f 𝔅) := by
-  dsimp [Formula.interpret];
+lemma interpret_boxdot_inside [L.DecidableEq] {f : Realization α L} {A : Formula α} :
+  T ⊢ (⊡A).interpret f 𝔅 🡘 (A.interpret f 𝔅) ⋏ 𝔅 (A.interpret f 𝔅) := by
+  dsimp [interpret];
   cl_prover;
 
-end interpret_map
+end Formula
 
 
 abbrev LetterlessRealization (L) := Realization Empty L

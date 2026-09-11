@@ -21,7 +21,7 @@ open LogicGL
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
-| botL : ProofGentzen ({⊥} ⟹ (∅ : FormulaFinset α))
+| botL : ProofGentzen ({⊥} ⟹ ∅)
 | wkL  {Γ Γ' Δ}  : ProofGentzen (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹ Δ)
 | wkR  {Γ Δ Δ'}  : ProofGentzen (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹ Δ')
 | impL {Γ Δ A B} : ProofGentzen (Γ ⟹ (insert A Δ)) → ProofGentzen (insert B Γ ⟹ Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹ Δ)
@@ -71,39 +71,39 @@ lemma impL (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint
 lemma impR (h : ⊢ᵍ[GLPoint3] ((insert A Γ) ⟹ (insert B Δ))) : ⊢ᵍ[GLPoint3] (Γ ⟹ (insert (A 🡒 B) Δ)) := ⟨ProofGentzen.impR h.some⟩
 
 lemma boxGLPoint3 (hΔ : Δ.Nonempty)
-    (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
-      ⊢ᵍ[GLPoint3] ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
-    ⊢ᵍ[GLPoint3] (Γ.box ⟹ Δ.box) :=
+  (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
+    ⊢ᵍ[GLPoint3] ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
+  ⊢ᵍ[GLPoint3] (Γ.box ⟹ Δ.box) :=
   ⟨ProofGentzen.boxGLPoint3 hΔ (fun S hS hSne => (h S hS hSne).some)⟩
 
 lemma of_gentzenGL {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ᵍ[GLPoint3] S := by
   induction h with
-  | axm A => exact axm A
-  | botL => exact botL
-  | wkL _ h' ih => exact wkL ih h'
-  | wkR _ h' ih => exact wkR ih h'
-  | impL _ _ ih₁ ih₂ => exact impL ih₁ ih₂
-  | impR _ ih => exact impR ih
+  | axm A => exact axm A;
+  | botL => exact botL;
+  | wkL _ h' ih => exact wkL ih h';
+  | wkR _ h' ih => exact wkR ih h';
+  | impL _ _ ih₁ ih₂ => exact impL ih₁ ih₂;
+  | impR _ ih => exact impR ih;
   | @boxGL Γ A _ ih =>
-    have hbox : ({A} : FormulaFinset α).box = {□A} := by simp [FormulaFinset.box]
-    rw [← hbox]
-    apply boxGLPoint3 (Δ := {A}) (by simp)
-    intro S hS hSne
+    have hbox : ({A} : FormulaFinset α).box = {□A} := by simp [FormulaFinset.box];
+    rw [← hbox];
+    apply boxGLPoint3 (Δ := {A}) (by simp);
+    intro S hS hSne;
     obtain rfl : S = {A} := by
-      rcases Finset.subset_singleton_iff.mp hS with h' | h'
-      . exact absurd h' hSne.ne_empty
-      . exact h'
+      rcases Finset.subset_singleton_iff.mp hS with h' | h';
+      . exact absurd h' hSne.ne_empty;
+      . exact h';
     have e1 : Γ.box ∪ Γ ∪ ({A} : FormulaFinset α).box = insert (□A) (Γ ∪ Γ.box) := by
-      rw [hbox]; grind
-    have e2 : ({A} : FormulaFinset α) ∪ (({A} : FormulaFinset α) \ {A}).box = {A} := by simp
-    rw [e1, e2]
-    exact ih
+      rw [hbox]; grind;
+    have e2 : ({A} : FormulaFinset α) ∪ (({A} : FormulaFinset α) \ {A}).box = {A} := by simp;
+    rw [e1, e2];
+    exact ih;
 
 @[induction_eliminator]
 lemma rec
   {motive : (S : Sequent α) → ⊢ᵍ[GLPoint3] S → Prop}
   (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableGentzen.axm A))
-  (botL : motive ({⊥} ⟹ (∅ : FormulaFinset α)) ProvableGentzen.botL)
+  (botL : motive ({⊥} ⟹ ∅) ProvableGentzen.botL)
   (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
   (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍ[GLPoint3] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
   (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍ[GLPoint3] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GLPoint3] (insert B Γ ⟹ Δ)),

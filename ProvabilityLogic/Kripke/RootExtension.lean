@@ -120,7 +120,7 @@ lemma not_rel_original_tail : ¬(M.extendRoot n |>.Rel (embed x) (Sum.inr i)) :=
   grind [embed];
 
 @[simp, grind .]
-lemma not_relItr_original_tail  [IsTrans _ M.Rel] : ¬(M.extendRoot n |>.RelItr k (embed x) (Sum.inr i)) := by
+lemma not_relItr_original_tail [IsTrans _ M.Rel] : ¬(M.extendRoot n |>.RelItr k (embed x) (Sum.inr i)) := by
   by_contra this;
   match k with
   | 0 =>
@@ -296,20 +296,22 @@ lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula
     . intro h;
       obtain ⟨h₁, h₂⟩ := forces_and.mp h;
       apply forces_and.mpr;
-      refine ⟨ihA.mp h₁, ?_⟩;
-      intro x Rrx;
-      apply same_forces_embed.mp;
-      exact h₂ (embed x) (by simp [embed, Model.Rel]);
+      and_intros;
+      . exact ihA.mp h₁;
+      . intro x Rrx;
+        apply same_forces_embed.mp;
+        exact h₂ (embed x) (by simp [embed, Model.Rel]);
     . intro h;
       obtain ⟨h₁, h₂⟩ := forces_and.mp h;
       apply forces_and.mpr;
-      refine ⟨ihA.mpr h₁, ?_⟩;
-      rintro (x | j) Rix;
-      . apply same_forces_embed.mpr;
-        by_cases hx : x = M.root.1;
-        . exact hx ▸ h₁;
-        . exact h₂ x (M.root.2 x hx);
+      and_intros;
       . exact ihA.mpr h₁;
+      . rintro (x | j) Rix;
+        . apply same_forces_embed.mpr;
+          by_cases hx : x = M.root.1;
+          . exact hx ▸ h₁;
+          . exact h₂ x (M.root.2 x hx);
+        . exact ihA.mpr h₁;
 
 end RootedModel.extendRoot
 

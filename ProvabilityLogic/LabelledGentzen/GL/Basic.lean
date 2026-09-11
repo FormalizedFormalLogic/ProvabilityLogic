@@ -25,7 +25,7 @@ namespace LogicGL
 
 inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | axm (x A) : ProofLabelledGentzen (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A})
-| botL (x) : ProofLabelledGentzen (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α)))
+| botL (x) : ProofLabelledGentzen (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅)
 | wkRel {R R' ℓΓ ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : R ⊆ R' := by grind) → ProofLabelledGentzen (R' ⸴ ℓΓ ⟹ˡ ℓΔ)
 | wkAnt {R ℓΓ ℓΓ' ℓΔ} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΓ ⊆ ℓΓ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ' ⟹ˡ ℓΔ)
 | wkSuc {R ℓΓ ℓΔ ℓΔ'} : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ) → (_ : ℓΔ ⊆ ℓΔ' := by grind) → ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ')
@@ -118,7 +118,7 @@ variable {R R' : Finset LabelRel} {ℓΓ ℓΓ' ℓΔ ℓΔ' : Finset (LabelledF
 
 lemma axm (x : Label) (A : Formula α) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := ⟨ProofLabelledGentzen.axm x A⟩
 lemma union (x : Label) (A : Formula α) (hΓ : (x ∶ A) ∈ ℓΓ := by grind) (hΔ : (x ∶ A) ∈ ℓΔ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.union x A hΓ hΔ⟩
-lemma botL (x : Label) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := ⟨ProofLabelledGentzen.botL x⟩
+lemma botL (x : Label) : ⊢ˡᵍ[GL] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅) := ⟨ProofLabelledGentzen.botL x⟩
 @[grind =>] lemma botL_mem (x : Label) (h : (x ∶ (⊥ : Formula α)) ∈ ℓΓ := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.botL_mem x h⟩
 lemma wkRel (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hR : R ⊆ R') : ⊢ˡᵍ[GL] (R' ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkRel h.some hR⟩
 lemma wkAnt (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (hΓ : ℓΓ ⊆ ℓΓ') : ⊢ˡᵍ[GL] (R ⸴ ℓΓ' ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.wkAnt h.some hΓ⟩
@@ -128,7 +128,7 @@ lemma impR (h : ⊢ˡᵍ[GL] (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x �
 lemma boxL (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) (h : ⊢ˡᵍ[GL] (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
   ⟨ProofLabelledGentzen.boxL x y A hxy hxA h.some⟩
 lemma boxRLob (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind)
-    (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
+  (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) :=
   ⟨ProofLabelledGentzen.boxRLob x y A hfresh h.some⟩
 lemma irref (h : (x, x) ∈ R := by grind) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := ⟨ProofLabelledGentzen.irref x h⟩
 lemma trans (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) (h : ⊢ˡᵍ[GL] (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ)) : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) :=
@@ -149,7 +149,7 @@ lemma loop (x y : Label) (A : Formula α) (hR : (x, y) ∈ R := by grind)
 lemma rec
   {motive : (S : LabelledSequent α) → ⊢ˡᵍ[GL] S → Prop}
   (axm : ∀ x A, motive (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) (ProvableLabelledGentzen.axm x A))
-  (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) (ProvableLabelledGentzen.botL x))
+  (botL : ∀ x, motive (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅) (ProvableLabelledGentzen.botL x))
   (wkRel : ∀ {R R' ℓΓ ℓΔ} (h : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ)) (h' : R ⊆ R'),
     motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) h → motive (R' ⸴ ℓΓ ⟹ˡ ℓΔ) (wkRel h h')
   )
@@ -170,7 +170,7 @@ lemma rec
     motive (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ) h → motive (R ⸴ ℓΓ ⟹ˡ ℓΔ) (boxL hxy hxA h)
   )
   (boxRLob : ∀ {R ℓΓ ℓΔ x y A} (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels)
-      (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)),
+    (h : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ)),
     motive (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ) h →
     motive (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ) (boxRLob hfresh h)
   )

@@ -32,11 +32,11 @@ lemma boxbot : (□^[n]⊥ : Formula α) ∈ LogicGLPoint3OplusBoxBot n :=
 
 lemma axiomNVer : (□^[n]A) ∈ LogicGLPoint3OplusBoxBot n := by
   have himp : (□^[n]⊥ 🡒 □^[n]A) ∈ LogicGLPoint3 := by
-    apply LogicGLPoint3.provable_of_provable_GL
-    apply ProvableHilbert.Kripke.completeness
-    intro κ _ M _ x
-    grind
-  exact Logic.sumNormal.mdp (provable_of_provable_GLPoint3 himp) boxbot
+    apply LogicGLPoint3.provable_of_provable_GL;
+    apply ProvableHilbert.Kripke.completeness;
+    intro κ _ M _ x;
+    grind;
+  exact Logic.sumNormal.mdp (provable_of_provable_GLPoint3 himp) boxbot;
 
 omit [DecidableEq α] in
 lemma of_GL (h : A ∈ LogicGL) : A ∈ LogicGLPoint3OplusBoxBot n :=
@@ -95,28 +95,25 @@ lemma provable_weakPoint2_in_2 : (◇(□A ⋏ B) 🡒 □(◇A ⋎ B)) ∈ Logi
 
 end LogicGLPoint3OplusBoxBot
 
-
 lemma eq_GLPoint3OplusBoxBot_2_GLPoint2 [DecidableEq α] :
-    LogicGLPoint3OplusBoxBot 2 = (LogicGLPoint2 : Logic α) := by
-  have e : LogicGLPoint3OplusBoxBot (α := α) 2 = (LogicGLPoint3 ⊕ᴸ {□^[2]⊥}) := rfl
-  rw [e]
-  ext A
-  constructor
-  . intro h
+  LogicGLPoint3OplusBoxBot 2 = @LogicGLPoint2 α := by
+  ext A;
+  constructor;
+  . intro h;
     induction h with
-    | mem₁ h => exact LogicGLPoint3_subset_LogicGLPoint2 h
+    | mem₁ h => exact LogicGLPoint3_subset_LogicGLPoint2 h;
     | mem₂ h =>
-      subst h
-      exact LogicGLPoint2.provable_boxboxbot
-    | mdp _ _ ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA
-    | subst _ ih => exact Logic.sumNormal.subst ih
-    | nec _ ih => exact Logic.sumNormal.nec ih
-  . intro h
+      subst h;
+      exact LogicGLPoint2.provable_boxboxbot;
+    | mdp _ _ ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA;
+    | subst _ ih => exact Logic.sumNormal.subst ih;
+    | nec _ ih => exact Logic.sumNormal.nec ih;
+  . intro h;
     induction h using LogicGLPoint2.substlessInduction with
     | provable_GL h =>
-      exact Logic.sumNormal.mem₁ (LogicGLPoint3.provable_of_provable_GL h)
-    | axiomWeakPoint2 => exact LogicGLPoint3OplusBoxBot.provable_weakPoint2_in_2
-    | mdp ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA
-    | nec ih => exact Logic.sumNormal.nec ih
+      exact Logic.sumNormal.mem₁ (LogicGLPoint3.provable_of_provable_GL h);
+    | axiomWeakPoint2 => exact LogicGLPoint3OplusBoxBot.provable_weakPoint2_in_2;
+    | mdp ihAB ihA => exact Logic.sumNormal.mdp ihAB ihA;
+    | nec ih => exact Logic.sumNormal.nec ih;
 
 end

@@ -72,8 +72,13 @@ lemma exists_linear_witness [M.IsGLPoint3] :
           . exact absurd (hD1 z h1) hzD;
           . rw [h2] at hD2; exact absurd hD2 hzD;
           . exact h3;
+        have hSD : ∀ A ∈ ({D} : FormulaFinset α), z ⊮[_] A ∧ z ⊩[_] □A := by
+          intro A hA;
+          rw [Finset.mem_singleton] at hA;
+          subst hA;
+          exact ⟨hzD, hzBoxD⟩;
         refine ⟨z, hxz, {D}, Finset.singleton_subset_iff.mpr hD, ⟨D, Finset.mem_singleton_self _⟩,
-          fun A hA => by rw [Finset.mem_singleton] at hA; subst hA; exact ⟨hzD, hzBoxD⟩, ?_⟩;
+          hSD, ?_⟩;
         rw [Finset.sdiff_singleton_eq_erase];
         intro A hA;
         by_cases hAS' : A ∈ S';
@@ -92,9 +97,15 @@ lemma exists_linear_witness [M.IsGLPoint3] :
       . rintro rfl; exact hD;
     subst hΔeq;
     obtain ⟨z, hxz, hzD, hzBoxD⟩ := terminalBoxRefuter D (hx D (Finset.mem_singleton_self _));
-    exact ⟨z, hxz, {D}, subset_refl _, ⟨D, Finset.mem_singleton_self _⟩,
-      fun A hA => by rw [Finset.mem_singleton] at hA; subst hA; exact ⟨hzD, hzBoxD⟩,
-      fun A hA => by simp at hA⟩;
+    have hSD : ∀ A ∈ ({D} : FormulaFinset α), z ⊮[_] A ∧ z ⊩[_] □A := by
+      intro A hA;
+      rw [Finset.mem_singleton] at hA;
+      subst hA;
+      exact ⟨hzD, hzBoxD⟩;
+    have hcompl : ∀ A ∈ (({D} : FormulaFinset α) \ {D}), z ⊮[_] □A := by
+      intro A hA;
+      simp at hA;
+    exact ⟨z, hxz, {D}, subset_refl _, ⟨D, Finset.mem_singleton_self _⟩, hSD, hcompl⟩;
 
 variable {Γ Δ : FormulaFinset α} {A : Formula α}
 
@@ -103,8 +114,7 @@ lemma validate_gentzen_boxGLPoint3 [M.IsGLPoint3] (hΔ : Δ.Nonempty)
   (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty → M ⊧ ((Γ.box ∪ Γ ∪ S.box) ⟹ (S ∪ (Δ \ S).box))) :
   M ⊧ (Γ.box ⟹ Δ.box) := by
   intro x hxante;
-  by_contra hcon;
-  push Not at hcon;
+  by_contra! hcon;
   have hx : ∀ A ∈ Δ, x ⊮[_] □A := fun A hA => hcon (□A) (Finset.mem_image_of_mem _ hA);
   obtain ⟨w, hxw, S, hSsub, hSne, hSforces, hcompl⟩ := exists_linear_witness hΔ hx;
   have hwante : ∀ C ∈ Γ.box ∪ Γ ∪ S.box, w ⊩[_] C := by
@@ -129,7 +139,7 @@ namespace LogicGLPoint3
 open LogicGL
 
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : Sequent α} :
-    (⊬ᵍ[GLPoint3] S) ↔ (IsEmpty (⊢ᵍ[GLPoint3]! S)) := by simp [ProvableGentzen]
+  (⊬ᵍ[GLPoint3] S) ↔ (IsEmpty (⊢ᵍ[GLPoint3]! S)) := by simp [ProvableGentzen]
 
 /-- The `LogicGLPoint3` analogue of `ProvabilityLogic.Gentzen.ExpandedSequent`. -/
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
@@ -183,7 +193,7 @@ open Classical in
 /-- The `LogicGLPoint3` analogue of `ProvabilityLogic.Gentzen.ExpandedSequent.lindenbaum_indexed`. -/
 @[grind]
 noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ[GLPoint3] BS)
-    (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[GLPoint3] S }
+  (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[GLPoint3] S }
 | [] => ⟨S₀, S₀_unprovable⟩
 | (A 🡒 B) :: Γ =>
   let ⟨S, hS⟩ := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
@@ -206,8 +216,8 @@ noncomputable def lindenbaum_indexed (BS : Sequent α) (BS_unprovable : ⊬ᵍ[G
 | _ :: Γ => lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
 
 lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} :
-    S₀ ⊆ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1 := by
+  {Γ : FormulaList α} :
+  S₀ ⊆ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1 := by
   induction Γ with
   | nil =>
     exact ⟨Finset.Subset.refl _, Finset.Subset.refl _⟩
@@ -223,11 +233,11 @@ lemma subset_lindenbaum_indexed {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Se
       . exact ⟨ih.1, ih.2⟩
 
 lemma subfmls_lindenbaum_indexed
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS}
-    {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
-    {Γ : FormulaList α} (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
-    (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∪
-      (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS}
+  {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls)
+  {Γ : FormulaList α} (hΓ : ∀ C ∈ Γ, C ∈ BS.subfmls) :
+  (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∪
+    (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ⊆ BS.subfmls := by
   induction Γ with
   | nil => exact S₀sub
   | cons A Γ ih =>
@@ -245,57 +255,57 @@ lemma subfmls_lindenbaum_indexed
         grind
 
 lemma saturated_lindenbaum_indexed
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE) :
-    let S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ
-    (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
-    (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.2 → A ∈ S.1.1 ∧ B ∈ S.1.2) := by
-  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ
-  revert hΓ
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
+  {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE) :
+  let S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ;
+  (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.1 → A ∈ S.1.2 ∨ B ∈ S.1.1) ∧
+  (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.2 → A ∈ S.1.1 ∧ B ∈ S.1.2) := by
+  rw [List.sortedLE_iff_pairwise, List.pairwise_map] at hΓ;
+  revert hΓ;
   induction Γ with
-  | nil => intro _; constructor <;> intro A B hmem _ <;> simp at hmem
+  | nil => intro _; constructor <;> intro A B hmem _ <;> simp at hmem;
   | cons x Γ' ih =>
-    intro hΓ
-    rw [List.pairwise_cons] at hΓ
-    obtain ⟨hhead, htail⟩ := hΓ
-    obtain ⟨ihL, ihR⟩ := ih htail
+    intro hΓ;
+    rw [List.pairwise_cons] at hΓ;
+    obtain ⟨hhead, htail⟩ := hΓ;
+    obtain ⟨ihL, ihR⟩ := ih htail;
     match x with
     | #a | □C | ⊥ =>
-      constructor
-      . intro A B hmem hx
-        refine ihL ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        . simp at h
-        . exact h
-      . intro A B hmem hx
-        refine ihR ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        . simp at h
-        . exact h
+      constructor;
+      . intro A B hmem hx;
+        refine ihL ?_ hx;
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      . intro A B hmem hx;
+        refine ihR ?_ hx;
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[GLPoint3] (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
-        (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2
-      dsimp only [lindenbaum_indexed]
+        (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2;
+      dsimp only [lindenbaum_indexed];
       split_ifs with h1 h2 h3 <;>
-        refine ⟨?_, ?_⟩ <;>
+        and_intros <;>
         intro A B hmem hx <;>
         simp only [List.mem_cons] at hmem <;>
-        grind [ProvableGentzen.union']
+        grind [ProvableGentzen.union'];
 
 lemma lindenbaum_indexed_saturated_impL_of_sorted_complexity
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
-    (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1) :
-    A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ∨
-      B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 :=
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
+  {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
+  (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1) :
+  A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 ∨
+    B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 :=
   (saturated_lindenbaum_indexed hΓ).1 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impL
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
-    letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
-      (Γ.insertionSort (·.complexity ≤ ·.complexity))
-    (A 🡒 B ∈ S.1.1) → A ∈ S.1.2 ∨ B ∈ S.1.1 := by
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
+  {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
+  letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
+    (Γ.insertionSort (·.complexity ≤ ·.complexity))
+  (A 🡒 B ∈ S.1.1) → A ∈ S.1.2 ∨ B ∈ S.1.1 := by
   apply lindenbaum_indexed_saturated_impL_of_sorted_complexity
   . rw [List.map_insertionSort (f := Formula.complexity) (l := Γ)
       (r := λ A B => ((A.complexity) ≤ (B.complexity))) (s := (· ≤ ·)) (by grind)]
@@ -303,19 +313,19 @@ lemma lindenbaum_indexed_saturated_impL
   . apply List.mem_insertionSort _ |>.mpr h
 
 lemma lindenbaum_indexed_saturated_impR_of_sorted_complexity
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
-    (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2) :
-    A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∧
-      B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 :=
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
+  {Γ : FormulaList α} (hΓ : (Γ.map (·.complexity)).SortedLE)
+  (h₁ : A 🡒 B ∈ Γ) (h₂ : A 🡒 B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2) :
+  A ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.1 ∧
+    B ∈ (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ).1.2 :=
   (saturated_lindenbaum_indexed hΓ).2 h₁ h₂
 
 lemma lindenbaum_indexed_saturated_impR
-    {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
-    {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
-    letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
-      (Γ.insertionSort (·.complexity ≤ ·.complexity))
-    (A 🡒 B ∈ S.1.2) → A ∈ S.1.1 ∧ B ∈ S.1.2 := by
+  {BS_unprovable : ⊬ᵍ[GLPoint3] BS} {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀}
+  {Γ : FormulaList α} (h : A 🡒 B ∈ Γ) :
+  letI S := lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable
+    (Γ.insertionSort (·.complexity ≤ ·.complexity))
+  (A 🡒 B ∈ S.1.2) → A ∈ S.1.1 ∧ B ∈ S.1.2 := by
   apply lindenbaum_indexed_saturated_impR_of_sorted_complexity
   . rw [List.map_insertionSort (f := Formula.complexity) (l := Γ)
       (r := λ A B => ((A.complexity) ≤ (B.complexity))) (s := (· ≤ ·)) (by grind)]
@@ -324,8 +334,8 @@ lemma lindenbaum_indexed_saturated_impR
 
 /-- The `LogicGLPoint3` analogue of `ProvabilityLogic.Gentzen.ExpandedSequent.lindenbaum`. -/
 noncomputable def lindenbaum
-    {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GLPoint3] BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀)
-    (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) : ExpandedSequent BS :=
+  {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GLPoint3] BS)] (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[GLPoint3] S₀)
+  (S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls) : ExpandedSequent BS :=
   letI S := lindenbaum_indexed BS (Fact.elim inferInstance) S₀ S₀_unprovable $
     BS.subfmls.toList.insertionSort (·.complexity ≤ ·.complexity)
   haveI : ∀ C ∈ BS.subfmls.toList.insertionSort (fun A B => A.complexity ≤ B.complexity),
@@ -349,13 +359,13 @@ noncomputable def lindenbaum
   }
 
 lemma subset_lindenbaum {BS : Sequent α} [BS_unprovable : Fact (⊬ᵍ[GLPoint3] BS)] {S₀ : Sequent α}
-    {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
-    S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
+  {S₀_unprovable : ⊬ᵍ[GLPoint3] S₀} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
+  S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀sub).1 := subset_lindenbaum_indexed
 
 end
 
 lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant)
-    (hs : S.toSequent.suc = T.toSequent.suc) : S = T := by
+  (hs : S.toSequent.suc = T.toSequent.suc) : S = T := by
   obtain ⟨⟨ΓS, ΔS⟩, _⟩ := S
   obtain ⟨⟨ΓT, ΔT⟩, _⟩ := T
   grind
@@ -411,10 +421,9 @@ private lemma prebox_box_subset (Γ : FormulaFinset α) : Γ.prebox.box ⊆ Γ :
   exact FormulaFinset.iff_mem_prebox_mem.mp hB;
 
 theorem exists_unprovable_split (hΔ : Δ.prebox.Nonempty) (hunprov : ⊬ᵍ[GLPoint3] (Γ ⟹ Δ)) :
-    ∃ S ⊆ Δ.prebox, S.Nonempty ∧
-      ⊬ᵍ[GLPoint3] ((Γ.prebox.box ∪ Γ.prebox ∪ S.box) ⟹ (S ∪ (Δ.prebox \ S).box)) := by
-  by_contra h;
-  push Not at h;
+  ∃ S ⊆ Δ.prebox, S.Nonempty ∧
+    ⊬ᵍ[GLPoint3] ((Γ.prebox.box ∪ Γ.prebox ∪ S.box) ⟹ (S ∪ (Δ.prebox \ S).box)) := by
+  by_contra! h;
   exact hunprov
     (ProvableGentzen.wk (ProvableGentzen.boxGLPoint3 hΔ h)
       (prebox_box_subset Γ) (prebox_box_subset Δ));
@@ -454,7 +463,7 @@ lemma suc_subset_subfmls (x : ExpandedSequent BS) : x.toSequent.suc ⊆ BS.subfm
   fun _ hA => x.subset_subfmls (Finset.mem_union_right _ hA)
 
 lemma inter_split_Γ_eq_empty {x : ExpandedSequent BS} {S : FormulaFinset α} (hS : S ⊆ x.Θ) :
-    S ∩ x.Γ = ∅ := by
+  S ∩ x.Γ = ∅ := by
   rw [Finset.eq_empty_iff_forall_notMem]
   intro A hA
   obtain ⟨hAS, hAΓ⟩ := Finset.mem_inter.mp hA
@@ -465,16 +474,16 @@ lemma inter_split_Γ_eq_empty {x : ExpandedSequent BS} {S : FormulaFinset α} (h
 end ExpandedSequent
 
 theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ[GLPoint3] BS) :
-    ∀ m : ℕ, ∀ x : ExpandedSequent BS, (BS.subfmls \ x.Γ).card ≤ m →
-      ∃ (n : ℕ) (seq : Fin (n + 1) → ExpandedSequent BS) (split : Fin n → FormulaFinset α),
-        seq 0 = x ∧
-        (∀ i : Fin n,
-          (seq i.castSucc).Γ.box ∪ (seq i.castSucc).Γ ∪ (split i).box ⊆
-            (seq i.succ).toSequent.ant) ∧
-        (∀ i : Fin n, split i ⊆ (seq i.succ).toSequent.suc ∧
-          ((seq i.castSucc).Θ \ split i).box ⊆ (seq i.succ).toSequent.suc) ∧
-        (∀ i : Fin n, split i ⊆ (seq i.castSucc).Θ ∧ (split i).Nonempty) ∧
-        (seq (Fin.last n)).Θ = ∅ := by
+  ∀ m : ℕ, ∀ x : ExpandedSequent BS, (BS.subfmls \ x.Γ).card ≤ m →
+    ∃ (n : ℕ) (seq : Fin (n + 1) → ExpandedSequent BS) (split : Fin n → FormulaFinset α),
+      seq 0 = x ∧
+      (∀ i : Fin n,
+        (seq i.castSucc).Γ.box ∪ (seq i.castSucc).Γ ∪ (split i).box ⊆
+          (seq i.succ).toSequent.ant) ∧
+      (∀ i : Fin n, split i ⊆ (seq i.succ).toSequent.suc ∧
+        ((seq i.castSucc).Θ \ split i).box ⊆ (seq i.succ).toSequent.suc) ∧
+      (∀ i : Fin n, split i ⊆ (seq i.castSucc).Θ ∧ (split i).Nonempty) ∧
+      (seq (Fin.last n)).Θ = ∅ := by
   have : Fact (⊬ᵍ[GLPoint3] BS) := Fact.mk hBS
   intro m
   induction m using Nat.strong_induction_on with
@@ -566,8 +575,8 @@ theorem exists_chain_from_aux {BS : Sequent α} (hBS : ⊬ᵍ[GLPoint3] BS) :
         exact hlast'
 
 theorem exists_chain {BS S₀ : Sequent α} (hBS : ⊬ᵍ[GLPoint3] BS) (hS₀ : ⊬ᵍ[GLPoint3] S₀)
-    (hsub : S₀.ant ∪ S₀.suc ⊆ BS.subfmls) :
-    Nonempty (Chain BS S₀) := by
+  (hsub : S₀.ant ∪ S₀.suc ⊆ BS.subfmls) :
+  Nonempty (Chain BS S₀) := by
   have : Fact (⊬ᵍ[GLPoint3] BS) := Fact.mk hBS
   set x₀ : ExpandedSequent BS := ExpandedSequent.lindenbaum S₀ hS₀ hsub with hx₀_def
   obtain ⟨n, seq, split, hseq0, hant, hsuc, hspl, hlast⟩ :=
@@ -600,19 +609,19 @@ variable (c : Chain BS S₀)
 /-! ### Monotonicity of the front boxed antecedent `Γ` along the chain -/
 
 private lemma Γ_subset_ant_succ (i : Fin c.n) :
-    (c.seq i.castSucc).Γ ⊆ (c.seq i.succ).toSequent.ant := by
+  (c.seq i.castSucc).Γ ⊆ (c.seq i.succ).toSequent.ant := by
   intro A hA;
   exact c.subset_ant_succ i (by simp [ExpandedSequent.Γ] at hA ⊢; grind);
 
 private lemma Γ_subset_Γ_succ (i : Fin c.n) :
-    (c.seq i.castSucc).Γ ⊆ (c.seq i.succ).Γ := by
+  (c.seq i.castSucc).Γ ⊆ (c.seq i.succ).Γ := by
   intro A hA;
   have hbox : □A ∈ (c.seq i.castSucc).Γ.box := Finset.mem_image_of_mem _ hA;
   have : □A ∈ (c.seq i.succ).toSequent.ant := c.subset_ant_succ i (by simp; grind);
   exact FormulaFinset.iff_mem_prebox_mem.mpr this;
 
 theorem Γ_subset_of_le {i j : Fin (c.n + 1)} (hij : i ≤ j) :
-    (c.seq i).Γ ⊆ (c.seq j).Γ := by
+  (c.seq i).Γ ⊆ (c.seq j).Γ := by
   have main : ∀ k, i.val ≤ k → ∀ hk : k < c.n + 1, (c.seq i).Γ ⊆ (c.seq ⟨k, hk⟩).Γ := by
     intro k hle;
     induction k, hle using Nat.le_induction with
@@ -626,7 +635,7 @@ theorem Γ_subset_of_le {i j : Fin (c.n + 1)} (hij : i ≤ j) :
   exact main j.val hij j.isLt;
 
 theorem Γ_subset_ant_of_lt {i j : Fin (c.n + 1)} (hij : i < j) :
-    (c.seq i).Γ ⊆ (c.seq j).toSequent.ant := by
+  (c.seq i).Γ ⊆ (c.seq j).toSequent.ant := by
   have hval : i.val < j.val := hij;
   have hjval : j.val - 1 < c.n := by omega;
   have hjeq : j = (⟨j.val - 1, hjval⟩ : Fin c.n).succ := by
@@ -640,7 +649,7 @@ theorem Γ_subset_ant_of_lt {i j : Fin (c.n + 1)} (hij : i < j) :
 /-! ### Eventual discharge of the front boxed succedent `Θ` along the chain -/
 
 theorem exists_suc_of_mem_Θ {i : Fin (c.n + 1)} {A : Formula α} (hA : A ∈ (c.seq i).Θ) :
-    ∃ j, i < j ∧ A ∈ (c.seq j).toSequent.suc := by
+  ∃ j, i < j ∧ A ∈ (c.seq j).toSequent.suc := by
   suffices h : ∀ k : ℕ, ∀ i : Fin (c.n + 1), c.n - i.val = k → A ∈ (c.seq i).Θ →
       ∃ j, i < j ∧ A ∈ (c.seq j).toSequent.suc by
     exact h (c.n - i.val) i rfl hA;
@@ -670,8 +679,8 @@ theorem exists_suc_of_mem_Θ {i : Fin (c.n + 1)} {A : Formula α} (hA : A ∈ (c
       exact ⟨j, ((⟨i.val, hilt⟩ : Fin c.n).castSucc_lt_succ).trans hij', hAj⟩;
 
 theorem truthLemma (c : Chain BS S₀) (A : Formula α) (i : Fin (c.n + 1)) :
-    (A ∈ (c.seq i).toSequent.ant → i ⊩[c.chainModel] A) ∧
-    (A ∈ (c.seq i).toSequent.suc → ¬ i ⊩[c.chainModel] A) := by
+  (A ∈ (c.seq i).toSequent.ant → i ⊩[c.chainModel] A) ∧
+  (A ∈ (c.seq i).toSequent.suc → ¬ i ⊩[c.chainModel] A) := by
   induction A generalizing i with
   | atom a =>
     constructor
@@ -686,8 +695,8 @@ theorem truthLemma (c : Chain BS S₀) (A : Formula α) (i : Fin (c.n + 1)) :
     . intro h
       rw [Model.World.forces_imp]
       rcases ExpandedSequent.of_mem_imp_ant h with h' | h'
-      . exact Or.inl ((ihA i).2 h')
-      . exact Or.inr ((ihB i).1 h')
+      . left; exact (ihA i).2 h';
+      . right; exact (ihB i).1 h';
     . intro h
       apply Model.World.not_forces_imp.mpr
       obtain ⟨hA, hB⟩ := ExpandedSequent.of_mem_imp_suc h
@@ -713,8 +722,8 @@ namespace ProvableGentzen
 namespace Kripke
 
 theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
-    ∃ (n : ℕ) (M : RootedModel (Fin (n + 1)) α) (_ : M.toModel.IsFiniteGLPoint3),
-      (∀ A ∈ S.ant, M.root.1 ⊩[_] A) ∧ (∀ A ∈ S.suc, ¬ M.root.1 ⊩[_] A) := by
+  ∃ (n : ℕ) (M : RootedModel (Fin (n + 1)) α) (_ : M.toModel.IsFiniteGLPoint3),
+    (∀ A ∈ S.ant, M.root.1 ⊩[_] A) ∧ (∀ A ∈ S.suc, ¬ M.root.1 ⊩[_] A) := by
   obtain ⟨c⟩ := LogicGLPoint3.exists_chain h h Sequent.subset_self_subfmls
   refine ⟨c.n, c.chainRootedModel, (inferInstanceAs c.chainModel.IsFiniteGLPoint3), ?_, ?_⟩
   . intro A hA
@@ -723,8 +732,8 @@ theorem exists_finite_countermodel {S : Sequent α} (h : ⊬ᵍ[GLPoint3] S) :
     exact (c.truthLemma A 0).2 (c.subset_head.suc_subset hA)
 
 theorem completeness {S : Sequent α}
-    (h : ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ S) :
-    ⊢ᵍ[GLPoint3] S := by
+  (h : ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ S) :
+  ⊢ᵍ[GLPoint3] S := by
   by_contra hS
   obtain ⟨n, M, hFin, hant, hsuc⟩ := exists_finite_countermodel hS
   have := hFin

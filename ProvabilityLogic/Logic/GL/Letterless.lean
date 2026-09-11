@@ -11,7 +11,7 @@ variable {α : Type u}
 open LogicGL
 
 lemma iff_lift_mem_LogicGL {B : LetterlessFormula} :
-    (LetterlessFormula.lift B : Formula α) ∈ LogicGL ↔ B ∈ (LogicGL : Logic Empty) := by
+  (LetterlessFormula.lift B : Formula α) ∈ LogicGL ↔ B ∈ @LogicGL Empty := by
   constructor;
   . intro h;
     have := ProvableHilbert.project (α := α) h;

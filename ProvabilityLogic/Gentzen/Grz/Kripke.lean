@@ -56,14 +56,15 @@ lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ
   obtain ⟨w, Rvw, hw⟩ := not_forces_box.mp hv;
   obtain rfl : v = w :=
     hmax w (_root_.trans Rxv Rvw) (not_forces_box_of_not_forces hw) Rvw;
-  refine hw $ forces_ctx_singleton_sequent.mp (h v) ?_;
-  intro C hC;
-  rcases Finset.mem_insert.mp hC with rfl | hC;
-  . intro u Rvu hu;
-    by_contra hnu;
-    obtain rfl := hmax u (_root_.trans Rxv Rvu) hnu Rvu;
-    exact hw hu;
-  . exact h₁ v Rxv C hC;
+  have hctx : ∀ C ∈ insert (□(A 🡒 □A)) Γ.box, v ⊩[_] C := by
+    intro C hC;
+    rcases Finset.mem_insert.mp hC with rfl | hC;
+    . intro u Rvu hu;
+      by_contra hnu;
+      obtain rfl := hmax u (_root_.trans Rxv Rvu) hnu Rvu;
+      exact hw hu;
+    . exact h₁ v Rxv C hC;
+  exact hw (forces_ctx_singleton_sequent.mp (h v) hctx);
 
 end Model
 
@@ -259,10 +260,11 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -301,10 +303,11 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -343,10 +346,11 @@ lemma saturated_boxT_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : □A ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -448,7 +452,8 @@ instance : (countermodelOf BS).IsFiniteGrz where
   refl := fun x => ⟨Finset.Subset.refl _, fun _ => rfl⟩
   trans := by
     intro x y z hxy hyz;
-    refine ⟨hxy.1.trans hyz.1, fun h => ?_⟩;
+    refine ⟨hxy.1.trans hyz.1, ?_⟩;
+    intro h;
     obtain rfl : x = y := hxy.2 (hyz.1.trans h);
     exact hyz.2 h;
   antisymm := fun _ _ hxy hyx => hxy.2 hyx.1
@@ -476,7 +481,7 @@ lemma truthlemma :
       obtain ⟨hA, hB⟩ := x.saturated.impR h
       exact (ihB.2 hB) (hf (ihA.1 hA))
   | box A ih =>
-    refine ⟨?_, ?_⟩;
+    and_intros;
     . intro h y Rxy;
       have hA : A ∈ x.1.1.prebox := FormulaFinset.iff_mem_prebox_mem.mpr h;
       exact ih.1 (y.boxT_closed (FormulaFinset.iff_mem_prebox_mem.mp (Rxy.1 hA)));
@@ -508,7 +513,8 @@ lemma truthlemma :
               subst hC;
               exact Sequent.mem_subfmls_subfmls (x.suc_subset h) Formula.mem_subfmls_box;
             );
-        refine ⟨y, ⟨?_, ?_⟩, ih.2 (ExpandedSequent.subset_lindenbaum.2 (Finset.mem_singleton_self A))⟩;
+        use y;
+        and_intros;
         . intro B hB;
           exact FormulaFinset.iff_mem_prebox_mem.mpr $
             ExpandedSequent.subset_lindenbaum.1 (Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ hB));
@@ -520,6 +526,7 @@ lemma truthlemma :
           rcases ExpandedSequent.of_mem_imp_ant h5 with h6 | h6;
           . exact hAsuc h6;
           . exact ExpandedSequent.not_mem_both ⟨h6, h⟩;
+        . exact ih.2 (ExpandedSequent.subset_lindenbaum.2 (Finset.mem_singleton_self A));
 
 lemma truthlemma_ant : A ∈ x.1.1 → x ⊩[_] A := truthlemma.1
 lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩[_] A := truthlemma.2

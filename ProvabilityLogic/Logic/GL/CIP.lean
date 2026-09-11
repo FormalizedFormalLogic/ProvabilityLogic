@@ -15,7 +15,7 @@ variable {A B : Formula α}
 lemma provable_imp_iff_provableGentzen_seqent : A 🡒 B ∈ LogicGL ↔ ⊢ᵍ[GL] ({A} ⟹ {B}) := by
   constructor;
   . intro h;
-    exact ProvableGentzen.deduction_theorem.mpr $ ProvableGentzen.of_provableHilbert h
+    exact ProvableGentzen.deduction_theorem.mpr $ ProvableGentzen.of_provableHilbert h;
   . intro h;
     apply LogicGL.provableHilbert_of_provableGentzen;
     apply ProvableGentzen.deduction_theorem.mp;
@@ -35,12 +35,13 @@ lemma interpolant_provable_suc : (interpolant h) 🡒 B ∈ LogicGL := by
   exact ProvableGentzen.interpolant_provable_suc (P := PartitionOf.ss A B);
 
 lemma interpolant_atoms : (interpolant h).atoms ⊆ A.atoms ∩ B.atoms := by
-  have := ProvableGentzen.interpolant_atoms (h := LogicGL.provable_imp_iff_provableGentzen_seqent.mp h) (P := PartitionOf.ss A B);
+  have := ProvableGentzen.interpolant_atoms
+    (h := provable_imp_iff_provableGentzen_seqent.mp h) (P := PartitionOf.ss A B);
   rwa [PartitionOf.ss_atoms] at this;
 
 /-- **Craig interpolation property** of `LogicGL`. -/
 theorem CIP (h : (A 🡒 B) ∈ LogicGL) :
-    ∃ C : Formula α, (A 🡒 C) ∈ LogicGL ∧ (C 🡒 B) ∈ LogicGL ∧ C.atoms ⊆ A.atoms ∩ B.atoms :=
+  ∃ C : Formula α, (A 🡒 C) ∈ LogicGL ∧ (C 🡒 B) ∈ LogicGL ∧ C.atoms ⊆ A.atoms ∩ B.atoms :=
   ⟨interpolant h, interpolant_provable_ant, interpolant_provable_suc, interpolant_atoms⟩
 
 end LogicGL

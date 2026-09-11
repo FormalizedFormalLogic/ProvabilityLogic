@@ -11,7 +11,7 @@ variable {α : Type u} [DecidableEq α]
 
 inductive LogicA.ProofGentzen : TwoLayeredSequent α → Type u
 | axm (l) (A)      : ProofGentzen ({A} ⟹[l] {A})
-| botL (l)         : ProofGentzen (({⊥} : FormulaFinset α) ⟹[l] ∅)
+| botL (l)         : ProofGentzen ({⊥} ⟹[l] ∅)
 | wkL  {l Γ Γ' Δ}  : ProofGentzen (Γ ⟹[l] Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹[l] Δ)
 | wkR  {l Γ Δ Δ'}  : ProofGentzen (Γ ⟹[l] Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹[l] Δ')
 | impL {l Γ Δ A B} : ProofGentzen (Γ ⟹[l] (insert A Δ)) → ProofGentzen (insert B Γ ⟹[l] Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹[l] Δ)
@@ -68,7 +68,7 @@ lemma boxGP : ⊢ᵍ[A] (Γ ⟹[1] insert (□^[n] ⊥) Δ) → ⊢ᵍ[A] (Γ �
 lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍ[A] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (ProvableGentzen.axm l A))
-  (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (ProvableGentzen.botL l))
+  (botL : ∀ (l), motive ({⊥} ⟹[l] ∅) (ProvableGentzen.botL l))
   (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΓ : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h hΓ))
   (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍ[A] (Γ ⟹[l] Δ)) (hΔ : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h hΔ))
   (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍ[A] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍ[A] (insert B Γ ⟹[l] Δ)),
@@ -123,7 +123,7 @@ end LogicA
 
 inductive LogicA.GentzenWithCutProof : TwoLayeredSequent α → Type u
 | axm (l) (A)      : GentzenWithCutProof ({A} ⟹[l] {A})
-| botL (l)         : GentzenWithCutProof (({⊥} : FormulaFinset α) ⟹[l] ∅)
+| botL (l)         : GentzenWithCutProof ({⊥} ⟹[l] ∅)
 | wkL  {l Γ Γ' Δ}  : GentzenWithCutProof (Γ ⟹[l] Δ) → (_ : Γ ⊆ Γ' := by grind) → GentzenWithCutProof (Γ' ⟹[l] Δ)
 | wkR  {l Γ Δ Δ'}  : GentzenWithCutProof (Γ ⟹[l] Δ) → (_ : Δ ⊆ Δ' := by grind) → GentzenWithCutProof (Γ ⟹[l] Δ')
 | impL {l Γ Δ A B} : GentzenWithCutProof (Γ ⟹[l] (insert A Δ)) → GentzenWithCutProof (insert B Γ ⟹[l] Δ) → GentzenWithCutProof ((insert (A 🡒 B) Γ) ⟹[l] Δ)
@@ -190,7 +190,7 @@ lemma cut (h₁ : ⊢ᵍᶜ[A] (Γ₁ ⟹[l] insert A Δ₁)) (h₂ : ⊢ᵍᶜ[
 lemma rec
   {motive : (S : TwoLayeredSequent α) → ⊢ᵍᶜ[A] S → Prop}
   (axm : ∀ (l) (A : Formula α), motive ({A} ⟹[l] {A}) (GentzenWithCutProvable.axm l A))
-  (botL : ∀ (l), motive (({⊥} : FormulaFinset α) ⟹[l] ∅) (GentzenWithCutProvable.botL l))
+  (botL : ∀ (l), motive ({⊥} ⟹[l] ∅) (GentzenWithCutProvable.botL l))
   (wkL : ∀ {l Γ Γ' Δ} (h : ⊢ᵍᶜ[A] (Γ ⟹[l] Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹[l] Δ) h → motive (Γ' ⟹[l] Δ) (wkL h h'))
   (wkR : ∀ {l Γ Δ Δ'} (h : ⊢ᵍᶜ[A] (Γ ⟹[l] Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹[l] Δ) h → motive (Γ ⟹[l] Δ') (wkR h h'))
   (impL : ∀ {l Γ Δ A B} (h₁ : ⊢ᵍᶜ[A] (Γ ⟹[l] insert A Δ)) (h₂ : ⊢ᵍᶜ[A] (insert B Γ ⟹[l] Δ)),
@@ -224,9 +224,9 @@ lemma neg_boxItr_bot (n : ℕ) : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {
   grind;
 
 lemma mdp (hAB : ⊢ᵍᶜ[A] (∅ ⟹[1] {A 🡒 B})) (hA : ⊢ᵍᶜ[A] (∅ ⟹[1] {A})) : ⊢ᵍᶜ[A] (∅ ⟹[1] {B}) := by
-  have h₁ : ⊢ᵍᶜ[A] ((insert (A 🡒 B) (∅ : FormulaFinset α)) ⟹[1] {B}) :=
+  have h₁ : ⊢ᵍᶜ[A] (insert (A 🡒 B) ∅ ⟹[1] {B}) :=
     impL (wkR hA (by grind)) (wkL (axm 1 B) (by grind));
-  have h₂ : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] insert (A 🡒 B) (∅ : FormulaFinset α)) := by
+  have h₂ : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] insert (A 🡒 B) ∅) := by
     rwa [Finset.insert_empty];
   simpa using cut h₂ h₁;
 

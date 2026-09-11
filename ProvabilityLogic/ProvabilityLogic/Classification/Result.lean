@@ -38,18 +38,19 @@ variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 /-- - [Bek90, Assertion 3] -/
 lemma classification_LogicS_sublogics_of_univ_trace :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    L.trace = Set.univ → L ⊆ LogicS →
-    L = LogicA ∨ L = LogicD ∨ L = LogicS := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  L.trace = Set.univ → L ⊆ LogicS →
+  L = LogicA ∨ L = LogicD ∨ L = LogicS := by
   intro hT hS;
   rcases Set.eq_or_ssubset_of_subset (subset_LogicA_of_univ_trace hT)
     with h | hGLαω;
-  case inl => exact Or.inl h.symm;
+  case inl => left; exact h.symm;
   rcases Set.eq_or_ssubset_of_subset
     (subset_LogicD_of_ssubset_LogicA_of_univ_trace hT hGLαω) with h | hD;
-  case inl => exact Or.inr (Or.inl h.symm);
-  exact Or.inr (Or.inr (Set.Subset.antisymm hS
-    (subset_LogicS_of_ssubset_LogicD_of_univ_trace hT hD)));
+  case inl => right; left; exact h.symm;
+  right; right;
+  exact Set.Subset.antisymm hS
+    (subset_LogicS_of_ssubset_LogicD_of_univ_trace hT hD);
 
 end univ_trace
 
@@ -59,7 +60,7 @@ section cofinite_trace
 section without_decidableEq
 
 lemma LogicGLAlpha.mono {X Y : Set ℕ} (h : X ⊆ Y) :
-    (LogicGLAlpha X : Logic α) ⊆ LogicGLAlpha Y := by
+  @LogicGLAlpha α X ⊆ LogicGLAlpha Y := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
   rintro A ⟨B, ⟨n, hn, rfl⟩, rfl⟩;
   exact Logic.sumQuasiNormal.mem₂ ⟨TBB n, ⟨n, h hn, rfl⟩, rfl⟩;
@@ -80,7 +81,7 @@ open LetterlessFormula
 
 /-- `U` extended by the standard `T`-interpretations of `TBB n` for `n ∈ N`. -/
 noncomputable abbrev _root_.FFL.FirstOrder.ArithmeticTheory.addTBB
-    (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] (N : Set ℕ) : FirstOrder.ArithmeticTheory :=
+  (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] (N : Set ℕ) : FirstOrder.ArithmeticTheory :=
   U ∪ (N.image (fun n => LetterlessFormula.standardInterpret T (TBB n)))
 
 section without_T_U_alpha
@@ -97,11 +98,11 @@ section
 variable {N : Set ℕ}
 
 lemma provabilityLogic_subset_addTBB :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
-    L ⊆ L' := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
+  L ⊆ L' := by
   intro A hA f;
-  exact Entailment.WeakerThan.wk FirstOrder.ArithmeticTheory.addTBB.weakerThan (hA f);
+  exact WeakerThan.wk FirstOrder.ArithmeticTheory.addTBB.weakerThan (hA f);
 
 end
 
@@ -110,13 +111,14 @@ section only_formula_alpha
 variable {N : Set ℕ}
 
 lemma provable_TBB_addTBB_of_mem {n : ℕ} (hn : n ∈ N) :
-    (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo (T.addTBB U N) : Logic α) := by
+  (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo (T.addTBB U N) : Logic α) := by
   intro f;
   rw [← LetterlessFormula.eq_lift_TBB (α := α)];
   simp only [LetterlessFormula.interpret_lift];
-  apply Entailment.by_axm;
+  apply by_axm;
   simp only [Set.mem_union];
-  exact Or.inr ⟨n, hn, rfl⟩;
+  right;
+  exact ⟨n, hn, rfl⟩;
 
 end only_formula_alpha
 
@@ -126,14 +128,14 @@ variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 variable {N : Set ℕ}
 
 lemma imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB (hN : N.Finite) :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
-    ∀ {A : Formula α}, A ∈ L' →
-      ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α) 🡒 A) ∈ L := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
+  ∀ {A : Formula α}, A ∈ L' →
+    ((LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α) 🡒 A) ∈ L := by
   intro A hA f;
-  obtain ⟨⟨s, hs_sub⟩, hs⟩ := FFL.FirstOrder.Theory.compact_add_right (hA f);
+  obtain ⟨⟨s, hs_sub⟩, hs⟩ := Theory.compact_add_right (hA f);
   show U ⊢ (f T (LetterlessFormula.lift (⋀(hN.toFinset.image TBB)) : Formula α)) 🡒 (f T A);
-  apply Entailment.C_trans ?_ hs;
+  apply C_trans ?_ hs;
   apply right_Fconj_intro;
   intro σ hσ;
   obtain ⟨n, hn, rfl⟩ := hs_sub hσ;
@@ -164,7 +166,7 @@ section modal
 variable [DecidableEq α]
 
 lemma LogicGLAlpha.subset_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
-    (LogicGLAlpha X : Logic α) ⊆ LogicGLBetaMinus X hCf := by
+  @LogicGLAlpha α X ⊆ LogicGLBetaMinus X hCf := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
   rintro A ⟨B, ⟨n, hn, rfl⟩, rfl⟩;
   apply iff_GL_sumQuasiNormal_proves_subset_spectrum (T := 𝗜𝚺₁)
@@ -184,7 +186,7 @@ lemma LogicGLAlpha.subset_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
 
 /-- - [AB05, η/ξ correspondence] -/
 lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
-    (LogicGLAlpha X : Logic α) = LogicA ∩ LogicGLBetaMinus X hCf := by
+  @LogicGLAlpha α X = LogicA ∩ LogicGLBetaMinus X hCf := by
   apply Set.Subset.antisymm;
   . exact Set.subset_inter (LogicGLAlpha.mono (Set.subset_univ X))
       (LogicGLAlpha.subset_LogicGLBetaMinus hCf);
@@ -258,9 +260,9 @@ variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 variable (hCf : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite)
 
 lemma trace_univ_addTBB_compl_trace :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
-    L'.trace = Set.univ := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
+  L'.trace = Set.univ := by
   apply Set.eq_univ_of_forall;
   intro n;
   apply mem_trace_of_provable_TBB (α := α);
@@ -272,15 +274,15 @@ variable [DecidableEq α]
 
 include hCf in
 lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
-    L ⊆ LogicS → L' ⊆ LogicS := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
+  L ⊆ LogicS → L' ⊆ LogicS := by
   intro hS;
   by_contra hS';
   have hUW : U ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
     FirstOrder.ArithmeticTheory.addTBB.weakerThan;
   have : 𝗜𝚺₁ ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
-    Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ U)) hUW;
+    WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ U)) hUW;
   have h49 := eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS hS';
   set pf := cofinite_trace_of_not_subset_LogicS hS';
   have hτ : (T.provabilityLogicRelativeTo
@@ -319,7 +321,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
       apply LogicGL.iff_forces_root.mpr;
       intro κ _ M _;
       have : Fintype M.World := Fintype.ofFinite _;
-      apply Model.World.forces_imp.mpr;
+      apply forces_imp.mpr;
       by_cases hx : M.root.1 ⊩[_] ⋀(hCf.toFinset.image (TBB : ℕ → Formula α));
       . right;
         apply Model.iff_forces_lift_rank_mem_spectrum.mpr;
@@ -329,7 +331,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
         obtain ⟨n, hn, rfl⟩ := Finset.mem_image.mp hB;
         rw [LetterlessFormula.spectrum_TBB];
         have : M.root.1 ⊩[_] (TBB n : Formula α) :=
-          Model.World.forces_fconj.mp hx _ (Finset.mem_image_of_mem _ hn);
+          forces_fconj.mp hx _ (Finset.mem_image_of_mem _ hn);
         simpa using Model.iff_forces_TBB_neq_rank.mp this;
       . left; exact hx;
     exact Logic.sumQuasiNormal.mdp (LogicS.provable_of_provable_GL hbr) hconj;
@@ -337,9 +339,9 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
 
 /-- - [AB05, η ∘ ξ = id correspondence] -/
 lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
-    L = L' ∩ LogicGLBetaMinus L.trace hCf := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
+  L = L' ∩ LogicGLBetaMinus L.trace hCf := by
   apply Set.Subset.antisymm;
   . exact Set.subset_inter provabilityLogic_subset_addTBB
       (subset_LogicGLBetaMinus_of_trace_cofinite hCf);
@@ -371,16 +373,16 @@ end
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U] [DecidableEq α]
 
 lemma classification_LogicS_sublogics_of_cofinite_trace :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    ∀ (hCf : L.traceᶜ.Finite), L ⊆ LogicS →
-      L = LogicGLAlpha L.trace ∨
-      L = LogicD ∩ LogicGLBetaMinus L.trace hCf ∨
-      L = LogicS ∩ LogicGLBetaMinus L.trace hCf := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  ∀ (hCf : L.traceᶜ.Finite), L ⊆ LogicS →
+    L = LogicGLAlpha L.trace ∨
+    L = LogicD ∩ LogicGLBetaMinus L.trace hCf ∨
+    L = LogicS ∩ LogicGLBetaMinus L.trace hCf := by
   intro hCf hS;
   have hUW : U ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
     FirstOrder.ArithmeticTheory.addTBB.weakerThan;
   have : 𝗜𝚺₁ ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
-    Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ U)) hUW;
+    WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ U)) hUW;
   have hInter := eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus (T := T) (U := U) (α := α) hCf;
   rcases classification_LogicS_sublogics_of_univ_trace
     (U := T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ)
@@ -411,18 +413,18 @@ open Classical in
 - [AB05, Theorem 40]
 -/
 theorem classification_provability_logics [DecidableEq α] :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    if h_coinfinite : L.traceᶜ.Infinite then
-      L = LogicGLAlpha L.trace
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  if h_coinfinite : L.traceᶜ.Infinite then
+    L = LogicGLAlpha L.trace
+  else
+    haveI h_cofinite : L.traceᶜ.Finite := Set.not_infinite.mp h_coinfinite;
+    if ¬(L ⊆ LogicS) then
+      L = LogicGLBetaMinus L.trace h_cofinite
     else
-      haveI h_cofinite : L.traceᶜ.Finite := Set.not_infinite.mp h_coinfinite;
-      if ¬(L ⊆ LogicS) then
-        L = LogicGLBetaMinus L.trace h_cofinite
-      else
-        L = LogicGLAlpha L.trace ∨
-        L = LogicD ∩ LogicGLBetaMinus L.trace h_cofinite ∨
-        L = LogicS ∩ LogicGLBetaMinus L.trace h_cofinite
-    := by
+      L = LogicGLAlpha L.trace ∨
+      L = LogicD ∩ LogicGLBetaMinus L.trace h_cofinite ∨
+      L = LogicS ∩ LogicGLBetaMinus L.trace h_cofinite
+  := by
   split_ifs with h_coinfinite h_S;
   . exact eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace h_coinfinite;
   . exact classification_LogicS_sublogics_of_cofinite_trace
@@ -439,7 +441,7 @@ section heightTrace
 section without_alpha
 
 lemma models_standardProvability_iff {σ : ArithmeticSentence} :
-    ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
+  ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
   constructor;
   . intro h;
     exact T.standardProvability.sound_on h;
@@ -447,7 +449,7 @@ lemma models_standardProvability_iff {σ : ArithmeticSentence} :
     exact models_of_provable inferInstance (T.standardProvability.D1 h);
 
 lemma not_models_standardProvability_bot :
-    ¬ ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[0] ⊥) := by
+  ¬ ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[0] ⊥) := by
   simp;
 
 end without_alpha
@@ -457,12 +459,12 @@ section
 variable [𝗜𝚺₁ ⪯ T]
 
 lemma models_iterate_standardProvability_bot_iff {n : ℕ} :
-    ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[n + 1] ⊥) ↔ T.height ≤ n := by
+  ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[n + 1] ⊥) ↔ T.height ≤ n := by
   rw [Function.iterate_succ_apply', models_standardProvability_iff];
   exact Provability.height_le_iff_boxBot.symm;
 
 lemma models_standardInterpret_TBB_iff {n : ℕ} :
-    ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB n) : ArithmeticSentence) ↔ T.height ≠ n := by
+  ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB n) : ArithmeticSentence) ↔ T.height ≠ n := by
   have e : LetterlessFormula.standardInterpret T (TBB n)
       = ((T.standardProvability^[n + 1] ⊥) 🡒 (T.standardProvability^[n] ⊥)) := by
     dsimp only [TBB, LetterlessFormula.standardInterpret, LetterlessFormula.interpret];
@@ -486,7 +488,7 @@ lemma models_standardInterpret_TBB_iff {n : ℕ} :
       omega;
 
 lemma mem_provabilityLogicRelativeTo_TA_TBB_iff {n : ℕ} :
-    (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ↔ T.height ≠ n := by
+  (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ↔ T.height ≠ n := by
   have e : ∀ f : Realization α ℒₒᵣ,
       f T (TBB n : Formula α) = LetterlessFormula.standardInterpret T (TBB n) := by
     intro f;
@@ -501,12 +503,12 @@ lemma mem_provabilityLogicRelativeTo_TA_TBB_iff {n : ℕ} :
     exact Arithmetic.TA.provable_iff.mpr (models_standardInterpret_TBB_iff.mpr h);
 
 lemma mem_trace_provabilityLogicRelativeTo_TA_iff {n : ℕ} :
-    n ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace ↔ T.height ≠ n := by
+  n ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace ↔ T.height ≠ n := by
   rw [← mem_provabilityLogicRelativeTo_TA_TBB_iff];
   exact ⟨provable_TBB_of_mem_trace, mem_trace_of_provable_TBB⟩;
 
 lemma trace_provabilityLogicRelativeTo_TA_eq_univ_iff [DecidableEq α] [Nonempty α] :
-    (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ ↔ T.height = (⊤ : ℕ∞) := by
+  (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ ↔ T.height = (⊤ : ℕ∞) := by
   rw [Set.eq_univ_iff_forall];
   constructor;
   . intro h;
@@ -533,16 +535,16 @@ lemma trace_provabilityLogicRelativeTo_TA_eq_compl_singleton_iff [DecidableEq α
 end
 
 lemma models_standardProvability_imp_of_soundOnHierarchy [T.SoundOnHierarchy 𝚺 1]
-    {σ : ArithmeticSentence} (hσ : FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ) :
-    ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
+  {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
+  ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
   rw [Semantics.Imp.models_imply];
   intro h;
   exact ArithmeticTheory.soundOnHierarchy T 𝚺 1 (models_standardProvability_iff.mp h) hσ;
 
 lemma soundOnHierarchy_of_models_standardProvability_imp
-    (h : ∀ {σ : ArithmeticSentence}, FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
-      ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ)) :
-    T.SoundOnHierarchy 𝚺 1 := by
+  (h : ∀ {σ : ArithmeticSentence}, Arithmetic.Hierarchy 𝚺 1 σ →
+    ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ)) :
+  T.SoundOnHierarchy 𝚺 1 := by
   constructor;
   intro σ hTσ hσ;
   exact (Semantics.Imp.models_imply.mp (h hσ)) (models_standardProvability_iff.mpr hTσ);
@@ -553,7 +555,7 @@ variable [𝗜𝚺₁ ⪯ T]
 
 /-- - [AB05, Corollary 41(ii)] -/
 lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
-    (LogicD : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := by
+  (LogicD : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := by
   intro A hA;
   induction hA using LogicD.substlessInduction with
   | provable_GL h => exact provabilityLogic_of_GL h;
@@ -565,11 +567,11 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
     rw [e, Semantics.Imp.models_imply];
     intro h;
     exact absurd (models_standardProvability_iff.mp h)
-      (inferInstance : Entailment.Consistent T).not_bot;
+      (inferInstance : Consistent T).not_bot;
   | @axiomD B C =>
     intro f;
     apply Arithmetic.TA.provable_iff.mpr;
-    have hσ : FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 (f T ((□B) ⋎ (□C) : Formula α)) := by
+    have hσ : Arithmetic.Hierarchy 𝚺 1 (f T ((□B) ⋎ (□C) : Formula α)) := by
       simp [Formula.interpret, Arithmetic.standardProvability_def];
     have hrfl := models_standardProvability_imp_of_soundOnHierarchy (T := T) hσ;
     simpa [Formula.interpret] using hrfl;
@@ -578,7 +580,7 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
 end
 
 lemma bot_notMem_provabilityLogicRelativeTo_TA :
-    (⊥ : Formula α) ∉ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
+  (⊥ : Formula α) ∉ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
   intro h;
   exact not_models_standardProvability_bot (T := T)
     (Arithmetic.TA.provable_iff.mp (h (⟨fun _ => ⊥⟩ : Realization α ℒₒᵣ)));
@@ -588,8 +590,8 @@ section
 variable [𝗜𝚺₁ ⪯ T] [DecidableEq α]
 
 lemma provabilityLogicRelativeTo_TA_subset_LogicS_of_trace_eq_univ
-    (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ) :
-    (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS := by
+  (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ) :
+  (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS := by
   by_contra hS;
   have hCf : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).traceᶜ.Finite :=
     cofinite_trace_of_not_subset_LogicS hS;
@@ -607,8 +609,8 @@ variable [𝗜𝚺₁ ⪯ T]
 
 /-- - [AB05, Corollary 41(ii)] -/
 lemma soundOnHierarchy_of_eq_provabilityLogicRelativeTo_TA_LogicD [DecidableEq α] [Nonempty α]
-    (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) = LogicD) :
-    T.SoundOnHierarchy 𝚺 1 := by
+  (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) = LogicD) :
+  T.SoundOnHierarchy 𝚺 1 := by
   apply soundOnHierarchy_of_models_standardProvability_imp;
   intro σ hσ;
   apply Arithmetic.TA.provable_iff.mp;
@@ -632,8 +634,8 @@ variable [𝗜𝚺₁ ⪯ T]
 
 /-- - [AB05, Corollary 41(i)] -/
 theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒᵣ] ⊧* T] :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicS := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  L = LogicS := by
   have hSL : (LogicS : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := fun A hA f =>
     Arithmetic.TA.provable_iff.mpr (LogicS.arithmetical_soundness hA f);
   have hLS : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS := fun A hA =>
@@ -657,11 +659,11 @@ between `LogicA` and `S` coincide.
 - [AB05, Corollary 41(i)]
 -/
 theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicS ↔ ℕ↓[ℒₒᵣ] ⊧* T := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  L = LogicS ↔ ℕ↓[ℒₒᵣ] ⊧* T := by
   constructor;
   . intro h;
-    apply FFL.Semantics.modelsSet_iff.mpr;
+    apply Semantics.modelsSet_iff.mpr;
     intro φ hφ;
     obtain ⟨p⟩ := ‹Nonempty α›;
     have hax : ((□(#p)) 🡒 (#p)) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
@@ -671,7 +673,7 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
       Arithmetic.TA.provable_iff.mp
         (hax ⟨fun _ => φ⟩);
     have hprov : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability φ) :=
-      models_of_provable inferInstance (T.standardProvability.D1 (Entailment.by_axm hφ));
+      models_of_provable inferInstance (T.standardProvability.D1 (by_axm hφ));
     have himp : ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability φ) → ℕ↓[ℒₒᵣ] ⊧ φ := by simpa using hrfl;
     exact himp hprov;
   . intro h;
@@ -679,11 +681,11 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
 
 /-- - [AB05, Corollary 41(ii)] -/
 theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T)) := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T)) := by
   constructor;
   . intro h;
-    have hSigma1Refl : ∀ {σ : ArithmeticSentence}, FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+    have hSigma1Refl : ∀ {σ : ArithmeticSentence}, Arithmetic.Hierarchy 𝚺 1 σ →
         ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
       intro σ hσ;
       apply Arithmetic.TA.provable_iff.mp;
@@ -725,8 +727,8 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
 
 /-- - [AB05, Corollary 41(iii)] -/
 theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicA ↔ (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞)) := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  L = LogicA ↔ (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞)) := by
   constructor;
   . intro h;
     have hTrace : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ := by
@@ -756,7 +758,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
         apply Set.eq_univ_of_forall;
         intro n;
         exact mem_trace_of_provable_TBB (h ▸ LogicD.provable_TBB);
-      have hreflU : ∀ {σ : ArithmeticSentence}, FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
+      have hreflU : ∀ {σ : ArithmeticSentence}, Arithmetic.Hierarchy 𝚺 1 σ →
           ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
         intro σ hσ;
         exact Arithmetic.TA.provable_iff.mp
@@ -770,8 +772,8 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
 
 /-- - [AB05, Corollary 41(iv)] -/
 theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    L = LogicGLBetaMinus {n}ᶜ (by simp) ↔ T.height = n := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  L = LogicGLBetaMinus {n}ᶜ (by simp) ↔ T.height = n := by
   constructor;
   . intro hL;
     have htrace : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = {n}ᶜ := by rw [hL]; simp;
@@ -813,24 +815,25 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
 - [AB05, Corollary 41]
 -/
 theorem classification_provabilityLogic_TA [DecidableEq α] [Nonempty α] :
-    letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
-    (ℕ↓[ℒₒᵣ] ⊧* T ∧ L = LogicS) ∨
-    (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T) ∧ L = LogicD) ∨
-    (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞) ∧ L = LogicA) ∨
-    ∃ n : ℕ, T.height = n ∧ L = LogicGLBetaMinus {n}ᶜ (by simp) := by
+  letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
+  (ℕ↓[ℒₒᵣ] ⊧* T ∧ L = LogicS) ∨
+  (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T) ∧ L = LogicD) ∨
+  (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞) ∧ L = LogicA) ∨
+  ∃ n : ℕ, T.height = n ∧ L = LogicGLBetaMinus {n}ᶜ (by simp) := by
   by_cases hheight : T.height = (⊤ : ℕ∞);
   . by_cases hSig : T.SoundOnHierarchy 𝚺 1;
     . by_cases hsound : ℕ↓[ℒₒᵣ] ⊧* T;
-      . exact Or.inl ⟨hsound, eq_provabilityLogic_TA_LogicS_of_sound⟩;
-      . exact Or.inr (Or.inl ⟨hSig, hsound, eq_provabilityLogic_TA_LogicD_iff.mpr ⟨hSig, hsound⟩⟩);
-    . exact Or.inr (Or.inr (Or.inl
-        ⟨hSig, hheight, eq_provabilityLogic_TA_LogicA_iff.mpr ⟨hSig, hheight⟩⟩));
+      . left; exact ⟨hsound, eq_provabilityLogic_TA_LogicS_of_sound⟩;
+      . right; left; exact ⟨hSig, hsound, eq_provabilityLogic_TA_LogicD_iff.mpr ⟨hSig, hsound⟩⟩;
+    . right; right; left;
+      exact ⟨hSig, hheight, eq_provabilityLogic_TA_LogicA_iff.mpr ⟨hSig, hheight⟩⟩;
   . obtain ⟨n, hn⟩ : ∃ n : ℕ, T.height = n := by
       rcases eq_top_or_lt_top T.height with h | h;
       . exact absurd h hheight;
       . obtain ⟨n, hn⟩ := ENat.ne_top_iff_exists.mp (LT.lt.ne_top h);
         exact ⟨n, hn.symm⟩;
-    exact Or.inr (Or.inr (Or.inr ⟨n, hn, eq_provabilityLogic_TA_LogicGLBetaMinus_iff.mpr hn⟩));
+    right; right; right;
+    exact ⟨n, hn, eq_provabilityLogic_TA_LogicGLBetaMinus_iff.mpr hn⟩;
 
 end trueArith
 

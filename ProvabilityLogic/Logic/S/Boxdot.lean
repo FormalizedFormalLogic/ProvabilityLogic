@@ -14,7 +14,7 @@ open Model.World
 
 /-- **`GL` and `S` agree on boxdot-translated formulas.** -/
 theorem iff_provable_boxdot_GL_provable_boxdot_S [DecidableEq α] :
-    (Aᵇ) ∈ LogicGL ↔ (Aᵇ) ∈ LogicS := by
+  (Aᵇ) ∈ LogicGL ↔ (Aᵇ) ∈ LogicS := by
   constructor;
   . exact provable_of_provable_GL;
   . intro h;

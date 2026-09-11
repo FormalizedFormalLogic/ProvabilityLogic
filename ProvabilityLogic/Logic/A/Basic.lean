@@ -76,9 +76,6 @@ private lemma substlessTBB.eq_LogicA : LogicA.substlessTBB (α := α) = LogicA :
 private lemma substlessTBB.toLogicA (h : LogicA.substlessTBB A) : A ∈ LogicA :=
   LogicA.substlessTBB.eq_LogicA ▸ h
 
-private lemma substlessTBB.ofLogicA (h : A ∈ LogicA) : LogicA.substlessTBB A :=
-  LogicA.substlessTBB.eq_LogicA.symm ▸ h
-
 /-- Induction principle for `LogicA` avoiding `subst`. -/
 protected lemma substlessInductionTBB
   {motive : (A : Formula α) → A ∈ LogicA → Prop}
@@ -88,7 +85,7 @@ protected lemma substlessInductionTBB
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
   : ∀ {A}, (h : A ∈ LogicA) → motive A h := by
   intro A h;
-  induction LogicA.substlessTBB.ofLogicA h with
+  induction LogicA.substlessTBB.eq_LogicA.symm ▸ h with
   | GL hg => exact GL hg;
   | TBB n => exact TBB n;
   | mdp hAB hA ihAB ihA =>
@@ -104,10 +101,10 @@ lemma provable_neg_boxItr_bot : ∼□^[n]⊥ ∈ @LogicA α := by
   induction n with
   | zero =>
     apply provable_of_provable_GL;
-    exact LogicGL.iff_forces.mpr (by grind);
+    exact iff_forces.mpr (by grind);
   | succ n ih =>
     have hTBB : TBB n ∈ @LogicA α := provable_axiomTBB n;
-    have hK : TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥  ∈ @LogicGL α := LogicGL.iff_forces.mpr (by grind);
+    have hK : TBB n 🡒 ∼□^[n]⊥ 🡒 ∼□^[n + 1]⊥  ∈ @LogicGL α := iff_forces.mpr (by grind);
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (provable_of_provable_GL hK) hTBB) ih;
 
 /-- The easy direction of `LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp`. -/
@@ -140,15 +137,12 @@ private lemma substlessGP.eq_LogicA : LogicA.substlessGP (α := α) = LogicA := 
         LogicA.substlessGP.GP (n + 1);
       have h₂ : LogicA.substlessGP ((∼□^[n + 1]⊥) 🡒 TBB n : Formula α) := by
         apply LogicA.substlessGP.GL;
-        exact LogicGL.iff_forces.mpr (by grind);
+        exact iff_forces.mpr (by grind);
       exact LogicA.substlessGP.mdp h₂ h₁;
     | mdp ihAB ihA => exact LogicA.substlessGP.mdp ihAB ihA;
 
 private lemma substlessGP.toLogicA (h : A ∈ LogicA.substlessGP) : A ∈ LogicA := by
   rwa [←LogicA.substlessGP.eq_LogicA];
-
-private lemma substlessGP.ofLogicA (h : A ∈ LogicA) : A ∈ LogicA.substlessGP := by
-  rwa [LogicA.substlessGP.eq_LogicA];
 
 /-- Induction principle for `LogicA` avoiding `subst`, for the axiomatization by the
 iterated consistency statements. -/
@@ -160,7 +154,8 @@ protected lemma substlessInductionGP
     motive (A 🡒 B) hAB → motive A hA → motive B (Logic.sumQuasiNormal.mdp hAB hA))
   : ∀ {A}, (h : A ∈ LogicA) → motive A h := by
   intro A h;
-  induction LogicA.substlessGP.ofLogicA h with
+  have h' : A ∈ LogicA.substlessGP := by rwa [LogicA.substlessGP.eq_LogicA];
+  induction h' with
   | GL hg => exact GL hg;
   | GP n => exact GP n;
   | mdp hAB hA ihAB ihA =>
@@ -221,7 +216,7 @@ theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
   constructor;
   . intro h;
     obtain ⟨N, hN⟩ := root_forces_neg_boxItr_bot_imp (exists_forces_of_forces_instancesBelow_of_provable h);
-    exact ⟨N, LogicGL.iff_forces_root.mpr hN⟩;
+    exact ⟨N, iff_forces_root.mpr hN⟩;
   . rintro ⟨n, h⟩;
     exact provable_of_provable_GL_neg_boxItr_bot_imp h;
 
@@ -229,17 +224,17 @@ theorem iff_provable_provable_GL_neg_boxItr_bot_imp :
 lemma not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA (h : A ∉ LogicA) :
   ((◇(⋀A.subfmlsS)) 🡒 A) ∉ LogicGL := by
   contrapose! h;
-  have h₁ : (∼□^[A.subfmls.prebox.card + 1]⊥ : Formula α) ∈ LogicA := LogicA.provable_neg_boxItr_bot;
-  have h₂ : ((◇(⋀A.subfmlsS)) : Formula α) ∈ LogicA :=
+  have h₁ : (∼□^[A.subfmls.prebox.card + 1]⊥ : Formula α) ∈ LogicA := provable_neg_boxItr_bot;
+  have h₂ : (◇(⋀A.subfmlsS)) ∈ LogicA :=
     Logic.sumQuasiNormal.mdp
-      (Logic.sumQuasiNormal.mem₁ LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS) h₁;
+      (Logic.sumQuasiNormal.mem₁ provable_neg_boxItr_bot_imp_dia_subfmlsS) h₁;
   exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ h) h₂;
 
 /-- - [AB05, Lemma 51] -/
 lemma exists_reflexive_countermodel_of_not_mem_LogicA (h : A ∉ LogicA) :
   ∃ (κ : Type u) (_ : Nonempty κ) (M : RootedModel κ α) (_ : M.IsFiniteGL),
   M.root.1 ⊮[_] A ∧ ∃ r : M.World, M.root.1 ≺ r ∧ r ⊩[_] ⋀A.subfmlsS := by
-  have := (LogicGL.iff_forces_root (A := (◇(⋀A.subfmlsS)) 🡒 A)).not.mp
+  have := (iff_forces_root (A := (◇(⋀A.subfmlsS)) 🡒 A)).not.mp
     (not_GL_provable_dia_subfmlsS_imp_of_not_mem_LogicA h);
   push Not at this;
   obtain ⟨κ, hne, M, hfgl, hroot⟩ := this;
@@ -261,7 +256,7 @@ theorem provability_TFAE : [
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A,
   ∃ n : ℕ, ((∼□^[n]⊥) 🡒 A) ∈ LogicGL,
 ].TFAE := by
-  tfae_have 1 → 5 := LogicA.iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
+  tfae_have 1 → 5 := iff_provable_provable_GL_neg_boxItr_bot_imp.mp;
   tfae_have 5 → 4 := by
     rintro ⟨n, hGL⟩ κ _ M _ a Rra;
     have := RootedModel.graftOmega.isGL (M := M) (a := ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩) Rra;
@@ -286,14 +281,14 @@ theorem provability_TFAE : [
     | GL h =>
       apply GentzenWithCutProvable.liftUp;
       apply GentzenWithCutProvable.of_without_cut;
-      exact LogicA.iff_provableGentzen_provable_zero.mp (LogicGL.iff_provableGentzen.mp h);
+      exact iff_provableGentzen_provable_zero.mp (iff_provableGentzen.mp h);
     | GP n => exact GentzenWithCutProvable.neg_boxItr_bot n;
     | mdp ihAB ihA => exact GentzenWithCutProvable.mdp ihAB ihA;
   tfae_have 3 → 4 := by
     intro h κ _ M _ a Rra;
     exact forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
-  tfae_have 3 ↔ 2 := LogicA.sequent_TFAE.out 0 1
+  tfae_have 3 ↔ 2 := sequent_TFAE.out 0 1
   tfae_finish;
 
 /-- - [Bek90, Lemma 5] -/
@@ -302,15 +297,15 @@ theorem iff_provable_forces_graftOmega_root :
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
-  LogicA.provability_TFAE.out 0 3
+  provability_TFAE.out 0 3
 
 theorem iff_provable_provableGentzenWithCut :
   A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
-  LogicA.provability_TFAE.out 0 2
+  provability_TFAE.out 0 2
 
 theorem iff_provable_provableGentzen :
   A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
-  LogicA.provability_TFAE.out 0 1
+  provability_TFAE.out 0 1
 
 end LogicA
 
@@ -350,9 +345,9 @@ lemma root_rank_eq : (axiomDCountermodel n a).root.1.rank = n + 1 := by
   simpa using rank_eq (a := a) (axiomDCountermodel n a).root.1;
 
 lemma forces_box_atom_of_ne_root {x : (axiomDCountermodel n a).World} (hx : 0 < x) :
-  x ⊩[_] (□(#a) : Formula α) := by grind
+  x ⊩[_] □(#a) := by grind
 
-lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩[_] (□(#a) : Formula α) :=
+lemma root_not_forces_box_atom : ¬(axiomDCountermodel n a).root.1 ⊩[_] □(#a) :=
   not_forces_box.mpr ⟨bad n, by grind, by grind⟩
 
 lemma root_not_forces_axiomD_consequent :

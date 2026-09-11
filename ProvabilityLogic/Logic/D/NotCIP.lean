@@ -34,7 +34,7 @@ variable {a b c : Formula α}
 
 /-- - [Bek89, Lemma 9] -/
 lemma provable_counterexample_imp :
-    (∼(counterexampleCIP_A a b) 🡒 counterexampleCIP_B a c) ∈ LogicD := by
+  (∼(counterexampleCIP_A a b) 🡒 counterexampleCIP_B a c) ∈ LogicD := by
   have step2 : ((□(□b ⋎ a) ⋏ □(a 🡒 □c)) 🡒 □(□b ⋎ □c)) ∈ LogicGL := by
     apply LogicGL.provable_of_valid;
     intro κ _ M _ x;
@@ -72,9 +72,9 @@ open Model.World
 
 /-- A refinement of `Model.forces_congr`, sensitive only to the atoms of `A`. -/
 lemma forces_congr_atoms
-    (hR : M₁.Rel' = M₂.Rel') {A : Formula α} {x : κ}
-    (hV : ∀ x a, a ∈ A.atoms → (M₁.Val' x a ↔ M₂.Val' x a)) :
-    x ⊩[M₁] A ↔ x ⊩[M₂] A := by
+  (hR : M₁.Rel' = M₂.Rel') {A : Formula α} {x : κ}
+  (hV : ∀ x a, a ∈ A.atoms → (M₁.Val' x a ↔ M₂.Val' x a)) :
+  x ⊩[M₁] A ↔ x ⊩[M₂] A := by
   induction A generalizing x with
   | atom a => exact hV x a (by simp [Formula.atoms])
   | bot => exact Iff.rfl
@@ -94,7 +94,7 @@ lemma forces_congr_atoms
 
 omit [DecidableEq α] in
 lemma not_rel_root_of_rooted (M : RootedModel κ α)
-    [M.IsFiniteGL] (x : κ) : ¬M.toModel.Rel x M.root.1 := by
+  [M.IsFiniteGL] (x : κ) : ¬M.toModel.Rel x M.root.1 := by
   intro h;
   by_cases hx : x = M.root.1;
   . subst hx; exact Std.Irrefl.irrefl _ h;
@@ -103,12 +103,12 @@ lemma not_rel_root_of_rooted (M : RootedModel κ α)
 /-- The model `M` with the valuation of the atom `d` overwritten to hold exactly off the
 root. -/
 abbrev flipModel (M : RootedModel κ α) (d : α) :
-    Model κ α where
+  Model κ α where
   Rel' := M.toModel.Rel'
   Val' x a := if a = d then x ≠ M.root.1 else M.toModel.Val' x a
 
 instance {M : RootedModel κ α} [h : M.IsFiniteGL] {d : α} :
-    (flipModel M d).IsFiniteGL where
+  (flipModel M d).IsFiniteGL where
   trans := h.trans
   irrefl := h.irrefl
   finite := h.finite
@@ -116,8 +116,8 @@ instance {M : RootedModel κ α} [h : M.IsFiniteGL] {d : α} :
 variable {a b c d : α}
 
 lemma val_toPseudoTail_flipModel {M : RootedModel κ α}
-    {o : α → Prop} (had : a ≠ d) (x : M.World ⊕ ℕ∞) :
-    (M.toModel.toPseudoTail M.root.1 o).Val' x a ↔ ((flipModel M d).toPseudoTail M.root.1 o).Val' x a := by
+  {o : α → Prop} (had : a ≠ d) (x : M.World ⊕ ℕ∞) :
+  (M.toModel.toPseudoTail M.root.1 o).Val' x a ↔ ((flipModel M d).toPseudoTail M.root.1 o).Val' x a := by
   grind;
 
 /--
@@ -128,13 +128,13 @@ the lower valuation `o`.
 - [Bek89, Lemma 10]
 -/
 lemma interpolant_root_forces_iff
-    (hab : a ≠ b) (hac : a ≠ c)
-    (hCant : (∼(counterexampleCIP_A (#a) (#b)) 🡒 C) ∈ LogicD)
-    (hCsuc : (C 🡒 counterexampleCIP_B (#a) (#c)) ∈ LogicD)
-    (hCatoms : C.atoms ⊆ {a})
-    (M : RootedModel κ α) [M.IsFiniteGL] (o : α → Prop) :
-    (M.toModel.toPseudoTail M.root.1 o).root.1
-      ⊩[(M.toModel.toPseudoTail M.root.1 o).toModel] C ↔ M.Val M.root.1 a := by
+  (hab : a ≠ b) (hac : a ≠ c)
+  (hCant : (∼(counterexampleCIP_A (#a) (#b)) 🡒 C) ∈ LogicD)
+  (hCsuc : (C 🡒 counterexampleCIP_B (#a) (#c)) ∈ LogicD)
+  (hCatoms : C.atoms ⊆ {a})
+  (M : RootedModel κ α) [M.IsFiniteGL] (o : α → Prop) :
+  (M.toModel.toPseudoTail M.root.1 o).root.1
+    ⊩[(M.toModel.toPseudoTail M.root.1 o).toModel] C ↔ M.Val M.root.1 a := by
   have hCp : ∀ e ∈ C.atoms, e = a := fun e ha => Finset.mem_singleton.mp (hCatoms ha);
   constructor;
   . intro hC;
@@ -226,7 +226,7 @@ D-models.
 variable {A : Formula α}
 
 variable {κ : Type u} [Nonempty κ] {C : Formula α} {M : Model κ α}
-    {r : M.World} {o o' : α → Prop}
+  {r : M.World} {o o' : α → Prop}
 
 lemma forces_modalize {x : κ}
   (h : ∀ a ∈ A.atoms, ¬M x a) :
@@ -235,9 +235,9 @@ lemma forces_modalize {x : κ}
 
 omit [DecidableEq α] in
 lemma forces_pseudoTail_ne_root_o_indep (A : Formula α) :
-    ∀ z : (M.toPseudoTail r o).World, z ≠ toPseudoTail.chainPoint ⊤ →
-      (z ⊩[(M.toPseudoTail r o).toModel] A ↔
-        z ⊩[(M.toPseudoTail r o').toModel] A) := by
+  ∀ z : (M.toPseudoTail r o).World, z ≠ toPseudoTail.chainPoint ⊤ →
+    (z ⊩[(M.toPseudoTail r o).toModel] A ↔
+      z ⊩[(M.toPseudoTail r o').toModel] A) := by
   have hsucc : ∀ z y : (M.toPseudoTail r o).World,
       (M.toPseudoTail r o).Rel z y → y ≠ toPseudoTail.chainPoint ⊤ := by
     rintro (x | i) y hy rfl;
@@ -265,8 +265,8 @@ omit [DecidableEq α] in
 /-- A `Modalized` formula is forced at the pseudo-tail root independently of the lower
 valuation `o`. -/
 lemma forces_root_modalized_o_indep {A : Formula α} (hA : A.Modalized) :
-    toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] A ↔
-      toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o').toModel] A := by
+  toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] A ↔
+    toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o').toModel] A := by
   have hsucc : ∀ y : (M.toPseudoTail r o).World,
       (M.toPseudoTail r o).Rel (toPseudoTail.chainPoint ⊤) y → y ≠ toPseudoTail.chainPoint ⊤ := by
     rintro y hy rfl;
@@ -291,30 +291,35 @@ lemma forces_root_modalized_o_indep {A : Formula α} (hA : A.Modalized) :
 
 /-- - [Bek89, Lemma 11] -/
 lemma exists_modalized_equiv_of_indep
-    (hindep : ∀ {κ : Type u} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL]
-        (r : M.World) (o o' : α → Prop),
-      (M.toPseudoTail r o).root.1 ⊩[(M.toPseudoTail r o).toModel] C ↔
-        (M.toPseudoTail r o').root.1 ⊩[(M.toPseudoTail r o').toModel] C) :
-    ∃ C', C'.Modalized ∧ (C 🡘 C') ∈ LogicD ∧ C'.atoms ⊆ C.atoms := by
-  use C.modalize, Formula.modalized_modalize, ?_, Formula.atoms_modalize_subset;
-  apply LogicD.iff_forces_pseudoTail_root.mpr;
-  intro κ _ M _ r o;
-  -- The all-false lower valuation, at which `C` and `C.modalize` agree at the root.
-  let o₀ : α → Prop := fun _ => False;
-  have h0 : ∀ a ∈ C.atoms, ¬(M.toPseudoTail r o₀).toModel.Val (toPseudoTail.chainPoint ⊤) a := by
-    intro a _;
-    show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M r a);
-    rw [if_pos rfl];
-    exact not_false;
-  have key : toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] C ↔
-      toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] (C.modalize) :=
-    (hindep M r o o₀).trans ((forces_modalize h0).symm.trans
-      (forces_root_modalized_o_indep Formula.modalized_modalize));
-  exact Model.World.forces_iff.mpr key;
+  (hindep :
+    ∀ {κ : Type u} [Nonempty κ] (M : Model κ α) [M.IsFiniteGL]
+    (r : M.World) (o o' : α → Prop),
+    (M.toPseudoTail r o).root.1 ⊩[(M.toPseudoTail r o).toModel] C ↔
+    (M.toPseudoTail r o').root.1 ⊩[(M.toPseudoTail r o').toModel] C
+  )
+  : ∃ C', C'.Modalized ∧ (C 🡘 C') ∈ LogicD ∧ C'.atoms ⊆ C.atoms := by
+  use C.modalize;
+  and_intros;
+  . exact Formula.modalized_modalize;
+  . apply iff_forces_pseudoTail_root.mpr;
+    intro κ _ M _ r o;
+    -- The all-false lower valuation, at which `C` and `C.modalize` agree at the root.
+    let o₀ : α → Prop := fun _ => False;
+    have h0 : ∀ a ∈ C.atoms, ¬(M.toPseudoTail r o₀).toModel.Val (toPseudoTail.chainPoint ⊤) a := by
+      intro a _;
+      show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M r a);
+      rw [if_pos rfl];
+      exact not_false;
+    have key : toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] C ↔
+        toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] (C.modalize) :=
+      (hindep M r o o₀).trans ((forces_modalize h0).symm.trans
+        (forces_root_modalized_o_indep Formula.modalized_modalize));
+    exact Model.World.forces_iff.mpr key;
+  . exact Formula.atoms_modalize_subset;
 
 /-- - [Bek89, Lemma 12] -/
 lemma not_exists_modalized_equiv_atom [Nontrivial α] :
-    ¬ ∃ (C : Formula α) (a : α), C.Modalized ∧ C.atoms ⊆ {a} ∧ (C 🡘 #a) ∈ LogicS := by
+  ¬ ∃ (C : Formula α) (a : α), C.Modalized ∧ C.atoms ⊆ {a} ∧ (C 🡘 #a) ∈ LogicS := by
   rintro ⟨C, a, hMod, hAtoms, hCp⟩;
   obtain ⟨d, hqp⟩ := exists_ne a;
   have hA : (∼C).ModalizedIn a := ⟨hMod a, trivial⟩;
@@ -347,9 +352,9 @@ end
 - [Bek89, Theorem 2]
 -/
 theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
-    ∃ A B : Formula α, (A 🡒 B) ∈ LogicD ∧
-      ¬ ∃ C : Formula α, (A 🡒 C) ∈ LogicD ∧ (C 🡒 B) ∈ LogicD ∧
-        C.atoms ⊆ A.atoms ∩ B.atoms := by
+  ∃ A B : Formula α, (A 🡒 B) ∈ LogicD ∧
+    ¬ ∃ C : Formula α, (A 🡒 C) ∈ LogicD ∧ (C 🡒 B) ∈ LogicD ∧
+      C.atoms ⊆ A.atoms ∩ B.atoms := by
   have : Nontrivial α := ⟨⟨a, b, hab⟩⟩;
   use ∼(counterexampleCIP_A (#a) (#b)), counterexampleCIP_B (#a) (#c), provable_counterexample_imp;
   rintro ⟨C, hCant, hCsuc, hCatoms⟩;
@@ -407,10 +412,17 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
       rw [if_pos rfl];
       exact not_false;
     have hiff : M.root.1 ⊩[M.toModel] C.modalize ↔ M.Val M.root.1 a :=
-      hstep1.trans (hstep2.trans
-        ((forces_root_modalized_o_indep hC'mod).trans
-          ((forces_modalize h0).trans
-            (interpolant_root_forces_iff hab hac hCant hCsuc hCatoms M o₀))));
+      calc
+        M.root.1 ⊩[M.toModel] C.modalize
+          ↔ toTail.chainPoint ⊤ ⊩[(M.toModel.toTail M.root.1).toModel] (C.modalize) := hstep1
+        _ ↔ toPseudoTail.chainPoint ⊤
+              ⊩[(M.toModel.toPseudoTail M.root.1 (M.toModel.Val M.root.1)).toModel]
+              (C.modalize) := hstep2
+        _ ↔ toPseudoTail.chainPoint ⊤ ⊩[(M.toModel.toPseudoTail M.root.1 o₀).toModel]
+              (C.modalize) := forces_root_modalized_o_indep hC'mod
+        _ ↔ toPseudoTail.chainPoint ⊤ ⊩[(M.toModel.toPseudoTail M.root.1 o₀).toModel] C :=
+              forces_modalize h0
+        _ ↔ M.Val M.root.1 a := interpolant_root_forces_iff hab hac hCant hCsuc hCatoms M o₀;
     exact Model.World.forces_iff.mpr hiff;
   exact not_exists_modalized_equiv_atom ⟨C.modalize, a, hC'mod, hC'atoms, hS⟩;
 

@@ -184,8 +184,9 @@ lemma height_eq (Rra : M.root.1 ≺ a.1)
       | k + 1 =>
         use .inl t;
         rw [show Model.World.rank a.1 + (k + 1) + 1 = ((k + 1) + Model.World.rank a.1) + 1 by omega];
-        refine ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1) ?_ (relItr_inl ht)⟩;
-        simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
+        exact ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1)
+          (by simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1))))
+          (relItr_inl ht)⟩;
 
 lemma rank_inl [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     {x : M.World} (hx : x ≠ M.root.1) :
@@ -247,19 +248,20 @@ lemma mainlemma [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (a : M.ReflexiveWorldOf A.s
         . exact ihB₂ y |>.mpr (h y Rxy);
         . have hx : x = M.root.1 := Rxy;
           exact ihB₁ i |>.mpr (ihB₂ a |>.mpr (h a (by rw [hx]; exact Rra)));
-    refine ⟨?_, h₂⟩;
-    intro i;
-    constructor;
-    . rintro h (y | j) Ray;
-      . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray hane;
-    . intro h;
-      have haB : a.1 ⊩[M.toModel] B := a.2 (by grind) (h₂ a |>.mp h);
-      rintro (y | j) Riy;
-      . rcases Riy with rfl | hay;
-        . exact ihB₂ _ |>.mpr haB;
-        . exact h (.inl y) hay;
-      . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    and_intros;
+    . intro i;
+      constructor;
+      . rintro h (y | j) Ray;
+        . exact h (.inl y) (Or.inr Ray);
+        . exact absurd Ray hane;
+      . intro h;
+        have haB : a.1 ⊩[M.toModel] B := a.2 (by grind) (h₂ a |>.mp h);
+        rintro (y | j) Riy;
+        . rcases Riy with rfl | hay;
+          . exact ihB₂ _ |>.mpr haB;
+          . exact h (.inl y) hay;
+        . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    . exact h₂;
   | _ => grind;
 
 end Mainlemma

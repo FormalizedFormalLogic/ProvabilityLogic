@@ -211,14 +211,14 @@ variable [DecidableEq α]
 lemma imp_fdisj_elim'
   (h : ∀ B ∈ Q, (B 🡒 C) ∈ LogicGLPoint3) : ((⋁ Q) 🡒 C) ∈ LogicGLPoint3 := by
   induction Q using Finset.induction with
-  | empty => exact of_GL (by simp only [FormulaFinset.disj_empty]; exact ProvableHilbert.efq)
+  | empty => exact of_GL (by simp only [FormulaFinset.disj_empty]; exact ProvableHilbert.efq);
   | insert a s ha ih =>
-    have h1 : (a 🡒 C) ∈ LogicGLPoint3 := h a (Finset.mem_insert_self _ _)
+    have h1 : (a 🡒 C) ∈ LogicGLPoint3 := h a (Finset.mem_insert_self _ _);
     have h2 : ((⋁ s) 🡒 C) ∈ LogicGLPoint3 :=
-      ih (fun B hB => h B (Finset.mem_insert_of_mem hB))
+      ih (fun B hB => h B (Finset.mem_insert_of_mem hB));
     have hins : (⋁ (insert a s) 🡒 (a ⋎ ⋁ s)) ∈ LogicGLPoint3 :=
-      of_GL ProvableHilbert.imp_fdisj_insert
-    exact impTrans hins (orElim_imp' h1 h2)
+      of_GL ProvableHilbert.imp_fdisj_insert;
+    exact impTrans hins (orElim_imp' h1 h2);
 
 end
 
@@ -237,13 +237,13 @@ lemma imp_and_fdisj_elim'
     simp only [FormulaFinset.disj_empty];
     exact ProvableHilbert.impTrans ProvableHilbert.andR ProvableHilbert.efq;
   | insert a s ha ih =>
-    have h1 : ((A ⋏ a) 🡒 C) ∈ LogicGLPoint3 := h a (Finset.mem_insert_self _ _)
+    have h1 : ((A ⋏ a) 🡒 C) ∈ LogicGLPoint3 := h a (Finset.mem_insert_self _ _);
     have h2 : ((A ⋏ (⋁ s)) 🡒 C) ∈ LogicGLPoint3 :=
-      ih (fun B hB => h B (Finset.mem_insert_of_mem hB))
+      ih (fun B hB => h B (Finset.mem_insert_of_mem hB));
     have hins : ((A ⋏ (⋁ (insert a s))) 🡒 ((A ⋏ a) ⋎ (A ⋏ (⋁ s)))) ∈ LogicGLPoint3 :=
       of_GL (ProvableHilbert.impTrans (LogicGL.and_congr_right ProvableHilbert.imp_fdisj_insert)
-        LogicGL.distrib_and_or)
-    exact impTrans hins (orElim_imp' h1 h2)
+        LogicGL.distrib_and_or);
+    exact impTrans hins (orElim_imp' h1 h2);
 
 end
 
@@ -391,8 +391,8 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
             (LogicGL.dia_cases (A := theta S' (Δ' \ S') ⋏ □D) (B := D)));
       have hDeep :
           ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ D)) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
-        refine impTrans (witness_deep_step (S' := S') (Δ' := Δ') (D := D)) ?_;
-        have heqD : Δ \ ({D} : FormulaFinset α) = Δ' := by
+        apply impTrans (witness_deep_step (S' := S') (Δ' := Δ') (D := D));
+        have heqD : Δ \ {D} = Δ' := by
           rw [← hΔins, Finset.sdiff_singleton_eq_erase, Finset.erase_insert hDnotΔ'];
         rw [← heqD];
         exact mem_imp_witnessDisj
@@ -401,15 +401,15 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
       have hJoinS :
           ((∼□D ⋏ ◇ ((theta S' (Δ' \ S') ⋏ □D) ⋏ ∼D)) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
         apply of_GL;
-        refine ProvableHilbert.impTrans ProvableHilbert.andR ?_;
+        apply ProvableHilbert.impTrans ProvableHilbert.andR;
         have hreorder :
           (((theta S' (Δ' \ S') ⋏ □D) ⋏ ∼D) 🡒 (theta S' (Δ' \ S') ⋏ (∼D ⋏ □D))) ∈ LogicGL :=
           ProvableHilbert.ctxAndIntroRule
             (ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.andL)
             (ProvableHilbert.ctxAndIntroRule ProvableHilbert.andR
               (ProvableHilbert.impTrans ProvableHilbert.andL ProvableHilbert.andR));
-        refine ProvableHilbert.impTrans
-          (LogicGL.diaImp (ProvableHilbert.impTrans hreorder LogicGL.theta_join_S)) ?_;
+        apply ProvableHilbert.impTrans
+          (LogicGL.diaImp (ProvableHilbert.impTrans hreorder LogicGL.theta_join_S));
         have heqS : Δ \ (insert D S') = Δ' \ S' := by
           rw [← hΔins, Finset.insert_sdiff_insert, Finset.sdiff_insert,
             Finset.erase_eq_of_notMem (fun h => hDnotΔ' (Finset.mem_sdiff.mp h).1)];
@@ -419,9 +419,9 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
       have hComplement :
           ((∼□D ⋏ ◇ (theta S' (Δ' \ S') ⋏ ∼□D)) 🡒 witnessDisj Δ) ∈ LogicGLPoint3 := by
         apply of_GL;
-        refine ProvableHilbert.impTrans ProvableHilbert.andR ?_;
-        refine ProvableHilbert.impTrans
-          (LogicGL.diaImp LogicGL.theta_join_complement) ?_;
+        apply ProvableHilbert.impTrans ProvableHilbert.andR;
+        apply ProvableHilbert.impTrans
+          (LogicGL.diaImp LogicGL.theta_join_complement);
         have heqC : Δ \ S' = insert D (Δ' \ S') := by
           rw [← hΔins, Finset.insert_sdiff_of_notMem _ hDnotS'];
         rw [← heqC];
@@ -448,13 +448,13 @@ theorem witness : ∀ {Δ : FormulaFinset α}, Δ.Nonempty →
     subst hΔeq;
     have hL : ({D} : FormulaFinset α).image (fun A => ∼□A) = {∼□D} := by simp;
     rw [hL, FormulaFinset.conj_singleton];
-    have hstep : ((◇ (theta {D} (({D} : FormulaFinset α) \ {D}))) 🡒 witnessDisj {D}) ∈
+    have hstep : ((◇ (theta {D} ({D} \ {D}))) 🡒 witnessDisj {D}) ∈
         LogicGLPoint3 :=
       mem_imp_witnessDisj subset_rfl ⟨D, Finset.mem_singleton_self _⟩;
     rw [show (({D} : FormulaFinset α) \ {D}) = ∅ by simp] at hstep;
     apply impTrans _ hstep;
     apply of_GL;
-    have hcore : ((□D ⋏ ∼D) 🡒 theta {D} (∅ : FormulaFinset α)) ∈ LogicGL := by
+    have hcore : ((□D ⋏ ∼D) 🡒 theta {D} ∅) ∈ LogicGL := by
       simp only [theta, Finset.image_singleton, FormulaFinset.conj_singleton,
         Finset.image_empty, FormulaFinset.conj_empty];
       apply LogicGL.iff_forces.mpr;
@@ -496,7 +496,7 @@ lemma imp_and_not_bot' (h : (A 🡒 B) ∈ LogicGLPoint3) :
   have hbot : ((B ⋏ ∼B) 🡒 (⊥ : Formula α)) ∈ LogicGL :=
     ProvableHilbert.mdp (ProvableHilbert.mdp ProvableHilbert.implyS ProvableHilbert.andR)
       ProvableHilbert.andL;
-  exact impTrans hand (of_GL hbot)
+  exact impTrans hand (of_GL hbot);
 
 end combinators2
 
@@ -515,7 +515,7 @@ variable {S T : FormulaFinset α}
 
 lemma imp_theta_box : ((LogicGLPoint3.theta S T) 🡒 ⋀ S.box) ∈ LogicGL := by
   unfold LogicGLPoint3.theta;
-  refine impTrans andL ?_;
+  apply impTrans andL;
   apply imp_fconj_of_forall;
   intro C hC;
   obtain ⟨A, hA, rfl⟩ := Finset.mem_image.mp hC;
@@ -547,7 +547,7 @@ private lemma boxGLPoint3_step {S : FormulaFinset α}
   ((⋀Γ.box ⋏ ◇ (theta S (Δ \ S))) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 := by
   set T := Δ \ S with hTdef;
   have hbotProp : ((⋀(Γ.box ∪ Γ ∪ S.box)) ⋏ ∼(⋁ (S ∪ T.box))) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
-    imp_and_not_bot' (h S hSsub hSne)
+    imp_and_not_bot' (h S hSsub hSne);
   have hglue :
     ((⋀(Γ.box ∪ Γ) ⋏ theta S T) 🡒 ((⋀(Γ.box ∪ Γ ∪ S.box)) ⋏ ∼(⋁ (S ∪ T.box)))) ∈ LogicGL := by
     apply ProvableHilbert.ctxAndIntroRule;
@@ -557,16 +557,16 @@ private lemma boxGLPoint3_step {S : FormulaFinset α}
       exact ProvableHilbert.impTrans h1 (ProvableHilbert.imp_fconj_union (Γ.box ∪ Γ) S.box);
     . exact ProvableHilbert.impTrans ProvableHilbert.andR LogicGL.imp_theta_not_fdisj;
   have hpropbot : ((⋀(Γ.box ∪ Γ) ⋏ theta S T) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 :=
-    impTrans (of_GL hglue) hbotProp
+    impTrans (of_GL hglue) hbotProp;
   have hdiabot : ((◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) 🡒 (⊥ : Formula α)) ∈ LogicGLPoint3 :=
-    impTrans (diaImp' hpropbot) (of_GL LogicGL.dia_bot)
+    impTrans (diaImp' hpropbot) (of_GL LogicGL.dia_bot);
   have hcombine : ((⋀Γ.box ⋏ ◇ (theta S T)) 🡒 ◇ (⋀(Γ.box ∪ Γ) ⋏ theta S T)) ∈ LogicGL :=
     ProvableHilbert.impTrans
       (ProvableHilbert.ctxAndIntroRule
         (ProvableHilbert.impTrans ProvableHilbert.andL LogicGL.imp_box_union)
         ProvableHilbert.andR)
-      LogicGL.imp_dia_and
-  exact impTrans (of_GL hcombine) hdiabot
+      LogicGL.imp_dia_and;
+  exact impTrans (of_GL hcombine) hdiabot;
 
 theorem boxGLPoint3 (hΔ : Δ.Nonempty)
   (h : ∀ S : FormulaFinset α, S ⊆ Δ → S.Nonempty →
@@ -581,15 +581,15 @@ theorem boxGLPoint3 (hΔ : Δ.Nonempty)
     rw [Finset.mem_powerset] at hSsub';
     exact boxGLPoint3_step h hSsub' (Finset.nonempty_iff_ne_empty.mpr hSne);
   have hantecedent : ((⋀Γ.box) ⋏ ⋀ (Δ.image (fun A => ∼□A))) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
-    impTrans (imp_and_congr_right' (witness hΔ)) hall
+    impTrans (imp_and_congr_right' (witness hΔ)) hall;
   have himg : (Δ.box).image (fun A => ∼A) = Δ.image (fun A => ∼□A) := by
     simp only [FormulaFinset.box, Finset.image_image, Function.comp_def];
   have hdemorgan : (∼(⋁ Δ.box) 🡒 ⋀ (Δ.image (fun A => ∼□A))) ∈ LogicGL := by
     have h0 := LogicGL.imp_not_fdisj_fconj_not (Δ := Δ.box);
     rwa [himg] at h0;
   have hstep : ((⋀Γ.box) ⋏ ∼(⋁ Δ.box)) 🡒 (⊥ : Formula α) ∈ LogicGLPoint3 :=
-    impTrans (imp_and_congr_right' (of_GL hdemorgan)) hantecedent
-  exact mdp' LogicGL.imp_of_not_and_not hstep
+    impTrans (imp_and_congr_right' (of_GL hdemorgan)) hantecedent;
+  exact mdp' LogicGL.imp_of_not_and_not hstep;
 
 end LogicGLPoint3
 
@@ -599,32 +599,32 @@ universe u
 variable {α : Type u} [DecidableEq α]
 
 theorem of_provableGentzen {S : Sequent α} (h : ⊢ᵍ[GLPoint3] S) :
-    ((⋀S.ant) 🡒 (⋁S.suc)) ∈ LogicGLPoint3 := by
+  ((⋀S.ant) 🡒 (⋁S.suc)) ∈ LogicGLPoint3 := by
   induction h with
-  | axm A => simp; exact LogicGLPoint3.of_GL ProvableHilbert.impId
-  | botL => simp; exact LogicGLPoint3.of_GL ProvableHilbert.efq
+  | axm A => simp; exact of_GL ProvableHilbert.impId;
+  | botL => simp; exact of_GL ProvableHilbert.efq;
   | wkL _ hΓ ih =>
-    exact LogicGLPoint3.impTrans (LogicGLPoint3.of_GL (ProvableHilbert.imp_fconj_fconj_of_subset (by grind))) ih
+    exact impTrans (of_GL (ProvableHilbert.imp_fconj_fconj_of_subset (by grind))) ih;
   | wkR _ hΔ ih =>
-    exact LogicGLPoint3.impTrans ih (LogicGLPoint3.of_GL (ProvableHilbert.imp_fdisj_fdisj_of_subset (by grind)))
+    exact impTrans ih (of_GL (ProvableHilbert.imp_fdisj_fdisj_of_subset (by grind)));
   | impL h₁ h₂ ih₁ ih₂ =>
-    have e₁ := LogicGLPoint3.impTrans ih₁ (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert)
-    have e₂ := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert) ih₂
-    have ebridge := LogicGLPoint3.mdp' bridge_impL_imp (LogicGLPoint3.andIntro' e₁ e₂)
-    exact LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fconj) ebridge
+    have e₁ := impTrans ih₁ (of_GL ProvableHilbert.imp_fdisj_insert);
+    have e₂ := impTrans (of_GL ProvableHilbert.imp_fconj_insert) ih₂;
+    have ebridge := mdp' bridge_impL_imp (andIntro' e₁ e₂);
+    exact impTrans (of_GL ProvableHilbert.imp_insert_fconj) ebridge;
   | impR h ih =>
-    have e := LogicGLPoint3.impTrans (LogicGLPoint3.of_GL ProvableHilbert.imp_fconj_insert)
-      (LogicGLPoint3.impTrans ih (LogicGLPoint3.of_GL ProvableHilbert.imp_fdisj_insert))
-    have ebridge := LogicGLPoint3.mdp' bridge_impR_imp e
-    exact LogicGLPoint3.impTrans ebridge (LogicGLPoint3.of_GL ProvableHilbert.imp_insert_fdisj)
+    have e := impTrans (of_GL ProvableHilbert.imp_fconj_insert)
+      (impTrans ih (of_GL ProvableHilbert.imp_fdisj_insert));
+    have ebridge := mdp' bridge_impR_imp e;
+    exact impTrans ebridge (of_GL ProvableHilbert.imp_insert_fdisj);
   | boxGLPoint3 hΔ h ih =>
-    exact LogicGLPoint3.boxGLPoint3 hΔ ih
+    exact boxGLPoint3 hΔ ih;
 
 theorem of_provableGentzen_formula {A : Formula α} (h : ⊢ᵍ[GLPoint3] (∅ ⟹ {A})) :
-    A ∈ LogicGLPoint3 := by
-  have h' := of_provableGentzen h
-  simp at h'
-  exact Logic.sumNormal.mdp h' (LogicGLPoint3.of_GL ProvableHilbert.top)
+  A ∈ LogicGLPoint3 := by
+  have h' := of_provableGentzen h;
+  simp at h';
+  exact Logic.sumNormal.mdp h' (of_GL ProvableHilbert.top);
 
 end LogicGLPoint3
 
@@ -635,10 +635,10 @@ namespace LogicGLPoint3
 open Model Model.World
 
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
-    [M.IsFiniteGLPoint3] {A : Formula α} (h : A ∈ LogicGLPoint3) : M ⊧ A := by
+  [M.IsFiniteGLPoint3] {A : Formula α} (h : A ∈ LogicGLPoint3) : M ⊧ A := by
   induction h using LogicGLPoint3.substlessInduction with
   | provable_GL h => exact ProvableHilbert.Kripke.finite_soundness h M;
-  | axiomWeakPoint3 => exact Model.validate_axiomWeakPoint3;
+  | axiomWeakPoint3 => exact validate_axiomWeakPoint3;
   | mdp ihAB ihA => exact fun x => (ihAB x) (ihA x);
   | nec ih => exact fun x y _ => ih y;
 
@@ -656,24 +656,24 @@ theorem provability_TFAE : [
   ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A,
   ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A
 ].TFAE := by
-  tfae_have 2 → 1 := LogicGLPoint3.of_provableGentzen_formula;
-  tfae_have 1 → 3 := fun h {κ} _ M _ => LogicGLPoint3.sound h;
+  tfae_have 2 → 1 := of_provableGentzen_formula;
+  tfae_have 1 → 3 := fun h {κ} _ M _ => sound h;
   tfae_have 5 → 2 := by
     intro h;
-    apply LogicGLPoint3.ProvableGentzen.Kripke.completeness;
+    apply ProvableGentzen.Kripke.completeness;
     intro n _ M _;
-    exact Model.validateSequent_singleton_iff.mpr (h n M);
+    exact validateSequent_singleton_iff.mpr (h n M);
   tfae_have 3 → 4 := fun h {κ} _ M _ => h M.toModel M.root.1;
   tfae_have 4 → 3 := by
     intro h κ _ M _ x;
-    exact Model.toRootedModel.forces_same_at_root.mp (h (M.toRootedModel x));
+    exact toRootedModel.forces_same_at_root.mp (h (M.toRootedModel x));
   tfae_have 3 → 5 := by
     intro h n _ M _;
-    exact Model.validate_reindex_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
+    exact validate_reindex_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);
   tfae_have 5 → 3 := by
     intro h κ _ M _;
     have : Finite κ := (inferInstance : Finite M.World);
-    exact Model.validate_toConcrete_iff.mp <| h M.card M.toConcrete;
+    exact validate_toConcrete_iff.mp <| h M.card M.toConcrete;
   tfae_have 4 → 6 := by
     intro h n _ M _;
     exact RootedModel.forces_reindex_root_iff.mp <| h (M.reindex (Equiv.ulift (α := Fin n)).symm);

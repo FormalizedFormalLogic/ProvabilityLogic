@@ -78,25 +78,21 @@ lemma freshLabel_notMem : S.freshLabel ∉ S.labels := by
 omit [DecidableEq α] in
 @[grind =>]
 lemma mem_labels_of_mem_ant (h : ℓA ∈ S.ant) : ℓA.label ∈ S.labels := by
-  simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
 omit [DecidableEq α] in
 @[grind =>]
 lemma mem_labels_of_mem_suc (h : ℓA ∈ S.suc) : ℓA.label ∈ S.labels := by
-  simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
 omit [DecidableEq α] in
 @[grind =>]
 lemma fst_mem_labels_of_mem_rel (h : p ∈ S.rel) : p.1 ∈ S.labels := by
-  simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
 omit [DecidableEq α] in
 @[grind =>]
 lemma snd_mem_labels_of_mem_rel (h : p ∈ S.rel) : p.2 ∈ S.labels := by
-  simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
 def relabel (y z : Label) (S : LabelledSequent α) : LabelledSequent α where

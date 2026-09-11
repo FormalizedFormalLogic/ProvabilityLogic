@@ -230,8 +230,7 @@ variable {BS : Sequent α} {S : ExpandedSequent BS} {A : Formula α}
 lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
   push Not;
   intro h₁ h₂;
-  apply S.unprovable;
-  exact ProvableGentzen.union' _ h₁ h₂;
+  exact S.unprovable (ProvableGentzen.union' _ h₁ h₂);
 @[grind .] lemma not_mem_bot_ant : ⊥ ∉ S.1.1 := by grind;
 @[grind =>] lemma of_mem_imp_ant (h : A 🡒 B ∈ S.1.1 := by grind) : A ∈ S.1.2 ∨ B ∈ S.1.1 := S.saturated.impL h
 @[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
@@ -321,21 +320,15 @@ lemma saturated_lindenbaum_indexed
     | #a | □C | ⊥ =>
       constructor
       . intro A B hmem hx
-        refine ihL ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        . simp at h
-        . exact h
+        exact ihL ((List.mem_cons.mp hmem).resolve_left (by simp)) hx
       . intro A B hmem hx
-        refine ihR ?_ hx
-        rcases List.mem_cons.mp hmem with h | h
-        . simp at h
-        . exact h
+        exact ihR ((List.mem_cons.mp hmem).resolve_left (by simp)) hx
     | C 🡒 D =>
       have hunp : ⊬ᵍ[GL] (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed BS BS_unprovable S₀ S₀_unprovable Γ').2
       dsimp only [lindenbaum_indexed]
       split_ifs with h1 h2 h3 <;>
-        refine ⟨?_, ?_⟩ <;>
+        and_intros <;>
         intro A B hmem hx <;>
         simp only [List.mem_cons] at hmem <;>
         grind [ProvableGentzen.union']
@@ -387,14 +380,12 @@ noncomputable def lindenbaum
     unprovable := S.2,
     subset_subfmls := subfmls_lindenbaum_indexed ‹_› ‹_›
     saturated := {
-      impL := by
-        intro A B h;
-        apply lindenbaum_indexed_saturated_impL ?_ h;
-        exact Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union.mpr $ Or.inl h;
-      impR := by
-        intro A B h;
-        apply lindenbaum_indexed_saturated_impR ?_ h;
-        exact Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union.mpr $ Or.inr h;
+      impL := fun {A B} h =>
+        lindenbaum_indexed_saturated_impL
+          (Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union_left _ h) h
+      impR := fun {A B} h =>
+        lindenbaum_indexed_saturated_impR
+          (Finset.mem_toList.mpr $ subfmls_lindenbaum_indexed ‹_› ‹_› $ Finset.mem_union_right _ h) h
     }
   }
 
@@ -569,7 +560,8 @@ namespace ProvableGentzen
 
 variable {S : Sequent α} {A B : Formula α} {Γ : FormulaFinset α}
 
-theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ᵍ[GL] (∅ ⟹ {B}) := λ p q => by
+theorem mdp : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B}) → ⊢ᵍ[GL] (∅ ⟹ {A}) → ⊢ᵍ[GL] (∅ ⟹ {B}) := by
+  intro p q;
   replace p : ⊢ᵍᶜ[GL] (insert A ∅ ⟹ {B}) := GentzenWithCutProvable.of_without_cut $ deduction_theorem.mpr p;
   replace q : ⊢ᵍᶜ[GL] (∅ ⟹ insert A ∅) := GentzenWithCutProvable.of_without_cut q;
   exact GentzenWithCutProvable.cut_elimination $ GentzenWithCutProvable.cut q p;

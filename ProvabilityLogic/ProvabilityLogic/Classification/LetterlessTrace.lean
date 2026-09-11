@@ -181,9 +181,9 @@ lemma iff_not_forces_rank_mem_trace : x ⊮[_] A ↔ x.rank ∈ (trace A) := by
   grind [iff_forces_rank_mem_spectrum];
 
 lemma iff_forces_lift_rank_mem_spectrum
-    {α : Type*} {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
-    {x : M.World} {B : LetterlessFormula} :
-    x ⊩[_] (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
+  {α : Type*} {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
+  {x : M.World} {B : LetterlessFormula} :
+  x ⊩[_] (LetterlessFormula.lift B : Formula α) ↔ x.rank ∈ LetterlessFormula.spectrum B := by
   induction B generalizing x with
   | atom a => exact a.elim;
   | bot => simp [LetterlessFormula.lift];
@@ -277,7 +277,7 @@ lemma iff_GL_proves_iff_GL_subset_spectrum : (A 🡘 B) ∈ LogicGL ↔ spectrum
     grind [Set.Subset.antisymm_iff, iff_GL_proves_imp_GL_subset_spectrum];
   constructor;
   . intro h;
-    refine ⟨?_, ?_⟩ <;>
+    and_intros <;>
       apply LogicGL.iff_forces_root.mpr <;>
       intro κ _ M _ <;>
       have := LogicGL.iff_forces_root.mp h M <;>
@@ -334,7 +334,7 @@ lemma interpret_boxItr : interpret 𝔅 (□^[n]A) = 𝔅^[n] (interpret 𝔅 A)
 noncomputable abbrev standardInterpret (T : FirstOrder.ArithmeticTheory) [T.Δ₁] := interpret T.standardProvability
 
 lemma interpret_lift {α : Type*} {f : Realization α L} {A : LetterlessFormula} :
-    Formula.interpret f 𝔅 (LetterlessFormula.lift A) = LetterlessFormula.interpret 𝔅 A := by
+  Formula.interpret f 𝔅 (LetterlessFormula.lift A) = LetterlessFormula.interpret 𝔅 A := by
   induction A with
   | atom a => exact a.elim
   | _ => simp_all [Formula.interpret, LetterlessFormula.interpret, LetterlessFormula.lift]
@@ -524,9 +524,9 @@ section
 variable {α} {X Y : LetterlessFormulaSet} {A : LetterlessFormula}
 
 lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
-    (hB : B ∈ ((@LogicGL α) +ᴸ ↑X)) :
-    ∃ Y : LetterlessFormulaFinset, (∀ C ∈ Y, C ∈ X) ∧
-      ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL := by
+  (hB : B ∈ ((@LogicGL α) +ᴸ ↑X)) :
+  ∃ Y : LetterlessFormulaFinset, (∀ C ∈ Y, C ∈ X) ∧
+    ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL := by
   induction hB with
     | mem₁ hB =>
       exact ⟨∅, by simp, by simpa using ProvableHilbert.af hB⟩;
@@ -554,9 +554,9 @@ lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula 
       have := ProvableHilbert.subst (s := s) hGL;
       simpa [LetterlessFormula.subst_lift] using this;
 lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
-    {Y : LetterlessFormulaFinset} (hY : ∀ C ∈ Y, C ∈ X)
-    (hGL : ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL) :
-    B ∈ ((@LogicGL α) +ᴸ ↑X) := by
+  {Y : LetterlessFormulaFinset} (hY : ∀ C ∈ Y, C ∈ X)
+  (hGL : ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL) :
+  B ∈ ((@LogicGL α) +ᴸ ↑X) := by
   have h₂ : (LetterlessFormula.lift (⋀Y) : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) := by
     suffices ∀ Γ : LetterlessFormulaList, (∀ C ∈ Γ, C ∈ X) →
         (LetterlessFormula.lift (⋀Γ) : Formula α) ∈ ((@LogicGL α) +ᴸ ↑X) by
@@ -584,8 +584,8 @@ lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formu
 
 /-- The letterless analogue of `Logic.sumQuasiNormal.iff_provable_finite_provable`. -/
 lemma iff_GL_sumQuasiNormal_provable_finite_provable {X : LetterlessFormulaSet} {A : LetterlessFormula} :
-    ↑A ∈ ((@LogicGL α) +ᴸ ↑X) ↔
-    ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
+  ↑A ∈ ((@LogicGL α) +ᴸ ↑X) ↔
+  ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
   constructor;
   . intro h;
     obtain ⟨Y, hY, hGL⟩ := GL_sumQuasiNormal_finite_provable h;
@@ -674,7 +674,8 @@ lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Reg
           intro heq;
           have hnj : n ∈ sf j := heq ▸ hn₁;
           exact hC₂ (Set.mem_iInter₂.mp hnj C hj);
-        refine ⟨f k, ?_, ?_⟩;
+        use f k;
+        and_intros;
         . intro D hD; exact fX k hD;
         . show (⋂ D ∈ f k, spectrum D) ⊆ A.spectrum;
           rw [(show (⋂ D ∈ f k, spectrum D) = sf k from rfl), hk];
@@ -803,7 +804,7 @@ section
 variable {T : FirstOrder.ArithmeticTheory} [𝗜𝚺₁ ⪯ T] [T.Δ₁] [ℕ↓[ℒₒᵣ] ⊧* T]
 
 lemma lconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaList α}
-    (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by
+  (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by
   match Γ with
   | [] => exact Logic.sumQuasiNormal.mem₁ ProvableHilbert.top
   | [B] => simpa using h B (by simp)
@@ -814,7 +815,7 @@ lemma lconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaList α}
     exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ProvableHilbert.andIntro) hB) hrest
 
 lemma fconj_mem_sumQuasiNormal {α : Type*} {Z : Logic α} {Γ : FormulaFinset α}
-    (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by
+  (h : ∀ B ∈ Γ, B ∈ (LogicGL +ᴸ Z)) : (⋀Γ) ∈ (LogicGL +ᴸ Z) := by
   show (FormulaList.conj Γ.toList) ∈ (LogicGL +ᴸ Z)
   apply lconj_mem_sumQuasiNormal
   intro B hB
@@ -836,7 +837,8 @@ theorem letterless_provabilityLogic (X : LetterlessFormulaSet) :
       simp only [LetterlessFormula.interpret_lift];
       apply Entailment.by_axm;
       simp only [Set.mem_union];
-      exact Or.inr ⟨C, hC, rfl⟩;
+      right;
+      exact ⟨C, hC, rfl⟩;
     | @mdp B C _ _ ihBC ihB => intro f; exact (ihBC f) ⨀ (ihB f)
     | @subst B s _ ihB => intro f; simp only [Formula.interpret_subst]; exact ihB _
   . intro h;

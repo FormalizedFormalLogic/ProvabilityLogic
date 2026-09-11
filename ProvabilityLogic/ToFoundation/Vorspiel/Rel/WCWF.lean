@@ -31,7 +31,7 @@ section
 variable {α} {r : Rel α α}
 
 lemma WeaklyConverseWellFounded.has_max [IsWeaklyConverseWellFounded α r] (s : Set α) (hs : s.Nonempty) :
-    ∃ m ∈ s, ∀ x ∈ s, ¬(r m x ∧ m ≠ x) :=
+  ∃ m ∈ s, ∀ x ∈ s, ¬(r m x ∧ m ≠ x) :=
   ConverseWellFounded.iff_has_max.mp IsWeaklyConverseWellFounded.wcwf s hs
 
 instance : Std.Irrefl r.IrreflGen := ⟨fun _ h => h.2 rfl⟩
@@ -42,15 +42,14 @@ instance [IsTrans α r] [Std.Antisymm r] : IsTrans α r.IrreflGen where
   trans a b c hab hbc := by
     obtain ⟨rab, hab'⟩ := hab;
     obtain ⟨rbc, hbc'⟩ := hbc;
-    refine ⟨IsTrans.trans a b c rab rbc, ?_⟩;
-    rintro rfl;
-    exact hab' (Std.Antisymm.antisymm a b rab rbc);
+    exact ⟨IsTrans.trans a b c rab rbc,
+      by rintro rfl; exact hab' (Std.Antisymm.antisymm a b rab rbc)⟩;
 
 instance [Finite α] [IsTrans α r] [Std.Antisymm r] : IsWeaklyConverseWellFounded α r :=
   ⟨Finite.converseWellFounded_of_trans_of_irrefl (R := r.IrreflGen)⟩
 
 lemma WeaklyConverseWellFounded.antisymm (h : WeaklyConverseWellFounded r) :
-    ∀ a b, r a b → r b a → a = b := by
+  ∀ a b, r a b → r b a → a = b := by
   intro a b rab rba;
   by_contra hne;
   obtain ⟨m, hm, hmax⟩ := ConverseWellFounded.iff_has_max.mp h {a, b} ⟨a, by simp⟩;

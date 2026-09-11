@@ -12,7 +12,7 @@ namespace LogicGL
 
 inductive ProofGentzen : Sequent α → Type u
 | axm (A) : ProofGentzen ({A} ⟹ {A})
-| botL : ProofGentzen ({⊥} ⟹ (∅ : FormulaFinset α))
+| botL : ProofGentzen ({⊥} ⟹ ∅)
 | wkL  {Γ Γ' Δ}  : ProofGentzen (Γ ⟹ Δ) → (_ : Γ ⊆ Γ' := by grind) → ProofGentzen (Γ' ⟹ Δ)
 | wkR  {Γ Δ Δ'}  : ProofGentzen (Γ ⟹ Δ) → (_ : Δ ⊆ Δ' := by grind) → ProofGentzen (Γ ⟹ Δ')
 | impL {Γ Δ A B} : ProofGentzen (Γ ⟹ (insert A Δ)) → ProofGentzen (insert B Γ ⟹ Δ) → ProofGentzen ((insert (A 🡒 B) Γ) ⟹ Δ)
@@ -80,25 +80,29 @@ def negL : ⊢ᵍ[GL]! (Γ ⟹ (insert A Δ)) → ⊢ᵍ[GL]! ((insert (∼A) Γ
 
 def negR : ⊢ᵍ[GL]! ((insert A Γ) ⟹ Δ) → ⊢ᵍ[GL]! (Γ ⟹ (insert (∼A) Δ)) := λ p => impR $ wkR $ wkL p
 
-def andL : ⊢ᵍ[GL]! ((insert A $ insert B $ Γ) ⟹ Δ) → ⊢ᵍ[GL]! (insert (A ⋏ B) Γ ⟹ Δ) := λ p => by
+def andL : ⊢ᵍ[GL]! ((insert A $ insert B $ Γ) ⟹ Δ) → ⊢ᵍ[GL]! (insert (A ⋏ B) Γ ⟹ Δ) := by
+  intro p;
   apply impL;
   . apply impR;
     apply negR;
     simpa [(show (insert A $ insert B Γ) = (insert B $ insert A Γ) by grind)] using p;
   . exact botL_mem;
 
-def andR : ⊢ᵍ[GL]! (Γ ⟹ insert A Δ) → ⊢ᵍ[GL]! (Γ ⟹ insert B Δ) → ⊢ᵍ[GL]! (Γ ⟹ insert (A ⋏ B) Δ) := λ p q => by
+def andR : ⊢ᵍ[GL]! (Γ ⟹ insert A Δ) → ⊢ᵍ[GL]! (Γ ⟹ insert B Δ) → ⊢ᵍ[GL]! (Γ ⟹ insert (A ⋏ B) Δ) := by
+  intro p q;
   apply impR;
   apply impL;
   . exact wkR p;
   . exact negL $ wkR q;
 
-def orL : ⊢ᵍ[GL]! (insert A Γ ⟹ Δ) → ⊢ᵍ[GL]! (insert B Γ ⟹ Δ) → ⊢ᵍ[GL]! (insert (A ⋎ B) Γ ⟹ Δ) := λ p q => by
+def orL : ⊢ᵍ[GL]! (insert A Γ ⟹ Δ) → ⊢ᵍ[GL]! (insert B Γ ⟹ Δ) → ⊢ᵍ[GL]! (insert (A ⋎ B) Γ ⟹ Δ) := by
+  intro p q;
   apply impL;
   . exact negR p;
   . exact q;
 
-def orR : ⊢ᵍ[GL]! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ[GL]! (Γ ⟹ insert (A ⋎ B) Δ) := λ p => by
+def orR : ⊢ᵍ[GL]! (Γ ⟹ (insert A $ insert B Δ)) → ⊢ᵍ[GL]! (Γ ⟹ insert (A ⋎ B) Δ) := by
+  intro p;
   apply impR;
   apply negL;
   simpa;
@@ -221,11 +225,8 @@ lemma negR (h : ⊢ᵍ[GL] (insert A Γ ⟹ Δ)) : ⊢ᵍ[GL] (Γ ⟹ insert (�
   ⟨ProofGentzen.negR h.some⟩
 
 lemma iffR (h₁ : ⊢ᵍ[GL] (insert A Γ ⟹ {B})) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ {A})) : ⊢ᵍ[GL] (Γ ⟹ {A 🡘 B}) := by
-  have e : ({A 🡘 B} : FormulaFinset α) = insert ((A 🡒 B) ⋏ (B 🡒 A)) ∅ := by rfl
-  rw [e]
-  apply andR
-  . exact impR (by simpa using h₁)
-  . exact impR (by simpa using h₂)
+  show ⊢ᵍ[GL] (Γ ⟹ insert ((A 🡒 B) ⋏ (B 🡒 A)) ∅);
+  exact andR (impR (by simpa using h₁)) (impR (by simpa using h₂));
 
 lemma implyK : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 B 🡒 A}) := ⟨ProofGentzen.implyK⟩
 lemma implyS : ⊢ᵍ[GL] (∅ ⟹ {(A 🡒 B 🡒 C) 🡒 (A 🡒 B) 🡒 (A 🡒 C)}) := ⟨ProofGentzen.implyS⟩
@@ -251,7 +252,7 @@ theorem deduction_theorem : ⊢ᵍ[GL] (insert A Γ ⟹ {B}) ↔ ⊢ᵍ[GL] (Γ 
 lemma rec
   {motive : (S : Sequent α) → ⊢ᵍ[GL] S → Prop}
   (axm : ∀ A, motive ({A} ⟹ {A}) (ProvableGentzen.axm A))
-  (botL : motive ({⊥} ⟹ (∅ : FormulaFinset α)) ProvableGentzen.botL)
+  (botL : motive ({⊥} ⟹ ∅) ProvableGentzen.botL)
   (wkL : ∀ {Γ Γ' Δ} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h' : Γ ⊆ Γ'), motive (Γ ⟹ Δ) h → motive (Γ' ⟹ Δ) (wkL h h'))
   (wkR : ∀ {Γ Δ Δ'} (h : ⊢ᵍ[GL] (Γ ⟹ Δ)) (h' : Δ ⊆ Δ'), motive (Γ ⟹ Δ) h → motive (Γ ⟹ Δ') (wkR h h'))
   (impL : ∀ {Γ Δ A B} (h₁ : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ Δ)),

@@ -2,6 +2,19 @@ module
 
 public import ProvabilityLogic.Logic.GL.Basic
 
+/-!
+# Maehara-style interpolation for `⊢ᵍ[GL]!`
+
+The Maehara interpolant of a Gentzen-calculus proof `⊢ᵍ[GL]! S`, constructed by induction on
+the proof for every partition of `S` into a disjoint antecedent/succedent pair. The two
+provability lemmas and the atom-inclusion bound built from it witness the Craig interpolation
+property for `LogicGL`.
+
+## References
+
+- [Bek87, Theorem 2]
+-/
+
 @[expose]
 public section
 
@@ -258,6 +271,9 @@ namespace ProofGentzen
 
 variable {S : Sequent α}
 
+/-- The Maehara interpolant of a proof `⊢ᵍ[GL]! S`, for a partition `P` of `S`.
+
+- [Bek87, Theorem 2] -/
 def interpolant {S : Sequent α} (P : PartitionOf S) : ⊢ᵍ[GL]! S → Formula α
 | .botL     => if ⊥ ∈ P.Γ₁ then ⊥ else ⊤
 | .axm A    =>
@@ -294,11 +310,10 @@ theorem interpolant_provable_ant (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) : ⊢�
     . exact ⟨ProofGentzen.negR (ProofGentzen.union A)⟩
     . exact ProvableGentzen.impR (ProvableGentzen.botL_mem (by grind))
   | @wkL Γ Γ' Δ q h' ih =>
-    apply ProvableGentzen.wkL (ih (P.restrictAnt h'));
-    exact Finset.inter_subset_left;
+    exact ProvableGentzen.wkL (ih (P.restrictAnt h')) Finset.inter_subset_left;
   | @wkR Γ Δ Δ' q h' ih =>
-    apply ProvableGentzen.wkR $ ih (P.restrictSuc h');
-    exact Finset.insert_subset_insert _ Finset.inter_subset_left;
+    exact ProvableGentzen.wkR (ih (P.restrictSuc h'))
+      (Finset.insert_subset_insert _ Finset.inter_subset_left);
   | @impL Γ Δ A B p₁ p₂ ih₁ ih₂ =>
     dsimp only [interpolant]
     split_ifs with hg
@@ -331,14 +346,12 @@ theorem interpolant_provable_ant (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) : ⊢�
       simp only [PartitionOf.impLSplit₁R] at ha1
       simp only [PartitionOf.impLSplit₂R] at ha2
       apply ProvableGentzen.andR
-      .
-        refine ProvableGentzen.wk ha1 Finset.inter_subset_left (Finset.insert_subset_insert _ ?_)
-        exact insert_sdiff_subset fun x hxΔ hxn => (Finset.mem_union.mp (hd ▸ hxΔ)).resolve_right hxn
-      .
-        refine ProvableGentzen.wkL ha2 ?_
-        exact insert_sdiff_subset fun x hxΓ hxn => by
-          have hx2 : x ∉ P.Γ₂ := fun he => hxn (Finset.mem_inter.mpr ⟨he, hxΓ⟩)
-          exact (Finset.mem_union.mp (hg' ▸ Finset.mem_insert_of_mem hxΓ : x ∈ P.Γ₁ ∪ P.Γ₂)).resolve_right hx2
+      . exact ProvableGentzen.wk ha1 Finset.inter_subset_left (Finset.insert_subset_insert _
+          (insert_sdiff_subset fun x hxΔ hxn => (Finset.mem_union.mp (hd ▸ hxΔ)).resolve_right hxn))
+      . exact ProvableGentzen.wkL ha2
+          (insert_sdiff_subset fun x hxΓ hxn => by
+            have hx2 : x ∉ P.Γ₂ := fun he => hxn (Finset.mem_inter.mpr ⟨he, hxΓ⟩)
+            exact (Finset.mem_union.mp (hg' ▸ Finset.mem_insert_of_mem hxΓ : x ∈ P.Γ₁ ∪ P.Γ₂)).resolve_right hx2)
   | @impR Γ Δ A B q ih =>
     dsimp only [interpolant]
     split_ifs with hd
@@ -408,8 +421,8 @@ theorem interpolant_provable_ant (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) : ⊢�
       have boxed : ⊢ᵍ[GL] (FormulaFinset.box (Γ.filter (fun B => □B ∈ P.Γ₁)) ⟹ ({□C} : FormulaFinset α)) := by
         apply ProvableGentzen.boxGL
         rw [hbF1]
-        refine ProvableGentzen.wkL ?_ ((boxGL_compl (a := □A) hb).trans (Finset.subset_insert _ _))
-        simpa using ha
+        exact ProvableGentzen.wkL (by simpa using ha)
+          ((boxGL_compl (a := □A) hb).trans (Finset.subset_insert _ _))
       rw [hbF1] at boxed
       rw [hΔ1]
       simpa using boxed
@@ -460,12 +473,12 @@ theorem interpolant_provable_suc (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) :
       simp only [PartitionOf.impLSplit₁L] at hs1
       simp only [PartitionOf.impLSplit₂L] at hs2
       apply ProvableGentzen.orL
-      . refine ProvableGentzen.wk hs1 (Finset.insert_subset_insert _ Finset.inter_subset_left) ?_
-        exact insert_sdiff_subset fun x hxΔ hxn => (Finset.mem_union.mp (hd ▸ hxΔ)).resolve_left hxn
-      . refine ProvableGentzen.wkL hs2 (Finset.insert_subset_insert _ ?_)
-        exact insert_sdiff_subset fun x hxΓ hxn => by
-          have hx1 : x ∉ P.Γ₁ := fun he => hxn (Finset.mem_inter.mpr ⟨he, hxΓ⟩)
-          exact (Finset.mem_union.mp (hg' ▸ Finset.mem_insert_of_mem hxΓ : x ∈ P.Γ₁ ∪ P.Γ₂)).resolve_left hx1
+      . exact ProvableGentzen.wk hs1 (Finset.insert_subset_insert _ Finset.inter_subset_left)
+          (insert_sdiff_subset fun x hxΔ hxn => (Finset.mem_union.mp (hd ▸ hxΔ)).resolve_left hxn)
+      . exact ProvableGentzen.wkL hs2 (Finset.insert_subset_insert _
+          (insert_sdiff_subset fun x hxΓ hxn => by
+            have hx1 : x ∉ P.Γ₁ := fun he => hxn (Finset.mem_inter.mpr ⟨he, hxΓ⟩)
+            exact (Finset.mem_union.mp (hg' ▸ Finset.mem_insert_of_mem hxΓ : x ∈ P.Γ₁ ∪ P.Γ₂)).resolve_left hx1))
     .
       have hprin2 : A 🡒 B ∈ P.Γ₂ := by
         have hmem : A 🡒 B ∈ insert (A 🡒 B) Γ := Finset.mem_insert_self _ _
@@ -480,10 +493,10 @@ theorem interpolant_provable_suc (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) :
         apply ProvableGentzen.impL
         . exact ProvableGentzen.wkL hs1
             (Finset.insert_subset_insert _ (Finset.inter_subset_left.trans (Finset.subset_insert _ _)))
-        . refine ProvableGentzen.wkL hs2 ?_
-          intro x
-          simp only [Finset.mem_insert, Finset.mem_inter]
-          tauto
+        . exact ProvableGentzen.wkL hs2 (by
+            intro x
+            simp only [Finset.mem_insert, Finset.mem_inter]
+            tauto)
       rw [Finset.insert_eq_self.mpr
         (Finset.mem_insert_of_mem (Finset.mem_insert_of_mem hprin2))] at key
       exact ProvableGentzen.andL key
@@ -625,23 +638,25 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
       simp only [PartitionOf.impLSplit₂L] at ha2
       simp only [Formula.atoms, Finset.union_empty]
       apply Finset.union_subset
-      . refine ha1.trans (Finset.inter_subset_inter ?_ ?_)
-        . simp only [FormulaFinset.atoms_insert]
-          exact Finset.union_subset
+      . exact ha1.trans (Finset.inter_subset_inter
+          (by
+            simp only [FormulaFinset.atoms_insert]
+            exact Finset.union_subset
+              ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
+              (Finset.union_subset (hA.trans Finset.subset_union_left) Finset.subset_union_right))
+          (Finset.union_subset
             ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
-            (Finset.union_subset (hA.trans Finset.subset_union_left) Finset.subset_union_right)
-        . exact Finset.union_subset
-            ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
-            ((FormulaFinset.atoms_mono h_Δ2).trans Finset.subset_union_right)
-      . refine ha2.trans (Finset.inter_subset_inter ?_ ?_)
-        . simp only [FormulaFinset.atoms_insert]
-          exact Finset.union_subset
-            (Finset.union_subset (hB.trans Finset.subset_union_left)
-              ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left))
-            Finset.subset_union_right
-        . exact Finset.union_subset
+            ((FormulaFinset.atoms_mono h_Δ2).trans Finset.subset_union_right)))
+      . exact ha2.trans (Finset.inter_subset_inter
+          (by
+            simp only [FormulaFinset.atoms_insert]
+            exact Finset.union_subset
+              (Finset.union_subset (hB.trans Finset.subset_union_left)
+                ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left))
+              Finset.subset_union_right)
+          (Finset.union_subset
             ((FormulaFinset.atoms_mono h_Γ2).trans Finset.subset_union_left)
-            Finset.subset_union_right
+            Finset.subset_union_right))
     .
       have hprin2 : A 🡒 B ∈ P.Γ₂ := by
         have hmem : A 🡒 B ∈ insert (A 🡒 B) Γ := Finset.mem_insert_self _ _
@@ -664,23 +679,25 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
       simp only [PartitionOf.impLSplit₂R] at ha2
       simp only [Formula.atoms, Finset.union_empty]
       apply Finset.union_subset
-      . refine ha1.trans (Finset.inter_subset_inter ?_ ?_)
-        . exact Finset.union_subset
+      . exact ha1.trans (Finset.inter_subset_inter
+          (Finset.union_subset
             ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
-            ((FormulaFinset.atoms_mono h_Δ1).trans Finset.subset_union_right)
-        . simp only [FormulaFinset.atoms_insert]
-          exact Finset.union_subset
-            ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
-            (Finset.union_subset (hA.trans Finset.subset_union_left) Finset.subset_union_right)
-      . refine ha2.trans (Finset.inter_subset_inter ?_ ?_)
-        . exact Finset.union_subset
+            ((FormulaFinset.atoms_mono h_Δ1).trans Finset.subset_union_right))
+          (by
+            simp only [FormulaFinset.atoms_insert]
+            exact Finset.union_subset
+              ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left)
+              (Finset.union_subset (hA.trans Finset.subset_union_left) Finset.subset_union_right)))
+      . exact ha2.trans (Finset.inter_subset_inter
+          (Finset.union_subset
             ((FormulaFinset.atoms_mono h_Γ1).trans Finset.subset_union_left)
-            Finset.subset_union_right
-        . simp only [FormulaFinset.atoms_insert]
-          exact Finset.union_subset
-            (Finset.union_subset (hB.trans Finset.subset_union_left)
-              ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left))
-            Finset.subset_union_right
+            Finset.subset_union_right)
+          (by
+            simp only [FormulaFinset.atoms_insert]
+            exact Finset.union_subset
+              (Finset.union_subset (hB.trans Finset.subset_union_left)
+                ((FormulaFinset.atoms_mono Finset.inter_subset_left).trans Finset.subset_union_left))
+              Finset.subset_union_right))
   | @impR Γ Δ A B q ih =>
     dsimp only [interpolant];
     split_ifs with hd
@@ -696,19 +713,20 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
           rcases Finset.mem_union.mp (hδ ▸ Finset.mem_insert_of_mem hxΔ : x ∈ P.Δ₁ ∪ P.Δ₂) with h | h
           . exact absurd (Finset.mem_inter.mpr ⟨h, hxΔ⟩) hxn
           . exact h
-      refine hat.trans (Finset.inter_subset_inter ?_ ?_)
-      . have hAB : (A 🡒 B).atoms ⊆ P.Δ₁.atoms := FormulaFinset.atoms_subset_of_mem hd
-        simp only [Formula.atoms] at hAB
-        have hA : A.atoms ⊆ P.Δ₁.atoms := Finset.subset_union_left.trans hAB
-        have hB : B.atoms ⊆ P.Δ₁.atoms := Finset.subset_union_right.trans hAB
-        have hPD : (P.Δ₁ ∩ Δ).atoms ⊆ P.Δ₁.atoms := FormulaFinset.atoms_mono Finset.inter_subset_left
-        simp only [FormulaFinset.atoms_insert]
-        exact Finset.union_subset
-          (Finset.union_subset (hA.trans Finset.subset_union_right) Finset.subset_union_left)
-          (Finset.union_subset (hB.trans Finset.subset_union_right) (hPD.trans Finset.subset_union_right))
-      . exact Finset.union_subset
+      exact hat.trans (Finset.inter_subset_inter
+        (by
+          have hAB : (A 🡒 B).atoms ⊆ P.Δ₁.atoms := FormulaFinset.atoms_subset_of_mem hd
+          simp only [Formula.atoms] at hAB
+          have hA : A.atoms ⊆ P.Δ₁.atoms := Finset.subset_union_left.trans hAB
+          have hB : B.atoms ⊆ P.Δ₁.atoms := Finset.subset_union_right.trans hAB
+          have hPD : (P.Δ₁ ∩ Δ).atoms ⊆ P.Δ₁.atoms := FormulaFinset.atoms_mono Finset.inter_subset_left
+          simp only [FormulaFinset.atoms_insert]
+          exact Finset.union_subset
+            (Finset.union_subset (hA.trans Finset.subset_union_right) Finset.subset_union_left)
+            (Finset.union_subset (hB.trans Finset.subset_union_right) (hPD.trans Finset.subset_union_right)))
+        (Finset.union_subset
           ((FormulaFinset.atoms_mono h1).trans Finset.subset_union_left)
-          ((FormulaFinset.atoms_mono h2).trans Finset.subset_union_right)
+          ((FormulaFinset.atoms_mono h2).trans Finset.subset_union_right)))
     . have hd2 : A 🡒 B ∈ P.Δ₂ := by
         have hδ : insert (A 🡒 B) Δ = P.Δ₁ ∪ P.Δ₂ := P.Δ_suc
         have hmem : A 🡒 B ∈ insert (A 🡒 B) Δ := Finset.mem_insert_self _ _
@@ -725,19 +743,20 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
           rcases Finset.mem_union.mp (hδ ▸ Finset.mem_insert_of_mem hxΔ : x ∈ P.Δ₁ ∪ P.Δ₂) with h | h
           . exact h
           . exact absurd (Finset.mem_inter.mpr ⟨h, hxΔ⟩) hxn
-      refine hat.trans (Finset.inter_subset_inter ?_ ?_)
-      . exact Finset.union_subset
+      exact hat.trans (Finset.inter_subset_inter
+        (Finset.union_subset
           ((FormulaFinset.atoms_mono h1).trans Finset.subset_union_left)
-          ((FormulaFinset.atoms_mono h2).trans Finset.subset_union_right)
-      . have hAB : (A 🡒 B).atoms ⊆ P.Δ₂.atoms := FormulaFinset.atoms_subset_of_mem hd2
-        simp only [Formula.atoms] at hAB
-        have hA : A.atoms ⊆ P.Δ₂.atoms := Finset.subset_union_left.trans hAB
-        have hB : B.atoms ⊆ P.Δ₂.atoms := Finset.subset_union_right.trans hAB
-        have hPD : (P.Δ₂ ∩ Δ).atoms ⊆ P.Δ₂.atoms := FormulaFinset.atoms_mono Finset.inter_subset_left
-        simp only [FormulaFinset.atoms_insert]
-        exact Finset.union_subset
-          (Finset.union_subset (hA.trans Finset.subset_union_right) Finset.subset_union_left)
-          (Finset.union_subset (hB.trans Finset.subset_union_right) (hPD.trans Finset.subset_union_right))
+          ((FormulaFinset.atoms_mono h2).trans Finset.subset_union_right))
+        (by
+          have hAB : (A 🡒 B).atoms ⊆ P.Δ₂.atoms := FormulaFinset.atoms_subset_of_mem hd2
+          simp only [Formula.atoms] at hAB
+          have hA : A.atoms ⊆ P.Δ₂.atoms := Finset.subset_union_left.trans hAB
+          have hB : B.atoms ⊆ P.Δ₂.atoms := Finset.subset_union_right.trans hAB
+          have hPD : (P.Δ₂ ∩ Δ).atoms ⊆ P.Δ₂.atoms := FormulaFinset.atoms_mono Finset.inter_subset_left
+          simp only [FormulaFinset.atoms_insert]
+          exact Finset.union_subset
+            (Finset.union_subset (hA.trans Finset.subset_union_right) Finset.subset_union_left)
+            (Finset.union_subset (hB.trans Finset.subset_union_right) (hPD.trans Finset.subset_union_right))))
   | @boxGL Γ A p ih =>
     have hb : Γ.box = P.Γ₁ ∪ P.Γ₂ := P.Γ_ant
     have hsub1 : P.Γ₁ ⊆ Γ.box := by grind
@@ -757,22 +776,25 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
         have := FormulaFinset.atoms_subset_of_mem hd; simpa [Formula.atoms] using this
       have hcompat : FormulaFinset.atoms (insert (□A) (Γ ∪ Γ.box)
           \ insert (□A) (Γ.filter (fun B => □B ∈ P.Γ₁) ∪ P.Γ₁)) ⊆ P.Γ₂.atoms := by
-        refine (FormulaFinset.atoms_mono
-          (boxGL_compl (a := □A) (hb.trans (Finset.union_comm _ _)))).trans ?_
-        simp [FormulaFinset.atoms_union, hF2at]
+        exact (FormulaFinset.atoms_mono
+          (boxGL_compl (a := □A) (hb.trans (Finset.union_comm _ _)))).trans
+          (by simp [FormulaFinset.atoms_union, hF2at])
       have ha := ih P.boxGLSplitL
       set C := interpolant P.boxGLSplitL p with hC
       simp only [PartitionOf.boxGLSplitL] at ha
       simp only [Formula.atoms, Finset.union_empty]
-      refine ha.trans (Finset.inter_subset_inter ?_ ?_)
-      . apply Finset.union_subset
-        . simp only [FormulaFinset.atoms_insert, FormulaFinset.atoms_union, hF1at, Formula.atoms]
-          exact Finset.union_subset (hAD.trans Finset.subset_union_right)
-            (Finset.union_subset Finset.subset_union_left Finset.subset_union_left)
-        . rw [FormulaFinset.atoms_singleton]
-          exact hAD.trans Finset.subset_union_right
-      . simp only [FormulaFinset.atoms_empty, Finset.union_empty]
-        exact hcompat.trans Finset.subset_union_left
+      exact ha.trans (Finset.inter_subset_inter
+        (Finset.union_subset
+          (by
+            simp only [FormulaFinset.atoms_insert, FormulaFinset.atoms_union, hF1at, Formula.atoms]
+            exact Finset.union_subset (hAD.trans Finset.subset_union_right)
+              (Finset.union_subset Finset.subset_union_left Finset.subset_union_left))
+          (by
+            rw [FormulaFinset.atoms_singleton]
+            exact hAD.trans Finset.subset_union_right))
+        (by
+          simp only [FormulaFinset.atoms_empty, Finset.union_empty]
+          exact hcompat.trans Finset.subset_union_left))
     .
       have hd2 : □A ∈ P.Δ₂ := by
         have hΔ : ({□A} : FormulaFinset α) = P.Δ₁ ∪ P.Δ₂ := P.Δ_suc
@@ -782,21 +804,24 @@ theorem interpolant_atoms {S : Sequent α} (P : PartitionOf S) (p : ⊢ᵍ[GL]! 
         have := FormulaFinset.atoms_subset_of_mem hd2; simpa [Formula.atoms] using this
       have hcompat : FormulaFinset.atoms (insert (□A) (Γ ∪ Γ.box)
           \ insert (□A) (Γ.filter (fun B => □B ∈ P.Γ₂) ∪ P.Γ₂)) ⊆ P.Γ₁.atoms := by
-        refine (FormulaFinset.atoms_mono (boxGL_compl (a := □A) hb)).trans ?_
-        simp [FormulaFinset.atoms_union, hF1at]
+        exact (FormulaFinset.atoms_mono (boxGL_compl (a := □A) hb)).trans
+          (by simp [FormulaFinset.atoms_union, hF1at])
       have ha := ih P.boxGLSplitR
       set C := interpolant P.boxGLSplitR p with hC
       simp only [PartitionOf.boxGLSplitR] at ha
       simp only [Formula.atoms]
-      refine ha.trans (Finset.inter_subset_inter ?_ ?_)
-      . simp only [FormulaFinset.atoms_empty, Finset.union_empty]
-        exact hcompat.trans Finset.subset_union_left
-      . apply Finset.union_subset
-        . simp only [FormulaFinset.atoms_insert, FormulaFinset.atoms_union, hF2at, Formula.atoms]
-          exact Finset.union_subset (hAD.trans Finset.subset_union_right)
-            (Finset.union_subset Finset.subset_union_left Finset.subset_union_left)
-        . rw [FormulaFinset.atoms_singleton]
-          exact hAD.trans Finset.subset_union_right
+      exact ha.trans (Finset.inter_subset_inter
+        (by
+          simp only [FormulaFinset.atoms_empty, Finset.union_empty]
+          exact hcompat.trans Finset.subset_union_left)
+        (Finset.union_subset
+          (by
+            simp only [FormulaFinset.atoms_insert, FormulaFinset.atoms_union, hF2at, Formula.atoms]
+            exact Finset.union_subset (hAD.trans Finset.subset_union_right)
+              (Finset.union_subset Finset.subset_union_left Finset.subset_union_left))
+          (by
+            rw [FormulaFinset.atoms_singleton]
+            exact hAD.trans Finset.subset_union_right)))
 
 end ProofGentzen
 

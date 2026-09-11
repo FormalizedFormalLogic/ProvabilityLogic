@@ -98,7 +98,7 @@ variable [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
 
 /-- - [AB05, Lemma 26] -/
 lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : Formula α} :
-    ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
+  ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
   apply LogicGL.iff_forces_root.mpr;
   intro κ _ M _ hne;
   have : Fintype M.World := Fintype.ofFinite _;
@@ -117,7 +117,7 @@ end
 
 /-- - [AB05, Lemma 12] -/
 lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
-    A.trace.Finite ∨ A.traceᶜ.Finite := by
+  A.trace.Finite ∨ A.traceᶜ.Finite := by
   rw [or_iff_not_imp_left];
   intro h_inf;
   replace h_inf : A.trace.Infinite := h_inf;
@@ -135,9 +135,8 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     apply LogicGL.iff_forces_root.mp
       (LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS (A := A));
   obtain ⟨a, Rra, hA⟩ := Model.World.forces_dia.mp (H₂ H₁);
-  have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩[M.toModel] ((□B) 🡒 B) := by
-    intro B hB;
-    exact Model.World.forces_fconj.mp hA _
+  have ha : ∀ B, (□B) ∈ A.subfmls → a ⊩[M.toModel] ((□B) 🡒 B) :=
+    fun B hB => Model.World.forces_fconj.mp hA _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
   let a' : M.ReflexiveWorldOf A.subfmls := ⟨a, fun {B} hB => ha B hB⟩;
   apply Set.Finite.subset (Set.finite_Iio M.height);
@@ -151,14 +150,10 @@ lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
   have := RootedModel.graft.isFiniteGL (M := M) (a := ⟨a, hane⟩)
     (k := n - Model.World.rank a - 1) Rra;
   apply Formula.iff_mem_trace.mpr;
-  refine ⟨κ ⊕ Fin (n - Model.World.rank a - 1), inferInstance,
-    M.graft ⟨a, hane⟩ (n - Model.World.rank a - 1), inferInstance, inferInstance, ?_, ?_⟩;
-  . rw [RootedModel.graft.height_eq Rra];
-    dsimp only;
-    omega;
-  . intro hc;
-    apply hr;
-    exact RootedModel.graft.mainlemma a' Rra (Formula.mem_subfmls_self) |>.2 M.root.1 |>.mp hc;
+  exact ⟨κ ⊕ Fin (n - Model.World.rank a - 1), inferInstance,
+    M.graft ⟨a, hane⟩ (n - Model.World.rank a - 1), inferInstance, inferInstance,
+    by rw [RootedModel.graft.height_eq Rra]; dsimp only; omega,
+    fun hc => hr (RootedModel.graft.mainlemma a' Rra (Formula.mem_subfmls_self) |>.2 M.root.1 |>.mp hc)⟩;
 
 
 namespace FormulaSet
@@ -273,7 +268,7 @@ lemma Formula.trace_lift {B : LetterlessFormula} :
 
 @[simp, grind =]
 lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {X : Set ℕ} (hCf : Xᶜ.Finite) :
-    (LogicGLBetaMinus X hCf : Logic α).trace = X := by
+  (LogicGLBetaMinus X hCf : Logic α).trace = X := by
   have hclosure : ∀ A ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α), ∀ s,
       A⟦s⟧ ∈ (LetterlessFormulaSet.lift {TBBMinus _ hCf} : FormulaSet α) := by
     rintro A hA s;
@@ -284,8 +279,8 @@ lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {X : Set ℕ} (hCf : Xᶜ.Finit
     Formula.trace_lift, LetterlessFormula.trace_TBBMinus hCf, compl_compl];
 
 lemma LogicGLBetaMinus.congr [DecidableEq α] {X Y : Set ℕ} (h : X = Y)
-    (hCf₁ : Xᶜ.Finite) (hCf₂ : Yᶜ.Finite) :
-    (LogicGLBetaMinus X hCf₁ : Logic α) = LogicGLBetaMinus Y hCf₂ := by
+  (hCf₁ : Xᶜ.Finite) (hCf₂ : Yᶜ.Finite) :
+  (LogicGLBetaMinus X hCf₁ : Logic α) = LogicGLBetaMinus Y hCf₂ := by
   subst h;
   rfl;
 
@@ -335,9 +330,8 @@ lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
     apply LogicGL.iff_forces_root.mpr;
     intro κ _ M _ hTBB;
     have : Fintype M.World := Fintype.ofFinite _;
-    have hnot : M.height ∉ A.trace := by
-      intro hmem;
-      exact Model.iff_forces_TBB_neq_rank.mp
+    have hnot : M.height ∉ A.trace :=
+      fun hmem => Model.iff_forces_TBB_neq_rank.mp
         (Model.World.forces_fconj.mp hTBB (TBB M.height)
           (Finset.mem_image_of_mem _ (hfin.mem_toFinset.mpr hmem))) rfl;
     exact Formula.iff_mem_not_trace.mp hnot κ inferInstance M inferInstance inferInstance rfl;
@@ -372,7 +366,7 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
 
 /-- - [AB05, Lemma 49] -/
 lemma LogicGLBetaMinus.bot_mem_of_eq_univ {hCf : (Set.univ : Set ℕ)ᶜ.Finite} :
-    (⊥ : Formula α) ∈ LogicGLBetaMinus Set.univ hCf := by
+  (⊥ : Formula α) ∈ LogicGLBetaMinus Set.univ hCf := by
   apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ?_)
     (Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hCf, rfl, rfl⟩);
   have hD : (((TBBMinus _ hCf : LetterlessFormula)) 🡒 ⊥) ∈ LogicGL := by
@@ -397,8 +391,8 @@ variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜
 
 /-- - [AB05, Lemma 46, Corollary 47] -/
 theorem provable_TBB_of_mem_trace {n : ℕ}
-    (h : n ∈ (T.provabilityLogicRelativeTo U : Logic α).trace) :
-    (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
+  (h : n ∈ (T.provabilityLogicRelativeTo U : Logic α).trace) :
+  (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
   obtain ⟨A, hA_L, hA_tr⟩ : ∃ A ∈ (T.provabilityLogicRelativeTo U : Logic α), n ∈ A.trace := by
     simpa [Logic.trace, FormulaSet.trace] using h;
   obtain ⟨κ, _, M, _, _, rfl, hr⟩ := Formula.iff_mem_trace.mp hA_tr;
@@ -456,23 +450,21 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
 
 /-- - [AB05, Corollary 48] -/
 theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
-    (hCi : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Infinite) :
-    (T.provabilityLogicRelativeTo U : Logic α)
-      = LogicGLAlpha (T.provabilityLogicRelativeTo U : Logic α).trace := by
+  (hCi : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Infinite) :
+  (T.provabilityLogicRelativeTo U : Logic α)
+    = LogicGLAlpha (T.provabilityLogicRelativeTo U : Logic α).trace := by
   apply Set.Subset.antisymm;
   . exact subset_LogicGLAlpha_of_trace_coinfinite hCi;
   . intro A hA;
     induction hA with
     | mem₁ hA =>
-      intro f;
-      exact WeakerThan.pbl (LogicGL.arithmetical_soundness hA);
+      exact fun f => WeakerThan.pbl (LogicGL.arithmetical_soundness hA);
     | mem₂ hA =>
       obtain ⟨B, ⟨n, hn, rfl⟩, rfl⟩ := hA;
       rw [LetterlessFormula.eq_lift_TBB];
       exact provable_TBB_of_mem_trace hn;
     | mdp _ _ ihAB ihA =>
-      intro f;
-      exact (ihAB f) ⨀ (ihA f);
+      exact fun f => (ihAB f) ⨀ (ihA f);
     | subst _ ihA =>
       intro f;
       simp only [Formula.interpret_subst];
@@ -480,11 +472,11 @@ theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
 
 /-- - [AB05, Lemma 49] -/
 lemma cofinite_trace_of_not_subset_LogicS [DecidableEq α]
-    (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
-    (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite := by
+  (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
+  (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite := by
   by_contra hInf;
   apply hS;
-  rw [eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace (by exact hInf)];
+  rw [eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace hInf];
   exact subset_LogicGLAlpha_LogicS;
 
 
@@ -521,19 +513,15 @@ lemma provabilityLogic_fconj {Γ : FormulaFinset α}
     (⋀Γ) ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
   provabilityLogic_lconj (by simpa)
 
-private lemma spectrum_TBBMinus' {s : Set ℕ} (hs : s.Finite) :
-    LetterlessFormula.spectrum (TBBMinus s) = s :=
-  compl_inj_iff.mp (LetterlessFormula.trace_TBBMinus hs)
-
 section
 
 variable [DecidableEq α]
 
 /-- - [AB05, Lemma 49] -/
 theorem provable_TBBMinus_of_not_subset_LogicS
-    (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
-    (LetterlessFormula.lift (TBBMinus _ (cofinite_trace_of_not_subset_LogicS hS)) : Formula α)
-      ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
+  (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
+  (LetterlessFormula.lift (TBBMinus _ (cofinite_trace_of_not_subset_LogicS hS)) : Formula α)
+    ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
   set L := (T.provabilityLogicRelativeTo U : Logic α) with hL;
   have hcof := cofinite_trace_of_not_subset_LogicS hS;
   obtain ⟨A, hA₁, hA₂⟩ := Set.not_subset.mp hS;
@@ -545,9 +533,8 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   have := hne; have := hfgl;
   have : Fintype M₁.World := Fintype.ofFinite _;
   obtain ⟨hconj, hnA⟩ := Model.World.not_forces_imp.mp hroot;
-  have ha : ∀ B, (□B) ∈ A.subfmls → M₁.root.1 ⊩[M₁.toModel] ((□B) 🡒 B) := by
-    intro B hB;
-    exact Model.World.forces_fconj.mp hconj _
+  have ha : ∀ B, (□B) ∈ A.subfmls → M₁.root.1 ⊩[M₁.toModel] ((□B) 🡒 B) :=
+    fun B hB => Model.World.forces_fconj.mp hconj _
       (Finset.mem_image_of_mem _ (FormulaFinset.iff_mem_prebox_mem.mpr hB));
   -- `R`: the members of `L.trace` below the height of `M₁`; `B`: `A` with those `TBB`s.
   let R : Finset ℕ :=
@@ -571,7 +558,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
       apply S.mainlemma (i := Sum.inl x) (by simp [RootedModel.extendRoot, Fin.posLast]);
       intro hBx;
       apply Model.iff_forces_lift_rank_mem_spectrum.mpr;
-      rw [spectrum_TBBMinus' hcof];
+      rw [compl_inj_iff.mp (LetterlessFormula.trace_TBBMinus hcof)];
       rw [show Sum.inl x = RootedModel.extendRoot.embed (M := M₁) (n := 1) x from rfl,
         RootedModel.extendRoot.Ext1.eq_embed_original_rank_original_rank];
       intro hmem;
@@ -619,10 +606,10 @@ theorem provable_TBBMinus_of_not_subset_LogicS
 
 /-- - [AB05, Lemma 49] -/
 theorem eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS
-    (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
-    (T.provabilityLogicRelativeTo U : Logic α)
-      = LogicGLBetaMinus (T.provabilityLogicRelativeTo U : Logic α).trace
-          (cofinite_trace_of_not_subset_LogicS hS) := by
+  (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
+  (T.provabilityLogicRelativeTo U : Logic α)
+    = LogicGLBetaMinus (T.provabilityLogicRelativeTo U : Logic α).trace
+        (cofinite_trace_of_not_subset_LogicS hS) := by
   apply Set.Subset.antisymm;
   . exact subset_LogicGLBetaMinus_of_trace_cofinite _;
   . intro A hA;
@@ -652,20 +639,18 @@ lemma mem_trace_of_provable_TBB {L : Logic α} {n : ℕ} (h : (TBB n : Formula �
 
 /-- - [AB05, Corollary 50] -/
 theorem subset_LogicA_of_univ_trace :
-    letI L : Logic α := T.provabilityLogicRelativeTo U;
-    L.trace = Set.univ → LogicGLAlpha Set.univ ⊆ L := by
+  letI L : Logic α := T.provabilityLogicRelativeTo U;
+  L.trace = Set.univ → LogicGLAlpha Set.univ ⊆ L := by
   intro hT A hA;
   induction hA with
   | mem₁ hA =>
-    intro f;
-    exact WeakerThan.pbl (LogicGL.arithmetical_soundness hA);
+    exact fun f => WeakerThan.pbl (LogicGL.arithmetical_soundness hA);
   | mem₂ hA =>
     obtain ⟨B, ⟨n, _, rfl⟩, rfl⟩ := hA;
     rw [LetterlessFormula.eq_lift_TBB];
     exact provable_TBB_of_mem_trace (hT ▸ Set.mem_univ n);
   | mdp _ _ ihAB ihA =>
-    intro f;
-    exact (ihAB f) ⨀ (ihA f);
+    exact fun f => (ihAB f) ⨀ (ihA f);
   | subst _ ihA =>
     intro f;
     simp only [Formula.interpret_subst];

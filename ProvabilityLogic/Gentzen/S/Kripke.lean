@@ -50,7 +50,7 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
     match B with
     | □A =>
       obtain ⟨i₂, hi₂⟩ := Model.eventually_forces_boxImp_of_descending hw A;
-      refine ⟨max i₁ i₂, ?_⟩;
+      use max i₁ i₂;
       intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
@@ -59,7 +59,7 @@ lemma Model.eventually_isReflexive_of_descending (hw : ∀ n, w (n + 1) ≺ w n)
         exact hi₂ j (le_of_max_le_right hj)
       . exact hi₁ j (le_of_max_le_left hj) hC
     | #_ | ⊥ | _ 🡒 _ =>
-      refine ⟨i₁, ?_⟩;
+      use i₁;
       intro j hj C hC;
       rw [Finset.mem_insert] at hC;
       rcases hC with hC | hC
@@ -204,10 +204,11 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -246,10 +247,11 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A B hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : A 🡒 B ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -288,10 +290,11 @@ lemma saturated_boxL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
     | #a | ⊥ =>
       dsimp only [lindenbaum_indexed];
       intro A hmem hx;
-      refine ih ?_ hx;
-      rcases List.mem_cons.mp hmem with h | h;
-      . simp at h;
-      . exact h;
+      have hmem' : □A ∈ Γ' := by
+        rcases List.mem_cons.mp hmem with h | h;
+        . simp at h;
+        . exact h;
+      exact ih hmem' hx;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[S] ((lindenbaum_indexed S₀ S₀_unprovable Γ').1.ant ⟹[1] (lindenbaum_indexed S₀ S₀_unprovable Γ').1.suc) :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -340,18 +343,18 @@ noncomputable def lindenbaum (BS : Sequent α) (S₀ : Sequent α)
         intro A B h;
         apply (saturated_lindenbaum_indexed hΓsorted).1 ?_ h;
         apply List.mem_insertionSort _ |>.mpr;
-        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_left _ h;
       impR := by
         intro A B h;
         apply (saturated_lindenbaum_indexed hΓsorted).2.1 ?_ h;
         apply List.mem_insertionSort _ |>.mpr;
-        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inr h;
+        exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_right _ h;
     },
     boxL_closed := by
       intro A h;
       apply (saturated_lindenbaum_indexed hΓsorted).2.2 ?_ h;
       apply List.mem_insertionSort _ |>.mpr;
-      exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union.mpr $ Or.inl h;
+      exact Finset.mem_toList.mpr $ hsub $ Finset.mem_union_left _ h;
   }
 
 lemma subset_lindenbaum {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[S] (S₀.ant ⟹[1] S₀.suc)} {S₀sub : S₀.1 ∪ S₀.2 ⊆ BS.subfmls} :
@@ -468,7 +471,7 @@ lemma truthlemma_inr (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A ∈ t.1.
       . exact (ih (n := m)).1 (hbox h);
     . intro h hf;
       obtain ⟨y, Rty, hy⟩ := Model.World.not_forces_box.mp (truthlemma_suc (x := t) h);
-      exact (forces_chainModel_inl.not.mpr hy) (hf (.inl y) (Or.inr Rty));
+      exact (forces_chainModel_inl.not.mpr hy) (hf (.inl y) (.inr Rty));
 
 end
 
@@ -503,45 +506,45 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   (S.level = 1 → x.IsReflexiveOf X) → x ⊩[_] S.toSequent := by
   induction h using LogicS.GentzenWithCutProvable.rec with
   | axm l A =>
-    refine ⟨∅, ?_⟩;
+    use ∅;
     intro κ _ M _ x _;
     exact Model.World.forces_sequent_axm;
   | botL l =>
-    refine ⟨∅, ?_⟩;
+    use ∅;
     intro κ _ M _ x _;
     exact Model.World.forces_sequent_botL;
   | wkL h h' ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_wkL (hX M x hrefl) h';
   | wkR h h' ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_wkR (hX M x hrefl) h';
   | impL h₁ h₂ ih₁ ih₂ =>
     obtain ⟨X₁, hX₁⟩ := ih₁;
     obtain ⟨X₂, hX₂⟩ := ih₂;
-    refine ⟨X₁ ∪ X₂, ?_⟩;
+    use X₁ ∪ X₂;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_impL
       (hX₁ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_left))
       (hX₂ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_right));
   | impR h ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_impR (hX M x hrefl);
   | liftUp h ih =>
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x _;
     exact hX M x (fun h => absurd (show (0 : Fin 2) = 1 from h) (by decide));
   | boxGL h ih =>
     rename_i Γ' A';
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨X, ?_⟩;
+    use X;
     intro κ _ M _ x _;
     have hM : M ⊧ (insert (□A') (Γ' ∪ Γ'.box) ⟹ {A'}) :=
       fun x' => hX M x' (fun h => absurd (show (0 : Fin 2) = 1 from h) (by decide));
@@ -549,7 +552,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   | boxL h ih =>
     rename_i Γ' Δ' A';
     obtain ⟨X, hX⟩ := ih;
-    refine ⟨insert (□A') X, ?_⟩;
+    use insert (□A') X;
     intro κ _ M _ x hrefl h;
     have hRefl : x.IsReflexiveOf (insert (□A') X) := hrefl rfl;
     have hBoxA : x ⊩[_] (□A') := h _ (Finset.mem_insert_self _ _);
@@ -567,7 +570,7 @@ theorem soundness_aux {S : TwoLayeredSequent α} (h : ⊢ᵍᶜ[S] S) :
   | cut h₁ h₂ ih₁ ih₂ =>
     obtain ⟨X₁, hX₁⟩ := ih₁;
     obtain ⟨X₂, hX₂⟩ := ih₂;
-    refine ⟨X₁ ∪ X₂, ?_⟩;
+    use X₁ ∪ X₂;
     intro κ _ M _ x hrefl;
     exact Model.World.forces_sequent_cut
       (hX₁ M x (fun h => Model.World.IsReflexiveOf.anti (hrefl h) Finset.subset_union_left))
@@ -578,7 +581,7 @@ theorem soundness (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
   ∀ (x : M.ReflexiveWorldOf X), (x : M.World) ⊩[_] (Γ ⟹ Δ) := by
   obtain ⟨X, hX⟩ := soundness_aux h;
-  refine ⟨X, ?_⟩;
+  use X;
   intro κ _ M _ x;
   exact hX M (x : M.World) (fun _ => x.2);
 

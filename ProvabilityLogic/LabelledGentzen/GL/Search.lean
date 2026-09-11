@@ -332,10 +332,11 @@ lemma blockedBoxes_mono (hsf : S.sf = S'.sf) (hrel : S.rel ⊆ S'.rel) (hant : S
   S.blockedBoxes x ⊆ S'.blockedBoxes x := by
   intro B hB;
   simp only [blockedBoxes, Finset.mem_filter] at hB ⊢;
-  refine ⟨boxSf_congr hsf ▸ hB.1, ?_⟩;
-  rcases hB.2 with h | ⟨p, hp, h1, h2⟩;
-  . exact Or.inl (hant h);
-  . exact Or.inr ⟨p, hrel hp, h1, hant h2⟩;
+  and_intros;
+  . exact boxSf_congr hsf ▸ hB.1;
+  . rcases hB.2 with h | ⟨p, hp, h1, h2⟩;
+    . left; exact hant h;
+    . right; exact ⟨p, hrel hp, h1, hant h2⟩;
 
 lemma lobMeasure_le (hlab : S'.labels = S.labels) (hsf : S'.sf = S.sf)
   (hrel : S.rel ⊆ S'.rel) (hant : S.ant ⊆ S'.ant) :
@@ -399,12 +400,16 @@ lemma lobMeasure_lob_lt
     simp only [Finset.mem_insert] at hB;
     simp only [blockedBoxes, Finset.mem_filter, boxSf_congr hsf'];
     rcases hB with rfl | hB;
-    . exact ⟨hAbox, Or.inl (Finset.mem_insert_self _ _)⟩;
+    . and_intros;
+      . exact hAbox;
+      . left; exact Finset.mem_insert_self _ _;
     . obtain ⟨hBbox, h⟩ := Finset.mem_filter.mp hB;
-      refine ⟨hBbox, Or.inr ?_⟩;
-      rcases h with h | ⟨p, hp, hp2, hp1⟩;
-      . exact ⟨(x, y), by grind, rfl, Finset.mem_insert_of_mem h⟩;
-      . exact ⟨(p.1, y), by grind, rfl, Finset.mem_insert_of_mem hp1⟩;
+      and_intros;
+      . exact hBbox;
+      . right;
+        rcases h with h | ⟨p, hp, hp2, hp1⟩;
+        . exact ⟨(x, y), by grind, rfl, Finset.mem_insert_of_mem h⟩;
+        . exact ⟨(p.1, y), by grind, rfl, Finset.mem_insert_of_mem hp1⟩;
   have hAnb : (□A) ∉ L.blockedBoxes x := by
     simp only [blockedBoxes, Finset.mem_filter, hL];
     grind;
@@ -793,7 +798,7 @@ def saturate (R : List LabelRel) (ℓΓ ℓΔ : List (LabelledFormula α)) :
         intro T hT;
         rw [List.mem_singleton] at hT;
         subst hT;
-        refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩;
+        constructor;
         . have := List.find?_eq_none.mp h₁; grind [List.mem_toFinset];
         . have := List.find?_eq_none.mp h₂; grind [List.mem_toFinset];
         . have := List.find?_eq_none.mp h₃; grind [List.mem_toFinset];
@@ -1056,7 +1061,7 @@ formula processed at two sibling labels: `□□⊥ 🡒 (∼□a 🡒 □□a)`
 def lobProcessedCounterexample : Formula ℕ := □□⊥ 🡒 (∼□#0 🡒 □□#0)
 
 lemma provable_lobProcessedCounterexample :
-  ⊢ˡᵍ[GL] ((∅ : Finset LabelRel) ⸴ (∅ : Finset (LabelledFormula ℕ)) ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
+  ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {0 ∶ lobProcessedCounterexample}) := by
   rw [show ({0 ∶ lobProcessedCounterexample} : Finset (LabelledFormula ℕ)) =
     insert (0 ∶ (□□⊥ 🡒 (∼□#0 🡒 □□#0))) ∅ by rfl];
   apply ProvableLabelledGentzen.impR (x := 0);
@@ -1232,7 +1237,7 @@ lemma ProcessedWitnessed.mono (h : ProcessedWitnessed ℓP S)
   exact ⟨y, hrel h1, hsuc h2⟩;
 
 omit [DecidableEq α] in
-lemma ProcessedWitnessed.empty : ProcessedWitnessed (∅ : Finset (LabelledFormula α)) S := by
+lemma ProcessedWitnessed.empty : ProcessedWitnessed ∅ S := by
   intro x A hxA;
   exact absurd hxA (Finset.notMem_empty _);
 
@@ -1393,7 +1398,8 @@ theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
               have hm1 : 1 ≤ m := by omega;
               have hfail := (ih (m - 1) (by omega)).2 (insert (x ∶ □A) ℓP) _ _ _
                 (by omega) hchild hwit';
-              refine ⟨(Rl, ℓΓ, ℓΔ), List.mem_cons_self, hfail.mono ?_ ?_ ?_⟩;
+              use (Rl, ℓΓ, ℓΔ), List.mem_cons_self;
+              apply hfail.mono;
               . intro p hp;
                 grind [List.mem_toFinset];
               . intro ℓA hlf;
@@ -1410,20 +1416,21 @@ theorem hasFailingLeaf_of_eq_none_aux (n : ℕ) :
           exact ⟨(Rl, ℓΓ, ℓΔ), List.mem_cons_self,
             ⟨Rl, ℓΓ, ℓΔ, ℓP, hsat _ List.mem_cons_self, h₁, h₂, hwit _ List.mem_cons_self,
               subset_rfl, subset_rfl, subset_rfl⟩⟩;
-  refine ⟨SL, ?_⟩;
-  intro ℓP R ℓΓ ℓΔ hm h hwit;
-  rw [search] at h;
-  split at h;
-  . simp at h;
-  . rename_i leaves hsat hlab hsf hmono k heq₀;
-    rcases hrest : searchLeaves ℓP ((R.toFinset ⸴ ℓΓ.toFinset ⟹ˡ ℓΔ.toFinset).lobMeasure ℓP) leaves
-        (fun L hL => LabelledSequent.lobMeasure_le (hlab L hL) (hsf L hL)
-          (hmono L hL).1 (hmono L hL).2.1) with _ | ps;
-    . obtain ⟨L, hL, hfail⟩ := SL ℓP _ leaves _ hm hrest hsat
-        (fun L hL => hwit.mono (hmono L hL).1 (hmono L hL).2.2);
-      exact hfail.mono (hmono L hL).1 (hmono L hL).2.1 (hmono L hL).2.2;
-    . rw [hrest] at h;
-      simp at h;
+  and_intros;
+  . exact SL;
+  . intro ℓP R ℓΓ ℓΔ hm h hwit;
+    rw [search] at h;
+    split at h;
+    . simp at h;
+    . rename_i leaves hsat hlab hsf hmono k heq₀;
+      rcases hrest : searchLeaves ℓP ((R.toFinset ⸴ ℓΓ.toFinset ⟹ˡ ℓΔ.toFinset).lobMeasure ℓP) leaves
+          (fun L hL => LabelledSequent.lobMeasure_le (hlab L hL) (hsf L hL)
+            (hmono L hL).1 (hmono L hL).2.1) with _ | ps;
+      . obtain ⟨L, hL, hfail⟩ := SL ℓP _ leaves _ hm hrest hsat
+          (fun L hL => hwit.mono (hmono L hL).1 (hmono L hL).2.2);
+        exact hfail.mono (hmono L hL).1 (hmono L hL).2.1 (hmono L hL).2.2;
+      . rw [hrest] at h;
+        simp at h;
 
 open LabelledSequent in
 theorem search_eq_none_hasFailingLeaf

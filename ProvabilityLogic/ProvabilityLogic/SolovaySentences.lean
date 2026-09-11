@@ -147,13 +147,13 @@ variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [Decida
   - [AB05, Lemma 49]
 -/
 lemma rfl_mainlemma
-    {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}
-    (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
-    ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
-      (M.root.1 ⊩[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T B)) ∧
-      (M.root.1 ⊮[M.toModel] B →
-        𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T B)) := by
+  {S : T.standardProvability.SolovaySentences (M.extendRoot 1)}
+  (ha : ∀ B, (□B) ∈ A.subfmls → M.root.1 ⊩[M.toModel] ((□B) 🡒 B)) :
+  ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
+    (M.root.1 ⊩[M.toModel] B →
+      𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 (S.realization T B)) ∧
+    (M.root.1 ⊮[M.toModel] B →
+      𝗜𝚺₁ ⊢ S.σ (M.extendRoot 1).root.1 🡒 ∼(S.realization T B)) := by
   intro B;
   induction B with
   | bot =>
@@ -252,7 +252,7 @@ variable (T) {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 def NegativeSuccessor (φ ψ : V) : Prop := T.ProvabilityComparisonLE (neg ℒₒᵣ φ) (neg ℒₒᵣ ψ)
 
 lemma NegativeSuccessor.quote_iff_provabilityComparisonLE {φ ψ : ArithmeticSentence} :
-    NegativeSuccessor (V := V) T ⌜φ⌝ ⌜ψ⌝ ↔ T.ProvabilityComparisonLE (V := V) ⌜∼φ⌝ ⌜∼ψ⌝ := by
+  NegativeSuccessor (V := V) T ⌜φ⌝ ⌜ψ⌝ ↔ T.ProvabilityComparisonLE (V := V) ⌜∼φ⌝ ⌜∼ψ⌝ := by
   simp [NegativeSuccessor, Sentence.quote_def, Semiformula.quote_def]
 
 section
@@ -295,13 +295,13 @@ def θChainAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) : List M.
 
 omit [M.IsGL] in
 lemma rew_twoPointAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) :
-    Rew.subst w ▹ twoPointAux T M t i j = twoPointAux T M (fun i ↦ Rew.subst w (t i)) i j := by
+  Rew.subst w ▹ twoPointAux T M t i j = twoPointAux T M (fun i ↦ Rew.subst w (t i)) i j := by
   simp [twoPointAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
 
 omit [M.IsGL] in
 lemma rew_θChainAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List M.World) :
-    Rew.subst w ▹ θChainAux T M t ε = θChainAux T M (fun i ↦ Rew.subst w (t i)) ε := by
+  Rew.subst w ▹ θChainAux T M t ε = θChainAux T M (fun i ↦ Rew.subst w (t i)) ε := by
   match ε with
   |          [] => simp [θChainAux]
   |         [_] => simp [θChainAux]
@@ -312,7 +312,7 @@ def θAux (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) 
   ⩖ ε : WChain M M.root.1 i, θChainAux T M t ε
 
 lemma rew_θAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : M.World → FirstOrder.ArithmeticSemiterm Empty N) (i : M.World) :
-    Rew.subst w ▹ θAux T M t i = θAux T M (fun i ↦ Rew.subst w (t i)) i := by
+  Rew.subst w ▹ θAux T M t i = θAux T M (fun i ↦ Rew.subst w (t i)) i := by
   simp [Finset.map_udisj, θAux, rew_θChainAux]
 
 def _root_.FFL.FirstOrder.Theory.solovay (i : M.World) : ArithmeticSentence := exclusiveMultifixedpoint
@@ -328,7 +328,7 @@ def θChain (ε : List M.World) : ArithmeticSentence := θChainAux T M (fun i �
 def θ (i : M.World) : ArithmeticSentence := θAux T M (fun i ↦ ⌜T.solovay M i⌝) i
 
 lemma solovay_diag (i : M.World) :
-    𝗜𝚺₁ ⊢ (T.solovay M i) 🡘 ((θ T M i) ⋏ (⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith.val/[⌜T.solovay M j⌝])) := by
+  𝗜𝚺₁ ⊢ (T.solovay M i) 🡘 ((θ T M i) ⋏ (⩕ j ∈ { j : M.World | i ≺ j }, T.consistentWith.val/[⌜T.solovay M j⌝])) := by
   have : 𝗜𝚺₁ ⊢ (T.solovay M i) 🡘
       (Rew.subst fun j ↦ ⌜T.solovay M ((Fintype.equivFin M.World).symm j)⌝) ▹
         ((θAux T M (fun i ↦ #(Fintype.equivFin M.World i)) i) ⋏ (⩕ k ∈ { k : M.World | i ≺ k }, T.consistentWith.val/[#(Fintype.equivFin M.World k)])) := by
@@ -363,7 +363,7 @@ variable (T) (M : RootedModel κ α) [Fintype M.World] [M.IsGL]
 variable {V : Type*} [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁]
 
 @[simp] lemma val_twoPoint (i j : M.World) :
-    V ⊧/![] (twoPoint T M i j) ↔ ∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝ := by
+  V ⊧/![] (twoPoint T M i j) ↔ ∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝ := by
   simp [twoPoint, twoPointAux]
 
 variable (V)
@@ -384,30 +384,30 @@ attribute [simp] ΘChain.singleton
 @[simp] lemma ΘChain.not_nil : ¬ΘChain T M V ([] : List M.World) := by rintro ⟨⟩
 
 lemma ΘChain.doubleton_iff {i j : M.World} :
-    ΘChain T M V [j, i] ↔ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
+  ΘChain T M V [j, i] ↔ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
   constructor
   . rintro ⟨⟩; simp_all
   . rintro h; exact .cons h (by simp)
 
 lemma ΘChain.cons_cons_iff {i j : M.World} {ε} :
-    ΘChain T M V (j :: i :: ε) ↔
-    ΘChain T M V (i :: ε) ∧ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
+  ΘChain T M V (j :: i :: ε) ↔
+  ΘChain T M V (i :: ε) ∧ (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝) := by
   constructor
   . rintro ⟨⟩; simp_all
   . rintro ⟨ih, h⟩; exact .cons h ih
 
 lemma ΘChain.cons_cons_iff' {i j : M.World} {ε} :
-    ΘChain T M V (j :: i :: ε) ↔ ΘChain T M V [j, i] ∧ ΘChain T M V (i :: ε) := by
+  ΘChain T M V (j :: i :: ε) ↔ ΘChain T M V [j, i] ∧ ΘChain T M V (i :: ε) := by
   constructor
   . rintro ⟨⟩; simpa [ΘChain.doubleton_iff, *]
   . rintro ⟨ih, h⟩; exact h.cons (by rcases ih; assumption)
 
 lemma ΘChain.cons_of {m i j : M.World} {ε}
-    (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
-    (hΘ : ΘChain T M V ε)
-    (H : (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝))
-    (hij : i ≺ j) :
-    ΘChain T M V (j :: ε) := by
+  (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
+  (hΘ : ΘChain T M V ε)
+  (H : (∀ k, i ≺ k → NegativeSuccessor (V := V) T ⌜T.solovay M j⌝ ⌜T.solovay M k⌝))
+  (hij : i ≺ j) :
+  ΘChain T M V (j :: ε) := by
   rcases hc
   case singleton => exact .cons H hΘ
   case cons => exact .cons H hΘ
@@ -446,12 +446,12 @@ lemma ΘChain.append_iff {ε₁ ε₂ : List M.World} : ΘChain T M V (ε₁ ++ 
     simp [cons_cons_iff' (ε := ε₁ ++ i :: ε₂), cons_cons_iff' (ε := ε₁ ++ [i]), and_assoc, this]
 
 private lemma Solovay.exclusive.comparable {i₁ i₂ : M.World} {ε₁ ε₂ : List M.World}
-    (ne : i₁ ≠ i₂)
-    (h : ε₁ <:+ ε₂)
-    (Hi₁ : ∀ j, i₁ ≺ j → T.ConsistentWith (⌜T.solovay M j⌝ : V))
-    (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ r ε₁)
-    (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ r ε₂)
-    (Θε₂ : ΘChain T M V ε₂) : False := by
+  (ne : i₁ ≠ i₂)
+  (h : ε₁ <:+ ε₂)
+  (Hi₁ : ∀ j, i₁ ≺ j → T.ConsistentWith (⌜T.solovay M j⌝ : V))
+  (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ r ε₁)
+  (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ r ε₂)
+  (Θε₂ : ΘChain T M V ε₂) : False := by
   have : ∃ a, a :: ε₁ <:+ ε₂ := by
     rcases List.IsSuffix.eq_or_cons_suffix h with (e | h)
     . have : ε₁ ≠ ε₂ := by

@@ -77,7 +77,7 @@ instance [Std.Antisymm M.Rel] : Std.Antisymm (toRootedModel M r).Rel := by
   constructor;
   rintro ⟨x, _⟩ ⟨y, _⟩ Rxy Ryx;
   simp_all only [Model.Rel, toRootedModel];
-  exact Subtype.ext (Std.Antisymm.antisymm x y Rxy Ryx)
+  exact Subtype.ext (Std.Antisymm.antisymm x y Rxy Ryx);
 
 instance [M.IsFiniteGrz] : (toRootedModel M r).IsFiniteGrz where
 

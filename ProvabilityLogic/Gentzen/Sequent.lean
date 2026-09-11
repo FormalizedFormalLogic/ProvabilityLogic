@@ -37,8 +37,7 @@ variable {S : Sequent α}
 
 @[grind →]
 lemma mem_subfmls_subfmls {S : Sequent α} {B C : Formula α} (hB : B ∈ S.subfmls) (hC : C ∈ B.subfmls) : C ∈ S.subfmls := by
-  simp only [Sequent.subfmls, Finset.mem_union] at hB ⊢
-  grind [FormulaFinset.mem_subfmls_subfmls]
+  grind [FormulaFinset.mem_subfmls_subfmls, Sequent.subfmls]
 
 structure Saturated (S : Sequent α) where
   impL : ∀ {A B}, A 🡒 B ∈ S.1 → A ∈ S.2 ∨ B ∈ S.1

@@ -42,7 +42,7 @@ lemma validate_labelled_axm : M ⊧ˡ[L] (∅ ⸴ {x ∶ A} ⟹ˡ {x ∶ A}) := 
   intro _ h;
   exact ⟨x ∶ A, by grind, h _ (by grind)⟩;
 
-lemma validate_labelled_botL : M ⊧ˡ[L] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ (∅ : Finset (LabelledFormula α))) := by
+lemma validate_labelled_botL : M ⊧ˡ[L] (∅ ⸴ {x ∶ (⊥ : Formula α)} ⟹ˡ ∅) := by
   intro _ h;
   have := h (x ∶ (⊥ : Formula α)) (by grind);
   grind;
@@ -334,7 +334,7 @@ lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ[GL] S) :
     have h₁ := ih₁ z R ℓΘ (fun C hC => H C (Finset.mem_insert_of_mem hC));
     have h₂ := ih₂ z R (insert (z ∶ B) ℓΘ) (fun C hC => by
       rcases Finset.mem_insert.mp hC with rfl | hC;
-      . exact Or.inl (by simp);
+      . left; simp;
       . have := H C (Finset.mem_insert_of_mem hC); grind;
     );
     rw [(show ℓΘ = insert (z ∶ A 🡒 B) ℓΘ by grind)];
@@ -344,7 +344,7 @@ lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ[GL] S) :
     intro z R ℓΘ H;
     have h := ih z R (insert (z ∶ A) ℓΘ) (fun C hC => by
       rcases Finset.mem_insert.mp hC with rfl | hC;
-      . exact Or.inl (by simp);
+      . left; simp;
       . have := H C hC; grind;
     );
     simp only [Finset.image_insert] at h ⊢;
@@ -374,7 +374,7 @@ lemma toLabelledGentzenAux {S : Sequent α} (h : ⊢ᵍ[GL] S) :
       (insert (y ∶ □A) ℓΘ ∪ (boxTargets y R' (insert (y ∶ □A) ℓΘ)).image (fun p => y ∶ p.2))
       (fun E hE => by
         rcases Finset.mem_insert.mp hE with rfl | hE;
-        . exact Or.inl (by grind);
+        . left; grind;
         . rcases Finset.mem_union.mp hE with hEΓ | hEbox;
           . left;
             apply Finset.mem_union_right;

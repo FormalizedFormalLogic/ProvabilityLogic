@@ -17,7 +17,7 @@ namespace LogicGLPoint3
 variable {α : Type u}
 
 lemma projectEmpty_of_provable {A : Formula α} (h : A ∈ LogicGLPoint3) :
-    (A.projectEmpty : LetterlessFormula) ∈ LogicGLPoint3 (α := Empty) := by
+  (A.projectEmpty : LetterlessFormula) ∈ LogicGLPoint3 (α := Empty) := by
   induction h using LogicGLPoint3.substlessInduction with
   | provable_GL h => exact provable_of_provable_GL (ProvableHilbert.project h);
   | axiomWeakPoint3 => exact provable_axiomWeakPoint3;
@@ -29,8 +29,7 @@ lemma projectEmpty_of_provable {A : Formula α} (h : A ∈ LogicGLPoint3) :
 - [SV82, Theorem 2]
 -/
 theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
-  apply Set.ext;
-  intro A;
+  ext A;
   constructor;
   . intro h;
     apply iff_GL_proves_spectrum_univ.mpr;
@@ -44,8 +43,8 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
 
 /-- - [SV82, Theorem 2] -/
 theorem iff_provable_GLPoint3_provable_GL_of_letterless {A : LetterlessFormula} :
-    (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔
-    (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by
+  (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔
+  (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by
   constructor;
   . intro h;
     apply iff_lift_mem_LogicGL.mpr;

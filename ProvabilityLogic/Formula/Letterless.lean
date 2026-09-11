@@ -102,32 +102,26 @@ def projectEmpty : Formula α → LetterlessFormula
   | □A      => □(A.projectEmpty)
 
 @[simp] lemma projectEmpty_lift {B : LetterlessFormula} :
-    (LetterlessFormula.lift B : Formula α).projectEmpty = B := by
+  (LetterlessFormula.lift B : Formula α).projectEmpty = B := by
   induction B with
-  | atom a => exact a.elim
-  | bot => rfl
-  | imp A C ihA ihC =>
-    show (LetterlessFormula.lift A : Formula α).projectEmpty 🡒 (LetterlessFormula.lift C : Formula α).projectEmpty = _;
-    rw [ihA, ihC]
-  | box A ih =>
-    show □((LetterlessFormula.lift A : Formula α).projectEmpty) = _;
-    rw [ih]
+  | atom a => exact a.elim;
+  | bot => rfl;
+  | imp A C ihA ihC => simp [projectEmpty, ihA, ihC];
+  | box A ih => simp [projectEmpty, ih];
 
 @[simp, grind =]
 lemma lift_toLetterless {A : Formula α} (hA : A.Letterless) :
-    (LetterlessFormula.lift (A.toLetterless hA) : Formula α) = A := by
+  (LetterlessFormula.lift (A.toLetterless hA) : Formula α) = A := by
   induction A with
   | atom a => exact absurd hA (by simp [Letterless]);
-  | bot => rfl
+  | bot => rfl;
   | imp A C ihA ihC =>
     obtain ⟨hA', hC'⟩ := hA;
     show (LetterlessFormula.lift (A.toLetterless hA') : Formula α) 🡒
       (LetterlessFormula.lift (C.toLetterless hC') : Formula α) = _;
-    rw [ihA, ihC]
-  | box A ih => exact congrArg (fun B => □B) (ih hA)
+    rw [ihA, ihC];
+  | box A ih => exact congrArg (fun B => □B) (ih hA);
 
 end Formula
-
-
 
 end

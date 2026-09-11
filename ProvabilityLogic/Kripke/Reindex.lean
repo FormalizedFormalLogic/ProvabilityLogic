@@ -68,9 +68,9 @@ instance [M.IsFiniteGLPoint3] : (M.reindex e).IsFiniteGLPoint3 where
   linear := by
     intro x y z hxy hxz;
     rcases Model.linear (M := M) hxy hxz with h | h | h;
-    . exact Or.inl h;
-    . exact Or.inr <| Or.inl <| e.symm.injective h;
-    . exact Or.inr <| Or.inr h;
+    . left; exact h;
+    . right; left; exact e.symm.injective h;
+    . right; right; exact h;
 
 lemma validate_reindex_iff : M.reindex e ⊧ A ↔ M ⊧ A :=
   ⟨fun h x => forces_reindex_iff.mp <| h (e x), fun h _ => forces_reindex_iff'.mpr <| h _⟩

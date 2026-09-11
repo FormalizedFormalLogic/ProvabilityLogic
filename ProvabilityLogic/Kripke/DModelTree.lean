@@ -122,16 +122,16 @@ instance : (M.dModelTree r o).IsTree := by
     first
     | exact hxz.elim
     | exact hyz.elim
-    | exact Or.inl rfl
-    | exact Or.inr (Or.inl trivial)
-    | exact Or.inr (Or.inr trivial)
+    | (left; rfl)
+    | (right; left; trivial)
+    | (right; right; trivial)
     | (rcases List.prefix_or_prefix_of_prefix hxz.1 hyz.1 with h | h;
        . rcases lt_or_eq_of_le h.length_le with hl | hl;
-         . exact Or.inr (Or.inl ⟨h, hl⟩);
-         . exact Or.inl (congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl)));
+         . right; left; exact ⟨h, hl⟩;
+         . left; exact congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl));
        . rcases lt_or_eq_of_le h.length_le with hl | hl;
-         . exact Or.inr (Or.inr ⟨h, hl⟩);
-         . exact Or.inl (congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl).symm)));
+         . right; right; exact ⟨h, hl⟩;
+         . left; exact congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl).symm));
 
 lemma root_rel_tailPoint : (M.dModelTree r o).root.1 ≺ (tailPoint : (M.dModelTree r o).NonRoot).1 :=
   trivial
@@ -156,8 +156,8 @@ lemma isInConeOf_tailPoint_of_root_rel :
   IsInConeOf (M := (M.dModelTree r o).toModel) x tailPoint.1 := by
   rintro (_ | _ | c) hR;
   . exact hR.elim;
-  . exact Or.inl rfl;
-  . exact Or.inr trivial;
+  . left; rfl;
+  . right; trivial;
 
 section PseudoEpimorphism
 
@@ -235,10 +235,8 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     . have hR : M.Rel (chainForest.World.last c) x := h;
       have hchain : (c.1.concat x).IsChain M.Rel :=
         (List.isChain_concat_of_not_nil c.2.1).mpr ⟨c.2.2, hR⟩;
-      refine ⟨.inl (embed ⟨c.1.concat x, by simp, hchain⟩), ?_, ?_, ?_⟩;
-      . simp [chainForest.World.last];
-      . simp;
-      . simp;
+      exact ⟨.inl (embed ⟨c.1.concat x, by simp, hchain⟩),
+        by simp [chainForest.World.last], by simp, by simp⟩;
     -- embedded worlds see no chain points
     . exact h.elim;
     -- from a grafted chain point to an embedded world
@@ -249,11 +247,9 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
       match m with
       | 0 => exact ⟨.inl tailPoint.1, rfl, Or.inl rfl⟩;
       | m + 1 =>
-        refine ⟨.inr m, rfl, ?_⟩;
-        show m < i;
         have hlt : (((m : ℕ) + 1 : ℕ) : ℕ∞) < (((i : ℕ) + 1 : ℕ) : ℕ∞) := h;
         have : (m + 1 : ℕ) < (i + 1 : ℕ) := by exact_mod_cast hlt;
-        omega;
+        exact ⟨.inr m, rfl, by omega⟩;
   atomic := by
     rintro ((_ | _ | c) | i) q;
     . show o q ↔ if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;

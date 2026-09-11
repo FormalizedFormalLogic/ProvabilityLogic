@@ -75,17 +75,19 @@ lemma iff_models_interpret_boxdot_strongInterpret
       simpa [Formula.boxdotTranslate, Formula.interpret, strongInterpret] using this;
     constructor;
     . rintro ⟨h₁, h₂⟩;
-      refine ⟨ih.mp h₁, ?_⟩;
-      apply models_of_provable (T := T) inferInstance;
-      apply WeakerThan.pbl (𝓢 := T₀);
-      apply 𝔅.D1;
-      exact iff_interpret_boxdot_strongInterpret.mp (𝔅.sound_on h₂);
+      and_intros;
+      . exact ih.mp h₁;
+      . apply models_of_provable (T := T) inferInstance;
+        apply WeakerThan.pbl (𝓢 := T₀);
+        apply 𝔅.D1;
+        exact iff_interpret_boxdot_strongInterpret.mp (𝔅.sound_on h₂);
     . rintro ⟨h₁, h₂⟩;
-      refine ⟨ih.mpr h₁, ?_⟩;
-      apply models_of_provable (T := T) inferInstance;
-      apply WeakerThan.pbl (𝓢 := T₀);
-      apply 𝔅.D1;
-      exact iff_interpret_boxdot_strongInterpret.mpr (𝔅.sound_on h₂);
+      and_intros;
+      . exact ih.mpr h₁;
+      . apply models_of_provable (T := T) inferInstance;
+        apply WeakerThan.pbl (𝓢 := T₀);
+        apply 𝔅.D1;
+        exact iff_interpret_boxdot_strongInterpret.mpr (𝔅.sound_on h₂);
   | _ => simp_all [Formula.interpret, strongInterpret, Formula.boxdotTranslate];
 
 end Formula

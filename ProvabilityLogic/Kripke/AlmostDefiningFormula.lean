@@ -100,7 +100,8 @@ lemma inl_forces_charFormulaUnder [DecidableEq α] [M.IsFiniteGL] [Fintype M.Wor
   | _ n ih =>
     rintro x rfl hx;
     apply forces_charFormulaUnder_iff.mpr;
-    refine ⟨fun q _ => Iff.rfl, ?_, ?_⟩;
+    and_intros;
+    . exact fun q _ => Iff.rfl;
     . intro y Rxy;
       exact ⟨.inl y, Rxy, ih y.rank (rank_lt_of_rel Rxy) y rfl (fun h => not_rel_root (h ▸ Rxy))⟩;
     . rintro (y | i) Rxv;
@@ -185,14 +186,17 @@ lemma exists_exact_depth (Rra : M.root.1 ≺ a.1) (m : ℕ) :
   rcases Nat.lt_trichotomy m a.1.rank with hm | hm | hm;
   . obtain ⟨y, Ray, hy⟩ := of_lt_rank hm;
     have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Ray);
-    refine ⟨.inl y, root_rel_inl_of_isInConeOf Rra (Or.inr Ray), fun j _ => Or.inr Ray, ?_, ?_⟩ <;>
+    use .inl y, root_rel_inl_of_isInConeOf Rra (Or.inr Ray), fun j _ => Or.inr Ray;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;>
       omega;
   . subst hm;
-    refine ⟨.inl a.1, Rra, fun j _ => Or.inl rfl, ?_, ?_⟩ <;>
+    use .inl a.1, Rra, fun j _ => Or.inl rfl;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hane] <;>
       omega;
-  . refine ⟨.inr (m - a.1.rank - 1), ?_, ?_, ?_, ?_⟩;
+  . use .inr (m - a.1.rank - 1);
+    and_intros;
     . show M.root.1 = M.root.1;
       rfl;
     . intro j hj;
@@ -210,9 +214,11 @@ lemma exists_exact_depth_of_ne_root (Rra : M.root.1 ≺ a.1)
   v ⊩[_] (□^[m + 1]⊥) := by
   rcases v with x | j;
   . have hx : x ≠ M.root.1 := fun h => hv (congrArg Sum.inl h);
-    refine ⟨x.rank, ?_, ?_⟩ <;>
+    use x.rank;
+    and_intros <;>
       simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hx] <;> omega;
-  . refine ⟨j + 1 + a.1.rank, ?_, ?_⟩ <;>
+  . use j + 1 + a.1.rank;
+    and_intros <;>
       simp only [Model.World.NotForces, inr_forces_boxItr_bot_iff Rra] <;> omega;
 
 lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).World} {m : ℕ}
@@ -230,11 +236,13 @@ lemma exists_rel_exact_depth (Rra : M.root.1 ≺ a.1) {v : (M.graftOmega a).Worl
         omega;
       obtain ⟨y, Rxy, hy⟩ := of_lt_rank hv;
       have hyne : y ≠ M.root.1 := fun h => not_rel_root (h ▸ Rxy);
-      refine ⟨.inl y, Rxy, ?_, ?_⟩ <;>
+      use .inl y, Rxy;
+      and_intros <;>
         simp only [Model.World.NotForces, inl_forces_boxItr_bot_iff hyne] <;> omega;
-  . refine ⟨w, hchain j ?_, hw₁, hw₂⟩;
-    have := (inr_forces_boxItr_bot_iff Rra (i := j) (k := m + 1)).not.mp hv;
-    omega;
+  . have h : m ≤ j + a.1.rank := by
+      have := (inr_forces_boxItr_bot_iff Rra (i := j) (k := m + 1)).not.mp hv;
+      omega;
+    exact ⟨w, hchain j h, hw₁, hw₂⟩;
 
 end Depth
 
@@ -358,7 +366,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
     exact ⟨⟨trivial, trivial, trivial⟩, trivial⟩;
   case root_forces =>
     apply forces_and.mpr;
-    constructor;
+    and_intros;
     . rintro (x | i) Rrw hw;
       . exfalso;
         have Rrx : M.root.1 ≺ x := Rrw;
@@ -369,7 +377,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
         . omega;
         . have := rank_lt_of_rel hax; omega;
       . apply forces_and.mpr;
-        constructor;
+        and_intros;
         . apply forces_dia.mpr;
           exact ⟨.inl a.1, Or.inl rfl, inl_forces_charFormulaUnder hane⟩;
         . apply forces_valuationConj.mpr;
@@ -378,7 +386,8 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
     . rintro (x | i) Rrw hw;
       . have Rrx : M.root.1 ≺ x := Rrw;
         apply forces_fdisj.mpr;
-        refine ⟨x.charFormulaUnder P, ?_, ?_⟩;
+        use x.charFormulaUnder P;
+        and_intros;
         . exact Finset.mem_image.mpr ⟨⟨x, hlat x Rrx⟩, Finset.mem_univ _, rfl⟩;
         . exact inl_forces_charFormulaUnder (fun h => not_rel_root (h ▸ Rrx));
       . exfalso;
@@ -393,7 +402,7 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
     have := hGL.toIsTrans;
     have : Std.Irrefl (N.graftOmega c').Rel :=
       @ConverseWellFounded.irrefl _ _ hGL.toIsConverseWellFounded;
-    refine ⟨{
+    exact ⟨{
       toRel := fun u v =>
         (u = (M.graftOmega a).root.1 ∧ v = (N.graftOmega c').root.1) ∨
         (u ≠ (M.graftOmega a).root.1 ∧ v ≠ (N.graftOmega c').root.1 ∧
@@ -466,14 +475,11 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
             have hge : a.1.rank + 1 ≤ m := by
               by_contra hlt;
               exact hsh (forces_boxItr_bot_mono (by omega) hm₂);
-            refine ⟨.inr (m - a.1.rank - 1),
-              Or.inr ⟨inr_ne_root, fun h => not_rel_root (h ▸ Rvv'), ?_, ?_⟩, ?_⟩;
-            . rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega];
-              exact hm₁;
-            . rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega];
-              exact hm₂;
-            . show M.root.1 = M.root.1;
-              rfl;
+            exact ⟨.inr (m - a.1.rank - 1),
+              Or.inr ⟨inr_ne_root, fun h => not_rel_root (h ▸ Rvv'),
+                by rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega]; exact hm₁,
+                by rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega]; exact hm₂⟩,
+              show M.root.1 = M.root.1 from rfl⟩;
         . have hv'ne : v' ≠ (N.graftOmega c').root.1 := fun h => not_rel_root (h ▸ Rvv');
           rcases u with x | i;
           . obtain ⟨y, Rxy, hy⟩ := (forces_charFormulaUnder_iff.mp hC).2.2 v' Rvv';
@@ -502,13 +508,11 @@ theorem exists_almostDefiningFormula [DecidableEq α] [M.IsFiniteGLTree] [Fintyp
                   intro z hz;
                   exact forces_boxItr.mp hC.2 z ⟨v', Rvv', hz⟩;
                 exact hm₁ (forces_boxItr_bot_mono (by omega) hstep);
-              refine ⟨.inr (m - a.1.rank - 1), Or.inr ⟨inr_ne_root, hv'ne, ?_, ?_⟩, ?_⟩;
-              . rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega];
-                exact hm₁;
-              . rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega];
-                exact hm₂;
-              . show m - a.1.rank - 1 < i;
-                omega;
+              exact ⟨.inr (m - a.1.rank - 1),
+                Or.inr ⟨inr_ne_root, hv'ne,
+                  by rw [show m - a.1.rank - 1 + 1 + a.1.rank = m by omega]; exact hm₁,
+                  by rw [show m - a.1.rank - 1 + 1 + a.1.rank + 1 = m + 1 by omega]; exact hm₂⟩,
+                show m - a.1.rank - 1 < i by omega⟩;
     }⟩;
 
 section ConeTail
@@ -549,9 +553,7 @@ def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
     . exact ⟨.inl ⟨u, Rxu⟩, rfl, trivial⟩;
     . exact h.elim;
     . subst h;
-      refine ⟨.inr (i' : ℕ∞), rfl, ?_⟩;
-      show (i' : ℕ∞) < (i : ℕ∞);
-      exact_mod_cast Rxu;
+      exact ⟨.inr (i' : ℕ∞), rfl, show (i' : ℕ∞) < (i : ℕ∞) by exact_mod_cast Rxu⟩;
   back := by
     rintro (x | i) (y | j) (v | j') h Rv;
     . subst h;
@@ -566,10 +568,8 @@ def coneTailBisimulation (M : RootedModel κ α) [M.IsFiniteGL] (a : M.World)
     . subst h;
       have hj' : j' ≠ (⊤ : ℕ∞) := ne_top_of_lt (show j' < (i : ℕ∞) from Rv);
       obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp hj';
-      refine ⟨.inr m, rfl, ?_⟩;
-      show m < i;
       have hmi : (m : ℕ∞) < (i : ℕ∞) := Rv;
-      exact_mod_cast hmi;
+      exact ⟨.inr m, rfl, by exact_mod_cast hmi⟩;
 
 omit [Fintype M.World] in
 lemma coneTail_chainPoint_modal_equivalent (Rra : M.root.1 ≺ a.1) (i : ℕ) :
@@ -605,7 +605,7 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA (fun q => (hC q).1);
     obtain ⟨k₂, h₂⟩ := ihB (fun q => (hC q).2);
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
@@ -614,7 +614,7 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A ihA =>
     by_cases h : (M.graftOmega a).root.1 ⊩[(M.graftOmega a).toModel] (□A);
-    . refine ⟨0, ?_⟩;
+    . use 0;
       intro n _;
       refine iff_of_true ?_ h;
       rintro (y | j) Rny;
@@ -631,14 +631,14 @@ theorem eventually_coneTail_chainPoint_forces_iff_of_modalized
         exact this;
       rcases w with x | i;
       . have hx : x.IsInConeOf a := hlat x Rrw;
-        refine ⟨0, ?_⟩;
+        use 0;
         intro n _;
         refine iff_of_false ?_ h;
         intro hbox;
         apply hwA;
         apply (coneTail_embed_modal_equivalent Rra ⟨x, hx⟩).mpr;
         exact hbox (Sum.inl ⟨x, hx⟩) trivial;
-      . refine ⟨i + 1, ?_⟩;
+      . use i + 1;
         intro n hn;
         refine iff_of_false ?_ h;
         intro hbox;

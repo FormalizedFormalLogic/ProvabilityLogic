@@ -128,12 +128,12 @@ instance (a : M.NonRoot) : Std.Irrefl (M.removeCone a).Rel :=
 
 lemma isTree {a : M.NonRoot} [hTree : M.IsTree] :
   (M.removeCone a).IsTree := by
-  refine ⟨?_⟩;
+  constructor;
   intro x y z hxz hyz;
   rcases hTree.tree x.1 y.1 z.1 hxz hyz with h | h | h;
-  . exact Or.inl (Subtype.ext h);
-  . exact Or.inr (Or.inl h);
-  . exact Or.inr (Or.inr h);
+  . left; exact Subtype.ext h;
+  . right; left; exact h;
+  . right; right; exact h;
 
 section Finite
 
@@ -299,7 +299,7 @@ lemma graftOmega.not_redundant_embed_a {M : RootedModel κ α} [M.IsFiniteGL]
   intro hred;
   have hwa : (M.graftOmega a).Rel (Sum.inr 0) (Sum.inl a.1) := by
     show a.1 = a.1 ∨ M.Rel a.1 a.1;
-    exact Or.inl rfl;
+    left; rfl;
   obtain ⟨u, Bi, hxu, hune, hnau, hyne, hBiua⟩ := hred (Sum.inr 0) hwa;
   apply hnau;
   rcases u with z | j;
@@ -333,11 +333,11 @@ lemma graftOmega.inl_isInConeOf_inl_iff {M : RootedModel κ α} {a : M.NonRoot} 
   x.IsInConeOf m := by
   constructor;
   . rintro (h | h);
-    . exact Or.inl (Sum.inl.inj h);
-    . exact Or.inr h;
+    . left; exact Sum.inl.inj h;
+    . right; exact h;
   . rintro (rfl | h);
-    . exact Or.inl rfl;
-    . exact Or.inr h;
+    . left; rfl;
+    . right; exact h;
 
 lemma graftOmega.not_inr_isInConeOf_inl {M : RootedModel κ α} {a : M.NonRoot} {m : M.World}
   (hm : m ≠ M.root.1) (i : ℕ) :
@@ -363,17 +363,17 @@ def graftOmega.removeConePseudoEpimorphism {M : RootedModel κ α} [M.IsGL]
     . exact Rxy;
     . exact Subtype.ext Rxy;
     . rcases Rxy with rfl | h;
-      . exact Or.inl (Subtype.ext rfl);
-      . exact Or.inr h;
+      . left; exact Subtype.ext rfl;
+      . right; exact h;
     . exact Rxy;
   back := by
     rintro ⟨(x | i), hx⟩ (⟨y, hy⟩ | j) h;
     . exact ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, h⟩;
     . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, congrArg Subtype.val h⟩;
-    . refine ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, ?_⟩;
-      rcases h with h | h;
-      . exact Or.inl (congrArg Subtype.val h);
-      . exact Or.inr h;
+    . exact ⟨⟨.inl y, fun hs => hy (inl_isInConeOf_inl_iff.mp hs)⟩, rfl, by
+        rcases h with h | h;
+        . left; exact congrArg Subtype.val h;
+        . right; exact h⟩;
     . exact ⟨⟨.inr j, not_inr_isInConeOf_inl hm j⟩, rfl, h⟩;
   atomic := by
     rintro ⟨(x | i), hx⟩ b;
@@ -438,14 +438,15 @@ theorem exists_simplificationUnder_omega_aux [DecidableEq α] :
             IsInConeOf (M := (M.removeCone ⟨m, hm⟩).toModel) x ⟨a, hma⟩ := by
         rintro h ⟨x, hx⟩ Rrx;
         rcases h x Rrx with rfl | hax;
-        . exact Or.inl (Subtype.ext rfl);
-        . exact Or.inr hax;
+        . left; exact Subtype.ext rfl;
+        . right; exact hax;
       obtain ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov'', hlat'', hSimple', hEq'⟩ :=
         ih (Fintype.card (M.removeCone ⟨m, hm⟩).World)
           (by rw [← hcard]; exact removeCone.card_lt ⟨m, hm⟩)
           (M.removeCone ⟨m, hm⟩) ⟨a, hma⟩ Rra hcov' rfl;
       refine ⟨κ', hNe', M', hGL', hTree', a', Rra', hcov'',
-        fun h => hlat'' (hlat' h), hSimple', fun C hC => ?_⟩;
+        fun h => hlat'' (hlat' h), hSimple', ?_⟩;
+      intro C hC;
       exact (removeCone.forces_iff (a := ⟨Sum.inl m, graftOmega.inl_ne_root hm⟩) hred hC _).symm.trans
         ((graftOmega.removeCone_root_forces_iff hm hma).trans (hEq' C hC));
     . exact ⟨κ, ‹Nonempty κ›, M, inferInstance, inferInstance, ⟨a, hane⟩, Rra, hcov,

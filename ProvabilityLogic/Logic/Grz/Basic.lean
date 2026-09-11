@@ -57,11 +57,11 @@ theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ Log
   provability_TFAE.out 0 3
 
 theorem iff_forces [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A :=
+  A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A :=
   provability_TFAE.out 0 4
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
-    A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
+  A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
   provability_TFAE.out 0 5
 
 end LogicGrz

@@ -18,26 +18,19 @@ namespace Logic.sumQuasiNormal
 
 variable {L₁ L₂ : Logic α} {A B : Formula α} {s : Formula.Substitution α α}
 
-@[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₁;
-@[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ +ᴸ L₂) := by apply Logic.sumQuasiNormal.mem₂;
+@[grind .] lemma subset_L₁ : L₁ ⊆ (L₁ +ᴸ L₂) := fun _ ↦ mem₁
+@[grind .] lemma subset_L₂ : L₂ ⊆ (L₁ +ᴸ L₂) := fun _ ↦ mem₂
 
 lemma iff_subset : (L +ᴸ X) ⊆ (L +ᴸ Y) ↔ X ⊆ (L +ᴸ Y) := by
   constructor;
   . intro h A hA;
-    apply h;
-    apply Logic.sumQuasiNormal.mem₂;
-    exact hA;
+    exact h (mem₂ hA);
   . intro h A hA;
     induction hA with
-    | mem₁ hA =>
-      apply Logic.sumQuasiNormal.mem₁;
-      exact hA
-    | mem₂ hA =>
-      apply h hA;
-    | mdp _ _ ihAB ihA =>
-      exact Logic.sumQuasiNormal.mdp ihAB ihA;
-    | subst h ih =>
-      apply Logic.sumQuasiNormal.subst ih;
+    | mem₁ hA => exact mem₁ hA;
+    | mem₂ hA => exact h hA;
+    | mdp _ _ ihAB ihA => exact mdp ihAB ihA;
+    | subst h ih => exact subst ih;
 
 end Logic.sumQuasiNormal
 

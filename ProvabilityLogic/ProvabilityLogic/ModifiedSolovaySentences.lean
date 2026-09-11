@@ -98,7 +98,7 @@ lemma b_ne_rN : X.b ≠ X.rN := by
 lemma b_rel_rN : X.b ≺ X.rN := rel_embed_embed_iff_rel.mpr X.root_rel_r
 
 lemma eq_root_or_b_of_rel_rN {z : X.N.World} (h : z ≺ X.rN) :
-    z = X.N.root.1 ∨ z = X.b := by
+  z = X.N.root.1 ∨ z = X.b := by
   match z with
   | .inl y =>
     right;
@@ -111,7 +111,7 @@ lemma eq_root_or_b_of_rel_rN {z : X.N.World} (h : z ≺ X.rN) :
     omega;
 
 lemma eq_embed_of_ne_root {z : X.N.World} (h : X.N.root.1 ≠ z) :
-    ∃ z₀ : X.World, z = embed z₀ :=
+  ∃ z₀ : X.World, z = embed z₀ :=
   Ext1.eq_original_of_neq_extendRoot_root (fun hc => h (by rw [hc]))
 
 end StrongReflexiveCountermodel
@@ -128,10 +128,10 @@ variable {κ} {A}
   - [Bek90, Lemma 1 (§6)]
 -/
 structure FFL.FirstOrder.ProvabilityAbstraction.Provability.ModifiedSolovaySentences
-    {L : FirstOrder.Language} [L.ReferenceableBy L]
-    {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T]
-    (𝔅 : Provability T₀ T)
-    (X : StrongReflexiveCountermodel κ A) (σ : FirstOrder.Sentence L) where
+  {L : FirstOrder.Language} [L.ReferenceableBy L]
+  {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T]
+  (𝔅 : Provability T₀ T)
+  (X : StrongReflexiveCountermodel κ A) (σ : FirstOrder.Sentence L) where
   Λ : X.N.World → FirstOrder.Sentence L
   protected SC1 : ∀ i j, i ≠ j → T₀ ⊢ Λ i 🡒 ∼Λ j
   protected SC2 : ∀ i j, i ≺ j → j ≠ X.rN → T₀ ⊢ Λ i 🡒 𝔅.dia (Λ j)
@@ -156,9 +156,9 @@ noncomputable def realization (S : 𝔅.ModifiedSolovaySentences X σ) : Realiza
 
 /-- - [Bek90, Lemma 2 (§6)] -/
 private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
-    ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
-      (i ⊩[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅)) ∧
-      (i ⊮[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅)) := by
+  ∀ {B : _root_.Formula α}, B ∈ A.subfmls →
+    (i ⊩[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅)) ∧
+    (i ⊮[X.N.toModel] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅)) := by
   have := X.isFiniteGL;
   have hN : (X.extendRoot 1).IsFiniteGL := inferInstance;
   have : IsTrans X.N.World X.N.Rel := hN.toIsTrans;
@@ -239,7 +239,7 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
         by_cases hjr : j = X.rN;
         . subst hjr;
           use embed X.r₁;
-          refine ⟨?_, ?_, ?_⟩;
+          and_intros;
           . exact IsTrans.trans _ _ _ Rij (rel_embed_embed_iff_rel.mpr X.r_rel_r₁);
           . intro hc;
             apply hB;
@@ -255,25 +255,15 @@ private lemma mainlemma_aux {i : X.N.World} (hi : X.N.root.1 ≠ i) :
       exact C_trans (S.SC2 i j' Rij' hj'r) this;
 
 theorem mainlemma {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊩[_] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅) :=
+  (hB : B ∈ A.subfmls) : i ⊩[_] B → T₀ ⊢ S.Λ i 🡒 (B.interpret S.realization 𝔅) :=
   (mainlemma_aux hi hB).1
 
 theorem mainlemma_neg {i : X.N.World} (hi : X.N.root.1 ≠ i) {B : _root_.Formula α}
-    (hB : B ∈ A.subfmls) : i ⊮[_] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅) :=
+  (hB : B ∈ A.subfmls) : i ⊮[_] B → T₀ ⊢ S.Λ i 🡒 ∼(B.interpret S.realization 𝔅) :=
   (mainlemma_aux hi hB).2
 
 
 section
-
-omit [T₀ ⪯ T] in
-private lemma provable_boxItr_bot_succ {n : ℕ} : T₀ ⊢ 𝔅^[n] ⊥ 🡒 𝔅^[n + 1] ⊥ := by
-  match n with
-  | 0 =>
-    simp only [Function.iterate_zero_apply];
-    cl_prover;
-  | n + 1 =>
-    have : T₀ ⊢ 𝔅 (𝔅^[n] ⊥) 🡒 𝔅 (𝔅 (𝔅^[n] ⊥)) := 𝔅.D3;
-    simpa only [Function.iterate_succ_apply'] using this;
 
 omit [T₀ ⪯ T] in
 private lemma provable_boxItr_bot_mono {n m : ℕ} (h : n ≤ m) : T₀ ⊢ 𝔅^[n] ⊥ 🡒 𝔅^[m] ⊥ := by
@@ -283,13 +273,21 @@ private lemma provable_boxItr_bot_mono {n m : ℕ} (h : n ≤ m) : T₀ ⊢ 𝔅
     cl_prover;
   | succ m ih =>
     rcases Nat.lt_succ_iff_lt_or_eq.mp (Nat.lt_succ_of_le h) with h' | rfl;
-    . exact C_trans (ih (by omega)) provable_boxItr_bot_succ;
+    . have hsucc : T₀ ⊢ 𝔅^[m] ⊥ 🡒 𝔅^[m + 1] ⊥ := by
+        match m with
+        | 0 =>
+          simp only [Function.iterate_zero_apply];
+          cl_prover;
+        | m + 1 =>
+          have : T₀ ⊢ 𝔅 (𝔅^[m] ⊥) 🡒 𝔅 (𝔅 (𝔅^[m] ⊥)) := 𝔅.D3;
+          simpa only [Function.iterate_succ_apply'] using this;
+      exact C_trans (ih (by omega)) hsucc;
     . cl_prover;
 
 /-- - [Bek90, Lemma 1.7 (§6)] -/
 lemma provable_boxItr_bot_of_ne (S : 𝔅.ModifiedSolovaySentences X σ) :
-    ∀ z : X.World, z ≠ X.root.1 → z ≠ X.r →
-      T₀ ⊢ S.Λ (embed z) 🡒 𝔅^[Model.World.rank z + 1] ⊥ := by
+  ∀ z : X.World, z ≠ X.root.1 → z ≠ X.r →
+    T₀ ⊢ S.Λ (embed z) 🡒 𝔅^[Model.World.rank z + 1] ⊥ := by
   have := X.isFiniteGL;
   have hGL : X.IsGL := inferInstance;
   have : IsConverseWellFounded X.World X.Rel := hGL.toIsConverseWellFounded;
@@ -323,8 +321,8 @@ lemma provable_boxItr_bot_of_ne (S : 𝔅.ModifiedSolovaySentences X σ) :
   - [Bek90, Lemma 1.8 (§6)]
 -/
 lemma provable_b (S : 𝔅.ModifiedSolovaySentences X σ) :
-    T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒 (𝔅 σ) 🡒
-      ((∼σ : FirstOrder.Sentence L)) 🡒 S.Λ (embed X.root.1) := by
+  T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒 (𝔅 σ) 🡒
+    ((∼σ : FirstOrder.Sentence L)) 🡒 S.Λ (embed X.root.1) := by
   have := X.isFiniteGL;
   have hall : ∀ j : X.N.World,
       T₀ ⊢ S.Λ j 🡒 (((∼(𝔅^[Model.World.rank X.r] ⊥)) : FirstOrder.Sentence L) 🡒 (𝔅 σ) 🡒
@@ -359,8 +357,8 @@ lemma provable_b (S : 𝔅.ModifiedSolovaySentences X σ) :
   - [Bek90, Theorem 2 (§6)]
 -/
 theorem reflection (S : 𝔅.ModifiedSolovaySentences X σ) :
-    T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒
-      (A.interpret S.realization 𝔅) 🡒 ((𝔅 σ) 🡒 σ) := by
+  T₀ ⊢ 𝔅.conItr (Model.World.rank X.r) 🡒
+    (A.interpret S.realization 𝔅) 🡒 ((𝔅 σ) 🡒 σ) := by
   have := X.isFiniteGL;
   have h₁ := S.provable_b;
   have h₂ : T₀ ⊢ S.Λ (embed X.root.1) 🡒 ∼(A.interpret S.realization 𝔅) :=
@@ -450,7 +448,7 @@ def climbBeatsWitness (θ : 𝚫₀.Semisentence 1) : 𝚺₁.Semisentence 1 := 
   “φ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ ∃ p, !(proof T).sigma p nφ ∧ ∀ w < p, ¬!θ.val w”
 
 instance climbBeatsWitness_defined (θ : 𝚫₀.Semisentence 1) :
-    𝚺₁-Predicate[V] (ClimbBeatsWitness T θ) via (climbBeatsWitness T θ) := .mk fun v ↦ by
+  𝚺₁-Predicate[V] (ClimbBeatsWitness T θ) via (climbBeatsWitness T θ) := .mk fun v ↦ by
   simp [climbBeatsWitness, ClimbBeatsWitness]
 
 instance climbBeatsWitness_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Predicate (ClimbBeatsWitness T θ : V → Prop) :=
@@ -458,14 +456,14 @@ instance climbBeatsWitness_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Pre
 
 /-- Instance for the definability tactic. -/
 instance climbBeatsWitness_definable' (θ : 𝚫₀.Semisentence 1) :
-    𝚺-[0 + 1]-Predicate (ClimbBeatsWitness T θ : V → Prop) :=
+  𝚺-[0 + 1]-Predicate (ClimbBeatsWitness T θ : V → Prop) :=
   (climbBeatsWitness_defined T θ).to_definable
 
 def witnessBeatsClimb (θ : 𝚫₀.Semisentence 1) : 𝚺₁.Semisentence 1 := .mkSigma
   “φ. ∃ nφ, !(negGraph ℒₒᵣ) nφ φ ∧ ∃ w, !θ.val w ∧ ∀ p <⁺ w, ¬!(proof T).pi p nφ”
 
 instance witnessBeatsClimb_defined (θ : 𝚫₀.Semisentence 1) :
-    𝚺₁-Predicate[V] (WitnessBeatsClimb T θ) via (witnessBeatsClimb T θ) := .mk fun v ↦ by
+  𝚺₁-Predicate[V] (WitnessBeatsClimb T θ) via (witnessBeatsClimb T θ) := .mk fun v ↦ by
   simp [witnessBeatsClimb, WitnessBeatsClimb]
 
 instance witnessBeatsClimb_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Predicate (WitnessBeatsClimb T θ : V → Prop) :=
@@ -473,25 +471,25 @@ instance witnessBeatsClimb_definable (θ : 𝚫₀.Semisentence 1) : 𝚺₁-Pre
 
 /-- Instance for the definability tactic. -/
 instance witnessBeatsClimb_definable' (θ : 𝚫₀.Semisentence 1) :
-    𝚺-[0 + 1]-Predicate (WitnessBeatsClimb T θ : V → Prop) :=
+  𝚺-[0 + 1]-Predicate (WitnessBeatsClimb T θ : V → Prop) :=
   (witnessBeatsClimb_defined T θ).to_definable
 
 end
 
 lemma ClimbBeatsWitness.not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V} :
-    ClimbBeatsWitness T θ φ → ¬WitnessBeatsClimb T θ φ := by
+  ClimbBeatsWitness T θ φ → ¬WitnessBeatsClimb T θ φ := by
   rintro ⟨p, hp, hpw⟩ ⟨w, hwθ, hwp⟩;
   rcases lt_or_ge w p with hlt | hge;
   . exact hpw w hlt hwθ;
   . exact hwp p hge hp;
 
 lemma ClimbBeatsWitness.of_no_witness {θ : 𝚫₀.Semisentence 1} {φ : V} (hw : ¬∃ w, V ⊧/![w] θ.val)
-    (hp : Provable T (neg ℒₒᵣ φ)) : ClimbBeatsWitness T θ φ := by
+  (hp : Provable T (neg ℒₒᵣ φ)) : ClimbBeatsWitness T θ φ := by
   obtain ⟨p, hp⟩ := hp;
   exact ⟨p, hp, fun w _ hθw ↦ hw ⟨w, hθw⟩⟩;
 
 lemma ClimbBeatsWitness.of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V}
-    (hp : Provable T (neg ℒₒᵣ φ)) (h : ¬WitnessBeatsClimb T θ φ) : ClimbBeatsWitness T θ φ := by
+  (hp : Provable T (neg ℒₒᵣ φ)) (h : ¬WitnessBeatsClimb T θ φ) : ClimbBeatsWitness T θ φ := by
   obtain ⟨d, hd⟩ := hp;
   obtain ⟨p, hp, hpmin⟩ : ∃ p, Proof T p (neg ℒₒᵣ φ) ∧ ∀ z < p, ¬Proof T z (neg ℒₒᵣ φ) :=
     InductionOnHierarchy.least_number_sigma 𝚺 1 (P := (Proof T · (neg ℒₒᵣ φ))) (by definability) hd;
@@ -502,8 +500,8 @@ lemma ClimbBeatsWitness.of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {
   exact hpmin p' (lt_of_le_of_lt hp'w hw) hp'proof;
 
 lemma ClimbBeatsWitness.of_le {θ : 𝚫₀.Semisentence 1} {φ₁ φ₂ : V}
-    (hle : T.ProvabilityComparisonLE (neg ℒₒᵣ φ₁) (neg ℒₒᵣ φ₂))
-    (h : ClimbBeatsWitness T θ φ₂) : ClimbBeatsWitness T θ φ₁ := by
+  (hle : T.ProvabilityComparisonLE (neg ℒₒᵣ φ₁) (neg ℒₒᵣ φ₂))
+  (h : ClimbBeatsWitness T θ φ₂) : ClimbBeatsWitness T θ φ₁ := by
   obtain ⟨b, hb, hbmin⟩ := hle;
   obtain ⟨p₂, hp₂, hp₂w⟩ := h;
   have hble : b ≤ p₂ := by
@@ -511,7 +509,7 @@ lemma ClimbBeatsWitness.of_le {θ : 𝚫₀.Semisentence 1} {φ₁ φ₂ : V}
   exact ⟨b, hb, fun w hw ↦ hp₂w w (lt_of_lt_of_le hw hble)⟩;
 
 lemma Provable.of_witness_of_not_witnessBeatsClimb {θ : 𝚫₀.Semisentence 1} {φ : V}
-    (hw : ∃ w, V ⊧/![w] θ.val) (h : ¬WitnessBeatsClimb T θ φ) : Provable T (neg ℒₒᵣ φ) := by
+  (hw : ∃ w, V ⊧/![w] θ.val) (h : ¬WitnessBeatsClimb T θ φ) : Provable T (neg ℒₒᵣ φ) := by
   obtain ⟨w, hwθ⟩ := hw;
   unfold WitnessBeatsClimb at h; push Not at h;
   obtain ⟨p, hpw, hpProof⟩ := h w hwθ;
@@ -533,12 +531,12 @@ def climbAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.
 def sigmaEmb : ArithmeticSemisentence N := Rew.embSubsts ![] ▹ σ
 
 lemma rew_climbAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
-    Rew.subst w ▹ climbAux T X t i j = climbAux T X (fun i ↦ Rew.subst w (t i)) i j := by
+  Rew.subst w ▹ climbAux T X t i j = climbAux T X (fun i ↦ Rew.subst w (t i)) i j := by
   simp [climbAux, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.comp_vecCons', Matrix.constant_eq_singleton]
 
 lemma rew_sigmaEmb (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') :
-    Rew.subst w ▹ sigmaEmb (N := N) σ = sigmaEmb σ := by
+  Rew.subst w ▹ sigmaEmb (N := N) σ = sigmaEmb σ := by
   simp [sigmaEmb, ←TransitiveRewriting.comp_app, Rew.subst_comp_embSubsts, Matrix.empty_eq]
 
 /--
@@ -550,7 +548,7 @@ def jumpAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) : Arithmet
   sigmaEmb σ ⋏ ⩕ k ∈ { k : X.N.World | X.b ≺ k ∧ k ≠ X.rN }, (witnessBeatsClimb T θ).val/[t k]
 
 lemma rew_jumpAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) :
-    Rew.subst w ▹ jumpAux T X σ θ t = jumpAux T X σ θ (fun i ↦ Rew.subst w (t i)) := by
+  Rew.subst w ▹ jumpAux T X σ θ t = jumpAux T X σ θ (fun i ↦ Rew.subst w (t i)) := by
   simp [jumpAux, rew_sigmaEmb, Finset.map_conj', Function.comp_def, ←TransitiveRewriting.comp_app,
     Rew.subst_comp_subst, Matrix.constant_eq_singleton]
 
@@ -566,20 +564,19 @@ def modifiedTwoPointAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N
     (climbAux T X t i j) ⋏ (if i = X.b then (climbBeatsWitness T θ).val/[t j] else ⊤)
 
 lemma rew_modifiedTwoPointAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
-    Rew.subst w ▹ modifiedTwoPointAux T X σ θ t i j = modifiedTwoPointAux T X σ θ (fun i ↦ Rew.subst w (t i)) i j := by
+  Rew.subst w ▹ modifiedTwoPointAux T X σ θ t i j = modifiedTwoPointAux T X σ θ (fun i ↦ Rew.subst w (t i)) i j := by
   unfold modifiedTwoPointAux;
   split_ifs with h1 h2 h2 <;>
     simp [rew_climbAux, rew_jumpAux, Function.comp_def, ←TransitiveRewriting.comp_app,
       Rew.subst_comp_subst, Matrix.constant_eq_singleton]
 
-private lemma sigmaEmb_sigma1 (hσ : Hierarchy 𝚺 1 σ) : Hierarchy 𝚺 1 (sigmaEmb (N := N) σ) := by
-  unfold sigmaEmb; exact hσ.rew _
-
 private lemma modifiedTwoPointAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
-    (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
-    Hierarchy 𝚺 1 (modifiedTwoPointAux T X σ θ t i j) := by
+  (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i j : X.N.World) :
+  Hierarchy 𝚺 1 (modifiedTwoPointAux T X σ θ t i j) := by
+  have sigmaEmb_sigma1 : Hierarchy 𝚺 1 (sigmaEmb (N := N) σ) := by
+    unfold sigmaEmb; exact hσ.rew _;
   unfold modifiedTwoPointAux;
-  split_ifs <;> simp [climbAux, jumpAux, sigmaEmb_sigma1 σ hσ]
+  split_ifs <;> simp [climbAux, jumpAux, sigmaEmb_sigma1]
 
 def modifiedθChainAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) : List X.N.World → ArithmeticSemisentence N
   |          [] => ⊥
@@ -587,15 +584,15 @@ def modifiedθChainAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N)
   | j :: i :: ε => (modifiedθChainAux t (i :: ε)) ⋏ (modifiedTwoPointAux T X σ θ t i j)
 
 lemma rew_modifiedθChainAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List X.N.World) :
-    Rew.subst w ▹ modifiedθChainAux T X σ θ t ε = modifiedθChainAux T X σ θ (fun i ↦ Rew.subst w (t i)) ε := by
+  Rew.subst w ▹ modifiedθChainAux T X σ θ t ε = modifiedθChainAux T X σ θ (fun i ↦ Rew.subst w (t i)) ε := by
   match ε with
   |          [] => simp [modifiedθChainAux]
   |         [_] => simp [modifiedθChainAux]
   | j :: i :: ε => simp [modifiedθChainAux, rew_modifiedθChainAux w _ (i :: ε), rew_modifiedTwoPointAux]
 
 private lemma modifiedθChainAux_sigma1 (hσ : Hierarchy 𝚺 1 σ)
-    (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List X.N.World) :
-    Hierarchy 𝚺 1 (modifiedθChainAux T X σ θ t ε) := by
+  (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (ε : List X.N.World) :
+  Hierarchy 𝚺 1 (modifiedθChainAux T X σ θ t ε) := by
   match ε with
   |          [] => simp [modifiedθChainAux]
   |         [_] => simp [modifiedθChainAux]
@@ -611,11 +608,11 @@ def modifiedθAux (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i :
   ⩖ ε : WChain X.N X.N.root.1 i, modifiedθChainAux T X σ θ t ε
 
 lemma rew_modifiedθAux (w : Fin N → FirstOrder.ArithmeticSemiterm Empty N') (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i : X.N.World) :
-    Rew.subst w ▹ modifiedθAux T X σ θ t i = modifiedθAux T X σ θ (fun i ↦ Rew.subst w (t i)) i := by
+  Rew.subst w ▹ modifiedθAux T X σ θ t i = modifiedθAux T X σ θ (fun i ↦ Rew.subst w (t i)) i := by
   simp only [modifiedθAux, Finset.map_udisj, rew_modifiedθChainAux];
 
 lemma modifiedθAux_sigma1 (hσ : Hierarchy 𝚺 1 σ) (t : X.N.World → FirstOrder.ArithmeticSemiterm Empty N) (i : X.N.World) :
-    Hierarchy 𝚺 1 (modifiedθAux T X σ θ t i) := by
+  Hierarchy 𝚺 1 (modifiedθAux T X σ θ t i) := by
   simp only [modifiedθAux, Hierarchy.finset_udisj_iff];
   intro ε;
   exact modifiedθChainAux_sigma1 T X σ θ hσ _ _;
@@ -646,9 +643,9 @@ def modifiedθChain (ε : List X.N.World) : ArithmeticSentence := modifiedθChai
 def modifiedθ (i : X.N.World) : ArithmeticSentence := modifiedθAux T X σ θ (fun i ↦ ⌜T.modifiedSolovay X σ θ i⌝) i
 
 lemma modifiedSolovay_diag (i : X.N.World) :
-    𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ i) 🡘
-      ((modifiedθ T X σ θ i) ⋏ (⩕ j ∈ { j : X.N.World | i ≺ j ∧ j ≠ X.rN }, T.consistentWith.val/[⌜T.modifiedSolovay X σ θ j⌝]) ⋏
-        (if i = X.b then ∼(sigmaEmb σ) else ⊤)) := by
+  𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ i) 🡘
+    ((modifiedθ T X σ θ i) ⋏ (⩕ j ∈ { j : X.N.World | i ≺ j ∧ j ≠ X.rN }, T.consistentWith.val/[⌜T.modifiedSolovay X σ θ j⌝]) ⋏
+      (if i = X.b then ∼(sigmaEmb σ) else ⊤)) := by
   have : 𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ i) 🡘
       (Rew.subst fun j ↦ ⌜T.modifiedSolovay X σ θ ((Fintype.equivFin X.N.World).symm j)⌝) ▹
         ((modifiedθAux T X σ θ (fun i ↦ #(Fintype.equivFin X.N.World i)) i) ⋏
@@ -682,7 +679,7 @@ def ModifiedStep (i j : X.N.World) : Prop :=
       (i = X.b → ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j⌝)
 
 @[simp] lemma val_modifiedTwoPoint (i j : X.N.World) :
-    V ⊧/![] (modifiedTwoPoint T X σ θ i j) ↔ ModifiedStep T X σ θ (V := V) i j := by
+  V ⊧/![] (modifiedTwoPoint T X σ θ i j) ↔ ModifiedStep T X σ θ (V := V) i j := by
   unfold modifiedTwoPoint modifiedTwoPointAux ModifiedStep;
   split_ifs <;> simp [climbAux, jumpAux, sigmaEmb] <;> grind
 
@@ -709,36 +706,36 @@ attribute [simp] ModifiedΘChain.singleton
   rintro ⟨⟩
 
 lemma ModifiedΘChain.cons_cons_iff {i j : X.N.World} {ε : List X.N.World} :
-    ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V (i :: ε) ∧ ModifiedStep T X σ θ (V := V) i j := by
+  ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V (i :: ε) ∧ ModifiedStep T X σ θ (V := V) i j := by
   constructor
   . rintro ⟨⟩; simp_all
   . rintro ⟨ih, h⟩; exact .cons h ih
 
 lemma ModifiedΘChain.doubleton_iff {i j : X.N.World} :
-    ModifiedΘChain T X σ θ V [j, i] ↔ ModifiedStep T X σ θ (V := V) i j := by
+  ModifiedΘChain T X σ θ V [j, i] ↔ ModifiedStep T X σ θ (V := V) i j := by
   constructor
   . rintro ⟨⟩; simp_all
   . rintro h; exact .cons h (by simp)
 
 lemma ModifiedΘChain.cons_cons_iff' {i j : X.N.World} {ε : List X.N.World} :
-    ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V [j, i] ∧ ModifiedΘChain T X σ θ V (i :: ε) := by
+  ModifiedΘChain T X σ θ V (j :: i :: ε) ↔ ModifiedΘChain T X σ θ V [j, i] ∧ ModifiedΘChain T X σ θ V (i :: ε) := by
   constructor
   . rintro ⟨⟩; simp [ModifiedΘChain.doubleton_iff, *]
   . rintro ⟨ih, h⟩; exact h.cons (by rcases ih; assumption)
 
 lemma ModifiedΘChain.cons_of {m i j : X.N.World} {ε : List X.N.World}
-    (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
-    (hΘ : ModifiedΘChain T X σ θ V ε)
-    (H : ModifiedStep T X σ θ (V := V) i j)
-    (hij : i ≺ j) :
-    ModifiedΘChain T X σ θ V (j :: ε) := by
+  (hc : List.ChainI (fun x y ↦ y ≺ x) i m ε)
+  (hΘ : ModifiedΘChain T X σ θ V ε)
+  (H : ModifiedStep T X σ θ (V := V) i j)
+  (hij : i ≺ j) :
+  ModifiedΘChain T X σ θ V (j :: ε) := by
   rcases hc
   case singleton => exact .cons H hΘ
   case cons => exact .cons H hΘ
 
 lemma ModifiedΘChain.append_iff {ε₁ ε₂ : List X.N.World} {i : X.N.World} :
-    ModifiedΘChain T X σ θ V (ε₁ ++ i :: ε₂) ↔
-      ModifiedΘChain T X σ θ V (ε₁ ++ [i]) ∧ ModifiedΘChain T X σ θ V (i :: ε₂) := by
+  ModifiedΘChain T X σ θ V (ε₁ ++ i :: ε₂) ↔
+    ModifiedΘChain T X σ θ V (ε₁ ++ [i]) ∧ ModifiedΘChain T X σ θ V (i :: ε₂) := by
   match ε₁ with
   |           [] => simp
   |          [x] => simp [ModifiedΘChain.cons_cons_iff' (ε := ε₂)]
@@ -749,7 +746,7 @@ lemma ModifiedΘChain.append_iff {ε₁ ε₂ : List X.N.World} {i : X.N.World} 
     simp [cons_cons_iff' (ε := ε₁ ++ i :: ε₂), cons_cons_iff' (ε := ε₁ ++ [i]), and_assoc, this]
 
 @[simp] lemma val_modifiedθChain (ε : List X.N.World) :
-    V ⊧/![] (modifiedθChain T X σ θ ε) ↔ ModifiedΘChain T X σ θ V ε := by
+  V ⊧/![] (modifiedθChain T X σ θ ε) ↔ ModifiedΘChain T X σ θ V ε := by
   unfold modifiedθChain modifiedθChainAux
   match ε with
   |          [] => simp
@@ -762,7 +759,7 @@ lemma ModifiedΘChain.append_iff {ε₁ ε₂ : List X.N.World} {i : X.N.World} 
     simp [ModifiedΘChain.cons_cons_iff, val_modifiedθChain (i :: ε)]
 
 @[simp] lemma val_modifiedθ {i : X.N.World} :
-    V ⊧/![] (modifiedθ T X σ θ i) ↔ ModifiedΘ T X σ θ V i := by
+  V ⊧/![] (modifiedθ T X σ θ i) ↔ ModifiedΘ T X σ θ V i := by
   suffices
       (∃ ε, List.ChainI (fun x y ↦ y ≺ x) i X.N.root.1 ε ∧ V ⊧/![] (modifiedθChain T X σ θ ε)) ↔
       ModifiedΘ T X σ θ V i by
@@ -771,23 +768,23 @@ lemma ModifiedΘChain.append_iff {ε₁ ε₂ : List X.N.World} {i : X.N.World} 
   simp [ModifiedΘ]
 
 @[simp] lemma val_modifiedSolovay {i : X.N.World} :
-    V ⊧/![] (T.modifiedSolovay X σ θ i) ↔ T.ModifiedSolovay X σ θ V i := by
+  V ⊧/![] (T.modifiedSolovay X σ θ i) ↔ T.ModifiedSolovay X σ θ V i := by
   have h := consequence_iff.mp (Theory.Proof.sound (modifiedSolovay_diag T X σ θ i)) V inferInstance;
   unfold Theory.ModifiedSolovay;
   by_cases hb : i = X.b <;> simp [models_iff, hb, sigmaEmb] at h ⊢ <;> grind
 
 /-- **Condition SC2.** -/
 lemma Modified.consistent {i j : X.N.World} (hij : i ≺ j) (hjr : j ≠ X.rN) :
-    T.ModifiedSolovay X σ θ V i → ¬Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := fun h ↦
+  T.ModifiedSolovay X σ θ V i → ¬Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := fun h ↦
   (Theory.ConsistentWith.quote_iff T).mp (h.2.1 j hij hjr)
 
 /-- Resting at `b` forever means `σ` never holds, since the jump to `r` would otherwise
 have triggered. -/
 lemma Modified.not_models_sigma_of_rest_at_b :
-    T.ModifiedSolovay X σ θ V X.b → ¬(V ⊧/![] σ) := fun h ↦ h.2.2 rfl
+  T.ModifiedSolovay X σ θ V X.b → ¬(V ⊧/![] σ) := fun h ↦ h.2.2 rfl
 
 lemma ModifiedStep.models_sigma_of_jump {i : X.N.World} (h : ModifiedStep T X σ θ (V := V) i X.rN) :
-    V ⊧/![] σ := by
+  V ⊧/![] σ := by
   simp [ModifiedStep] at h; exact h.2.1
 
 /--
@@ -795,7 +792,7 @@ lemma ModifiedStep.models_sigma_of_jump {i : X.N.World} (h : ModifiedStep T X σ
   independent of the modified Solovay construction.
 -/
 lemma ProvabilityComparison.le_of_not_lt {φ ψ : V} (hφ : Provable T (φ : V))
-    (h : ¬T.ProvabilityComparisonLT (V := V) φ ψ) : T.ProvabilityComparisonLE (V := V) ψ φ := by
+  (h : ¬T.ProvabilityComparisonLT (V := V) φ ψ) : T.ProvabilityComparisonLE (V := V) ψ φ := by
   obtain ⟨d, hd⟩ := hφ;
   obtain ⟨d, hd, hmin⟩ : ∃ d, Proof T d φ ∧ ∀ z < d, ¬Proof T z φ :=
     InductionOnHierarchy.least_number_sigma 𝚺 1 (P := (Proof T · φ)) (by definability) hd;
@@ -805,13 +802,13 @@ lemma ProvabilityComparison.le_of_not_lt {φ ψ : V} (hφ : Provable T (φ : V))
   exact ⟨d', hd'ψ, fun z hz ↦ hmin z (lt_of_lt_of_le hz hd'd)⟩
 
 private lemma Modified.exclusive.comparable {i₁ i₂ : X.N.World} {ε₁ ε₂ : List X.N.World}
-    (ne : i₁ ≠ i₂)
-    (h : ε₁ <:+ ε₂)
-    (Hi₁ : ∀ j, i₁ ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V))
-    (Hb₁ : i₁ = X.b → ¬(V ⊧/![] σ))
-    (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ X.N.root.1 ε₁)
-    (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ X.N.root.1 ε₂)
-    (Θε₂ : ModifiedΘChain T X σ θ V ε₂) : False := by
+  (ne : i₁ ≠ i₂)
+  (h : ε₁ <:+ ε₂)
+  (Hi₁ : ∀ j, i₁ ≺ j → j ≠ X.rN → T.ConsistentWith (⌜T.modifiedSolovay X σ θ j⌝ : V))
+  (Hb₁ : i₁ = X.b → ¬(V ⊧/![] σ))
+  (cε₁ : List.ChainI (fun x y ↦ y ≺ x) i₁ X.N.root.1 ε₁)
+  (cε₂ : List.ChainI (fun x y ↦ y ≺ x) i₂ X.N.root.1 ε₂)
+  (Θε₂ : ModifiedΘChain T X σ θ V ε₂) : False := by
   have : ∃ a, a :: ε₁ <:+ ε₂ := by
     rcases List.IsSuffix.eq_or_cons_suffix h with (e | h)
     . have : ε₁ ≠ ε₂ := by
@@ -848,7 +845,7 @@ private lemma Modified.exclusive.comparable {i₁ i₂ : X.N.World} {ε₁ ε₂
 
 /-- **Condition SC1.** -/
 lemma Modified.exclusive {i₁ i₂ : X.N.World} (ne : i₁ ≠ i₂) :
-    T.ModifiedSolovay X σ θ V i₁ → ¬T.ModifiedSolovay X σ θ V i₂ := by
+  T.ModifiedSolovay X σ θ V i₁ → ¬T.ModifiedSolovay X σ θ V i₂ := by
   intro S₁ S₂
   obtain ⟨⟨ε₁, cε₁, Θε₁⟩, Hi₁, Hb₁⟩ := S₁
   obtain ⟨⟨ε₂, cε₂, Θε₂⟩, Hi₂, Hb₂⟩ := S₂
@@ -916,9 +913,9 @@ lemma Modified.exclusive {i₁ i₂ : X.N.World} (ne : i₁ ≠ i₂) :
 
 /-- **Condition SC4**, first form. -/
 lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
-    (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
-    (i : X.N.World) : ModifiedΘ T X σ θ V i →
-    T.ModifiedSolovay X σ θ V i ∨ ∃ j, i ≺ j ∧ T.ModifiedSolovay X σ θ V j := by
+  (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
+  (i : X.N.World) : ModifiedΘ T X σ θ V i →
+  T.ModifiedSolovay X σ θ V i ∨ ∃ j, i ≺ j ∧ T.ModifiedSolovay X σ θ V j := by
   have := X.isFiniteGL;
   have hN : X.N.IsGL := (inferInstance : (X.extendRoot 1).IsGL);
   have : IsTrans X.N.World X.N.Rel := hN.toIsTrans;
@@ -984,7 +981,7 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
             (fun k ↦ ⌜∼T.modifiedSolovay X σ θ k.val⌝) (by simpa using hk₀prov);
         refine ⟨j, hij, ?_⟩;
         simp only [ModifiedStep, if_neg hjr];
-        refine ⟨?_, ?_⟩;
+        and_intros;
         . intro k hik hkr;
           simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hbest ⟨k, hik, hkr⟩;
         . intro hib;
@@ -1003,7 +1000,7 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
     . exact ⟨k, IsTrans.trans _ _ _ hij hjk, hSk⟩;
 
 lemma Modified.refute {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
-    T.ModifiedSolovay X σ θ V i → Provable T (⌜∼T.modifiedSolovay X σ θ i⌝ : V) := by
+  T.ModifiedSolovay X σ θ V i → Provable T (⌜∼T.modifiedSolovay X σ θ i⌝ : V) := by
   -- The self-comparison trick: `i` is its own climb rival.
   intro h
   rcases show ModifiedΘ T X σ θ V i from h.1 with ⟨ε, hε, cε⟩
@@ -1016,18 +1013,18 @@ lemma Modified.refute {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i)
 
 /-- **Condition SC4.** -/
 lemma modified_disjunctive [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
-    (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
-    ∃ i : X.N.World, T.ModifiedSolovay X σ θ V i := by
+  (hθσ : V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
+  ∃ i : X.N.World, T.ModifiedSolovay X σ θ V i := by
   rcases ModifiedΘ.disjunction (V := V) (T := T) hσ hθσ X.N.root.1 ⟨[X.N.root.1], by simp⟩ with (H | ⟨i, _, H⟩);
   . exact ⟨X.N.root.1, H⟩;
   . exact ⟨i, H⟩;
 
 /-- **Condition SC3.** -/
 lemma Modified.box_disjunction [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
-    (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
-    {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
-    T.ModifiedSolovay X σ θ V i →
-      Provable T (⌜⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j⌝ : V) := by
+  (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val)
+  {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i) :
+  T.ModifiedSolovay X σ θ V i →
+    Provable T (⌜⩖ j ∈ {j : X.N.World | i ≺ j}, T.modifiedSolovay X σ θ j⌝ : V) := by
   intro hS
   have TP : T.internalize V ⊢
       ⌜(modifiedθ T X σ θ i) 🡒
@@ -1056,9 +1053,9 @@ lemma Modified.box_disjunction [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
 /-- **Condition SC3r**: at `r` the box-disjunction includes `r` itself, since the limit
 provably stays at or above `r` once it has jumped there. -/
 lemma Modified.box_disjunction_rN [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ)
-    (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
-    T.ModifiedSolovay X σ θ V X.rN → Provable T
-      (⌜(T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j)⌝ : V) := by
+  (hθσ : ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁], V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val) :
+  T.ModifiedSolovay X σ θ V X.rN → Provable T
+    (⌜(T.modifiedSolovay X σ θ X.rN) ⋎ (⩖ j ∈ {j : X.N.World | X.rN ≺ j}, T.modifiedSolovay X σ θ j)⌝ : V) := by
   intro hS
   have TP : T.internalize V ⊢
       ⌜(modifiedθ T X σ θ X.rN) 🡒
@@ -1086,7 +1083,7 @@ lemma Modified.box_disjunction_rN [𝗜𝚺₁ ⪯ T] (hσ : Hierarchy 𝚺 1 σ
 /-- Resting at `X.rN` forever means `σ` holds, since the step into `X.rN` is necessarily a
 jump from `X.b`. -/
 lemma Modified.models_sigma_of_rest_at_rN :
-    T.ModifiedSolovay X σ θ V X.rN → V ⊧/![] σ := by
+  T.ModifiedSolovay X σ θ V X.rN → V ⊧/![] σ := by
   intro h;
   rcases show ModifiedΘ T X σ θ V X.rN from h.1 with ⟨ε, hε, cε⟩;
   rcases List.ChainI.prec_exists_of_ne hε (Ne.symm StrongReflexiveCountermodel.rN_ne_root) with
@@ -1096,13 +1093,13 @@ lemma Modified.models_sigma_of_rest_at_rN :
 
 /-- **Condition SC6.** -/
 lemma Modified.not_sigma_imp_not_rN [𝗜𝚺₁ ⪯ T] :
-    𝗜𝚺₁ ⊢ ((∼σ : FirstOrder.ArithmeticSentence)) 🡒 ∼(T.modifiedSolovay X σ θ X.rN) :=
+  𝗜𝚺₁ ⊢ ((∼σ : FirstOrder.ArithmeticSentence)) 🡒 ∼(T.modifiedSolovay X σ θ X.rN) :=
   complete _ _ fun (V : Type) _ _ ↦ by
     simpa [models_iff] using! (Modified.models_sigma_of_rest_at_rN (T := T) (X := X) (σ := σ) (θ := θ) (V := V)).mt
 
 /-- **Condition SC5.** -/
 lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
-    𝗜𝚺₁ ⊢ (T.standardProvability σ) 🡒 ∼(T.modifiedSolovay X σ θ X.N.root.1) := by
+  𝗜𝚺₁ ⊢ (T.standardProvability σ) 🡒 ∼(T.modifiedSolovay X σ θ X.N.root.1) := by
   have hΛbσ : 𝗜𝚺₁ ⊢ (T.modifiedSolovay X σ θ X.b) 🡒 ∼σ :=
     complete _ _ fun (V : Type) _ _ ↦ by
       simpa [models_iff] using! Modified.not_models_sigma_of_rest_at_b (T := T) (X := X) (σ := σ) (θ := θ) (V := V);
@@ -1111,7 +1108,8 @@ lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
     T.standardProvability.D1 (Entailment.WeakerThan.pbl hσΛb);
   have hboxImp : 𝗜𝚺₁ ⊢ (T.standardProvability σ) 🡒 (T.standardProvability (∼(T.modifiedSolovay X σ θ X.b))) :=
     T.standardProvability.D2 ⨀ hD1;
-  refine complete _ _ fun (V : Type) _ _ ↦ ?_;
+  apply complete _ _;
+  intro (V : Type) _ _;
   have hcon :
       V ⊧/![] (T.standardProvability σ) → V ⊧/![] (T.standardProvability (∼(T.modifiedSolovay X σ θ X.b))) := by
     simpa [models_iff] using consequence_iff.mp (Theory.Proof.sound hboxImp) V inferInstance;
@@ -1132,15 +1130,15 @@ lemma Modified.provable_sigma_imp_not_root [𝗜𝚺₁ ⪯ T] :
   - [Bek90, Theorem 2 (§6)]
 -/
 noncomputable def _root_.FFL.FirstOrder.Theory.standardProvability.modifiedSolovaySentences
-    (T : ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
-    (X : StrongReflexiveCountermodel κ A) {σ : FirstOrder.ArithmeticSentence}
-    (hσ : Hierarchy 𝚺 1 σ) :
-    T.standardProvability.ModifiedSolovaySentences X σ :=
+  (T : ArithmeticTheory) [T.Δ₁] [𝗜𝚺₁ ⪯ T]
+  (X : StrongReflexiveCountermodel κ A) {σ : FirstOrder.ArithmeticSentence}
+  (hσ : Hierarchy 𝚺 1 σ) :
+  T.standardProvability.ModifiedSolovaySentences X σ :=
   have hex := ISigma1.exists_matrix_provable_of_sentence hσ;
   let θ : 𝚫₀.Semisentence 1 := HierarchySymbol.Semiformula.ofZero hex.choose 𝚫₀;
   have hθσ :
-      ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁],
-        V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val := fun V _ _ ↦ by
+    ∀ (V : Type) [ORingStructure V] [V↓[ℒₒᵣ] ⊧* 𝗜𝚺₁],
+    V ⊧/![] σ ↔ ∃ w, V ⊧/![w] θ.val := fun V _ _ ↦ by
     have := consequence_iff.mp (Theory.Proof.sound hex.choose_spec) V inferInstance;
     simpa [models_iff, θ] using this;
   { Λ := T.modifiedSolovay X σ θ

@@ -26,8 +26,7 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A,
   ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → M ⊧ A,
   ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGL] → M.root.1 ⊩[_] A
-].TFAE
-  := by
+].TFAE := by
   tfae_have 1 ↔ 2 := by grind;
   tfae_have 2 → 3 := ProvableGentzen.of_provableHilbert;
   tfae_have 3 → 2 := by

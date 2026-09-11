@@ -202,7 +202,7 @@ lemma Formula.atoms_deltaPIff_subset [DecidableEq α] {A : Formula α} {p : α} 
 - [Bek90, Lemma 1, Lemma 3, Lemma 4, Lemma 7, Lemma 8, Lemma 9]
 -/
 theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [DecidableEq α]
-  (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
+  (hA : A ∉ LogicD) :
   ∃ B : Formula α, B.atoms ⊆ A.atoms ∧ B ∉ LogicS ∧ (A.deltaPIff p 🡒 (B ⋎ ((□(#p)) 🡒 (#p)))) ∈ LogicA := by
   classical
   obtain ⟨κ₁, hne₁, M₁, hgl₁, htree₁, a₁, Rra₁, hcov₁, hlat₁, hnA₁⟩ :=
@@ -217,53 +217,54 @@ theorem exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD [D
     fun h => hnA₁ ((htrans₂ A (Finset.Subset.refl _)).mpr h);
   obtain ⟨B, hBatoms, hBmod, hBroot, hBdef⟩ :=
     graftOmega.exists_almostDefiningFormula Rra₂ hlat₂;
-  refine ⟨∼B, by rw [Formula.atoms_neg]; exact hBatoms, ?_, ?_⟩;
-  . -- `∼B ∉ LogicS`
-    exact not_mem_LogicS_neg_of_graftOmega_root_forces_modalized Rra₂ hlat₂ hBmod hBroot;
-  . -- `Δ 🡒 (∼B ⋎ (□p 🡒 p)) ∈ LogicA`
-    apply LogicA.iff_provable_forces_graftOmega_root.mpr;
-    intro κ₃ hne₃ N hgl₃ c Rrc;
-    have := hne₃; have := hgl₃;
-    by_contra hcon;
-    rw [← unravelling.graftOmega_root_forces_iff Rrc] at hcon;
-    obtain ⟨κ₄, hne₄, L, hgl₄, htree₄, c₄, Rrc₄, hcov₄, -, hsimple₄, htrans₄⟩ :=
-      exists_simplificationUnder_omega' (unravelling.root_rel_coverPoint Rrc)
-        (unravelling.coverPoint_covers_root Rrc) (insert p A.atoms);
-    have := hne₄; have := hgl₄; have := htree₄;
-    have hLgl : (L.graftOmega c₄).IsGL := graftOmega.isGL Rrc₄;
-    have : IsTrans _ (L.graftOmega c₄).Rel := hLgl.toIsTrans;
-    have : IsConverseWellFounded _ (L.graftOmega c₄).Rel := hLgl.toIsConverseWellFounded;
-    have : Std.Irrefl (L.graftOmega c₄).Rel := ConverseWellFounded.irrefl;
-    obtain ⟨hΔT, hdisjT⟩ := not_forces_imp.mp hcon;
-    obtain ⟨hnBT, hnTT⟩ := not_forces_or.mp hdisjT;
-    obtain ⟨hboxT, hnpT⟩ := not_forces_imp.mp hnTT;
-    have hpin : ((#p : Formula α)).atoms ⊆ insert p A.atoms := by
-      simp [Formula.atoms];
-    have hΔ := (htrans₄ _ Formula.atoms_deltaPIff_subset).mp hΔT;
-    have hBL : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] B :=
-      (htrans₄ B (hBatoms.trans (Finset.subset_insert _ _))).mp (not_forces_neg.mp hnBT);
-    have hboxp : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (□(#p)) :=
-      (htrans₄ (□(#p)) (by rwa [Formula.atoms_box])).mp hboxT;
-    have hnp : (L.graftOmega c₄).root.1 ⊮[(L.graftOmega c₄).toModel] (#p) :=
-      fun hc => hnpT ((htrans₄ (#p) hpin).mpr hc);
-    have hsimpleP : (L.graftOmega c₄).IsSimpleUnder A.atoms :=
-      hsimple₄.of_insert_of_root_forces_box hboxp;
-    obtain ⟨Bi⟩ := hBdef L c₄ Rrc₄ hcov₄ hsimpleP hBL;
-    -- `γ` records the atoms on which the two roots disagree.
-    set γ : Finset α := A.atoms.filter
-      (fun q => ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
-        (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) with hγdef;
-    have hγ_root : ∀ q ∈ A.atoms,
-        (q ∈ γ ↔ ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
-          (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) := by
-      intro q hq;
-      simp [hγdef, Finset.mem_filter, hq];
-    have htransport :=
-      Bi.forces_iff_subst_pIffOn hboxp hnp hγ_root Bi.root_rel (Finset.Subset.refl A.atoms);
-    have hconj : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (A⟦Formula.Substitution.pIffOn p γ⟧) := by
-      apply forces_fconj.mp hΔ;
-      exact Finset.mem_image_of_mem _ (Finset.mem_powerset.mpr (Finset.filter_subset _ _));
-    exact hnA₂ (htransport.mpr hconj);
+  exact ⟨∼B, by rw [Formula.atoms_neg]; exact hBatoms,
+    -- `∼B ∉ LogicS`
+    not_mem_LogicS_neg_of_graftOmega_root_forces_modalized Rra₂ hlat₂ hBmod hBroot,
+    -- `Δ 🡒 (∼B ⋎ (□p 🡒 p)) ∈ LogicA`
+    by
+      apply LogicA.iff_provable_forces_graftOmega_root.mpr;
+      intro κ₃ hne₃ N hgl₃ c Rrc;
+      have := hne₃; have := hgl₃;
+      by_contra hcon;
+      rw [← unravelling.graftOmega_root_forces_iff Rrc] at hcon;
+      obtain ⟨κ₄, hne₄, L, hgl₄, htree₄, c₄, Rrc₄, hcov₄, -, hsimple₄, htrans₄⟩ :=
+        exists_simplificationUnder_omega' (unravelling.root_rel_coverPoint Rrc)
+          (unravelling.coverPoint_covers_root Rrc) (insert p A.atoms);
+      have := hne₄; have := hgl₄; have := htree₄;
+      have hLgl : (L.graftOmega c₄).IsGL := graftOmega.isGL Rrc₄;
+      have : IsTrans _ (L.graftOmega c₄).Rel := hLgl.toIsTrans;
+      have : IsConverseWellFounded _ (L.graftOmega c₄).Rel := hLgl.toIsConverseWellFounded;
+      have : Std.Irrefl (L.graftOmega c₄).Rel := ConverseWellFounded.irrefl;
+      obtain ⟨hΔT, hdisjT⟩ := not_forces_imp.mp hcon;
+      obtain ⟨hnBT, hnTT⟩ := not_forces_or.mp hdisjT;
+      obtain ⟨hboxT, hnpT⟩ := not_forces_imp.mp hnTT;
+      have hpin : ((#p : Formula α)).atoms ⊆ insert p A.atoms := by
+        simp [Formula.atoms];
+      have hΔ := (htrans₄ _ Formula.atoms_deltaPIff_subset).mp hΔT;
+      have hBL : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] B :=
+        (htrans₄ B (hBatoms.trans (Finset.subset_insert _ _))).mp (not_forces_neg.mp hnBT);
+      have hboxp : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (□(#p)) :=
+        (htrans₄ (□(#p)) (by rwa [Formula.atoms_box])).mp hboxT;
+      have hnp : (L.graftOmega c₄).root.1 ⊮[(L.graftOmega c₄).toModel] (#p) :=
+        fun hc => hnpT ((htrans₄ (#p) hpin).mpr hc);
+      have hsimpleP : (L.graftOmega c₄).IsSimpleUnder A.atoms :=
+        hsimple₄.of_insert_of_root_forces_box hboxp;
+      obtain ⟨Bi⟩ := hBdef L c₄ Rrc₄ hcov₄ hsimpleP hBL;
+      -- `γ` records the atoms on which the two roots disagree.
+      set γ : Finset α := A.atoms.filter
+        (fun q => ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
+          (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) with hγdef;
+      have hγ_root : ∀ q ∈ A.atoms,
+          (q ∈ γ ↔ ¬((M₂.graftOmega a₂).Val (M₂.graftOmega a₂).root.1 q ↔
+            (L.graftOmega c₄).Val (L.graftOmega c₄).root.1 q)) := by
+        intro q hq;
+        simp [hγdef, Finset.mem_filter, hq];
+      have htransport :=
+        Bi.forces_iff_subst_pIffOn hboxp hnp hγ_root Bi.root_rel (Finset.Subset.refl A.atoms);
+      have hconj : (L.graftOmega c₄).root.1 ⊩[(L.graftOmega c₄).toModel] (A⟦Formula.Substitution.pIffOn p γ⟧) := by
+        apply forces_fconj.mp hΔ;
+        exact Finset.mem_image_of_mem _ (Finset.mem_powerset.mpr (Finset.filter_subset _ _));
+      exact hnA₂ (htransport.mpr hconj);⟩;
 
 end
 
@@ -273,9 +274,9 @@ end
 - [AB05, Lemma 56]
 - [Bek90, Lemma 1]
 -/
-theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α] (hp : p ∉ A.atoms) (hA : A ∉ LogicD) :
+theorem exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD [DecidableEq α] (hA : A ∉ LogicD) :
   ∃ B, B ∉ LogicS ∧ B.atoms ⊆ A.atoms ∧ (B ⋎ ((□(#p)) 🡒 (#p))) ∈ (LogicA +ᴸ A) := by
-  obtain ⟨B, hBatoms, hBS, hImp⟩ := exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hp hA;
+  obtain ⟨B, hBatoms, hBS, hImp⟩ := exists_not_mem_LogicS_provable_LogicA_deltaPIff_imp_of_not_mem_LogicD hA;
   use B;
   and_intros;
   . exact hBS;
@@ -313,8 +314,7 @@ theorem provable_reflection_of_mem_not_LogicD :
     simp only [Formula.interpret_map];
     exact hAL _;
   obtain ⟨B, hBS, hBatoms, hBGL⟩ :=
-    exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD (p := (none : Option α))
-      (by simp [Formula.atoms_map]) hAD';
+    exists_not_mem_LogicS_disj_boxImp_mem_LogicA_add_of_not_mem_LogicD (p := (none : Option α)) hAD';
   have hsub : (LogicA +ᴸ (A.map some))
       ⊆ (T.provabilityLogicRelativeTo U : Logic (Option α)) := by
     intro B hB;
@@ -333,7 +333,8 @@ theorem provable_reflection_of_mem_not_LogicD :
     intro g;
     apply Entailment.by_axm;
     simp only [hU₁, Set.mem_union];
-    exact Or.inr ⟨g, rfl⟩;
+    right;
+    exact ⟨g, rfl⟩;
   have hnotS : ¬((T.provabilityLogicRelativeTo U₁ : Logic (Option α)) ⊆ LogicS) :=
     fun hc => hBS (hc hBI);
   have h49 := eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS hnotS;

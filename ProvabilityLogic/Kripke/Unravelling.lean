@@ -57,11 +57,12 @@ def unravelling : RootedModel (unravelling.World M) α where
   Val' x q := M.Val (unravelling.World.last x) q
   root := ⟨⟨[M.root.1], List.prefix_refl _, by simp⟩, by
     rintro ⟨x, hx₁, hx₂⟩ hx;
-    refine ⟨hx₁, ?_⟩;
-    obtain ⟨t, rfl⟩ := hx₁;
-    cases t with
-    | nil => simp at hx;
-    | cons a t => simp;⟩
+    and_intros;
+    . exact hx₁;
+    . obtain ⟨t, rfl⟩ := hx₁;
+      cases t with
+      | nil => simp at hx;
+      | cons a t => simp;⟩
 
 namespace unravelling
 
@@ -137,12 +138,9 @@ def pMorphism [M.IsGL] : (M.unravelling).toModel →ₚ M.toModel where
       exact hd (e ▸ List.getLast_mem (ne_nil x)) (List.getLast_mem htne);
   back := by
     rintro x v hv;
-    refine ⟨⟨x.1.concat v, ?_, ?_⟩, ?_, ?_, ?_⟩;
-    . exact x.2.1.trans (by simp);
-    . exact (List.isChain_concat_of_not_nil (ne_nil x)).mpr ⟨isChain x, hv⟩;
-    . simp [World.last];
-    . simp;
-    . simp;
+    exact ⟨⟨x.1.concat v, x.2.1.trans (by simp),
+        (List.isChain_concat_of_not_nil (ne_nil x)).mpr ⟨isChain x, hv⟩⟩,
+      by simp [World.last], by simp, by simp⟩;
   atomic := Iff.rfl
 
 lemma modal_equivalence_root [M.IsGL] :
@@ -228,8 +226,8 @@ def graftOmegaPseudoEpimorphism (M : RootedModel κ α) [M.IsGL] {a : M.World}
       exact root_last;
     . show World.last s = a ∨ M.Rel a (World.last s);
       rcases Rxy with rfl | hR;
-      . exact Or.inl (coverPoint_last Rra);
-      . exact Or.inr (coverPoint_last Rra ▸ (pMorphism (M := M)).forth hR);
+      . left; exact coverPoint_last Rra;
+      . right; exact coverPoint_last Rra ▸ (pMorphism (M := M)).forth hR;
     . exact Rxy;
   back := by
     rintro (t | i) ((w | j)) h;

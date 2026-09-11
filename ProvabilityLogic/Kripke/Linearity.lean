@@ -34,9 +34,9 @@ instance [M.IsFiniteGLPoint3] {r : M.World} :
     rintro ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩ Rxy Rxz;
     simp_all only [Model.Rel, toRootedModel];
     rcases Model.linear Rxy Rxz with (Ryz | rfl | Rzy);
-    . exact Or.inl Ryz;
-    . exact Or.inr (Or.inl rfl);
-    . exact Or.inr (Or.inr Rzy);
+    . left; exact Ryz;
+    . right; left; rfl;
+    . right; right; exact Rzy;
 
 namespace World
 

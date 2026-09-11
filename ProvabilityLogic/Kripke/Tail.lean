@@ -149,7 +149,7 @@ lemma forces_nat_eventually_stable (A : Formula α) :
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA;
     obtain ⟨k₂, h₂⟩ := ihB;
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := (h₁ n (le_trans (le_max_left _ _) hn)).trans (h₁ (max k₁ k₂) (le_max_left _ _)).symm;
     have hB := (h₂ n (le_trans (le_max_right _ _) hn)).trans (h₂ (max k₁ k₂) (le_max_right _ _)).symm;
@@ -173,7 +173,7 @@ lemma forces_nat_eventually_root (A : Formula α) :
   | imp A B ihA ihB =>
     obtain ⟨k₁, h₁⟩ := ihA;
     obtain ⟨k₂, h₂⟩ := ihB;
-    refine ⟨max k₁ k₂, ?_⟩;
+    use max k₁ k₂;
     intro n hn;
     have hA := h₁ n (le_trans (le_max_left _ _) hn);
     have hB := h₂ n (le_trans (le_max_right _ _) hn);
@@ -182,9 +182,9 @@ lemma forces_nat_eventually_root (A : Formula α) :
     . intro h ha; exact hB.mpr (h (hA.mp ha));
   | box A _ =>
     by_cases hf : ∀ n : ℕ, (toTail.chainPoint n) ⊩[(M.toTail tail).toModel] (□A);
-    . refine ⟨0, ?_⟩;
+    . use 0;
       intro n _;
-      refine iff_of_true (hf n) ?_;
+      apply iff_of_true (hf n);
       rintro (x | j) hxy;
       . exact hf 0 (toTail.embed x) rel_chainPoint_embed;
       . obtain ⟨m, rfl⟩ := WithTop.ne_top_iff_exists.mp (ne_top_of_lt (rel_chainPoint_chainPoint.mp hxy));

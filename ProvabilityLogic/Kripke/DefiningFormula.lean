@@ -146,7 +146,8 @@ lemma World.forces_charFormulaUnder_self : x ⊩[_] x.charFormulaUnder P := by
   | _ n ih =>
     rintro x rfl;
     apply World.forces_charFormulaUnder_iff.mpr;
-    refine ⟨by grind, ?_, ?_⟩;
+    and_intros;
+    . grind;
     . intro y Rxy;
       exact ⟨y, Rxy, ih y.rank (rank_lt_of_rel Rxy) y rfl⟩;
     . intro v Rxv;

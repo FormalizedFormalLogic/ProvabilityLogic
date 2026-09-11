@@ -246,19 +246,20 @@ lemma mainlemma_of_closed [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Φ : FormulaFins
         . exact ihB₂ y |>.mpr (h y Rxy);
         . have hx : x = M.root.1 := Rxy;
           exact ihB₁ i |>.mpr (ihB₂ a |>.mpr (h a (by rw [hx]; exact Rra)));
-    refine ⟨?_, h₂⟩;
-    intro i;
-    constructor;
-    . rintro h (y | j) Ray;
-      . exact h (.inl y) (Or.inr Ray);
-      . exact absurd Ray hane;
-    . intro h;
-      have haB : a.1 ⊩[M.toModel] B := a.2 hB (h₂ a |>.mp h);
-      rintro (y | j) Riy;
-      . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
-        . subst hya; exact ihB₂ _ |>.mpr haB;
-        . exact h (.inl y) hay;
-      . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    and_intros;
+    . intro i;
+      constructor;
+      . rintro h (y | j) Ray;
+        . exact h (.inl y) (Or.inr Ray);
+        . exact absurd Ray hane;
+      . intro h;
+        have haB : a.1 ⊩[M.toModel] B := a.2 hB (h₂ a |>.mp h);
+        rintro (y | j) Riy;
+        . rcases (show y = a.1 ∨ a.1 ≺ y from Riy) with hya | hay;
+          . subst hya; exact ihB₂ _ |>.mpr haB;
+          . exact h (.inl y) hay;
+        . exact ihB₁ j |>.mpr (ihB₂ a |>.mpr haB);
+    . exact h₂;
   | _ => grind;
 
 /--

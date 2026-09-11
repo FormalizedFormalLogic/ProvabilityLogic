@@ -34,14 +34,14 @@ def ModalizedIn (p : α) : Formula α → Prop
   | □_    => True
 
 lemma ModalizedIn.of_not_mem_atoms (h : p ∉ A.atoms) : A.ModalizedIn p := by
-  induction A <;> grind [atoms]
+  induction A <;> grind [atoms];
 
 omit [DecidableEq α] in
-@[simp] lemma ModalizedIn.box : (□A).ModalizedIn p := by simp [ModalizedIn]
+@[simp] lemma ModalizedIn.box : (□A).ModalizedIn p := by simp [ModalizedIn];
 
 lemma ModalizedIn.subst_single (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
-    (A⟦p ↦ #q⟧).ModalizedIn q := by
-  induction A <;> grind [atoms, ModalizedIn]
+  (A⟦p ↦ #q⟧).ModalizedIn q := by
+  induction A <;> grind [atoms, ModalizedIn];
 
 abbrev Modalized (A : Formula α) : Prop := ∀ a, A.ModalizedIn a
 

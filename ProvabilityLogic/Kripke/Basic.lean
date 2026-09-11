@@ -82,11 +82,7 @@ lemma relItr_unwrap_pred_trans [IsTrans _ M.Rel] {n : ℕ+} : x ≺^[n + 1] y �
     . exact relItr_one.mp Rzy;
   | succ n ih =>
     rintro ⟨z, Rxz, Rzy⟩;
-    apply relItr_succ.mpr;
-    use z;
-    constructor;
-    . exact Rxz;
-    . exact ih Rzy;
+    exact relItr_succ.mpr ⟨z, Rxz, ih Rzy⟩;
 
 lemma relItr_unwrap_sub_trans [IsTrans _ M.Rel] {n : ℕ+} {m : ℕ} : x ≺^[n + m] y → x ≺^[n] y := by
   induction m with
