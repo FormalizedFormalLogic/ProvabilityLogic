@@ -23,9 +23,8 @@ abbrev graft.World (M : RootedModel κ α) (k : ℕ) : Type _ := M.World ⊕ Fin
 
 /--
   The rooted model obtained by grafting a chain of length `k` between the root and `a`
-  (`root ≺ chain ≺ a` and its cone): a "bone lengthening" construction. Hanging the chain
-  directly below the root keeps the rank of every world other than the root unchanged, so that
-  the height is exactly `max M.height (a.rank + k + 1)`.
+  (`root ≺ chain ≺ a` and its cone): a "bone lengthening" construction. The chain hangs
+  directly below the root, so the rank of every world other than the root is unchanged.
 
   - [AB05, Lemma 12]
 -/
@@ -71,7 +70,6 @@ section Rank
 variable [Fintype M.World] [M.IsGL]
 
 omit [Fintype M.World] [M.IsGL] in
-/-- `inl` preserves `relItr`. -/
 lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
     Model.RelItr (M := (M.graft a k).toModel) n (.inl x) (.inl y) := by
   induction n generalizing x with
@@ -81,7 +79,6 @@ lemma relItr_inl {x y : M.World} {n : ℕ} (h : x ≺^[n] y) :
     exact ⟨.inl z, Rxz, ih hz⟩;
 
 omit [Fintype M.World] in
-/-- A chain starting from a non-root `inl` world stays inside `inl` and projects to a chain in `M`. -/
 lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graft a k).World}
     (hx : x ≠ M.root.1) (h : Model.RelItr (M := (M.graft a k).toModel) n (.inl x) w) :
     ∃ y : M.World, w = .inl y ∧ x ≺^[n] y ∧ y ≠ M.root.1 := by
@@ -96,7 +93,6 @@ lemma relItr_from_inl {x : M.World} {n : ℕ} {w : (M.graft a k).World}
       obtain ⟨z, rfl, hyz, hz⟩ := ih (fun h => not_rel_root (h ▸ Rxy)) hv;
       exact ⟨z, rfl, ⟨y, Rxy, hyz⟩, hz⟩;
 
-/-- The length of a chain starting from a grafted world is bounded by `i + 1 + a.rank`. -/
 lemma relItr_from_inr_le (_Rra : M.root.1 ≺ a.1) {i : Fin k} {n : ℕ} {w : (M.graft a k).World}
     (h : Model.RelItr (M := (M.graft a k).toModel) n (.inr i) w) :
     n ≤ i + 1 + Model.World.rank a.1 := by
@@ -124,7 +120,6 @@ lemma relItr_from_inr_le (_Rra : M.root.1 ≺ a.1) {i : Fin k} {n : ℕ} {w : (M
       omega;
 
 omit [Fintype M.World] [M.IsGL] in
-/-- There is a chain of length `i + 1` from the grafted world `inr i` down to `inl a`. -/
 lemma inr_relItr_inl_a {i : Fin k} :
     Model.RelItr (M := (M.graft a k).toModel) ((i : ℕ) + 1) (.inr i) (.inl a.1) := by
   suffices ∀ (m : ℕ) (i : Fin k), (i : ℕ) = m →
@@ -141,7 +136,6 @@ lemma inr_relItr_inl_a {i : Fin k} :
     use .inr ⟨m, hm⟩;
     exact ⟨show m < (i : ℕ) by omega, ih ⟨m, hm⟩ rfl⟩;
 
-/-- The length of a chain starting from the root is bounded by `max M.height (a.rank + k + 1)`. -/
 lemma relItr_from_root_le (Rra : M.root.1 ≺ a.1) {n : ℕ} {w : (M.graft a k).World}
     (h : Model.RelItr (M := (M.graft a k).toModel) n (.inl M.root.1) w) :
     n ≤ max M.height (Model.World.rank a.1 + k + 1) := by
@@ -162,9 +156,8 @@ lemma relItr_from_root_le (Rra : M.root.1 ≺ a.1) {n : ℕ} {w : (M.graft a k).
       omega;
 
 /--
-  Height formula: `(M.graft a k).height = max M.height (a.rank + k + 1)`.
-  Note that Foundation's axiom `boneLengthening.eq_height` (claiming `M.height + k`)
-  is false in general when some other branch is higher; this `max` form holds exactly.
+  Foundation's axiom `boneLengthening.eq_height`, claiming `M.height + k`, is false in
+  general when some other branch is higher; this `max` form holds exactly.
 
   - [AB05, Lemma 12]
 -/
@@ -172,20 +165,16 @@ lemma height_eq (Rra : M.root.1 ≺ a.1)
     [Fintype (M.graft a k).World] [(M.graft a k).IsGL] :
     (M.graft a k).height = max M.height (Model.World.rank a.1 + k + 1) := by
   apply le_antisymm;
-  . -- Upper bound: from the bound on chain lengths
-    apply Nat.lt_succ_iff.mp;
+  . apply Nat.lt_succ_iff.mp;
     apply Model.iff_rank_lt.mpr;
     intro w hw;
     have := relItr_from_root_le Rra hw;
     omega;
-  . -- Lower bound: embed the two chains respectively
-    apply max_le;
-    . -- Embedding of the root chain of M
-      apply Model.iff_le_rank.mpr;
+  . apply max_le;
+    . apply Model.iff_le_rank.mpr;
       obtain ⟨t, ht⟩ := Model.exists_rank_terminal (M := M.toModel) M.root.1;
       exact ⟨.inl t, relItr_inl ht⟩;
-    . -- root ≺ (grafted chain) ≺ a ≺ (a chain of length a.rank)
-      apply Model.iff_le_rank.mpr;
+    . apply Model.iff_le_rank.mpr;
       obtain ⟨t, ht⟩ := Model.exists_rank_terminal (M := M.toModel) a.1;
       match k with
       | 0 =>
@@ -198,7 +187,6 @@ lemma height_eq (Rra : M.root.1 ≺ a.1)
         refine ⟨.inr ⟨k, Nat.lt_succ_self k⟩, rfl, Model.relItr_comp (n := k + 1) ?_ (relItr_inl ht)⟩;
         simpa using inr_relItr_inl_a (M := M) (a := a) (i := (⟨k, Nat.lt_succ_self k⟩ : Fin (k + 1)));
 
-/-- `inl` preserves the rank of non-root worlds. -/
 lemma rank_inl [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     {x : M.World} (hx : x ≠ M.root.1) :
     Model.World.rank (M := (M.graft a k).toModel) (.inl x) = Model.World.rank x := by
@@ -212,7 +200,6 @@ lemma rank_inl [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     obtain ⟨t, ht⟩ := Model.exists_rank_terminal x;
     exact ⟨.inl t, relItr_inl ht⟩;
 
-/-- The rank of the grafted world `inr i` is exactly `i + 1 + a.rank`. -/
 lemma rank_inr [Fintype (M.graft a k).World] [(M.graft a k).IsGL]
     (Rra : M.root.1 ≺ a.1) {i : Fin k} :
     Model.World.rank (M := (M.graft a k).toModel) (.inr i)
@@ -234,9 +221,9 @@ section Mainlemma
 variable [DecidableEq α] {A : Formula α}
 
 /--
-  Main lemma (forcing-preservation): if `a` forces every axiom T instance for the boxed
-  subformulas of `A`, then for every subformula `C` of `A`, forcing at the grafted chain
-  worlds agrees with `a`, and forcing at the `inl` worlds agrees with the original model.
+  Forcing preservation: if `a` forces every axiom T instance for the boxed subformulas of
+  `A`, then for every subformula of `A`, forcing at the grafted chain worlds agrees with
+  `a`, and forcing at the `inl` worlds agrees with the original model.
 
   - [AB05, Lemma 12]
 -/

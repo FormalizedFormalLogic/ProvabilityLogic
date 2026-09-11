@@ -19,8 +19,8 @@ lemma validate_gentzen_boxT [Std.Refl M.Rel] (h : M ⊧ (insert B Γ ⟹ Δ)) :
   apply h x;
   intro C hC;
   rcases Finset.mem_insert.mp hC with rfl | hC;
-  · exact Model.World.forces_box.mp (hx (□C) (Finset.mem_insert_self _ _)) x (Std.Refl.refl x);
-  · exact hx C (Finset.mem_insert_of_mem hC);
+  . exact Model.World.forces_box.mp (hx (□C) (Finset.mem_insert_self _ _)) x (Std.Refl.refl x);
+  . exact hx C (Finset.mem_insert_of_mem hC);
 
 section
 
@@ -59,11 +59,11 @@ lemma validate_gentzen_boxGrz [M.IsGrz] (h : M ⊧ (insert (□(A 🡒 □A)) Γ
   refine hw $ forces_ctx_singleton_sequent.mp (h v) ?_;
   intro C hC;
   rcases Finset.mem_insert.mp hC with rfl | hC;
-  · intro u Rvu hu;
+  . intro u Rvu hu;
     by_contra hnu;
     obtain rfl := hmax u (_root_.trans Rxv Rvu) hnu Rvu;
     exact hw hu;
-  · exact h₁ v Rxv C hC;
+  . exact h₁ v Rxv C hC;
 
 end Model
 
@@ -97,19 +97,19 @@ lemma subfmls_subset_subfmlsGrz : S.subfmls ⊆ S.subfmlsGrz := by
 lemma imp_mem_subfmlsGrz (h : A 🡒 B ∈ S.subfmlsGrz) : A ∈ S.subfmls ∧ B ∈ S.subfmls := by
   simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image] at h;
   rcases h with (h | ⟨C, hC, heq⟩) | ⟨C, hC, heq⟩;
-  · grind;
-  · obtain ⟨rfl, rfl⟩ : A = C ∧ B = □C := by grind;
+  . grind;
+  . obtain ⟨rfl, rfl⟩ : A = C ∧ B = □C := by grind;
     have hC : □A ∈ S.subfmls := FormulaFinset.iff_mem_prebox_mem.mp hC;
     exact ⟨Sequent.mem_subfmls_subfmls hC Formula.mem_subfmls_box, hC⟩;
-  · exact absurd heq (by grind);
+  . exact absurd heq (by grind);
 
 @[grind =>]
 lemma box_mem_subfmlsGrz (h : □A ∈ S.subfmlsGrz) : A ∈ S.subfmlsGrz := by
   simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image] at h;
   rcases h with (h | ⟨C, _, heq⟩) | ⟨C, hC, heq⟩;
-  · exact subfmls_subset_subfmlsGrz (Sequent.mem_subfmls_subfmls h Formula.mem_subfmls_box);
-  · exact absurd heq (by grind);
-  · obtain rfl : A = C 🡒 □C := by grind;
+  . exact subfmls_subset_subfmlsGrz (Sequent.mem_subfmls_subfmls h Formula.mem_subfmls_box);
+  . exact absurd heq (by grind);
+  . obtain rfl : A = C 🡒 □C := by grind;
     simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
     exact Or.inl (Or.inr ⟨C, hC, rfl⟩);
 
@@ -118,17 +118,16 @@ lemma grzCompanions_mem_subfmlsGrz (h : □A ∈ S.subfmls) :
   (A 🡒 □A) ∈ S.subfmlsGrz ∧ □(A 🡒 □A) ∈ S.subfmlsGrz := by
   have h : A ∈ FormulaFinset.prebox S.subfmls := FormulaFinset.iff_mem_prebox_mem.mpr h;
   constructor;
-  · simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
+  . simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
     exact Or.inl (Or.inr ⟨A, h, rfl⟩);
-  · simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
+  . simp only [Sequent.subfmlsGrz, Finset.mem_union, Finset.mem_image];
     exact Or.inr ⟨A, h, rfl⟩;
 
 /--
-  A `LogicGrz.ProofGentzen`-unprovable sequent saturated for `impL`/`impR`, closed under the
-  reflexivity rule `boxT` on its antecedent, and bounded by the subformula closure of a base
-  sequent `BS`. The bound is deliberately asymmetric: the antecedent may range over the enlarged
-  `BS.subfmlsGrz` but the succedent stays within the plain `BS.subfmls`, so that a boxed formula
-  `□A` in the succedent is guaranteed to have its Grz companion `A 🡒 □A` inside `BS.subfmlsGrz`.
+An unprovable sequent, saturated and `boxT`-closed, bounded by the subformula closure of a base
+sequent `BS`. The bound is asymmetric: the antecedent ranges over the enlarged `BS.subfmlsGrz`
+while the succedent stays within `BS.subfmls`, so that `□A` in the succedent has its Grz
+companion `A 🡒 □A` inside `BS.subfmlsGrz`.
 -/
 structure ExpandedSequent (BS : Sequent α) extends Sequent α where
   saturated   : toSequent.Saturated
@@ -156,11 +155,8 @@ lemma not_mem_both : ¬(A ∈ S.1.1 ∧ A ∈ S.1.2) := by
 @[grind =>] lemma of_mem_imp_suc (h : A 🡒 B ∈ S.1.2 := by grind) : A ∈ S.1.1 ∧ B ∈ S.1.2 := S.saturated.impR h
 
 open Classical in
-/--
-  One step of the Lindenbaum-style saturation for `LogicGrz.ProofGentzen`: process the given
-  list of formulas, saturating the sequent for `impL`, `impR` and `boxT` while preserving
-  `LogicGrz.ProofGentzen`-unprovability.
--/
+/-- Lindenbaum-style saturation: runs through a list of formulas, saturating the sequent for
+`impL`, `impR` and `boxT` while preserving unprovability. -/
 @[grind]
 noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬ᵍ[Grz] S₀) : FormulaList α → { S : Sequent α // ⊬ᵍ[Grz] S }
 | [] => ⟨S₀, S₀_unprovable⟩
@@ -196,7 +192,6 @@ noncomputable def lindenbaum_indexed (S₀ : Sequent α) (S₀_unprovable : ⊬�
 
 variable {S₀ : Sequent α} {S₀_unprovable : ⊬ᵍ[Grz] S₀} {Γ : FormulaList α}
 
-/-- Every step of `lindenbaum_indexed` only ever extends `S₀`. -/
 lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprovable Γ).1 := by
   induction Γ with
   | nil =>
@@ -207,25 +202,18 @@ lemma subset_lindenbaum_indexed : S₀ ⊆ (lindenbaum_indexed S₀ S₀_unprova
     | A 🡒 B =>
       dsimp only [lindenbaum_indexed];
       split_ifs;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
-      · exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
-      · exact ⟨ih.1, ih.2⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      . exact ⟨ih.1, ih.2.trans (Finset.subset_insert _ _)⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2.trans (Finset.subset_insert _ _)⟩
+      . exact ⟨ih.1, ih.2⟩;
     | □A =>
       dsimp only [lindenbaum_indexed];
       split_ifs;
-      · exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
-      · exact ⟨ih.1, ih.2⟩;
+      . exact ⟨ih.1.trans (Finset.subset_insert _ _), ih.2⟩
+      . exact ⟨ih.1, ih.2⟩;
 
 variable {BS : Sequent α}
 
-/--
-  Two-sided invariant of `lindenbaum_indexed`: if the antecedent of `S₀` stays inside
-  `BS.subfmlsGrz` and its succedent inside `BS.subfmls`, so do those of the resulting sequent.
-  The bound is asymmetric like `ExpandedSequent` itself; each membership is derived from the
-  invariant already established for the shorter list together with the closure lemmas for
-  `Sequent.subfmlsGrz`, so no side condition on `Γ` is needed.
--/
 lemma bounds_lindenbaum_indexed (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_suc : S₀.suc ⊆ BS.subfmls) :
   (lindenbaum_indexed S₀ S₀_unprovable Γ).1.ant ⊆ BS.subfmlsGrz ∧
   (lindenbaum_indexed S₀ S₀_unprovable Γ).1.suc ⊆ BS.subfmls := by
@@ -237,23 +225,19 @@ lemma bounds_lindenbaum_indexed (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_su
     | A 🡒 B =>
       dsimp only [lindenbaum_indexed];
       split_ifs with h1 h2 h3;
-      · exact ⟨Finset.insert_subset (subfmls_subset_subfmlsGrz (imp_mem_subfmlsGrz (ih.1 h1)).2) ih.1, ih.2⟩;
-      · exact ⟨ih.1, Finset.insert_subset (imp_mem_subfmlsGrz (ih.1 h1)).1 ih.2⟩;
-      · exact ⟨
+      . exact ⟨Finset.insert_subset (subfmls_subset_subfmlsGrz (imp_mem_subfmlsGrz (ih.1 h1)).2) ih.1, ih.2⟩;
+      . exact ⟨ih.1, Finset.insert_subset (imp_mem_subfmlsGrz (ih.1 h1)).1 ih.2⟩;
+      . exact ⟨
           Finset.insert_subset (subfmls_subset_subfmlsGrz (Sequent.mem_subfmls_subfmls (ih.2 h3) Formula.mem_subfmls_imp_left)) ih.1,
           Finset.insert_subset (Sequent.mem_subfmls_subfmls (ih.2 h3) Formula.mem_subfmls_imp_right) ih.2
         ⟩;
-      · exact ih;
+      . exact ih;
     | □A =>
       dsimp only [lindenbaum_indexed];
       split_ifs with h;
-      · exact ⟨Finset.insert_subset (box_mem_subfmlsGrz (ih.1 h)) ih.1, ih.2⟩;
-      · exact ih;
+      . exact ⟨Finset.insert_subset (box_mem_subfmlsGrz (ih.1 h)) ih.1, ih.2⟩;
+      . exact ih;
 
-/--
-  `impL`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
-  sequent is closed under the `impL` rule for implications from `Γ`.
--/
 lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.ant → A ∈ S.1.suc ∨ B ∈ S.1.ant := by
@@ -277,8 +261,8 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       intro A B hmem hx;
       refine ih ?_ hx;
       rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      . simp at h;
+      . exact h;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -296,10 +280,6 @@ lemma saturated_impL_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  `impR`-saturation part of `saturated_lindenbaum_indexed`: the succedent of the saturated
-  sequent is closed under the `impR` rule for implications from `Γ`.
--/
 lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.suc → A ∈ S.1.ant ∧ B ∈ S.1.suc := by
@@ -323,8 +303,8 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       intro A B hmem hx;
       refine ih ?_ hx;
       rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      . simp at h;
+      . exact h;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -342,10 +322,6 @@ lemma saturated_impR_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  `boxT`-saturation part of `saturated_lindenbaum_indexed`: the antecedent of the saturated
-  sequent is closed under the `boxT` rule for boxed formulas from `Γ`.
--/
 lemma saturated_boxT_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   ∀ {A : Formula α}, □A ∈ Γ → □A ∈ S.1.ant → A ∈ S.1.ant := by
@@ -369,8 +345,8 @@ lemma saturated_boxT_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
       intro A hmem hx;
       refine ih ?_ hx;
       rcases List.mem_cons.mp hmem with h | h;
-      · simp at h;
-      · exact h;
+      . simp at h;
+      . exact h;
     | C 🡒 D =>
       have hunp : ⊬ᵍ[Grz] (lindenbaum_indexed S₀ S₀_unprovable Γ').1 :=
         (lindenbaum_indexed S₀ S₀_unprovable Γ').2;
@@ -388,10 +364,6 @@ lemma saturated_boxT_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE
         simp_all only [List.mem_cons] <;>
         grind [ProvableGentzen.union'];
 
-/--
-  Saturation of the Lindenbaum construction: the resulting sequent is simultaneously
-  `impL`-, `impR`- and `boxT`-saturated for the formulas listed in `Γ`.
--/
 lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
   let S := lindenbaum_indexed S₀ S₀_unprovable Γ;
   (∀ {A B : Formula α}, A 🡒 B ∈ Γ → A 🡒 B ∈ S.1.ant → A ∈ S.1.suc ∨ B ∈ S.1.ant) ∧
@@ -401,12 +373,6 @@ lemma saturated_lindenbaum_indexed (hΓ : (Γ.map (·.complexity)).SortedLE) :
    saturated_impR_lindenbaum_indexed hΓ,
    saturated_boxT_lindenbaum_indexed hΓ⟩
 
-/--
-  Lindenbaum-style saturation for `LogicGrz.ProofGentzen`: every unprovable sequent bounded by
-  the subformula closure of `BS` extends to a saturated, `boxT`-closed, unprovable sequent whose
-  bounds against `BS` are still asymmetric. Runs `lindenbaum_indexed` once over
-  `BS.subfmlsGrz` sorted by complexity.
--/
 noncomputable def lindenbaum {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)] (S₀ : Sequent α)
   (S₀_unprovable : ⊬ᵍ[Grz] S₀) (S₀_ant : S₀.ant ⊆ BS.subfmlsGrz) (S₀_suc : S₀.suc ⊆ BS.subfmls) :
   ExpandedSequent BS :=
@@ -441,7 +407,6 @@ lemma subset_lindenbaum {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)] {S₀ : Sequen
   {S₀_ant : S₀.ant ⊆ BS.subfmlsGrz} {S₀_suc : S₀.suc ⊆ BS.subfmls} :
   S₀ ⊆ (lindenbaum S₀ S₀_unprovable S₀_ant S₀_suc).1 := subset_lindenbaum_indexed
 
-/-- Two `ExpandedSequent`s agree once their underlying antecedent and succedent agree. -/
 lemma ext {S T : ExpandedSequent BS} (ha : S.toSequent.ant = T.toSequent.ant) (hs : S.toSequent.suc = T.toSequent.suc) : S = T := by
   obtain ⟨⟨ΓS, ΔS⟩, _⟩ := S;
   obtain ⟨⟨ΓT, ΔT⟩, _⟩ := T;
@@ -469,12 +434,9 @@ namespace ProvableGentzen.Kripke
 variable {BS : Sequent α} [Fact (⊬ᵍ[Grz] BS)]
 
 /--
-The canonical finite countermodel of an unprovable `Grz` sequent `BS`: worlds are the expanded
-sequents built over `BS`, an atom holds at a world exactly when it sits in its antecedent, and
-one world precedes another when its `□`-preimage antecedent is contained in the other's, with
-the containment forced into equality once it also holds in the reverse direction. Unlike the
-`GL` countermodel this relation is reflexive; the reversed-containment clause is exactly what
-forces antisymmetry.
+The canonical finite countermodel of an unprovable `Grz` sequent `BS`. Unlike the `GL`
+countermodel its accessibility relation is reflexive, and the reversed-containment clause is
+what forces antisymmetry.
 -/
 @[grind]
 def countermodelOf (BS : Sequent α) [Fact (⊬ᵍ[Grz] BS)] : Model (ExpandedSequent BS) α where
@@ -493,39 +455,36 @@ instance : (countermodelOf BS).IsFiniteGrz where
 
 variable {x : (countermodelOf BS).World} {A : Formula α}
 
-/--
-Truth lemma for the `Grz` countermodel: membership in the antecedent of an expanded sequent
-forces the formula, and membership in the succedent refutes it. -/
 lemma truthlemma :
   (A ∈ x.1.1 → x ⊩[_] A) ∧ (A ∈ x.1.2 → ¬x ⊩[_] A) := by
   induction A generalizing x with
   | atom a =>
     constructor
-    · intro h; exact h
-    · intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩
+    . intro h; exact h
+    . intro h hf; exact ExpandedSequent.not_mem_both ⟨hf, h⟩
   | bot =>
     constructor
-    · intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
-    · intro _ hf; exact hf
+    . intro h; exact absurd h ExpandedSequent.not_mem_bot_ant
+    . intro _ hf; exact hf
   | imp A B ihA ihB =>
     constructor
-    · intro h hsA
+    . intro h hsA
       rcases x.saturated.impL h with hA | hB
-      · exact absurd hsA (ihA.2 hA)
-      · exact ihB.1 hB
-    · intro h hf
+      . exact absurd hsA (ihA.2 hA)
+      . exact ihB.1 hB
+    . intro h hf
       obtain ⟨hA, hB⟩ := x.saturated.impR h
       exact (ihB.2 hB) (hf (ihA.1 hA))
   | box A ih =>
     refine ⟨?_, ?_⟩;
-    · intro h y Rxy;
+    . intro h y Rxy;
       have hA : A ∈ x.1.1.prebox := FormulaFinset.iff_mem_prebox_mem.mpr h;
       exact ih.1 (y.boxT_closed (FormulaFinset.iff_mem_prebox_mem.mp (Rxy.1 hA)));
-    · intro h;
+    . intro h;
       apply Model.World.not_forces_box.mpr;
       by_cases hAsuc : A ∈ x.1.2;
-      · exact ⟨x, ⟨Finset.Subset.refl _, fun _ => rfl⟩, ih.2 hAsuc⟩;
-      · let y : ExpandedSequent BS :=
+      . exact ⟨x, ⟨Finset.Subset.refl _, fun _ => rfl⟩, ih.2 hAsuc⟩;
+      . let y : ExpandedSequent BS :=
           ExpandedSequent.lindenbaum
             (insert (□(A 🡒 □A)) (x.1.1.prebox.box) ⟹ {A})
             (by
@@ -539,8 +498,8 @@ lemma truthlemma :
               intro C hC;
               simp only [Finset.mem_insert] at hC;
               rcases hC with rfl | hC;
-              · exact (grzCompanions_mem_subfmlsGrz (x.suc_subset h)).2;
-              · obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
+              . exact (grzCompanions_mem_subfmlsGrz (x.suc_subset h)).2;
+              . obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp hC;
                 exact x.ant_subset (FormulaFinset.iff_mem_prebox_mem.mp hB);
             )
             (by
@@ -550,23 +509,21 @@ lemma truthlemma :
               exact Sequent.mem_subfmls_subfmls (x.suc_subset h) Formula.mem_subfmls_box;
             );
         refine ⟨y, ⟨?_, ?_⟩, ih.2 (ExpandedSequent.subset_lindenbaum.2 (Finset.mem_singleton_self A))⟩;
-        · intro B hB;
+        . intro B hB;
           exact FormulaFinset.iff_mem_prebox_mem.mpr $
             ExpandedSequent.subset_lindenbaum.1 (Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ hB));
-        · intro hyx;
+        . intro hyx;
           exfalso;
           have h1 : □(A 🡒 □A) ∈ y.1.1 := ExpandedSequent.subset_lindenbaum.1 (Finset.mem_insert_self _ _);
           have h3 : (A 🡒 □A) ∈ x.1.1.prebox := hyx (FormulaFinset.iff_mem_prebox_mem.mpr h1);
           have h5 : (A 🡒 □A) ∈ x.1.1 := x.boxT_closed (FormulaFinset.iff_mem_prebox_mem.mp h3);
           rcases ExpandedSequent.of_mem_imp_ant h5 with h6 | h6;
-          · exact hAsuc h6;
-          · exact ExpandedSequent.not_mem_both ⟨h6, h⟩;
+          . exact hAsuc h6;
+          . exact ExpandedSequent.not_mem_both ⟨h6, h⟩;
 
 lemma truthlemma_ant : A ∈ x.1.1 → x ⊩[_] A := truthlemma.1
 lemma truthlemma_suc : A ∈ x.1.2 → ¬x ⊩[_] A := truthlemma.2
 
-/-- Kripke completeness of the cut-free `LogicGrz.ProofGentzen`: a sequent valid in every
-finite `Grz` model is provable. -/
 theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ S) : ⊢ᵍ[Grz] S := by
   contrapose! h;
   have : Fact (⊬ᵍ[Grz] S) := ⟨iff_unprovableGentzen_isEmpty_ProofGentzen.mpr h⟩;
@@ -583,8 +540,6 @@ theorem completeness {S : Sequent α} (h : ∀ {κ : Type v}, [Nonempty κ] → 
     . intro D hD; exact truthlemma_suc $ ExpandedSequent.subset_lindenbaum.2 hD;
 
 open Model in
-/-- Kripke soundness of the cut-free `LogicGrz.ProofGentzen`: every provable sequent is valid in
-every `Grz` model. -/
 theorem soundness {S : Sequent α} (h : ⊢ᵍ[Grz] S) :
   ∀ {κ}, [Nonempty κ] → ∀ M : Model κ α, [M.IsGrz] → M ⊧ S := by
   intro κ _ M _;

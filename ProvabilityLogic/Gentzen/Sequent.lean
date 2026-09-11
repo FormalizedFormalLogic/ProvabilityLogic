@@ -3,8 +3,10 @@ module
 public import ProvabilityLogic.Formula.Basic
 
 /-!
-This file defines the two-sided sequent `Γ ⟹ Δ`. Every sequent calculus in this repository
-(`GL`, `Grz`, `S`, `GL.3`) shares this type.
+# Sequents
+
+The two-sided sequent `Γ ⟹ Δ`, shared by every sequent calculus in this repository
+(`GL`, `Grz`, `S`, `GL.3`).
 -/
 
 @[expose]

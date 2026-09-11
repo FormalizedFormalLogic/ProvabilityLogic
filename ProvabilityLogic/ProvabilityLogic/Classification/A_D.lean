@@ -27,10 +27,8 @@ noncomputable def StrongReflexiveCountermodel.ofReflexive [DecidableEq α] {κ :
     {A : Formula α} (M : RootedModel κ α) [M.IsFiniteGL] [Fintype M.World]
     (hnA : M.root.1 ⊮[_] A) (r : M.World) (hr : M.root.1 ≺ r) (hrS : r ⊩[_] ⋀A.subfmlsS) :
     StrongReflexiveCountermodel (κ ⊕ Fin (M.height + 2)) A := by
-  -- Both extra conditions (the reflexive node's unique predecessor being the root, and
-  -- rank maximality) are achieved by grafting a chain of copies of `r` of length
-  -- `M.height + 2` between the root and `r` (`RootedModel.graft`), which is
-  -- forcing-preserving because `r` is `A`-reflexive.
+  -- Grafting a chain of copies of `r` between the root and `r` preserves forcing because
+  -- `r` is `A`-reflexive, and buys the unique-predecessor and rank-maximality conditions.
   have ha : ∀ B, (□B) ∈ A.subfmls → r ⊩[_] ((□B) 🡒 B) := by
     intro B hB;
     exact Model.World.forces_fconj.mp hrS _
@@ -100,9 +98,6 @@ theorem exists_realization_sigma1_reflection_of_not_mem_LogicA [DecidableEq α]
     {σ : ArithmeticSentence} (hσ : Arithmetic.Hierarchy 𝚺 1 σ) :
     ∃ (n : ℕ) (f : Realization α ℒₒᵣ),
       𝗜𝚺₁ ⊢ (f T ((∼(□^[n]⊥)) ⋏ A : Formula α)) 🡒 ((T.standardProvability σ) 🡒 σ) := by
-  -- Obtained by the Solovay construction on the countermodel given by
-  -- `StrongReflexiveCountermodel.ofReflexive`, modified so that the limit jumps from
-  -- the root to the `A`-reflexive node `r` as soon as a witness of `σ` is found.
   obtain ⟨κ, hne, M, hfgl, hnA, r, hr, hrS⟩ := LogicA.exists_reflexive_countermodel_of_not_mem_LogicA hA;
   have := hne;
   have := hfgl;
@@ -159,7 +154,7 @@ theorem subset_LogicD_of_ssubset_LogicA_of_univ_trace :
   | mem₁ hB => exact provabilityLogic_of_GL hB;
   | mem₂ hB =>
     rcases Set.mem_insert_iff.mp hB with (rfl | ⟨C, D, rfl⟩);
-    . -- the axiom `P`, i.e. `∼□⊥`, is already a theorem of `GLαω`.
+    . -- the axiom `P`, i.e. `∼□⊥`, is already a theorem of `LogicA`.
       exact subset_LogicA_of_univ_trace hT
         (Formula.boxItr_one (A := (⊥ : Formula α)) ▸ LogicA.provable_neg_boxItr_bot (n := 1));
     . -- the axiom `D`: its interpretation is a `𝚺₁`-reflection instance.

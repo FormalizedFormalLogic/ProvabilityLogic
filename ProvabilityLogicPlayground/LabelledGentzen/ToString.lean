@@ -5,7 +5,12 @@ meta import ProvabilityLogic.LabelledGentzen.GL.Basic
 meta import ProvabilityLogic.LabelledGentzen.GL.Search
 meta import LeanTypst.EvalTypst
 
-/-! Display-only printers for `G3KGL` labelled sequents and proof-search traces. -/
+/-!
+# Printers for labelled sequents and proof-search traces
+
+Display-only Typst printers for `G3KGL` labelled sequents and for the traces of the proof
+search on them.
+-/
 
 @[expose]
 public section

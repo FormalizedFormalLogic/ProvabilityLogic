@@ -27,7 +27,6 @@ scoped prefix:120 "⊢ᵍ[A]! " => ProofGentzen
 abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍ[A]! S)
 scoped prefix:120 "⊢ᵍ[A] " => ProvableGentzen
 
-/-- Embed a level-0 `LogicGL` proof into level-0 `LogicA`. -/
 def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[A]! (Γ ⟹[0] Δ)
 | .axm A    => .axm 0 A
 | .botL     => .botL 0
@@ -37,7 +36,6 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢�
 | .impR h   => .impR (ofProofGentzen h)
 | .boxGL h  => .boxGL (ofProofGentzen h)
 
-/-- Extract a level-0 `LogicGL` proof from level-0 `LogicA`. -/
 def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[A]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
 | .axm 0 A    => .axm A
 | .botL 0     => .botL
@@ -47,7 +45,6 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[A]! (Γ ⟹[0] Δ) → �
 | .impR h     => .impR (toProofGentzen h)
 | .boxGL h    => .boxGL (toProofGentzen h)
 
-/-- Level-`0` `LogicA.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability. -/
 theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
   (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[A] (Γ ⟹[0] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
@@ -97,14 +94,12 @@ scoped prefix:120 "⊬ᵍ[A] " => (¬ ProvableGentzen ·)
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᵍ[A] S) ↔ (IsEmpty (⊢ᵍ[A]! S)) := by
   simp [ProvableGentzen];
 
-/-- Initial sequents with side formulas, at any level. -/
 lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[A] (Γ ⟹[l] Δ) :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
 lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[A] (S.ant ⟹[l] S.suc) :=
   union l A hΓ hΔ
 
-/-- `botL` with side formulas, at any level. -/
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[A] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
@@ -112,8 +107,6 @@ lemma not_provable_zero_of_not_provable_one : ⊬ᵍ[A] (Γ ⟹[1] Δ) → ⊬�
   contrapose!;
   apply liftUp;
 
-/-- Embed a cut-free `LogicGL` proof of `Γ ⟹ insert (□^[n]⊥) Δ` into level-`1` cut-free
-`LogicA` provability of `Γ ⟹[1] Δ`. -/
 lemma of_provableGentzen_insert_boxItr_bot {n : ℕ}
   (h : ⊢ᵍ[GL] (Γ ⟹ insert (□^[n]⊥) Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
   boxGP (liftUp (LogicA.iff_provableGentzen_provable_zero.mp h))
@@ -174,11 +167,9 @@ variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : For
 
 theorem of_without_cut : ⊢ᵍ[A] S → ⊢ᵍᶜ[A] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
-/-- `Prop`-level version of `LogicA.GentzenWithCutProof.toGentzenWithCutProofGL`. -/
 theorem toGentzenWithCutProvableGL {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) : ⊢ᵍᶜ[GL] (Γ ⟹ Δ) :=
   ⟨GentzenWithCutProof.toGentzenWithCutProofGL h.some⟩
 
-/-- Level-`0` `LogicA`-with-cut provability implies cut-free `LogicGL`-Gentzen provability. -/
 theorem toProvableGentzenGL {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[A] (Γ ⟹[0] Δ)) : ⊢ᵍ[GL] (Γ ⟹ Δ) :=
   LogicGL.ProvableGentzen.of_with_cut (toGentzenWithCutProvableGL h)
 
@@ -224,7 +215,6 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-/-- The axiom `∼□^[n]⊥` is with-cut-provable at level `1`. -/
 lemma neg_boxItr_bot (n : ℕ) : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {∼□^[n]⊥}) := by
   show ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {□^[n]⊥ 🡒 ⊥});
   rw [← Finset.insert_empty];
@@ -233,7 +223,6 @@ lemma neg_boxItr_bot (n : ℕ) : ⊢ᵍᶜ[A] ((∅ : FormulaFinset α) ⟹[1] {
   apply wkR (axm 1 (□^[n]⊥));
   grind;
 
-/-- Modus ponens for level-`1` with-cut provability, via the `cut` rule. -/
 lemma mdp (hAB : ⊢ᵍᶜ[A] (∅ ⟹[1] {A 🡒 B})) (hA : ⊢ᵍᶜ[A] (∅ ⟹[1] {A})) : ⊢ᵍᶜ[A] (∅ ⟹[1] {B}) := by
   have h₁ : ⊢ᵍᶜ[A] ((insert (A 🡒 B) (∅ : FormulaFinset α)) ⟹[1] {B}) :=
     impL (wkR hA (by grind)) (wkL (axm 1 B) (by grind));

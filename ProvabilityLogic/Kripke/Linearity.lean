@@ -10,12 +10,12 @@ variable [Nonempty κ]
 namespace Model
 
 /-- `LogicGLPoint3` frame class: transitive, converse well-founded, and linear (weakly
-connected), i.e. any two successors of a common world are comparable or equal. -/
+connected). -/
 class IsGLPoint3 (M : Model κ α) extends Model.IsGL M where
   linear : ∀ {x y z : M.World}, x ≺ y → x ≺ z → y ≺ z ∨ y = z ∨ z ≺ y
 
 /-- Finite `LogicGLPoint3` frame class: finite, transitive, irreflexive, and linear (weakly
-connected), i.e. any two successors of a common world are comparable or equal. -/
+connected). -/
 class IsFiniteGLPoint3 (M : Model κ α) extends Model.IsFiniteGL M where
   linear : ∀ {x y z : M.World}, x ≺ y → x ≺ z → y ≺ z ∨ y = z ∨ z ≺ y
 
@@ -42,8 +42,6 @@ namespace World
 
 variable {A B : Formula α}
 
-/-- The weak linearity axiom `.3` (`WeakPoint3`) holds at every world of a linear
-model. -/
 lemma forces_axiomWeakPoint3 [M.IsGLPoint3] {x : M.World} :
     x ⊩[_] (□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A)) := by
   by_contra hC;
@@ -61,7 +59,6 @@ lemma forces_axiomWeakPoint3 [M.IsGLPoint3] {x : M.World} :
 
 end World
 
-/-- The weak linearity axiom `.3` (`WeakPoint3`) is valid on linear models. -/
 lemma validate_axiomWeakPoint3 [M.IsGLPoint3] {A B : Formula α} :
     M ⊧ (□((⊡A) 🡒 B)) ⋎ (□((⊡B) 🡒 A)) :=
   fun _ => World.forces_axiomWeakPoint3

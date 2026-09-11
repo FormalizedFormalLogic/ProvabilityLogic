@@ -166,7 +166,6 @@ namespace ProvableGentzen
 
 variable {A : Formula α}
 
-/-- Every Hilbert-provable `Grz` formula is Gentzen-provable as a singleton sequent. -/
 theorem of_provableHilbert [DecidableEq α] : ⊢ʰ[Grz] A → ⊢ᵍ[Grz] (∅ ⟹ {A} : Sequent α) := by
   intro h;
   induction h with
@@ -201,7 +200,6 @@ lemma impTrans : ⊢ʰ[Grz] A 🡒 B → ⊢ʰ[Grz] B 🡒 C → ⊢ʰ[Grz] A �
   replace h₂ : {A} ⊢ʰ[Grz] B 🡒 C := DeducibleHilbert.ofProvable h₂;
   exact DeducibleHilbert.iff_singleton_deducible_provable.mp $ DeducibleHilbert.mdp h₂ h₁;
 
-/-- The boxed form of the Grz axiom, derived from the standard `modalGrz` via `modal4`. -/
 lemma modalGrzAux : ⊢ʰ[Grz] □(□(A 🡒 □A) 🡒 A) 🡒 □A :=
   impTrans modal4 (mdp modalK (nec modalGrz))
 
@@ -399,15 +397,15 @@ lemma imp_fconj_insert [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[Grz] (B 
   apply imp_fconj_of_forall;
   intro A hA;
   rcases Finset.mem_insert.mp hA with rfl | hA;
-  · exact andL;
-  · exact impTrans andR (imp_fconj_of_mem hA);
+  . exact andL;
+  . exact impTrans andR (imp_fconj_of_mem hA);
 
 lemma imp_fdisj_insert [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[Grz] ⋁(insert B Δ) 🡒 (B ⋎ ⋁Δ) := by
   apply imp_fdisj_elim;
   intro A hA;
   rcases Finset.mem_insert.mp hA with rfl | hA;
-  · exact orL;
-  · exact impTrans (imp_mem_fdisj hA) orR;
+  . exact orL;
+  . exact impTrans (imp_mem_fdisj hA) orR;
 
 lemma imp_insert_fdisj [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[Grz] (B ⋎ ⋁Δ) 🡒 ⋁(insert B Δ) :=
   orElim' (imp_mem_fdisj (by simp)) (imp_fdisj_fdisj_of_subset (by simp))
@@ -462,9 +460,9 @@ lemma imp_push_disj : ⊢ʰ[Grz] (A 🡒 (B ⋎ D)) 🡒 ((A 🡒 B) ⋎ D) := b
   have hnAB : ({∼(A 🡒 B ⋎ D), A 🡒 (B ⋎ D)}) ⊢ʰ[Grz] (A 🡒 B) 🡒 ⊥ :=
     DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orL) hn;
   refine DeducibleHilbert.orElim (A := B) (B := D) (C := ⊥) ?_ ?_ ?_;
-  · exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_right) hnAB;
-  · exact DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orR) hn;
-  · exact DeducibleHilbert.mdp hmain (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_left) hnAB);
+  . exact DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_right) hnAB;
+  . exact DeducibleHilbert.impTrans (DeducibleHilbert.ofProvable orR) hn;
+  . exact DeducibleHilbert.mdp hmain (DeducibleHilbert.mdp (DeducibleHilbert.ofProvable neg_imp_left) hnAB);
 
 lemma bridge_impL (ha : ⊢ʰ[Grz] C 🡒 (A ⋎ D)) (hb : ⊢ʰ[Grz] (B ⋏ C) 🡒 D) :
     ⊢ʰ[Grz] ((A 🡒 B) ⋏ C) 🡒 D := by
@@ -506,7 +504,6 @@ lemma imp_conj_box [DecidableEq α] {Δ : FormulaFinset α} : ⊢ʰ[Grz] ⋀(Δ.
     refine impTrans imp_insert_fconj ?_;
     exact impTrans (ctxAndIntroRule andL (impTrans andR ih)) (impTrans imp_box_and (boxImp imp_fconj_insert));
 
-/-- Every Gentzen-provable sequent yields a Hilbert-provable implication. -/
 theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S → ⊢ʰ[Grz] (⋀S.ant) 🡒 (⋁S.suc) := by
   intro h;
   induction h with
@@ -540,7 +537,6 @@ theorem of_provableGentzen [DecidableEq α] {S : Sequent α} : ⊢ᵍ[Grz] S →
       exact impTrans (imp_fconj_of_mem (Finset.mem_image.mpr ⟨C, hC, rfl⟩)) modal4;
     exact impTrans (impTrans step5 imp_conj_box) step4;
 
-/-- A singleton sequent is Gentzen-provable iff its conclusion is Hilbert-provable. -/
 theorem of_provableGentzen_singleton [DecidableEq α] : ⊢ᵍ[Grz] (∅ ⟹ {A}) → ⊢ʰ[Grz] A := by
   intro h;
   simpa using mdp (of_provableGentzen h) (by simp);

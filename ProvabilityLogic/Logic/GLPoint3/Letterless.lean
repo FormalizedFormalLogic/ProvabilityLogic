@@ -8,7 +8,6 @@ public section
 
 open LogicGL
 
-/-- The finite line model is a finite linear GL model, being a strict linear order. -/
 instance {n : ℕ} {α : Type*} : (finiteLineModel n α).toModel.IsFiniteGLPoint3 where
   toIsFiniteGL := inferInstance
   linear _ _ := lt_trichotomy _ _
@@ -17,7 +16,6 @@ namespace LogicGLPoint3
 
 variable {α : Type u}
 
-/-- Collapsing all atoms to `⊥` preserves `LogicGLPoint3`-provability. -/
 lemma projectEmpty_of_provable {A : Formula α} (h : A ∈ LogicGLPoint3) :
     (A.projectEmpty : LetterlessFormula) ∈ LogicGLPoint3 (α := Empty) := by
   induction h using LogicGLPoint3.substlessInduction with
@@ -44,10 +42,7 @@ theorem eq_LogicGL_on_letterless : @LogicGLPoint3 Empty = @LogicGL Empty := by
     rwa [show ((finiteLineModel n Empty).root.1).rank = n from finiteLineModel.height_eq] at this;
   . exact provable_of_provable_GL;
 
-/-- On letterless formulas lifted into an arbitrary `α`, `LogicGLPoint3` proves exactly what `LogicGL` proves.
-
-- [SV82, Theorem 2]
--/
+/-- - [SV82, Theorem 2] -/
 theorem iff_provable_GLPoint3_provable_GL_of_letterless {A : LetterlessFormula} :
     (LetterlessFormula.lift A : Formula α) ∈ LogicGLPoint3 ↔
     (LetterlessFormula.lift A : Formula α) ∈ LogicGL := by

@@ -58,12 +58,7 @@ it sends every propositional variable to a consistency assertion.
 def Realization.IsConsistencyRealization (f : Realization α L) (𝔅 : Provability T₀ T) : Prop :=
   ∀ a, 𝔅.IsConsistencyAssertion (f.val a)
 
-/--
-The subtype of realizations sending every propositional variable to a consistency
-assertion: the type of interpretations `φ` in Theorem 1.
-
-- [VS83, Theorem 1]
--/
+/-- - [VS83, Theorem 1] -/
 abbrev ConsistencyRealization (α : Type*) (𝔅 : Provability T₀ T) :=
   {f : Realization α L // f.IsConsistencyRealization 𝔅}
 
@@ -73,21 +68,14 @@ instance {𝔅 : Provability T₀ T} :
 
 end
 
-/--
-The consistency realizations for the standard provability predicate of an arithmetic
-theory `T` (Theorem 1, specialized to `T`).
-
-- [VS83, Theorem 1]
--/
+/-- - [VS83, Theorem 1] -/
 abbrev StandardConsistencyRealization (α : Type*) (T : FirstOrder.ArithmeticTheory) [T.Δ₁] :=
   ConsistencyRealization α T.standardProvability
 
 
 /--
   Modal counterpart of consistency assertions: the letterless formulas generated from
-  `∼□⊥` and `□⊥` by closing under `□, ∼, ⋏, ⋎, 🡒`. Interpreting a `IsConsistencyForm`
-  by a provability predicate yields (up to provable equivalence) exactly the
-  consistency assertions.
+  `∼□⊥` and `□⊥` by closing under `□, ∼, ⋏, ⋎, 🡒`.
 -/
 @[grind]
 inductive LetterlessFormula.IsConsistencyForm : LetterlessFormula → Prop
@@ -106,10 +94,6 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] [L.DecidableEq]
          {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T]
          {𝔅 : Provability T₀ T} [𝔅.HBL2]
 
-/--
-  Every consistency form is interpreted (up to `T₀`-provable equivalence) by a
-  consistency assertion.
--/
 lemma LetterlessFormula.IsConsistencyForm.exists_consistencyAssertion {A : LetterlessFormula}
   (hA : A.IsConsistencyForm) :
   ∃ σ, 𝔅.IsConsistencyAssertion σ ∧ T₀ ⊢ σ 🡘 (A.interpret 𝔅) := by
@@ -149,10 +133,6 @@ lemma LetterlessFormula.IsConsistencyForm.exists_consistencyAssertion {A : Lette
     dsimp [LetterlessFormula.interpret];
     cl_prover [e₁, e₂];
 
-/--
-  Every consistency assertion is (up to `T₀`-provable equivalence) the interpretation
-  of a consistency form.
--/
 lemma Provability.IsConsistencyAssertion.exists_consistencyForm {σ : FirstOrder.Sentence L}
   (hσ : 𝔅.IsConsistencyAssertion σ) :
   ∃ A : LetterlessFormula, A.IsConsistencyForm ∧ T₀ ⊢ σ 🡘 (A.interpret 𝔅) := by
@@ -214,15 +194,11 @@ lemma lift_substLetterless {g : α → LetterlessFormula} {A : Formula α} :
 variable {L : FirstOrder.Language} [L.ReferenceableBy L] {T₀ T : FirstOrder.Theory L}
          {𝔅 : Provability T₀ T}
 
-/-- Interpreting a letterless substitution instance is interpreting under the composed
-realization. -/
 lemma interpret_substLetterless {g : α → LetterlessFormula} {A : Formula α} :
   (A.substLetterless g).interpret 𝔅 =
   A.interpret (⟨fun a => (g a).interpret 𝔅⟩ : Realization α L) 𝔅 := by
   induction A <;> simp_all [Formula.substLetterless, LetterlessFormula.interpret, Formula.interpret];
 
-/-- On letterless formulas (`Formula Empty`), `Formula.interpret` does not depend on the
-realization and coincides with `LetterlessFormula.interpret`. -/
 lemma interpret_letterless {f : Realization Empty L} {A : LetterlessFormula} :
   Formula.interpret f 𝔅 A = A.interpret 𝔅 := by
   induction A with
@@ -242,11 +218,8 @@ variable {κ : Type u} [Nonempty κ]
 
 open Model Model.World
 
-/-- In a finite rooted linear GL model, the rank determines the world: `rank` is
-injective. -/
 lemma RootedModel.eq_of_rank_eq {M : RootedModel κ α} [Fintype M.World] [M.IsFiniteGLPoint3]
   {x y : M.World} (h : x.rank = y.rank) : x = y := by
-  -- Any two distinct worlds are comparable (linearity), hence have distinct ranks.
   by_contra ne;
   suffices x ≺ y ∨ y ≺ x by grind [Model.rank_lt_of_rel];
   by_cases hx : x ≠ M.root.1 <;>
@@ -262,9 +235,8 @@ section rankDisj
 
 /--
 Finite disjunction of "exact rank" formulas: `rankDisj [n₁, …, nₖ]` is a letterless
-consistency form whose spectrum is exactly `{n₁, …, nₖ}`. This realizes the formula
-`ψ*(pᵢ) = ⋁_{j ∈ H(pᵢ)} (□^[j+1]⊥ ⋏ ∼□^[j]⊥)` in the proof of the theorems below
-(`∼TBB j` is equivalent to `□^[j+1]⊥ ⋏ ∼□^[j]⊥`).
+consistency form whose spectrum is exactly `{n₁, …, nₖ}`. It realizes the formula
+`ψ*(pᵢ) = ⋁_{j ∈ H(pᵢ)} (□^[j+1]⊥ ⋏ ∼□^[j]⊥)` of the source.
 
 - [VS83, Theorem 1, Theorem 2]
 -/
@@ -322,17 +294,11 @@ variable {L : FirstOrder.Language} [L.ReferenceableBy L] [L.DecidableEq]
          {A : Formula α}
 
 /--
-Arithmetical soundness of `LogicGLPoint3` w.r.t. consistency realizations (the easy
-direction of Theorem 1): a `LogicGLPoint3` theorem is provable under every consistency
-realization.
+**Arithmetical soundness of `LogicGLPoint3`** with respect to consistency realizations.
 
 - [VS83, Theorem 1]
 -/
 theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
-  -- Replace each atom by an equivalent consistency form, so that the substituted formula
-  -- is letterless; `GLPoint3` and `GL` prove the same letterless formulas
-  -- ([SV82, Theorem 2], `iff_provable_GLPoint3_provable_GL_of_letterless`), and the
-  -- arithmetical soundness of `GL` applies.
   choose g hg₁ hg₂ using fun a => Provability.IsConsistencyAssertion.exists_consistencyForm (f.2 a);
   have hGL : (LetterlessFormula.lift (A.substLetterless g) : Formula α) ∈ LogicGL := by
     apply iff_provable_GLPoint3_provable_GL_of_letterless.mp;
@@ -345,8 +311,6 @@ theorem arithmetical_soundness (hA : A ∈ LogicGLPoint3) : T ⊢ f A := by
     Formula.interpret_iff_congr (f₁ := f.1) (fun a => hg₂ a) A;
   cl_prover [h₂, h₃];
 
-/-- Arithmetical soundness of `LogicGLPoint3` w.r.t. consistency realizations, at the
-object-theory level. -/
 theorem arithmetical_soundness' (hA : A ∈ LogicGLPoint3) : U ⊢ f A :=
   Entailment.WeakerThan.pbl (arithmetical_soundness hA)
 
@@ -360,38 +324,26 @@ open Model Model.World
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] {A : Formula α}
 
 /--
-Arithmetical completeness of `LogicGLPoint3` w.r.t. consistency realizations (the hard
-direction of Theorem 1): if `A` is not a theorem of `LogicGLPoint3`, then some consistency
-realization of `A` is unprovable in `T` (provided `T.height = ⊤`, e.g. `T = 𝗣𝗔`).
+**Arithmetical completeness of `LogicGLPoint3`** with respect to consistency realizations,
+for a theory of infinite height (e.g. `T = 𝗣𝗔`).
 
 - [VS83, Theorem 1]
 -/
 theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   (∀ f : StandardConsistencyRealization α T, T ⊢ f A) → A ∈ LogicGLPoint3 := by
-  -- Following [VS83, §5], without Solovay sentences: take a finite rooted linear
-  -- countermodel of `A` (Kripke completeness of `GLPoint3`, `LogicGLPoint3.iff_forces_root`),
-  -- replace each atom `a` by the letterless formula `ψ*(a) = rankDisj H(a)` whose spectrum
-  -- is the set of ranks at which `a` is forced; since ranks determine worlds in a linear
-  -- model, the substituted letterless formula `B₀` is not forced at the root, hence
-  -- `n := M.height ∉ spectrum B₀` and `GL ⊢ B₀ 🡒 TBB n`. If the corresponding consistency
-  -- realization of `A` were provable, then `T ⊢ 𝔅^[n+1]⊥ 🡒 𝔅^[n]⊥`, so `T ⊢ 𝔅^[n]⊥` by
-  -- Löb's theorem, contradicting `T.height = ⊤`.
   contrapose!;
   intro hA;
   replace hA := LogicGLPoint3.iff_forces_root.not.mp hA;
   push Not at hA;
   obtain ⟨κ, _, M, _, hM⟩ := hA;
   have : Fintype M.World := Fintype.ofFinite _;
-  -- `H a`: the set of ranks at which the atom `a` is forced
   let H : α → Finset ℕ := fun a => (Finset.univ.filter fun y : M.World => y ⊩[_] (#a : Formula α)).image World.rank;
-  -- `ψ*` of the paper: a consistency form whose spectrum is exactly `H a`
   let ψ : α → LetterlessFormula := fun a => rankDisj (H a).toList;
   have hspec : ∀ a, spectrum (ψ a) = ↑(H a) := by
     intro a;
     rw [show ψ a = rankDisj (H a).toList by rfl, spectrum_rankDisj];
     ext i;
     simp;
-  -- in a linear model the rank determines the world, so `x ⊩[_] a ↔ x.rank ∈ H a`
   have hatom : ∀ (a : α) (x : M.World), x.rank ∈ H a ↔ x ⊩[_] (#a : Formula α) := by
     intro a x;
     constructor;
@@ -401,7 +353,6 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
       exact (Finset.mem_filter.mp hy).2;
     . intro h;
       exact Finset.mem_image_of_mem _ (Finset.mem_filter.mpr ⟨Finset.mem_univ x, h⟩);
-  -- substituting `ψ*` for the atoms does not change forcing anywhere in `M`
   have hsubst : ∀ B (x : M.World), x ⊩[_] B⟦fun a => ψ a⟧ ↔ x ⊩[_] B := by
     intro B;
     induction B with
@@ -412,25 +363,21 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
         _          ↔ x.rank ∈ H a            := by rw [hspec a]; rfl;
         _          ↔ x ⊩[_] #a               := hatom a x
     | _ => grind;
-  -- the letterless substitution instance `B₀` is not forced at the root
   set B₀ : LetterlessFormula := A.substLetterless ψ with hB₀;
   have hroot : M.root.1 ⊮[_] (LetterlessFormula.lift B₀ : Formula α) := by
     rw [hB₀, Formula.lift_substLetterless];
     exact fun h => hM ((hsubst A M.root.1).mp h);
-  -- hence the height of `M` is missing from the spectrum of `B₀`, and `GL ⊢ B₀ 🡒 TBB n`
   have hnotin : M.height ∉ spectrum B₀ := by
     intro h;
     exact hroot (Model.iff_forces_lift_rank_mem_spectrum.mpr h);
   have hGL : ((B₀ 🡒 TBB M.height)) ∈ @LogicGL Empty := by
     apply iff_GL_proves_imp_GL_subset_spectrum.mpr;
     grind [LetterlessFormula.spectrum_TBB];
-  -- the counterexample realization: consistency assertions equivalent to `interpret (ψ a)`
   choose σ hσ₁ hσ₂ using
     fun a => (isConsistencyForm_rankDisj (l := (H a).toList)).exists_consistencyAssertion
       (𝔅 := T.standardProvability);
   use ⟨⟨σ⟩, hσ₁⟩;
   intro hprov;
-  -- `f* A` is provably equivalent to `interpret 𝔅 B₀`
   have hequiv :
     𝗜𝚺₁ ⊢ ((⟨σ⟩ : Realization α ℒₒᵣ) T A) 🡘
       ((⟨fun a => (ψ a).interpret T.standardProvability⟩ : Realization α ℒₒᵣ) T A) :=
@@ -442,7 +389,6 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
     cl_prover [hprov, h];
   have h₂ : T ⊢ B₀.interpret T.standardProvability := by
     rwa [hB₀, Formula.interpret_substLetterless];
-  -- soundness of `GL` yields `T ⊢ 𝔅^[n+1]⊥ 🡒 𝔅^[n]⊥`, hence `T ⊢ 𝔅^[n]⊥` by Löb
   have h₃ : T ⊢ LetterlessFormula.interpret T.standardProvability (TBB M.height) := by
     have h := LogicGL.arithmetical_soundness'
       (𝔅 := T.standardProvability) (f := (⟨Empty.elim⟩ : Realization Empty ℒₒᵣ)) hGL;
@@ -460,12 +406,7 @@ theorem arithmetical_completeness_of_infinity_height [DecidableEq α] (height : 
     exact h₃;
   exact Provability.height_eq_top_iff.mp height M.height h₄;
 
-/--
-For any theory of infinite height, `A` is a theorem of `LogicGLPoint3` iff every
-consistency realization of `A` is provable.
-
-- [VS83, Theorem 1]
--/
+/-- - [VS83, Theorem 1] -/
 theorem arithmetical_completeness_iff_of_infinity_height [DecidableEq α] (height : T.height = (⊤ : ℕ∞)) :
   A ∈ LogicGLPoint3 ↔ ∀ f : StandardConsistencyRealization α T, T ⊢ f A := by
   constructor;
@@ -477,12 +418,7 @@ theorem arithmetical_completeness_iff_of_sigma1_sound [DecidableEq α] [T.SoundO
   A ∈ LogicGLPoint3 ↔ ∀ f : StandardConsistencyRealization α T, T ⊢ f A :=
   arithmetical_completeness_iff_of_infinity_height (FirstOrder.Arithmetic.height_eq_top_of_sigma1_sound T)
 
-/--
-For each modal formula `A`, `A ∈ LogicGLPoint3` iff `⊢PA φ(A)` for each interpretation
-`φ` sending every propositional variable to a consistency assertion of `𝗣𝗔`.
-
-- [VS83, Theorem 1]
--/
+/-- - [VS83, Theorem 1] -/
 theorem arithmetical_completeness_iff_peano_arithmetic [DecidableEq α] :
   A ∈ LogicGLPoint3 ↔ ∀ f : StandardConsistencyRealization α 𝗣𝗔, 𝗣𝗔 ⊢ f A :=
   arithmetical_completeness_iff_of_sigma1_sound

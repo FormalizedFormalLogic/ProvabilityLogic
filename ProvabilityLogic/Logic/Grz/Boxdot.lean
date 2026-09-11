@@ -39,11 +39,6 @@ lemma World.irreflGen_forces_boxdot [M.IsGrz]
         exact h _ Rxy.1;
   | _ => grind;
 
-/-- Semantic core of the boxdot translation of the Grz axiom: `⊡(⊡(B 🡒 ⊡B) 🡒 B) 🡒 B` is
-valid at every point of every `GL` model, for an arbitrary formula `B`. Proved by converse
-well-founded induction on the accessibility relation; this is the folklore semantic argument
-underlying the Hilbert-style derivation `boxdotGrz_of_L` in the modal-logic literature on
-the Grzegorczyk axiom. -/
 lemma World.forces_boxdotGrz [M.IsGL] {B : Formula α} {x : M.World} :
     x ⊩[_] (⊡(⊡(B 🡒 ⊡B) 🡒 B) 🡒 B) := by
   induction x using WellFounded.induction (IsConverseWellFounded.cwf (rel := M.Rel)) with

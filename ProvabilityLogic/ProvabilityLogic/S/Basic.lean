@@ -6,22 +6,11 @@ public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 /-!
 # Arithmetical soundness and completeness of Logic S
 
-Port of `Foundation.ProvabilityLogic.S.Soundness` and
-`Foundation.ProvabilityLogic.S.Completeness` to ProvabilityLogic.
+For a sound theory `T` extending `𝗜𝚺₁`, the theorems of `LogicS` are exactly the modal
+formulas all of whose standard realizations for `T` are true in `ℕ`; equivalently, `LogicS`
+is the provability logic of `T` relative to true arithmetic `𝗧𝗔`.
 
-Main results:
-- `LogicS.arithmetical_soundness`: if `A ∈ LogicS` then `ℕ↓[ℒₒᵣ] ⊧ A.interpret f 𝔅` for every
-  realization `f`.
-- `LogicS.arithmetical_completeness_iff`:
-  `A ∈ LogicS ↔ ∀ f : Realization α ℒₒᵣ, ℕ↓[ℒₒᵣ] ⊧ f T A` for any sound theory `T`.
-- `LogicS.eq_provabilityLogicRelativeTo_TA`: `LogicS` is the provability logic of `T`
-  relative to the true arithmetic `𝗧𝗔`.
-
-Unlike Foundation's `GL_S_TFAE` (which proves 1 → 2 → 3 → 1), the two directions here are
-independent: soundness is proved by induction via `LogicS.substlessInduction`, and
-completeness is reduced to the Kripke-semantical characterization
-`LogicS.iff_provable_S_provable_GL` together with the Solovay construction
-(`SolovaySentences.rfl_mainlemma` and `solovay_root_sound`).
+## References
 
 - [AB05, Theorem 3]
 -/
@@ -47,10 +36,9 @@ variable {T₀ T : FirstOrder.ArithmeticTheory} [T₀ ⪯ T] [Diagonalization T�
          {𝔅 : Provability T₀ T} [𝔅.HBL] [ℕ↓[ℒₒᵣ] ⊧* T] [𝔅.SoundOn ℕ]
 
 /--
-  **Arithmetical soundness of S**: every theorem of `S` is true in the standard model `ℕ`
-  under every realization of a provability predicate for a sound theory.
+  **Arithmetical soundness of S**.
 
-  - [AB05, Theorem 3 (soundness half)]
+  - [AB05, Theorem 3]
 -/
 theorem arithmetical_soundness (h : A ∈ LogicS) (f : Realization α ℒₒᵣ) :
   ℕ↓[ℒₒᵣ] ⊧ A.interpret f 𝔅 := by
@@ -76,19 +64,12 @@ open FFL.FirstOrder.Arithmetic.Bootstrapping
 variable {T : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [ℕ↓[ℒₒᵣ] ⊧* T]
 
 /--
-  **Arithmetical completeness of S**: if `A` is true in `ℕ` under every standard
-  realization for `T`, then `A ∈ LogicS`.
+  **Arithmetical completeness of S**.
 
-  - [AB05, Theorem 3 (completeness half)]
+  - [AB05, Theorem 3]
 -/
 theorem arithmetical_completeness [DecidableEq α]
     (H : ∀ f : Realization α ℒₒᵣ, ℕ↓[ℒₒᵣ] ⊧ f T A) : A ∈ LogicS := by
-  -- If `A ∉ LogicS` then by `iff_provable_S_provable_GL` the formula `⋀A.subfmlsS 🡒 A`
-  -- is not provable in `GL`, so there is a finite rooted GL countermodel whose root
-  -- forces all axiom T instances for boxed subformulas of `A` but refutes `A`. The
-  -- Solovay sentence of the new root of the `1`-extended model is true in `ℕ`
-  -- (`solovay_root_sound`) and implies the negation of the realization of `A`
-  -- (`SolovaySentences.rfl_mainlemma`).
   have : ℕ↓[ℒₒᵣ] ⊧* 𝗜𝚺₁ := models_of_subtheory (T := 𝗜𝚺₁) (U := T) (M := ℕ) inferInstance;
   contrapose! H;
   replace H := LogicGL.iff_forces_root.not.mp $ iff_provable_S_provable_GL.not.mp H;
@@ -114,8 +95,7 @@ theorem arithmetical_completeness [DecidableEq α]
   exact h₁ h₂;
 
 /--
-  **Arithmetical characterization of S**: for any sound theory `T` (i.e. `ℕ↓[ℒₒᵣ] ⊧* T`)
-  extending `𝗜𝚺₁`, `S ⊢ A` iff `f T A` is true in `ℕ` for every realization `f`.
+  **Arithmetical characterization of S**.
 
   - [AB05, Theorem 3]
 -/
@@ -123,7 +103,6 @@ theorem arithmetical_completeness_iff [DecidableEq α] :
     A ∈ LogicS ↔ (∀ f : Realization α ℒₒᵣ, ℕ↓[ℒₒᵣ] ⊧ f T A) :=
   ⟨fun h f => arithmetical_soundness h f, arithmetical_completeness⟩
 
-/-- `LogicS` is the provability logic of `T` relative to the true arithmetic `𝗧𝗔`. -/
 theorem eq_provabilityLogicRelativeTo_TA [DecidableEq α] :
     @LogicS α = T.provabilityLogicRelativeTo 𝗧𝗔 := by
   ext A;
@@ -132,7 +111,6 @@ theorem eq_provabilityLogicRelativeTo_TA [DecidableEq α] :
   simp only [TA.provable_iff];
   exact arithmetical_completeness_iff;
 
-/-- `LogicS` is the provability logic of `𝗣𝗔` relative to the true arithmetic `𝗧𝗔`. -/
 theorem eq_provabilityLogic_PA_TA [DecidableEq α] :
     @LogicS α = 𝗣𝗔.provabilityLogicRelativeTo 𝗧𝗔 :=
   eq_provabilityLogicRelativeTo_TA

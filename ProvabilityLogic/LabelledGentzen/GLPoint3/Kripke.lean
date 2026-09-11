@@ -4,6 +4,13 @@ public import ProvabilityLogic.Kripke.Linearity
 public import ProvabilityLogic.LabelledGentzen.GLPoint3.Basic
 public import ProvabilityLogic.LabelledGentzen.GL.Kripke
 
+/-!
+# Kripke semantics for the labelled sequent calculus for `GLPoint3`
+
+Soundness of the labelled sequent calculus for `LogicGLPoint3` with respect to Kripke
+semantics on `GLPoint3` models.
+-/
+
 @[expose]
 public section
 
@@ -31,9 +38,9 @@ lemma validate_labelled_lin [M.IsGLPoint3]
   : M ⊧ˡ[L] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   intro hrel hant;
   rcases Model.linear (hrel (x, y) hxy) (hrel (x, z) hxz) with hyz | heq | hzy;
-  · exact h₁ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hyz, hrel p hp]) hant;
-  · exact (validate_labelled_relabel_of_eq heq).mp h₃ hrel hant;
-  · exact h₂ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hzy, hrel p hp]) hant;
+  . exact h₁ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hyz, hrel p hp]) hant;
+  . exact (validate_labelled_relabel_of_eq heq).mp h₃ hrel hant;
+  . exact h₂ (by rintro p hp; rcases Finset.mem_insert.mp hp with rfl | hp; exacts [hzy, hrel p hp]) hant;
 
 end Model
 

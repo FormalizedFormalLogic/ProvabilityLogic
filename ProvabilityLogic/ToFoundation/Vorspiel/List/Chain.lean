@@ -4,9 +4,12 @@ public import Mathlib.Data.Fintype.List
 public import Foundation.Vorspiel.Fin.Basic
 
 /-!
-Foundation removed `Foundation.Vorspiel.List.Chain` as unused code (#866), but
-`List.IsChain` and the API developed here are used pervasively across the Kripke
-semantics development in this repository. This file vendors that removed content.
+# `List.IsChain`
+
+`List.IsChain` and its API — chains built from `List.range` and `List.finRange`,
+duplicate-freeness under an irreflexive transitive relation, and the behaviour of
+endpoints under prefixes — used pervasively by the Kripke semantics development in this
+repository. Vendored from Foundation, which no longer provides it.
 -/
 
 @[expose]
@@ -255,8 +258,6 @@ def embedding_of_exists_noDup {l : List α} (hl₁ : l.Nodup) (hl₂ : l.length 
 
 end List
 
-/-- In a chain under an irreflexive transitive relation, the last element of a proper
-prefix relates to the last element of the whole chain. -/
 lemma List.rel_getLast_getLast_of_prefix {α : Type*} {R : α → α → Prop} [DecidableEq α] [IsTrans α R] [Std.Irrefl R] {l₁ l₂ : List α}
   (hc : l₂.IsChain R) (hp : l₁ <+: l₂) (hlt : l₁.length < l₂.length)
   (h₁ : l₁ ≠ []) (h₂ : l₂ ≠ []) :

@@ -6,11 +6,12 @@ public import Mathlib.Data.PNat.Basic
 public import Mathlib.Data.Rel
 
 /-!
-Foundation removed `Foundation.Vorspiel.Rel.CWF` as unused code (#866), but
-`ConverseWellFounded`/`IsConverseWellFounded`/`cwfHeight` are used pervasively across
-the Kripke semantics development in this repository (world rank, finite line models,
-etc). This file vendors that removed content, plus `ConverseWellFounded.irrefl` and the
-`Std.Irrefl (flip r) → Std.Irrefl r` instance that were already staged here.
+# Converse well-founded relations
+
+`ConverseWellFounded`, `IsConverseWellFounded` and the height function `cwfHeight` of a
+point of a finite converse well-founded relation, used pervasively by the Kripke
+semantics development in this repository. Vendored from Foundation, which no longer
+provides them.
 -/
 
 @[expose]
@@ -68,10 +69,10 @@ lemma cwfHeight_eq (a : α) :
     Finset.univ.sup (fun b : {y : α // R a y} ↦ cwfHeight R b + 1) =
     Finset.sup {y : α | R a y} fun b ↦ cwfHeight R b + 1 from h.trans this
   apply eq_of_le_of_ge
-  · apply Finset.sup_le
+  . apply Finset.sup_le
     intro b _
     exact Finset.le_sup (f := fun b ↦ cwfHeight R b + 1) (by simp [b.prop])
-  · apply Finset.sup_le
+  . apply Finset.sup_le
     intro b hb
     simpa using Finset.le_sup (f := fun b : {y : α // R a y} ↦ cwfHeight R b + 1)
       (b := ⟨b, by simpa using hb⟩) (s := Finset.univ) (by simp)
@@ -84,10 +85,10 @@ lemma cwfHeight_gt_of {a b} :
 lemma cwfHeight_eq_zero_iff {a : α} :
     cwfHeight R a = 0 ↔ ∀ b, ¬R a b := by
   constructor
-  · intro h b hb
+  . intro h b hb
     have : cwfHeight R a > cwfHeight R b := cwfHeight_gt_of hb
     exact Nat.not_succ_le_zero (cwfHeight R b) (h ▸ this)
-  · intro ha
+  . intro ha
     apply Nat.eq_zero_of_le_zero
     calc
       cwfHeight R a = Finset.sup {x : α | R a x} fun b ↦ cwfHeight R b + 1 := cwfHeight_eq a
@@ -112,8 +113,8 @@ lemma cwfHeight_eq_of_lt_of_le {a : α}
     (hR : ∀ b, R a b → cwfHeight R b < n) (h : ∃ b, R a b ∧ n ≤ cwfHeight R b + 1) : cwfHeight R a = n := by
   suffices cwfHeight R a ≤ n ∧ cwfHeight R a ≥ n from Nat.eq_iff_le_and_ge.mpr this
   constructor
-  · exact cwfHeight_le hR
-  · rcases h with ⟨b, hb, hn⟩
+  . exact cwfHeight_le hR
+  . rcases h with ⟨b, hb, hn⟩
     suffices n - 1 < cwfHeight R a from Nat.le_of_pred_lt this
     apply lt_cwfHeight hb
     exact Nat.sub_le_of_le_add hn
@@ -130,44 +131,42 @@ lemma cwfHeight_eq_succ {a : α} (h : cwfHeight R a ≠ 0) :
 lemma cwfHeight_eq_succ_cwfHeight {a b : α} (h : R a b) (hb : ∀ c, R a c → R b c ∨ b = c) :
     cwfHeight R a = cwfHeight R b + 1 := by
   apply cwfHeight_eq_of_lt_of_le
-  · intro c Rac
+  . intro c Rac
     rcases hb c Rac with (Rbc | rfl)
-    · suffices cwfHeight R c < cwfHeight R b from Nat.lt_add_right 1 this
+    . suffices cwfHeight R c < cwfHeight R b from Nat.lt_add_right 1 this
       exact cwfHeight_gt_of Rbc
-    · simp
-  · use b
+    . simp
+  . use b
 
 lemma cwfHeight_lt [IsTrans α R] {a : α} :
     ∀ {n}, n < cwfHeight R a → ∃ b, R a b ∧ cwfHeight R b = n := by
   apply WellFounded.induction (r := flip R) IsConverseWellFounded.cwf a
   intro a ih
   rcases ha : cwfHeight R a with (_ | n)
-  · simp
-  · intro k hk
+  . simp
+  . intro k hk
     have : ∃ b, R a b ∧ cwfHeight R b = n := by
       rcases cwfHeight_eq_succ (R := R) (a := a) (by simp [ha]) with ⟨b, hb, e⟩
       exact ⟨b, hb, by grind⟩
     rcases this with ⟨b, hb, rfl⟩
     have : k = cwfHeight R b ∨ k < cwfHeight R b := Nat.eq_or_lt_of_le <| Nat.le_of_lt_succ hk
     rcases this with (rfl | hk)
-    · exact ⟨b, hb, rfl⟩
-    · have : ∃ c, R b c ∧ cwfHeight R c = k := ih b hb hk
+    . exact ⟨b, hb, rfl⟩
+    . have : ∃ c, R b c ∧ cwfHeight R c = k := ih b hb hk
       rcases this with ⟨c, hc, rfl⟩
       exact ⟨c, IsTrans.trans _ _ _ hb hc, rfl⟩
 
-/-- `cwfHeight` is invariant under an equivalence of relations: if `f : α ≃ β` carries `R`
-to `R'`, then the heights of corresponding points agree. -/
 lemma cwfHeight_congr {β} [Fintype β] {R' : Rel β β} [IsConverseWellFounded β R']
     (f : α ≃ β) (hf : ∀ a b, R a b ↔ R' (f a) (f b)) (a : α) :
     cwfHeight R a = cwfHeight R' (f a) := by
   apply WellFounded.induction (r := flip R) IsConverseWellFounded.cwf a
   intro a ih
   apply le_antisymm
-  · apply cwfHeight_le
+  . apply cwfHeight_le
     intro b hab
     rw [ih b hab]
     exact cwfHeight_gt_of ((hf a b).mp hab)
-  · apply cwfHeight_le
+  . apply cwfHeight_le
     intro b' hab'
     obtain ⟨b, rfl⟩ := f.surjective b'
     have hab : R a b := (hf a b).mpr hab'

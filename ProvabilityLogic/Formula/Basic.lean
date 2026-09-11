@@ -73,8 +73,8 @@ lemma diaItr_comp {n m : ℕ} : (◇^[n + m]A) = ◇^[n](◇^[m]A) := by
 
 end Formula
 
-/-- The formula `□^[n+1]⊥ 🡒 □^[n]⊥`, asserting (informally) that the accessibility relation
-has no chain of length `n + 1` from the current point. -/
+/-- Informally: the accessibility relation has no chain of length `n + 1` from the current
+point. -/
 @[grind]
 def TBB (n : ℕ) : Formula α := (□^[(n + 1)]⊥) 🡒 (□^[n]⊥)
 
@@ -102,12 +102,8 @@ instance : DecidablePred (Formula.IsBox (α := α)) := λ A => by
   case box => exact isTrue $ by grind;
   case atom | bot | imp => exact isFalse $ by grind;
 
-/-- Typst math-mode source for this formula, using `curryst`'s `class("unary", ·)` idiom
-for the modalities. Always parenthesizes
-a `→`, since as a subformula its scope would otherwise be ambiguous; used for every
-subformula occurrence. `Formula.toString` (below) is the top-level entry point, which omits
-these parentheses around the formula's own outermost `→`, since nothing there needs
-disambiguating. -/
+/-- Typst math-mode source for a subformula, using `curryst`'s `class("unary", ·)` idiom for
+the modalities. A `→` is always parenthesized, since its scope would otherwise be ambiguous. -/
 protected def toStringAux [ToString α] : Formula α → String
 | #a    => s!"p_({a})"
 | ◇A    => s!"class(\"unary\", diamond) {Formula.toStringAux A}"
@@ -117,9 +113,8 @@ protected def toStringAux [ToString α] : Formula α → String
 | ∼A    => s!"not {Formula.toStringAux A}"
 | A 🡒 B => s!"({Formula.toStringAux A} -> {Formula.toStringAux B})"
 
-/-- Typst math-mode source for this formula. See `Formula.toStringAux` for the
-parenthesization convention; this entry point omits the outermost parentheses around a
-top-level `→`. -/
+/-- Typst math-mode source for this formula, without the parentheses `Formula.toStringAux`
+would put around a top-level `→`. -/
 protected def toString [ToString α] : Formula α → String
 | A 🡒 B => s!"{Formula.toStringAux A} -> {Formula.toStringAux B}"
 | A     => Formula.toStringAux A
@@ -258,7 +253,6 @@ lemma degree_box : A.degree < (□A).degree := by grind;
 lemma degree_le_of_mem_subfmls [DecidableEq α] (h : A ∈ B.subfmls) : A.degree ≤ B.degree := by
   induction B <;> grind;
 
-/-- The atoms of a subformula `B` of `A` are contained in the atoms of `A`. -/
 @[grind →]
 lemma atoms_subset_of_mem_subfmls [DecidableEq α] (h : B ∈ A.subfmls) : B.atoms ⊆ A.atoms := by
   induction A <;> grind [Formula.subfmls, Formula.atoms]
@@ -276,9 +270,9 @@ private lemma atoms_lconj_subset [DecidableEq α] (L : FormulaList α) :
     have ih := atoms_lconj_subset (B :: L)
     intro x hx
     rcases Finset.mem_union.mp hx with hx | hx
-    · simp only [List.toFinset_cons, Finset.mem_biUnion]
+    . simp only [List.toFinset_cons, Finset.mem_biUnion]
       exact ⟨A, Finset.mem_insert_self _ _, hx⟩
-    · obtain ⟨y, hy, hxy⟩ := Finset.mem_biUnion.mp (ih hx)
+    . obtain ⟨y, hy, hxy⟩ := Finset.mem_biUnion.mp (ih hx)
       refine Finset.mem_biUnion.mpr ⟨y, ?_, hxy⟩
       simp only [List.toFinset_cons] at hy ⊢
       exact Finset.mem_insert_of_mem hy
@@ -294,9 +288,9 @@ private lemma atoms_ldisj_subset [DecidableEq α] (L : FormulaList α) :
     have ih := atoms_ldisj_subset (B :: L)
     intro x hx
     rcases Finset.mem_union.mp hx with hx | hx
-    · simp only [List.toFinset_cons, Finset.mem_biUnion]
+    . simp only [List.toFinset_cons, Finset.mem_biUnion]
       exact ⟨A, Finset.mem_insert_self _ _, hx⟩
-    · obtain ⟨y, hy, hxy⟩ := Finset.mem_biUnion.mp (ih hx)
+    . obtain ⟨y, hy, hxy⟩ := Finset.mem_biUnion.mp (ih hx)
       refine Finset.mem_biUnion.mpr ⟨y, ?_, hxy⟩
       simp only [List.toFinset_cons] at hy ⊢
       exact Finset.mem_insert_of_mem hy
@@ -351,20 +345,18 @@ lemma atoms_union (Γ Δ : FormulaFinset α) : (Γ ∪ Δ).atoms = Γ.atoms ∪ 
   ext x
   simp only [FormulaFinset.atoms, Finset.mem_biUnion, Finset.mem_union]
   constructor
-  · rintro ⟨a, ha | ha, hx⟩
-    · exact Or.inl ⟨a, ha, hx⟩
-    · exact Or.inr ⟨a, ha, hx⟩
-  · rintro (⟨a, ha, hx⟩ | ⟨a, ha, hx⟩)
-    · exact ⟨a, Or.inl ha, hx⟩
-    · exact ⟨a, Or.inr ha, hx⟩
+  . rintro ⟨a, ha | ha, hx⟩
+    . exact Or.inl ⟨a, ha, hx⟩
+    . exact Or.inr ⟨a, ha, hx⟩
+  . rintro (⟨a, ha, hx⟩ | ⟨a, ha, hx⟩)
+    . exact ⟨a, Or.inl ha, hx⟩
+    . exact ⟨a, Or.inr ha, hx⟩
 
-/-- The atoms of `⋀Γ` are contained in the atoms of `Γ`. -/
 @[grind .]
 lemma atoms_conj_subset (Γ : FormulaFinset α) : (⋀Γ).atoms ⊆ Γ.atoms := by
   have := atoms_lconj_subset Γ.toList
   simpa [FormulaFinset.conj, FormulaFinset.atoms] using this
 
-/-- The atoms of `⋁Γ` are contained in the atoms of `Γ`. -/
 @[grind .]
 lemma atoms_disj_subset (Γ : FormulaFinset α) : (⋁Γ).atoms ⊆ Γ.atoms := by
   have := atoms_ldisj_subset Γ.toList
@@ -375,15 +367,15 @@ lemma box_atoms (Γ : FormulaFinset α) : Γ.box.atoms = Γ.atoms := by
   ext x
   simp only [atoms, FormulaFinset.box, Finset.mem_biUnion, Finset.mem_image]
   constructor
-  · rintro ⟨_, ⟨B, hB, rfl⟩, hx⟩; exact ⟨B, hB, by simpa [Formula.atoms] using hx⟩
-  · rintro ⟨B, hB, hx⟩; exact ⟨□B, ⟨B, hB, rfl⟩, by simpa [Formula.atoms] using hx⟩
+  . rintro ⟨_, ⟨B, hB, rfl⟩, hx⟩; exact ⟨B, hB, by simpa [Formula.atoms] using hx⟩
+  . rintro ⟨B, hB, hx⟩; exact ⟨□B, ⟨B, hB, rfl⟩, by simpa [Formula.atoms] using hx⟩
 
 lemma box_filter (hS : Γ ⊆ Δ.box) : FormulaFinset.box (Δ.filter (fun B => □B ∈ Γ)) = Γ := by
   ext x
   simp only [FormulaFinset.box, Finset.mem_image, Finset.mem_filter]
   constructor
-  · rintro ⟨B, ⟨_, hBS⟩, rfl⟩; exact hBS
-  · intro hx
+  . rintro ⟨B, ⟨_, hBS⟩, rfl⟩; exact hBS
+  . intro hx
     obtain ⟨B, hB, rfl⟩ := Finset.mem_image.mp (hS hx)
     exact ⟨B, ⟨hB, hx⟩, rfl⟩
 

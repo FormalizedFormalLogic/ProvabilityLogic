@@ -96,12 +96,7 @@ section
 
 variable [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
 
-/--
-The chain lemma: `GL ⊢ ∼□^[m+1]⊥ 🡒 ◇⋀{□B 🡒 B | □B ∈ Sub(A)}` where `m` is the
-number of boxed subformulas of `A`, instantiated for use in GL soundness proofs.
-
-- [AB05, Lemma 26]
--/
+/-- - [AB05, Lemma 26] -/
 lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : Formula α} :
     ((∼(□^[A.subfmls.prebox.card + 1]⊥)) 🡒 ◇(⋀A.subfmlsS)) ∈ LogicGL := by
   apply LogicGL.iff_forces_root.mpr;
@@ -120,11 +115,7 @@ lemma LogicGL.provable_neg_boxItr_bot_imp_dia_subfmlsS [DecidableEq α] {A : For
 
 end
 
-/--
-The trace of any formula is either finite or cofinite.
-
-- [AB05, Lemma 12]
--/
+/-- - [AB05, Lemma 12] -/
 lemma Formula.trace_finite_or_cofinite [DecidableEq α] {A : Formula α} :
     A.trace.Finite ∨ A.traceᶜ.Finite := by
   rw [or_iff_not_imp_left];
@@ -206,10 +197,10 @@ lemma eq_LogicGL_quasiExtension_trace {X : FormulaSet α} (_ : ∀ A ∈ X, ∀ 
     | @mdp A B hAB hA ihAB ihA =>
       intro hn;
       by_cases hA' : n ∈ A.trace;
-      · exact ihA hA';
-      · by_cases hAB' : n ∈ (A 🡒 B).trace;
-        · exact ihAB hAB';
-        · exfalso;
+      . exact ihA hA';
+      . by_cases hAB' : n ∈ (A 🡒 B).trace;
+        . exact ihAB hAB';
+        . exfalso;
           obtain ⟨κ, _, M, _, _, rfl, hr⟩ := Formula.iff_mem_trace.mp hn;
           have fA := Formula.iff_mem_not_trace.mp hA' κ inferInstance M inferInstance inferInstance rfl;
           have fAB := Formula.iff_mem_not_trace.mp hAB' κ inferInstance M inferInstance inferInstance rfl;
@@ -269,15 +260,12 @@ lemma LogicGLAlpha.eq_trace {X : Set ℕ} : (@LogicGLAlpha α X).trace = X := by
   simp only [FormulaSet.trace, LetterlessFormulaSet.lift, Set.mem_iUnion,
     Set.mem_image, exists_prop];
   constructor;
-  · rintro ⟨A, ⟨B, ⟨i, hi, rfl⟩, rfl⟩, hn⟩;
+  . rintro ⟨A, ⟨B, ⟨i, hi, rfl⟩, rfl⟩, hn⟩;
     rw [LetterlessFormula.eq_lift_TBB, Formula.trace_TBB] at hn;
     simpa using hn ▸ hi;
-  · intro hn;
+  . intro hn;
     exact ⟨TBB n, ⟨TBB n, ⟨n, hn, rfl⟩, LetterlessFormula.eq_lift_TBB⟩, by rw [Formula.trace_TBB]; simp⟩;
 
-/--
-The trace of a lifted letterless formula equals the trace of that letterless formula.
--/
 lemma Formula.trace_lift {B : LetterlessFormula} :
     (LetterlessFormula.lift B : Formula α).trace = LetterlessFormula.trace B := by
   ext n;
@@ -295,8 +283,6 @@ lemma LogicGLBetaMinus.eq_trace [DecidableEq α] {X : Set ℕ} (hCf : Xᶜ.Finit
   simp only [LetterlessFormulaSet.lift, Set.image_singleton, FormulaSet.trace_singleton,
     Formula.trace_lift, LetterlessFormula.trace_TBBMinus hCf, compl_compl];
 
-/-- `LogicGLBetaMinus` only depends on `X` (the finiteness proof of `Xᶜ` is
-irrelevant, by proof irrelevance). -/
 lemma LogicGLBetaMinus.congr [DecidableEq α] {X Y : Set ℕ} (h : X = Y)
     (hCf₁ : Xᶜ.Finite) (hCf₂ : Yᶜ.Finite) :
     (LogicGLBetaMinus X hCf₁ : Logic α) = LogicGLBetaMinus Y hCf₂ := by
@@ -336,11 +322,7 @@ lemma Logic.trace_subset_of_mem {L : Logic α} {A : Formula α} (h : A ∈ L) : 
 
 variable [DecidableEq α] {L : Logic α} {A : Formula α}
 
-/--
-If `L.trace` is coinfinite then `L ⊆ LogicGLAlpha L.trace`.
-
-- [AB05, Lemma 45]
--/
+/-- - [AB05, Lemma 45] -/
 lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
     L ⊆ LogicGLAlpha L.trace := by
   intro A hA;
@@ -366,11 +348,7 @@ lemma subset_LogicGLAlpha_of_trace_coinfinite (hL : L.traceᶜ.Infinite) :
   apply Logic.sumQuasiNormal.mem₂;
   exact ⟨TBB n, ⟨n, hsub (hfin.mem_toFinset.mp hn), rfl⟩, LetterlessFormula.eq_lift_TBB⟩;
 
-/--
-If `L.trace` is cofinite then `L ⊆ LogicGLBetaMinus L.trace hL`.
-
-- [AB05, Lemma 45]
--/
+/-- - [AB05, Lemma 45] -/
 lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
     L ⊆ LogicGLBetaMinus L.trace hL := by
   intro A hA;
@@ -392,11 +370,7 @@ lemma subset_LogicGLBetaMinus_of_trace_cofinite (hL : L.traceᶜ.Finite) :
   apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL);
   exact Logic.sumQuasiNormal.mem₂ ⟨TBBMinus _ hL, rfl, rfl⟩;
 
-/--
-If the trace set is the universal set, `LogicGLBetaMinus Set.univ hCf` proves `⊥`.
-
-- [AB05, Lemma 49]
--/
+/-- - [AB05, Lemma 49] -/
 lemma LogicGLBetaMinus.bot_mem_of_eq_univ {hCf : (Set.univ : Set ℕ)ᶜ.Finite} :
     (⊥ : Formula α) ∈ LogicGLBetaMinus Set.univ hCf := by
   apply Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ?_)
@@ -421,11 +395,7 @@ open Model Model.World
 
 variable {T U : FirstOrder.ArithmeticTheory} [T.Δ₁] [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
-/--
-If `n` is in the trace of the provability logic of `T` relative to `U`, then `TBB n` is a theorem of it.
-
-- [AB05, Lemma 46, Corollary 47]
--/
+/-- - [AB05, Lemma 46, Corollary 47] -/
 theorem provable_TBB_of_mem_trace {n : ℕ}
     (h : n ∈ (T.provabilityLogicRelativeTo U : Logic α).trace) :
     (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
@@ -433,11 +403,10 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
     simpa [Logic.trace, FormulaSet.trace] using h;
   obtain ⟨κ, _, M, _, _, rfl, hr⟩ := Formula.iff_mem_trace.mp hA_tr;
   let S := FFL.FirstOrder.Theory.standardProvability.solovaySentences T (M.extendRoot 1);
-  -- Each Solovay sentence implies the interpretation of `A 🡒 TBB M.height`.
   have key : ∀ i : (M.extendRoot 1).World,
       𝗜𝚺₁ ⊢ S.σ i 🡒 (S.realization T (A 🡒 TBB M.height)) := by
     rintro (x | i);
-    . -- original world: use the main lemma with the semantic claim
+    . -- original world
       apply S.mainlemma (i := Sum.inl x) (by simp [RootedModel.extendRoot, Fin.posLast]);
       intro hAx;
       by_cases hx : x = M.root.1;
@@ -447,7 +416,7 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
         rw [show Sum.inl x = RootedModel.extendRoot.embed (M := M) (n := 1) x from rfl,
           RootedModel.extendRoot.Ext1.eq_embed_original_rank_original_rank];
         exact fun hcon => hx (RootedModel.iff_eq_rank_height_is_root.mp hcon);
-    . -- the new root: chain through `SC2` and the negative main lemma
+    . -- the new root
       have b₁ : 𝗜𝚺₁ ⊢ S.σ (Sum.inr i) 🡒 T.standardProvability.dia (S.σ (Sum.inl M.root.1)) :=
         S.SC2 _ _ (by simp [Model.Rel]);
       have b₂ : 𝗜𝚺₁ ⊢ S.σ (Sum.inl M.root.1) 🡒
@@ -485,12 +454,7 @@ theorem provable_TBB_of_mem_trace {n : ℕ}
   rw [e S.realization] at h₃;
   exact h₃;
 
-/--
-If the trace of the provability logic of `T` relative to `U` is coinfinite, then it
-equals `LogicGLAlpha` of its trace.
-
-- [AB05, Corollary 48]
--/
+/-- - [AB05, Corollary 48] -/
 theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
     (hCi : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Infinite) :
     (T.provabilityLogicRelativeTo U : Logic α)
@@ -514,12 +478,7 @@ theorem eq_provabilityLogic_LogicGLAlpha_of_coinfinite_trace [DecidableEq α]
       simp only [Formula.interpret_subst];
       exact ihA _;
 
-/--
-If the provability logic of `T` relative to `U` is not contained in `S`,
-then its trace is cofinite.
-
-- [AB05, Lemma 49]
--/
+/-- - [AB05, Lemma 49] -/
 lemma cofinite_trace_of_not_subset_LogicS [DecidableEq α]
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
     (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite := by
@@ -570,23 +529,16 @@ section
 
 variable [DecidableEq α]
 
-/--
-If the provability logic `L` of `T` relative to `U` is not contained in `S`, then it
-proves the lifted `TBBMinus` axiom of its trace.
-
-- [AB05, Lemma 49]
--/
+/-- - [AB05, Lemma 49] -/
 theorem provable_TBBMinus_of_not_subset_LogicS
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
     (LetterlessFormula.lift (TBBMinus _ (cofinite_trace_of_not_subset_LogicS hS)) : Formula α)
       ∈ (T.provabilityLogicRelativeTo U : Logic α) := by
   set L := (T.provabilityLogicRelativeTo U : Logic α) with hL;
   have hcof := cofinite_trace_of_not_subset_LogicS hS;
-  -- Take `A ∈ L` with `A ∉ S`; then `GL ⊬ ⋀A.subfmlsS 🡒 A`.
   obtain ⟨A, hA₁, hA₂⟩ := Set.not_subset.mp hS;
   replace hA₂ : ((⋀A.subfmlsS) 🡒 A) ∉ LogicGL :=
     fun hc => hA₂ (LogicS.iff_provable_S_provable_GL.mpr hc);
-  -- Extract a finite rooted countermodel `M₁` whose root is `A`-reflexive but refutes `A`.
   have := (LogicGL.iff_forces_root (A := (⋀A.subfmlsS) 🡒 A)).not.mp hA₂;
   push Not at this;
   obtain ⟨κ₁, hne, M₁, hfgl, hroot⟩ := this;
@@ -610,14 +562,12 @@ theorem provable_TBBMinus_of_not_subset_LogicS
     apply provable_TBB_of_mem_trace;
     have : i ∈ (Finset.range M₁.height : Set ℕ) ∩ L.trace := by simpa [R] using hi;
     exact this.2;
-  -- The Solovay sentences of `M₁.extendRoot 1`.
   let S := FFL.FirstOrder.Theory.standardProvability.solovaySentences T (M₁.extendRoot 1);
-  -- Each Solovay sentence implies the interpretation of `B 🡒 lift (TBBMinus L.traceᶜ)`.
   have key : ∀ i : (M₁.extendRoot 1).World,
       𝗜𝚺₁ ⊢ S.σ i 🡒
         (S.realization T (B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α))) := by
     rintro (x | i);
-    . -- original worlds: semantic claim through the main lemma
+    . -- original worlds
       apply S.mainlemma (i := Sum.inl x) (by simp [RootedModel.extendRoot, Fin.posLast]);
       intro hBx;
       apply Model.iff_forces_lift_rank_mem_spectrum.mpr;
@@ -636,7 +586,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
           simp only [R, Set.Finite.mem_toFinset, Set.mem_inter_iff, Finset.coe_range, Set.mem_Iio];
           exact ⟨hlt, hmem⟩;
         exact Model.iff_forces_TBB_neq_rank.mp this rfl;
-    . -- the new root: the reflexive main lemma kills `A`, hence `B`
+    . -- the new root
       have H₁ : 𝗜𝚺₁ ⊢ S.σ (Sum.inr i) 🡒 ∼(S.realization T A) := by
         rw [show (Sum.inr i : (M₁.extendRoot 1).World) = (M₁.extendRoot 1).root.1 by
           congr 1;
@@ -651,7 +601,6 @@ theorem provable_TBBMinus_of_not_subset_LogicS
       (S.realization T (B 🡒 (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α))) := by
     have := left_Udisj_intro _ key;
     cl_prover [this, S.SC4];
-  -- Conclude membership in `L` via letterless independence of the realization.
   intro f;
   have h₃ : U ⊢ (S.realization T (LetterlessFormula.lift (TBBMinus _ hcof) : Formula α)) := by
     have h₁ : U ⊢ (S.realization T B) 🡒
@@ -668,12 +617,7 @@ theorem provable_TBBMinus_of_not_subset_LogicS
   rw [e S.realization] at h₃;
   exact h₃;
 
-/--
-If the provability logic `L` of `T` relative to `U` is not contained in `S`,
-then `L.trace` is cofinite and `L = LogicGLBetaMinus (L.trace) _`.
-
-- [AB05, Lemma 49]
--/
+/-- - [AB05, Lemma 49] -/
 theorem eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS
     (hS : ¬(T.provabilityLogicRelativeTo U : Logic α) ⊆ LogicS) :
     (T.provabilityLogicRelativeTo U : Logic α)
@@ -701,20 +645,12 @@ end
 end
 
 
-/--
-If `TBB n ∈ L` then `n ∈ L.trace`.
--/
 lemma mem_trace_of_provable_TBB {L : Logic α} {n : ℕ} (h : (TBB n : Formula α) ∈ L) :
     n ∈ L.trace := by
   apply Set.mem_iUnion₂.mpr;
   exact ⟨TBB n, h, by rw [Formula.trace_TBB]; simp⟩;
 
-/--
-If the trace of the provability logic of `T` relative to `U` is all of `ℕ`,
-then it contains `LogicA`.
-
-- [AB05, Corollary 50]
--/
+/-- - [AB05, Corollary 50] -/
 theorem subset_LogicA_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     L.trace = Set.univ → LogicGLAlpha Set.univ ⊆ L := by

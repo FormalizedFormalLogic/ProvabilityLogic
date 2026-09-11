@@ -207,8 +207,6 @@ open Model.World
 
 variable {M : Model κ α} {A : Formula α} {l : List M.World}
 
-/-- In an irreflexive transitive model, at most one point on a chain refutes the axiom T
-instance `□A 🡒 A`. -/
 lemma atmost_one_not_forces_axiomT_in_chain [IsTrans _ M.Rel] (l_chain : List.IsChain (· ≺ ·) l) :
     (∀ x ∈ l, x ⊩[_] (□A 🡒 A)) ∨ (∃! x, x ∈ l ∧ ¬(x ⊩[_] (□A 🡒 A))) := by
   apply or_iff_not_imp_left.mpr;
@@ -233,10 +231,6 @@ lemma card_not_forces_axiomT_in_chain [IsTrans _ M.Rel]
   . exact absurd (h a ha.1) ha.2;
   . rw [hu a ha, hu b hb];
 
-/--
-  On a chain in an irreflexive transitive model longer than `Γ.card`, there is a point
-  where the axiom T instance holds for every formula in `Γ`.
--/
 lemma exists_forces_axiomT_set_in_chain [DecidableEq α]
     [IsTrans _ M.Rel] [Std.Irrefl M.Rel] {Γ : FormulaFinset α}
     (l_length : Γ.card < l.length)
@@ -277,10 +271,6 @@ variable {M : RootedModel κ α} {n : ℕ+}
 instance [M.IsFiniteGL] : (M.extendRoot n).IsFiniteGL where
   finite := inferInstance
 
-/--
-  Extending the root by more than `Γ.card` points yields a chain containing a point
-  where the axiom T instance holds for every formula in `Γ`.
--/
 lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
     {Γ : FormulaFinset α} (hn : Γ.card < n) :
     ∃ i : Fin n, ∀ B ∈ Γ, (.inr i : (M.extendRoot n).World) ⊩[(M.extendRoot n).toModel] (□B 🡒 B) := by
@@ -291,8 +281,6 @@ lemma exists_tail_forces_forall_axiomT [DecidableEq α] [M.IsFiniteGL]
     simpa [extendRoot.tail, eq_comm] using hx;
   exact ⟨i, h⟩;
 
-/-- Forcing of the boxdot translation of a formula agrees between every chain point and
-the original root. -/
 lemma tail_forces_boxdotTranslate_iff [IsTrans _ M.Rel] {i : Fin n} {A : Formula α} :
     (.inr i : (M.extendRoot n).World) ⊩[(M.extendRoot n).toModel] (Aᵇ) ↔ M.root.1 ⊩[M.toModel] (Aᵇ) := by
   induction A generalizing i with

@@ -4,9 +4,13 @@ public import ProvabilityLogic.LabelledGentzen.Sequent
 public import Mathlib.Combinatorics.Pigeonhole
 
 /-!
-Labelled sequent calculus `G3KGL` for `GL`, and the pigeonhole argument that makes a
-sequent provable once its relational atoms chain more worlds than there are boxed
+# Labelled sequent calculus for `GL`
+
+The labelled sequent calculus `G3KGL` for `GL`, together with the pigeonhole argument that
+makes a sequent provable once its relational atoms chain more worlds than there are boxed
 formulas available.
+
+## References
 
 - [MPB23, §2.2, §6]
 - [Neg14, Lemma 5.2, Theorem 5.5]
@@ -32,17 +36,13 @@ inductive ProofLabelledGentzen : LabelledSequent α → Type u
 | impR {R ℓΓ ℓΔ x A B} :
     ProofLabelledGentzen (R ⸴ (insert (x ∶ A) ℓΓ) ⟹ˡ (insert (x ∶ B) ℓΔ)) →
     ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A 🡒 B) ℓΔ))
-/-- `L□`: uses an already available successor `y` of `x` (`x R y ∈ R`) to unfold `x : □A`. -/
 | boxL {R ℓΓ ℓΔ} (x y A) (hxy : (x, y) ∈ R := by grind) (hxA : (x ∶ □A) ∈ ℓΓ := by grind) :
     ProofLabelledGentzen (R ⸴ insert (y ∶ A) ℓΓ ⟹ˡ ℓΔ) →
     ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
-/-- `R□^Löb`: introduces a fresh successor `y` of `x`, additionally assuming `y : □A` (the Löb trick). -/
 | boxRLob {R ℓΓ ℓΔ} (x y A) (hfresh : y ∉ (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ).labels := by grind) :
     ProofLabelledGentzen (insert (x, y) R ⸴ insert (y ∶ □A) ℓΓ ⟹ˡ insert (y ∶ A) ℓΔ) →
     ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ insert (x ∶ □A) ℓΔ)
-/-- `Irref`: a reflexive relational atom `x R x` closes any sequent. -/
 | irref {R ℓΓ ℓΔ} (x) (h : (x, x) ∈ R := by grind) : ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
-/-- `Trans`: saturates `R` with the transitive consequence of `x R y` and `y R z`. -/
 | trans {R ℓΓ ℓΔ} (x y z) (hxy : (x, y) ∈ R := by grind) (hyz : (y, z) ∈ R := by grind) :
     ProofLabelledGentzen (insert (x, z) R ⸴ ℓΓ ⟹ˡ ℓΔ) →
     ProofLabelledGentzen (R ⸴ ℓΓ ⟹ˡ ℓΔ)
@@ -92,13 +92,7 @@ def orR : ⊢ˡᵍ[GL]! (R ⸴ ℓΓ ⟹ˡ (insert (x ∶ A) $ insert (x ∶ B) 
   apply negL;
   simpa;
 
-/--
-A *looping* sequent, where the same boxed formula `□A` is attached
-to the antecedent side of `x` and the succedent side of `y` for an accessibility atom
-`x R y`, is derivable outright.
-
-- [Neg14, Lemma 5.2]
--/
+/-- - [Neg14, Lemma 5.2] -/
 def loop (x y z : Label) (A : Formula α)
   (hz : z ∉ (R ⸴ ℓΓ ⟹ˡ ℓΔ).labels)
   (hR : (x, y) ∈ R := by grind)
@@ -199,8 +193,6 @@ namespace ProvableLabelledGentzen
 variable {R : Finset LabelRel} {ℓΓ ℓΔ : Finset (LabelledFormula α)}
          {x y z : Label} {A B : Formula α}
 
-/-- If `y` is reachable from `x` through a nonempty chain of relational atoms in `R`,
-then the relational atom `(x, y)` can be discharged by `Trans`. -/
 lemma of_transGen_insert (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
   : ⊢ˡᵍ[GL] (insert (x, y) R ⸴ ℓΓ ⟹ˡ ℓΔ) → ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   induction h with
@@ -213,21 +205,12 @@ lemma of_transGen_insert (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
     apply wkRel h;
     grind;
 
-/--
-Chain form of the looping lemma: a looping sequent is provable. If there is a nonempty
-chain of relational atoms from `x` to `y`, and the same boxed formula `□A`
-occurs at `x` in the antecedent and at `y` in the succedent, the sequent is provable.
-The single-edge case is `ProvableLabelledGentzen.loop`.
-
-- [Neg14, Lemma 5.2]
--/
 lemma loopChain (h : Relation.TransGen (λ a b => (a, b) ∈ R) x y)
   (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : (y ∶ □A) ∈ ℓΔ := by grind)
   : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
   apply of_transGen_insert h;
   exact loop x y A;
 
-/-- `ReflTransGen` variant of `loopChain`, additionally covering the degenerate case `x = y`. -/
 lemma loopChain' (h : Relation.ReflTransGen (λ a b => (a, b) ∈ R) x y)
   (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : (y ∶ □A) ∈ ℓΔ := by grind)
   : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
@@ -236,7 +219,6 @@ lemma loopChain' (h : Relation.ReflTransGen (λ a b => (a, b) ∈ R) x y)
   . exact loopChain h hx hy;
 
 omit [DecidableEq α] in
-/-- A nonempty chain of relational atoms in `R` yields a `TransGen` step. -/
 lemma transGen_of_isChain {l : List Label} (hl : l ≠ [])
   (hchain : (x :: l).IsChain (λ a b => (a, b) ∈ R))
   : Relation.TransGen (λ a b => (a, b) ∈ R) x (l.getLast hl) := by
@@ -250,12 +232,6 @@ lemma transGen_of_isChain {l : List Label} (hl : l ≠ [])
       rw [List.getLast_cons (by grind)];
       exact Relation.TransGen.head hxb (ih (by grind) hchain);
 
-/--
-`List`-chain form of the looping lemma: `x R y₁, …, yₙ₋₁ R yₙ` with
-`x ∶ □A` in the antecedent and `yₙ ∶ □A` in the succedent.
-
-- [Neg14, Lemma 5.2]
--/
 lemma loopChain_of_isChain {l : List Label} (hl : l ≠ [])
   (hchain : (x :: l).IsChain (λ a b => (a, b) ∈ R))
   (hx : (x ∶ □A) ∈ ℓΓ := by grind) (hy : ((l.getLast hl) ∶ □A) ∈ ℓΔ := by grind)
@@ -268,7 +244,6 @@ section Pigeonhole
 variable {n : ℕ} {xs : Fin (n + 1) → Label}
 
 omit [DecidableEq α] in
-/-- Any segment of a chain `xs 0 R xs 1 R … R xs n` yields a `ReflTransGen` step. -/
 lemma reflTransGen_of_chain (hchain : ∀ i : Fin n, (xs i.castSucc, xs i.succ) ∈ R) (hab : a ≤ b)
   : Relation.ReflTransGen (λ u w => (u, w) ∈ R) (xs a) (xs b) := by
   induction b using Fin.induction with
@@ -280,12 +255,9 @@ lemma reflTransGen_of_chain (hchain : ∀ i : Fin n, (xs i.castSucc, xs i.succ) 
     . exact Relation.ReflTransGen.tail (ih (by grind)) (hchain i);
 
 /--
-Pigeonhole core of the termination argument: suppose that along a chain
-`xs 0 R xs 1 R … R xs n` each edge `i` is generated by a boxed formula `□(f i)`,
-occurring in the succedent at its source `xs i` and in the antecedent at its
-target `xs (i + 1)`, with all `f i` drawn from a finite stock `X`.
-If the chain has more edges than `X` has elements, then some boxed formula
-repeats along the chain and the sequent is provable.
+Pigeonhole core of the termination argument: a chain whose edges are generated by boxed
+formulas drawn from a finite stock `X` repeats one of them once it has more edges than `X`
+has elements, and the sequent is then provable.
 
 - [Neg14, Theorem 5.5]
 -/
@@ -295,8 +267,6 @@ theorem provable_of_long_chain {X : Finset (Formula α)} (hX : X.card < n)
   (hant : ∀ i : Fin n, ((xs i.succ) ∶ □(f i)) ∈ ℓΓ)
   (hsuc : ∀ i : Fin n, ((xs i.castSucc) ∶ □(f i)) ∈ ℓΔ)
   : ⊢ˡᵍ[GL] (R ⸴ ℓΓ ⟹ˡ ℓΔ) := by
-  -- pigeonhole: more edges than elements of `X` forces two edges `i ≠ j` with `f i = f j`;
-  -- whichever of `i.succ`, `j.succ` comes first, `loopChain'` closes the sequent via the repeat
   obtain ⟨i, -, j, -, hne, heq⟩ := Finset.exists_ne_map_eq_of_card_lt_of_maps_to
     (s := (Finset.univ : Finset (Fin n))) (t := X) (by simpa using hX) (λ i _ => hf i);
   wlog hij : i < j;

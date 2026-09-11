@@ -9,11 +9,10 @@ open LogicGL
 
 variable {α : Type u} [DecidableEq α]
 
-/--
-  Sequent calculus for the logic `S` with levels `l : Fin 2`.
-  Level `0` matches `LogicGL.ProofGentzen`; level `1` adds the reflexivity rule `boxL`.
+/-- Level `0` matches `LogicGL.ProofGentzen`; level `1` adds the reflexivity rule `boxL`. Known
+  as `GLSseq` in the source.
 
-  - [KK23, "GLSseq"]
+  - [KK23]
 -/
 inductive LogicS.ProofGentzen : TwoLayeredSequent α → Type u
 | axm (l) (A)      : ProofGentzen ({A} ⟹[l] {A})
@@ -33,7 +32,6 @@ scoped prefix:120 "⊢ᵍ[S]! " => ProofGentzen
 abbrev ProvableGentzen (S : TwoLayeredSequent α) : Prop := Nonempty (⊢ᵍ[S]! S)
 scoped prefix:120 "⊢ᵍ[S] " => ProvableGentzen
 
-/-- Embed a level-0 `LogicGL` proof into level-0 `LogicS`. -/
 def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢ᵍ[S]! (Γ ⟹[0] Δ)
 | .axm A    => .axm 0 A
 | .botL     => .botL 0
@@ -43,7 +41,6 @@ def ofProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[GL]! (Γ ⟹ Δ) → ⊢�
 | .impR h   => .impR (ofProofGentzen h)
 | .boxGL h  => .boxGL (ofProofGentzen h)
 
-/-- Extract a level-0 `LogicGL` proof from level-0 `LogicS`. -/
 def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[0] Δ) → ⊢ᵍ[GL]! (Γ ⟹ Δ)
 | .axm 0 A    => .axm A
 | .botL 0     => .botL
@@ -53,7 +50,6 @@ def toProofGentzen {Γ Δ : FormulaFinset α} : ⊢ᵍ[S]! (Γ ⟹[0] Δ) → �
 | .impR h     => .impR (toProofGentzen h)
 | .boxGL h    => .boxGL (toProofGentzen h)
 
-/-- Level-`0` `LogicS.ProvableGentzen`-provability is exactly (plain, cut-free) `GL`-provability. -/
 theorem iff_provableGentzen_provable_zero {Γ Δ : FormulaFinset α} :
   (⊢ᵍ[GL] (Γ ⟹ Δ)) ↔ (⊢ᵍ[S] (Γ ⟹[0] Δ)) :=
   ⟨λ ⟨h⟩ => ⟨ofProofGentzen h⟩, λ ⟨h⟩ => ⟨toProofGentzen h⟩⟩
@@ -103,14 +99,12 @@ scoped prefix:120 "⊬ᵍ[S] " => (¬ ProvableGentzen ·)
 lemma iff_unprovableGentzen_isEmpty_ProofGentzen {S : TwoLayeredSequent α} : (⊬ᵍ[S] S) ↔ (IsEmpty (⊢ᵍ[S]! S)) := by
   simp [ProvableGentzen];
 
-/-- Initial sequents with side formulas, at any level. -/
 lemma union (l) (A : Formula α) (hΓ : A ∈ Γ := by grind) (hΔ : A ∈ Δ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (wkL (axm l A) (by grind)) (by grind)
 
 lemma union' (l) (A : Formula α) {S : Sequent α} (hΓ : A ∈ S.ant := by grind) (hΔ : A ∈ S.suc := by grind) : ⊢ᵍ[S] (S.ant ⟹[l] S.suc) :=
   union l A hΓ hΔ
 
-/-- `botL` with side formulas, at any level. -/
 lemma botL_mem (l) (h : ⊥ ∈ Γ := by grind) : ⊢ᵍ[S] (Γ ⟹[l] Δ) :=
   wkR (Δ := ∅) (wkL (botL l) (by grind)) (by grind)
 
@@ -127,11 +121,7 @@ lemma not_provableGentzen_of_not_provable_one {Γ Δ : FormulaFinset α} (h : �
 
 end LogicS
 
-/--
-  `LogicS.ProofGentzen` with a level-preserving cut rule.
-
-  - [KK23]
--/
+/-- - [KK23] -/
 inductive LogicS.GentzenWithCutProof : TwoLayeredSequent α → Type u
 | axm (l) (A)      : GentzenWithCutProof ({A} ⟹[l] {A})
 | botL (l)         : GentzenWithCutProof (({⊥} : FormulaFinset α) ⟹[l] ∅)
@@ -166,11 +156,7 @@ namespace GentzenWithCutProvable
 
 variable {S : TwoLayeredSequent α} {Γ Γ' Δ Δ' Γ₁ Γ₂ Δ₁ Δ₂ : FormulaFinset α} {A B : Formula α} {l : Fin 2}
 
-/--
-  Cut-free `LogicS` provability implies `LogicS.GentzenWithCutProof` provability.
-
-  - [KK23, Theorem 3.1]
--/
+/-- - [KK23, Theorem 3.1] -/
 theorem of_without_cut : ⊢ᵍ[S] S → ⊢ᵍᶜ[S] S := λ ⟨h⟩ => ⟨GentzenWithCutProof.ofProofGentzen h⟩
 
 lemma axm (l) (A : Formula α) : ⊢ᵍᶜ[S] ({A} ⟹[l] {A}) := ⟨GentzenWithCutProof.axm l A⟩

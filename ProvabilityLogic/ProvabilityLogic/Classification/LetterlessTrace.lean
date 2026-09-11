@@ -108,10 +108,10 @@ lemma spectrum_finite_or_cofinite : A.spectrum.Finite ∨ A.spectrumᶜ.Finite :
   | imp A B ihA ihB =>
     simp only [spectrum_imp, Set.finite_union];
     rcases ihA with (hA | hA) <;> rcases ihB with (hB | hB);
-    · right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
-    · right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
-    · left; exact ⟨hA, hB⟩;
-    · right; rw [Set.compl_union, compl_compl]; exact hB.inter_of_right _;
+    . right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
+    . right; rw [Set.compl_union, compl_compl]; exact hA.inter_of_left _;
+    . left; exact ⟨hA, hB⟩;
+    . right; rw [Set.compl_union, compl_compl]; exact hB.inter_of_right _;
   | box A ih =>
     by_cases h : spectrum A = Set.univ;
     . grind;
@@ -180,10 +180,6 @@ lemma iff_forces_rank_mem_spectrum : x ⊩[_] A ↔ x.rank ∈ (spectrum A) := b
 lemma iff_not_forces_rank_mem_trace : x ⊮[_] A ↔ x.rank ∈ (trace A) := by
   grind [iff_forces_rank_mem_spectrum];
 
-/--
-  Forcing of a lifted letterless formula is determined by the rank
-  (generalization of `iff_forces_rank_mem_spectrum` to models over arbitrary `α`).
--/
 lemma iff_forces_lift_rank_mem_spectrum
     {α : Type*} {κ : Type*} [Nonempty κ] {M : Model κ α} [Fintype M.World] [M.IsGL]
     {x : M.World} {B : LetterlessFormula} :
@@ -245,7 +241,6 @@ namespace LetterlessFormula
 
 variable {n : ℕ}
 
-/-- A letterless formula's trace is characterized by non-forcing on a `RootedModel` over an arbitrary universe and `α`. -/
 lemma iff_mem_trace_rootedModel {B : LetterlessFormula} :
   n ∈ LetterlessFormula.trace B ↔
   ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL,
@@ -463,9 +458,7 @@ variable
   {T₀ T : FirstOrder.ArithmeticTheory} [ℕ↓[ℒₒᵣ] ⊧* T] [T.Δ₁] [𝗜𝚺₁ ⪯ T]
   {A B : LetterlessFormula}
 
-/-- **Letterless arithmetical completeness**: for a `Σ₁`-sound `Δ₁` extension `T` of
-`𝗜𝚺₁`, a letterless formula belongs to `GL` iff its interpretation under the standard
-provability predicate is provable in `T`. -/
+/-- Letterless arithmetical completeness of `GL`. -/
 lemma letterless_arithmetical_completeness : A ∈ LogicGL ↔ T ⊢ A.interpret T.standardProvability := by
   have hlift : (LetterlessFormula.lift A : Formula Empty) = A := by
     induction A with
@@ -530,11 +523,6 @@ section
 
 variable {α} {X Y : LetterlessFormulaSet} {A : LetterlessFormula}
 
-/--
-  Finite compactness for quasi-normal extensions of `GL` by lifted letterless formula
-  sets, for an arbitrary formula `B`: a provable formula follows in `GL` from the
-  lifted conjunction of a finite subset of the letterless axioms.
--/
 lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
     (hB : B ∈ ((@LogicGL α) +ᴸ ↑X)) :
     ∃ Y : LetterlessFormulaFinset, (∀ C ∈ Y, C ∈ X) ∧
@@ -565,10 +553,6 @@ lemma GL_sumQuasiNormal_finite_provable {X : LetterlessFormulaSet} {B : Formula 
       use Y, hY;
       have := ProvableHilbert.subst (s := s) hGL;
       simpa [LetterlessFormula.subst_lift] using this;
-/--
-  The converse: any formula that follows in `GL` from the lifted conjunction of a
-  finite subset of the letterless axioms belongs to the quasi-normal extension.
--/
 lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formula α}
     {Y : LetterlessFormulaFinset} (hY : ∀ C ∈ Y, C ∈ X)
     (hGL : ((LetterlessFormula.lift (⋀Y) : Formula α) 🡒 B) ∈ LogicGL) :
@@ -598,11 +582,7 @@ lemma GL_sumQuasiNormal_of_finite_provable {X : LetterlessFormulaSet} {B : Formu
           (Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ ProvableHilbert.andIntro) hC) hrest;
   exact Logic.sumQuasiNormal.mdp (Logic.sumQuasiNormal.mem₁ hGL) h₂;
 
-/--
-  Compactness for quasi-normal extensions of `GL` by (lifted) letterless formula sets:
-  a lifted letterless formula is provable iff it follows from a finite subset in `GL`
-  (cf. `Logic.sumQuasiNormal.iff_provable_finite_provable` in Foundation).
--/
+/-- The letterless analogue of `Logic.sumQuasiNormal.iff_provable_finite_provable`. -/
 lemma iff_GL_sumQuasiNormal_provable_finite_provable {X : LetterlessFormulaSet} {A : LetterlessFormula} :
     ↑A ∈ ((@LogicGL α) +ᴸ ↑X) ↔
     ∃ Y : LetterlessFormulaFinset, (∀ B ∈ Y, B ∈ X) ∧ ((⋀Y) 🡒 A) ∈ LogicGL := by
@@ -695,8 +675,8 @@ lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Reg
           have hnj : n ∈ sf j := heq ▸ hn₁;
           exact hC₂ (Set.mem_iInter₂.mp hnj C hj);
         refine ⟨f k, ?_, ?_⟩;
-        · intro D hD; exact fX k hD;
-        · show (⋂ D ∈ f k, spectrum D) ⊆ A.spectrum;
+        . intro D hD; exact fX k hD;
+        . show (⋂ D ∈ f k, spectrum D) ⊆ A.spectrum;
           rw [(show (⋂ D ∈ f k, spectrum D) = sf k from rfl), hk];
           exact h;
       . have htr : (trace A).Finite := LetterlessFormula.iff_regular_trace_finite.mp A_regular;
@@ -730,7 +710,6 @@ lemma iff_GL_sumQuasiNormal_proves_subset_spectrum (hSR : X.Singular T ∨ A.Reg
 
 lemma iff_subset_sumQuasiNormal_subset_spectrum (hSR : X.Regular T ∨ Y.Singular T)
   : ((@LogicGL α) +ᴸ X) ⊆ ((@LogicGL α) +ᴸ Y) ↔ Y.spectrum ⊆ X.spectrum := by calc
-  -- _ ↔ ∀ A ∈ Y, A ∈ ((LogicGL) +ᴸ Y) → A ∈ ((LogicGL) +ᴸ X) := by grind;
   _ ↔ ∀ (A : LetterlessFormula), A ∈ X → ↑A ∈ ((@LogicGL α) +ᴸ Y) := by
     rw [Logic.sumQuasiNormal.iff_subset];
     constructor;
@@ -805,10 +784,9 @@ lemma eq_letterless_GL_quasiNormal_extension_GLBetaMinus_of_singular [DecidableE
   rw [LetterlessFormulaSet.eq_trace_TBBMinus_singleton (by grind)];
   grind;
 
-/--
-  Quasi-normal `GL` extension by letterless formula set `X` is
-  either `LogicGLAlpha X.trace` (when `X` is regular, so `X.trace` is finite) or `LogicGLBetaMinus X.trace` (when `X` is singular, so `X.trace` is cofinite)
--/
+/-- A quasi-normal extension of `GL` by a letterless formula set `X` is either
+`LogicGLAlpha X.trace`, when `X` is regular, or `LogicGLBetaMinus X.trace`, when `X` is
+singular. -/
 theorem classification_letterless_quasiNormal_GL_extension [DecidableEq α] :
   (∃ _ : X.Regular T, ((@LogicGL α) +ᴸ ↑X) = LogicGLAlpha X.trace) ∨
   (∃ _ : X.Singular T, ((@LogicGL α) +ᴸ ↑X) = LogicGLBetaMinus X.trace) := by

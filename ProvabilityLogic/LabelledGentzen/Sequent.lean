@@ -3,7 +3,12 @@ module
 public import ProvabilityLogic.Formula.Basic
 
 /-!
-This file defines the labelled formula `x ∶ A` and the labelled sequent `R ⸴ Γ ⟹ˡ Δ`.
+# Labelled sequents
+
+The labelled formula `x ∶ A` and the labelled sequent `R ⸴ Γ ⟹ˡ Δ`.
+
+## References
+
 - [MPB23, §2.2]
 -/
 
@@ -18,7 +23,7 @@ abbrev Label := ℕ
 /-- A relational atom `x R y` between two world-labels. -/
 abbrev LabelRel := Label × Label
 
-/-- A labelled formula `x : A`: the formula `A` tagged with the world-label `x`. -/
+/-- A labelled formula `x ∶ A`: the formula `A` tagged with the world-label `x`. -/
 structure LabelledFormula (α : Type u) where
   label : Label
   formula : Formula α
@@ -33,7 +38,6 @@ protected def toString [ToString α] (ℓA : LabelledFormula α) : String :=
 
 instance [ToString α] : ToString (LabelledFormula α) := ⟨LabelledFormula.toString⟩
 
-/-- Renaming a labelled formula: replace the label `y` by `z` wherever it occurs. -/
 def relabel (y z : Label) (ℓA : LabelledFormula α) : LabelledFormula α := ⟨if ℓA.label = y then z else ℓA.label, ℓA.formula⟩
 
 omit [DecidableEq α] in
@@ -56,7 +60,7 @@ namespace LabelledSequent
 
 variable {S : LabelledSequent α} {ℓA : LabelledFormula α} {p : LabelRel}
 
-/-- Every world-label occurring in `S`, either in a labelled formula or in a relational atom. -/
+/-- Every world-label occurring in `S`. -/
 @[grind]
 def labels (S : LabelledSequent α) : Finset Label :=
   S.ant.image LabelledFormula.label ∪ S.suc.image LabelledFormula.label ∪ S.rel.image Prod.fst ∪ S.rel.image Prod.snd
@@ -95,7 +99,6 @@ lemma snd_mem_labels_of_mem_rel (h : p ∈ S.rel) : p.2 ∈ S.labels := by
   simp only [labels, Finset.mem_union, Finset.mem_image];
   grind;
 
-/-- Renaming a labelled sequent: replace the label `y` by `z` wherever it occurs. -/
 def relabel (y z : Label) (S : LabelledSequent α) : LabelledSequent α where
   rel := S.rel.image (fun p => (if p.1 = y then z else p.1, if p.2 = y then z else p.2))
   ant := S.ant.image (LabelledFormula.relabel y z)

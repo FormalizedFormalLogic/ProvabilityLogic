@@ -36,11 +36,8 @@ def mdpL_mem (A B) (h₁ : A 🡒 B ∈ Γ := by grind) (h₂ : A ∈ Γ := by g
   . apply union B;
 
 
-/--
-  Invertibility of `impR`. Stated without a membership hypothesis `A 🡒 B ∈ Δ`:
-  when `A 🡒 B ∉ Δ` the statement degenerates to weakening.
--/
--- Proved by structural recursion on the proof.
+/-- Invertibility of `impR`, stated without an `A 🡒 B ∈ Δ` hypothesis: it degenerates to
+weakening when `A 🡒 B ∉ Δ`. -/
 def impRInv (A B : Formula α) {S : Sequent α} : ⊢ᵍ[GL]! S → ⊢ᵍ[GL]! (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B)))
   | .axm C =>
     if h : C = A 🡒 B then by
@@ -69,14 +66,11 @@ def impRInv (A B : Formula α) {S : Sequent α} : ⊢ᵍ[GL]! S → ⊢ᵍ[GL]! 
       exact impR (wkR (wkL ih (by grind)) (by grind));
   | .boxGL π => wkR (wkL (boxGL π))
 
-/-- One direction of the deduction theorem. -/
 def deductionTheorem (π : ⊢ᵍ[GL]! (insert A Γ ⟹ {B})) : ⊢ᵍ[GL]! (Γ ⟹ {A 🡒 B}) := by
   rw [← insert_empty_eq];
   apply impR;
   rwa [insert_empty_eq];
 
-/-- The converse direction of the deduction theorem. -/
--- Proved via `impRInv`.
 def deductionTheoremInv (π : ⊢ᵍ[GL]! (Γ ⟹ {A 🡒 B})) : ⊢ᵍ[GL]! (insert A Γ ⟹ {B}) := by
   have p := impRInv A B π;
   rwa [(show ({A 🡒 B} : FormulaFinset α).erase (A 🡒 B) = ∅ by grind), insert_empty_eq] at p;
@@ -147,24 +141,20 @@ def modalL : ⊢ᵍ[GL]! (∅ ⟹ {□(□A 🡒 A) 🡒 □A}) := by
 
 def nec : ⊢ᵍ[GL]! (∅ ⟹ {A}) → ⊢ᵍ[GL]! (∅ ⟹ {□A}) := λ p => boxGL (Γ := ∅) $ wkL p
 
-/-- Double negation elimination (`Minimal + DNE` primitive). -/
 def dne : ⊢ᵍ[GL]! (∅ ⟹ {∼∼A 🡒 A}) := by
   apply deductionTheorem;
   exact negL (negR (axm A));
 
-/-- Left conjunction elimination. -/
 def andElimL : ⊢ᵍ[GL]! (∅ ⟹ {(A ⋏ B) 🡒 A}) := by
   apply deductionTheorem;
   apply andL;
   apply union A;
 
-/-- Right conjunction elimination. -/
 def andElimR : ⊢ᵍ[GL]! (∅ ⟹ {(A ⋏ B) 🡒 B}) := by
   apply deductionTheorem;
   apply andL;
   apply union B;
 
-/-- Conjunction introduction. -/
 def andIntro : ⊢ᵍ[GL]! (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
@@ -173,21 +163,18 @@ def andIntro : ⊢ᵍ[GL]! (∅ ⟹ {A 🡒 B 🡒 (A ⋏ B)}) := by
   . apply union A;
   . apply union B;
 
-/-- Left disjunction introduction. -/
 def orIntroL : ⊢ᵍ[GL]! (∅ ⟹ {A 🡒 (A ⋎ B)}) := by
   apply deductionTheorem;
   rw [← insert_empty_eq];
   apply orR;
   apply union A;
 
-/-- Right disjunction introduction. -/
 def orIntroR : ⊢ᵍ[GL]! (∅ ⟹ {B 🡒 (A ⋎ B)}) := by
   apply deductionTheorem;
   rw [← insert_empty_eq];
   apply orR;
   apply union B;
 
-/-- Disjunction elimination. -/
 def orElim : ⊢ᵍ[GL]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := by
   apply deductionTheorem;
   apply deductionTheorem;
@@ -195,14 +182,6 @@ def orElim : ⊢ᵍ[GL]! (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) �
   apply orL;
   . apply mdpL_mem A C;
   . apply mdpL_mem B C;
-
-/-
-#eval implyK (A := #0) (B := #1)
-#eval implyS (A := #0) (B := #1) (C := #2)
-#eval elimContra (A := #0) (B := #1)
-#eval modal4 (A := #0)
-#eval modalL (A := #0)
--/
 
 end ProofGentzen
 
@@ -241,7 +220,6 @@ lemma negL (h : ⊢ᵍ[GL] (Γ ⟹ insert A Δ)) : ⊢ᵍ[GL] (insert (∼A) Γ 
 lemma negR (h : ⊢ᵍ[GL] (insert A Γ ⟹ Δ)) : ⊢ᵍ[GL] (Γ ⟹ insert (∼A) Δ) :=
   ⟨ProofGentzen.negR h.some⟩
 
-/-- Introduce `🡘` on the right from both implications. -/
 lemma iffR (h₁ : ⊢ᵍ[GL] (insert A Γ ⟹ {B})) (h₂ : ⊢ᵍ[GL] (insert B Γ ⟹ {A})) : ⊢ᵍ[GL] (Γ ⟹ {A 🡘 B}) := by
   have e : ({A 🡘 B} : FormulaFinset α) = insert ((A 🡒 B) ⋏ (B 🡒 A)) ∅ := by rfl
   rw [e]
@@ -264,10 +242,8 @@ lemma orIntroL : ⊢ᵍ[GL] (∅ ⟹ {A 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIn
 lemma orIntroR : ⊢ᵍ[GL] (∅ ⟹ {B 🡒 (A ⋎ B)}) := ⟨ProofGentzen.orIntroR⟩
 lemma orElim : ⊢ᵍ[GL] (∅ ⟹ {(A 🡒 C) 🡒 (B 🡒 C) 🡒 ((A ⋎ B) 🡒 C)}) := ⟨ProofGentzen.orElim⟩
 
-/-- Invertibility of `impR`. -/
 lemma impR_inv {S : Sequent α} (h : ⊢ᵍ[GL] S) : ⊢ᵍ[GL] (insert A S.ant ⟹ insert B (S.suc.erase (A 🡒 B))) := ⟨h.some.impRInv A B⟩
 
-/-- Deduction theorem. -/
 theorem deduction_theorem : ⊢ᵍ[GL] (insert A Γ ⟹ {B}) ↔ ⊢ᵍ[GL] (Γ ⟹ {A 🡒 B}) :=
   ⟨λ ⟨π⟩ => ⟨π.deductionTheorem⟩, λ ⟨π⟩ => ⟨π.deductionTheoremInv⟩⟩
 
@@ -291,7 +267,6 @@ lemma rec
     rintro S ⟨h⟩;
     induction h <;> grind;
 
-/-- `ProofGentzen` is closed under substitution. -/
 theorem subst (s : Formula.Substitution α α) {S : Sequent α} (h : ⊢ᵍ[GL] S) :
     ⊢ᵍ[GL] (S.ant.image (·⟦s⟧) ⟹ S.suc.image (·⟦s⟧)) := by
   induction h with

@@ -5,6 +5,8 @@ public import ProvabilityLogic.Kripke.Preservation
 public import Mathlib.SetTheory.Cardinal.NatCard
 
 /-!
+# Re-indexing a Kripke model
+
 Transport of a model, and of a rooted model, along an equivalence of its world type. Forcing,
 validity and the `GL`/`GLPoint3` finite model classes are preserved. Specializing the equivalence
 to `Finite.equivFin` presents every finite model as a *concrete* model, one whose worlds are
@@ -28,7 +30,6 @@ def reindex (M : Model κ α) (e : κ ≃ κ') : Model κ' α where
   Rel' x y := M.Rel' (e.symm x) (e.symm y)
   Val' x a := M.Val' (e.symm x) a
 
-/-- `M` and `M.reindex e` are bisimilar via `x ↦ e x`. -/
 def reindexBisimulation (M : Model κ α) (e : κ ≃ κ') : M ⇄ M.reindex e where
   toRel x y := y = e x
   atomic := by
@@ -55,8 +56,8 @@ instance [IsTrans _ M.Rel] : IsTrans _ (M.reindex e).Rel where
 instance [Std.Irrefl M.Rel] : Std.Irrefl (M.reindex e).Rel where
   irrefl := fun x => Std.Irrefl.irrefl (r := M.Rel) (e.symm x)
 
-/-- Finiteness of the worlds transfers along `e`. Not an `instance`: its head would be the bare
-`Finite κ'`, which makes typeclass search loop. -/
+/-- Not an `instance`: its head would be the bare `Finite κ'`, which makes typeclass search
+loop. -/
 lemma finite_reindex [Finite M.World] : Finite (M.reindex e).World := Finite.of_equiv _ e
 
 instance [M.IsFiniteGL] : (M.reindex e).IsFiniteGL where
@@ -67,9 +68,9 @@ instance [M.IsFiniteGLPoint3] : (M.reindex e).IsFiniteGLPoint3 where
   linear := by
     intro x y z hxy hxz;
     rcases Model.linear (M := M) hxy hxz with h | h | h;
-    · exact Or.inl h;
-    · exact Or.inr <| Or.inl <| e.symm.injective h;
-    · exact Or.inr <| Or.inr h;
+    . exact Or.inl h;
+    . exact Or.inr <| Or.inl <| e.symm.injective h;
+    . exact Or.inr <| Or.inr h;
 
 lemma validate_reindex_iff : M.reindex e ⊧ A ↔ M ⊧ A :=
   ⟨fun h x => forces_reindex_iff.mp <| h (e x), fun h _ => forces_reindex_iff'.mpr <| h _⟩

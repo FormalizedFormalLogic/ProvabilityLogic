@@ -13,16 +13,11 @@ open LogicGL
 open scoped FormulaFinset
 
 /--
-Cut-free Gentzen sequent calculus `GrzSeq` for the Grzegorczyk logic `Grz`.
+Cut-free Gentzen sequent calculus `GrzSeq` for the Grzegorczyk logic `Grz`. It adds to the
+propositional rules of `LogicGL.ProofGentzen` the reflexivity rule `boxT` and the box-right
+rule `boxGrz`, the latter without the source's built-in side formulas, which are recovered
+by `wkL`/`wkR` as for `LogicGL.ProofGentzen.boxGL`.
 
-Besides the propositional rules shared with `LogicGL.ProofGentzen`, two modal rules are added:
-- `boxT`: the reflexivity (`T`) rule, allowing `B` to be assumed once `□B` sits in the
-  antecedent.
-- `boxGrz`: the Grz box-right rule. Its conclusion's antecedent must be exactly a boxed
-  finset `□Γ` and its succedent must be exactly the singleton `{□A}`; side formulas are
-  recovered afterwards via `wkL`/`wkR`. The source rule bakes side formulas into the rule
-  itself, but we follow the more economical presentation already used for
-  `LogicGL.ProofGentzen.boxGL`, adding weakening explicitly instead.
 - [SS21, Figure 1]
 - [Avr84, §I]
 -/
@@ -366,14 +361,12 @@ lemma rec
     | boxT h ih => apply boxT ⟨h⟩ ih;
     | boxGrz h ih => apply boxGrz ⟨h⟩ ih;
 
-/-- One direction of the deduction theorem for the cut-full calculus. -/
 theorem deductionTheorem (h : ⊢ᵍᶜ[Grz] (insert A Γ ⟹ {B})) : ⊢ᵍᶜ[Grz] (Γ ⟹ {A 🡒 B}) := by
   rw [(show ({A 🡒 B} : FormulaFinset α) = insert (A 🡒 B) ∅ by grind)];
   apply impR;
   rwa [(show insert B (∅ : FormulaFinset α) = {B} by grind)];
 
-/-- The standard form of the Grz axiom, derived from the boxed `ProofGentzen.modalGrzAux` by a
-cut against the reflexivity axiom. -/
+/-- The Grz axiom in its standard form. -/
 theorem modalGrz {A : Formula α} : ⊢ᵍᶜ[Grz] (∅ ⟹ {□(□(A 🡒 □A) 🡒 A) 🡒 A}) := by
   have h₁ : ⊢ᵍᶜ[Grz] ({□(□(A 🡒 □A) 🡒 A)} ⟹ insert (□A) ∅) := by
     rw [(show insert (□A) (∅ : FormulaFinset α) = {□A} by grind)];

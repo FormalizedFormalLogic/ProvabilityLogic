@@ -5,10 +5,10 @@ public import ProvabilityLogic.ProvabilityLogic.Interpret
 /-!
 # The strong interpretation and the boxdot translation
 
-The strong interpretation of a formula, sending `□A` to
-`(A.strongInterpret f 𝔅) ⋏ 𝔅 (A.strongInterpret f 𝔅)` instead of `𝔅 (A.interpret f 𝔅)`, and its
-equivalence with the interpretation of the boxdot translate. Used by
-`ProvabilityLogic.ProvabilityLogic.Grz.Basic` to establish the arithmetical completeness of `Grz`.
+The strong interpretation `Formula.strongInterpret`, which reads `□A` as `A ⋏ 𝔅 A`, and its
+equivalence with the interpretation of the boxdot translate.
+
+## References
 
 - [Gol78]
 - [Boo80]
@@ -26,8 +26,6 @@ variable {T₀ T : FirstOrder.Theory L} [T₀ ⪯ T] {𝔅 : Provability T₀ T}
 namespace Formula
 
 omit [L.DecidableEq] in
-/-- The strong interpretation sending `□A` to
-`(A.strongInterpret f 𝔅) ⋏ 𝔅 (A.strongInterpret f 𝔅)` instead of `𝔅 (A.interpret f 𝔅)`. -/
 @[grind]
 def strongInterpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 : Provability T₀ T) :
   Formula α → FirstOrder.Sentence L
@@ -38,8 +36,6 @@ def strongInterpret (f : Realization α L) {T₀ T : FirstOrder.Theory L} (𝔅 
 
 variable {f : Realization α L} {A : Formula α}
 
-/-- The interpretation of the boxdot translate of `A` is `T`-provably equivalent to the strong
-interpretation of `A`. -/
 lemma iff_interpret_boxdot_strongInterpret_inside [𝔅.HBL2] :
   T ⊢ (Aᵇ).interpret f 𝔅 🡘 A.strongInterpret f 𝔅 := by
   induction A with
@@ -63,16 +59,12 @@ lemma iff_interpret_boxdot_strongInterpret_inside [𝔅.HBL2] :
         apply 𝔅.mono;
         cl_prover [ih];
 
-/-- `T` proves the interpretation of the boxdot translate of `A` iff it proves the strong
-interpretation of `A`. -/
 lemma iff_interpret_boxdot_strongInterpret [𝔅.HBL2] :
   T ⊢ (Aᵇ).interpret f 𝔅 ↔ T ⊢ A.strongInterpret f 𝔅 := by
   constructor;
   . intro h; exact (C_of_E_mp iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
   . intro h; exact (C_of_E_mpr iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
 
-/-- A model of `T` satisfies the interpretation of the boxdot translate of `A` iff it satisfies
-the strong interpretation of `A`. -/
 lemma iff_models_interpret_boxdot_strongInterpret
   {M} [Nonempty M] [Structure L M] [M↓[L] ⊧* T] [𝔅.HBL2] [𝔅.SoundOn M] :
   M↓[L] ⊧ (Aᵇ).interpret f 𝔅 ↔ M↓[L] ⊧ A.strongInterpret f 𝔅 := by

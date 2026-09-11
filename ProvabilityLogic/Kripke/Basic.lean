@@ -119,9 +119,7 @@ instance [M.IsFiniteGL] : M.IsGL where
 
 instance [M.IsGL] : Std.Irrefl M.Rel := ConverseWellFounded.irrefl
 
-/-- The one-point model with empty accessibility and valuation `v`. It is the smallest finite
-`GL`-model, and being indexed by `Fin 1` it is concrete. This is routine infrastructure with no
-counterpart in the literature. -/
+/-- The one-point model with empty accessibility and valuation `v`. -/
 abbrev pointModel (v : α → Prop) : Model (Fin 1) α where
   Rel' _ _ := False
   Val' _ := v
@@ -131,14 +129,8 @@ instance (v : α → Prop) : (pointModel v).IsFiniteGL where
   irrefl := by tauto;
   finite := inferInstance
 
-/-- A `Grz` frame: reflexive, transitive, and weakly converse well-founded (the converse
-of the irreflexive part of the relation is well-founded). This is the standard semantic
-characterization of `Grz` frames; folklore, mirroring `Model.IsGL` above. -/
 class IsGrz (M : Model κ α) extends Std.Refl M.Rel, IsTrans _ M.Rel, IsWeaklyConverseWellFounded _ M.Rel
 
-/-- A finite `Grz` frame: reflexive, transitive, antisymmetric, and finite. On a finite
-antisymmetric transitive relation, weak converse well-foundedness is automatic, so `IsGrz`
-follows (see the instance below); folklore, mirroring `Model.IsFiniteGL` above. -/
 class IsFiniteGrz (M : Model κ α) extends Std.Refl M.Rel, IsTrans _ M.Rel, Std.Antisymm M.Rel where
   [finite : Finite M.World]
 instance [M.IsFiniteGrz] : Finite M.World := IsFiniteGrz.finite
@@ -251,8 +243,8 @@ lemma forces_substModel {s : Formula.Substitution α α} {A : Formula α} {x : M
   | box A ih =>
     simp only [Formula.subst_box, Model.World.Forces];
     constructor;
-    · intro h y hy; exact ih.mp (h y hy);
-    · intro h y hy; exact ih.mpr (h y hy);
+    . intro h y hy; exact ih.mp (h y hy);
+    . intro h y hy; exact ih.mpr (h y hy);
 
 instance {s : Formula.Substitution α α} [Fintype M.World] : Fintype (M.substModel s).World := ‹Fintype M.World›
 instance {s : Formula.Substitution α α} [h : M.IsGL] : (M.substModel s).IsGL where __ := h
@@ -264,7 +256,6 @@ namespace Model
 
 variable {β : Type*}
 
-/-- Forcing only depends on the model through its frame and valuation. -/
 lemma forces_congr {M₁ M₂ : Model κ α} (hR : M₁.Rel' = M₂.Rel')
     (hV : ∀ x a, M₁.Val' x a ↔ M₂.Val' x a) {A : Formula α} {x : κ} :
     x ⊩[M₁] A ↔ x ⊩[M₂] A := by
@@ -275,10 +266,10 @@ lemma forces_congr {M₁ M₂ : Model κ α} (hR : M₁.Rel' = M₂.Rel')
   | box A ih =>
     simp only [Model.World.Forces];
     constructor;
-    · intro h y hy;
+    . intro h y hy;
       have hy' : M₁.Rel' x y := by rw [hR]; exact hy;
       exact ih.mp (h y hy');
-    · intro h y hy;
+    . intro h y hy;
       have hy' : M₂.Rel' x y := by rw [← hR]; exact hy;
       exact ih.mpr (h y hy');
 
@@ -287,7 +278,6 @@ abbrev mapModel (M : Model κ β) (f : α → β) : Model κ α where
   Rel' := M.Rel'
   Val' x a := M.Val' x (f a)
 
-/-- Forcing a renamed formula is forcing in the pulled-back model. -/
 lemma forces_map {M : Model κ β} {f : α → β} {A : Formula α} {x : M.World} :
     x ⊩[M] A.map f ↔ x ⊩[M.mapModel f] A := by
   induction A generalizing x <;> grind [Model.World.Forces]

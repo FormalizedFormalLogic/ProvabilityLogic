@@ -5,12 +5,12 @@ public import ProvabilityLogic.Gentzen.GL.Maehara
 public import ProvabilityLogic.Kripke.Overwrite
 
 /-!
-# Fixed point theorem for GL via Gentzen-style sequent calculus
+# Fixed point theorem for GL
 
-`LogicGL.fixpointTheorem`: a formula `A` in which the atom `p` is modalized — i.e. occurs only
-within the scope of `□`, `Formula.ModalizedIn` — has a fixed point, unique up to GL-provable
-equivalence. Existence is obtained by extracting the fixed point as a Maehara interpolant in the
-cut-free sequent calculus `ProofGentzen`, and uniqueness semantically via Kripke completeness.
+A formula `A` in which the atom `p` is modalized (`Formula.ModalizedIn`) has a fixed point,
+unique up to GL-provable equivalence: `LogicGL.fixpointTheorem`.
+
+## References
 
 - [SV82, Section 4, Corollary 3.8, Lemma 4.3, Theorem 4.4]
 -/
@@ -30,8 +30,6 @@ section
 
 variable {x : M.World}
 
-/-- If `p` and `q` have the same valuation at `x` and all worlds above `x`,
-then substituting `q` for `p` does not change forcing at `x`. Requires transitivity. -/
 lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) :
     ∀ x : M.World, (∀ w : M.World, (w = x ∨ x ≺ w) → (M.Val w p ↔ M.Val w q)) →
       (x ⊩[_] B⟦p ↦ #q⟧ ↔ x ⊩[_] B) := by
@@ -63,8 +61,6 @@ lemma World.forces_subst_single_iff_of_agree [IsTrans _ M.Rel] (B : Formula α) 
     . intro hf y Rxy
       exact (ih y (hy y Rxy)).mpr (hf y Rxy)
 
-/-- If `p` is modalized in `B` and `p`, `q` agree at all worlds strictly above `x`,
-then substituting `q` for `p` does not change forcing at `x`. -/
 lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula α)
     (h : ∀ w : M.World, x ≺ w → (M.Val w p ↔ M.Val w q)) (hB : B.ModalizedIn p) :
     x ⊩[_] B⟦p ↦ #q⟧ ↔ x ⊩[_] B := by
@@ -92,12 +88,7 @@ lemma World.forces_subst_single_iff_of_agree_succ [IsTrans _ M.Rel] (B : Formula
     . intro hf y Rxy
       exact (forces_subst_single_iff_of_agree A y (hy y Rxy)).mpr (hf y Rxy)
 
-/-- Semantic core of the uniqueness of fixed points:
-if `A 🡘 p` and `A⟦p ↦ q⟧ 🡘 q` hold at `x` and hereditarily above `x`,
-then `p` and `q` agree at `x` and hereditarily above `x`.
-
-- [SV82, Lemma 4.3]
--/
+/-- - [SV82, Lemma 4.3] -/
 lemma World.val_iff_of_fixpoints [M.IsGL] (hA : A.ModalizedIn p)
     (h₁ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩[_] A ↔ M.Val y p))
     (h₂ : ∀ y : M.World, (y = x ∨ x ≺ y) → (y ⊩[_] A⟦p ↦ #q⟧ ↔ M.Val y q)) :
@@ -123,8 +114,6 @@ namespace overwrite
 variable {t : κ} {v : Prop}
 
 omit [DecidableEq α] in
-/-- Forcing of formulas in which `p` is modalized is unchanged at `t` itself.
-Requires transitivity and irreflexivity: `t` is never reachable from itself. -/
 lemma forces_iff_of_modalized [IsTrans _ M.Rel] [Std.Irrefl M.Rel] (B : Formula α)
     (hB : B.ModalizedIn p) :
     t ⊩[M.overwrite t p v] B ↔ t ⊩[M] B := by
@@ -168,10 +157,6 @@ variable {Γ Δ : FormulaFinset α} {A B D E : Formula α} {p q : α}
 - [SV82, Corollary 3.8]
 -/
 
-/-- Antecedent case of removing a modalized atom.
-
-- [SV82, Corollary 3.8]
--/
 theorem remove_modalized_atom_ant
     (hΓ : ∀ C ∈ Γ, C.ModalizedIn p) (hΔ : ∀ C ∈ Δ, C.ModalizedIn p)
     (h : ⊢ᵍ[GL] (insert (#p) Γ ⟹ Δ)) : ⊢ᵍ[GL] (Γ ⟹ Δ) := by
@@ -190,10 +175,6 @@ theorem remove_modalized_atom_ant
     . exact (hM' C (hΓ C hC)).mpr (hant C hC))
   exact hsuc D hD ((hM' D (hΔ D hD)).mp hfD)
 
-/-- Succedent case of removing a modalized atom.
-
-- [SV82, Corollary 3.8]
--/
 theorem remove_modalized_atom_suc
     (hΓ : ∀ C ∈ Γ, C.ModalizedIn p) (hΔ : ∀ C ∈ Δ, C.ModalizedIn p)
     (h : ⊢ᵍ[GL] (Γ ⟹ insert (#p) Δ)) : ⊢ᵍ[GL] (Γ ⟹ Δ) := by
@@ -216,10 +197,6 @@ theorem remove_modalized_atom_suc
 - [SV82, Lemma 4.3]
 -/
 
-/-- Fixed points are unique.
-
-- [SV82, Lemma 4.3]
--/
 theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
     ⊢ᵍ[GL] ({⊡(A 🡘 #p), ⊡((A⟦p ↦ #q⟧) 🡘 #q)} ⟹ {(#p : Formula α) 🡘 #q}) := by
   apply Kripke.completeness
@@ -241,8 +218,7 @@ theorem fixpoint_uniqueness (hA : A.ModalizedIn p) :
     x (.inl rfl)
   grind
 
-/-- Uniqueness for arbitrary formulas `D` and `E` in place of the atoms `p` and `q`. Substituting
-`p ↦ D` before `q ↦ E` is what makes a freshness assumption on `E` unnecessary.
+/-- Uniqueness for arbitrary formulas `D` and `E` in place of the atoms `p` and `q`.
 
 - [SV82, Lemma 4.3]
 -/
@@ -310,8 +286,6 @@ def fixpointPartition (hpq : p ≠ q) (hq : q ∉ A.atoms) :
   Δ_suc := by simp
   Γ_disj := by
     rw [Finset.disjoint_singleton_right]
-    -- `q` occurs in `□((A⟦p ↦ q⟧) 🡘 q)` but not in `#p`, `A`, `□(A 🡘 p)`, as `p ≠ q` and
-    -- `q ∉ A.atoms`
     have hqmem : q ∈ (□((A⟦p ↦ #q⟧) 🡘 #q)).atoms := by simp [Formula.atoms]
     intro hmem
     rcases Finset.mem_insert.mp hmem with h | hmem
@@ -325,7 +299,7 @@ def fixpointPartition (hpq : p ≠ q) (hq : q ∉ A.atoms) :
       exact hqA (hmem ▸ hqmem)
   Δ_disj := by simp
 
-/-- The fixed point of `A`, extracted as the Maehara interpolant of the premise sequent. -/
+/-- The fixed point of `A`, extracted as a Maehara interpolant. -/
 noncomputable def fixpointFormula (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
     Formula α := interpolant (fixpointPartition hpq hq) (fixpoint_premise hA)
 
@@ -338,10 +312,7 @@ lemma fixpointFormula_atoms (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A
     FormulaFinset.atoms_empty, Formula.atoms] at h
   grind [Formula.atoms]
 
-/-- Existence: `fixpointFormula` is a fixed point of `A`.
-
-- [SV82, Theorem 4.4]
--/
+/-- - [SV82, Theorem 4.4] -/
 theorem fixpoint_existence (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.atoms) :
     ⊢ᵍ[GL] ((∅ : FormulaFinset α) ⟹
       {(A⟦p ↦ fixpointFormula hpq hA hq⟧) 🡘 fixpointFormula hpq hA hq}) := by
@@ -349,7 +320,6 @@ theorem fixpoint_existence (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.
   have hD' : interpolant (fixpointPartition hpq hq) (fixpoint_premise hA) = D := by rw [hD]; rfl
   have hpD : p ∉ D.atoms := fun h => by simpa using fixpointFormula_atoms hpq hA hq h
   have hqD : q ∉ D.atoms := fun h => hq (Finset.mem_sdiff.mp (fixpointFormula_atoms hpq hA hq h)).1
-  -- the two halves of the interpolation of `fixpoint_premise` along `fixpointPartition`
   have h₁ : ⊢ᵍ[GL] ((insert (#p) {A, □(A 🡘 #p)}) ⟹ ({D} : FormulaFinset α)) := by
     have := interpolant_provable_ant (P := fixpointPartition hpq hq) (h := fixpoint_premise hA)
     rw [hD'] at this
@@ -422,9 +392,8 @@ theorem fixpoint_unique (hpq : p ≠ q) (hA : A.ModalizedIn p) (hq : q ∉ A.ato
     GentzenWithCutProvable.cut (hbd hE) (by simpa using h₁);
   simpa using h₂;
 
-/-- The fixed point theorem for GL. The witness is the explicit interpolant
-`ProvableGentzen.fixpointFormula`, so the fixed point is obtained effectively; the fresh atom `q`
-serves only as a placeholder in its construction.
+/-- The fixed point theorem for GL. The fresh atom `q` serves only as a placeholder in the
+construction of the witness.
 
 - [SV82, Lemma 4.3, Theorem 4.4]
 -/

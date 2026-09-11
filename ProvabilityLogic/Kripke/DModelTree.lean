@@ -7,28 +7,14 @@ public import Mathlib.Data.Fintype.Option
 /-!
 # Tree realization of pseudo-tail models
 
-ProvabilityLogic's semantics of `LogicD` (`LogicD.provability_TFAE`) produces countermodels of the
-shape `M.toPseudoTail r o`, whereas the simplification machinery (Lemma 8,
-`ProvabilityLogic/Kripke/Simplification.lean`) operates on ω-models of the shape
-`N.graftOmega a` over finite *trees* `N` with `a` *covering* the root. The two
-frame constructions are not isomorphic (the root of a `toPseudoTail` model has a free
-valuation `o` and no lateral cones, while `graftOmega` keeps the base root with
-its valuation and all its cones), so a bridge is needed.
+The **D-model tree** `M.dModelTree r o` is the finite GL tree made of a root (the
+*minimum point* `b`, valuation `o`), a *tail point* `a★` (valuation `M.Val r`),
+and the nonempty `M.Rel`-chains of `M` ordered by proper prefix. The last-element map is
+a pseudo-epimorphism from `(M.dModelTree r o).graftOmega a★` onto `M.toPseudoTail r o`,
+so a `toPseudoTail`-shaped countermodel yields a `graftOmega`-shaped one over a finite
+tree in which the tail point covers the root and there are no lateral cones.
 
-This file provides the bridge: the **D-model tree** `M.dModelTree r o` is the finite
-GL tree consisting of
-
-* a root (the paper's *minimum point* `b`, valuation `o`, seeing everything),
-* a *tail point* `a★` (valuation `M.Val r`, seeing all chains), and
-* the nonempty `M.Rel`-chains of `M` ordered by proper prefix (the "forest
-  unravelling" of `M`, each chain valued by its last element),
-
-and the evident last-element map is a pseudo-epimorphism from
-`(M.dModelTree r o).graftOmega a★` onto `M.toPseudoTail r o` sending root to
-root. Hence any `toPseudoTail`-shaped countermodel yields a `graftOmega`-shaped
-countermodel over a finite tree, in which the tail point covers the root and there
-are **no lateral cones** (every point above the root lies in the tail point's cone) --
-i.e. a *D-model*, as required by the Lemma 9 machinery.
+## References
 
 - [Bek90, Lemma 3, §4]
 -/
@@ -44,9 +30,8 @@ namespace Model
 
 variable (M : Model κ α)
 
-/-- Worlds of the chain forest of `M`: nonempty `M.Rel`-chains, to be ordered by
-proper prefix (the "forest unravelling" of the rootless model `M`, cf.
-`RootedModel.unravelling`). -/
+/-- Worlds of the chain forest of `M`: nonempty `M.Rel`-chains, to be ordered by proper
+prefix. -/
 abbrev chainForest.World : Type _ := { c : List M.World // c ≠ [] ∧ c.IsChain M.Rel }
 
 namespace chainForest
@@ -66,18 +51,16 @@ instance instFinite [M.IsFiniteGL] : Finite (chainForest.World M) := by
 
 end chainForest
 
-/-- Worlds of the D-model tree: `none` is the root (the paper's minimum point `b`),
+/-- Worlds of the D-model tree: `none` is the root (the *minimum point* `b`),
 `some none` is the tail point `a★`, and `some (some c)` are the chains of the forest. -/
 abbrev dModelTree.World : Type _ := Option (Option (chainForest.World M))
 
 instance : Nonempty (dModelTree.World M) := ⟨none⟩
 
 /--
-  The **D-model tree** over `M` with tail valuation at `r` and root valuation `o`:
-  a root `b` (valuation `o`) below a tail point `a★` (valuation `M.Val r`) below the
-  chain forest of `M` (each chain valued by its last element, ordered by proper
-  prefix). Grafting the ω-chain at `a★` realizes `M.toPseudoTail r o` over a finite
-  tree; see `dModelTree.graftOmega_root_forces_iff`.
+  The **D-model tree** over `M` with tail valuation at `r` and root valuation `o`: a root
+  `b` (valuation `o`) below a tail point `a★` (valuation `M.Val r`) below the chain forest
+  of `M`, each chain valued by its last element and ordered by proper prefix.
 -/
 def dModelTree (r : M.World) (o : α → Prop) : RootedModel (dModelTree.World M) α where
   Rel' x y :=
@@ -133,7 +116,6 @@ instance [M.IsFiniteGL] : (M.dModelTree r o).IsFiniteGL where
 
 open Model.World (IsInConeOf IsProperPredecessorOf)
 
-/-- The D-model tree is a tree: the ancestors of any point are linearly ordered. -/
 instance : (M.dModelTree r o).IsTree := by
   constructor;
   rintro (_ | _ | x) (_ | _ | y) (_ | _ | z) hxz hyz <;>
@@ -151,11 +133,9 @@ instance : (M.dModelTree r o).IsTree := by
          . exact Or.inr (Or.inr ⟨h, hl⟩);
          . exact Or.inl (congrArg (some ∘ some) (Subtype.ext (h.eq_of_length hl).symm)));
 
-/-- The tail point lies above the root. -/
 lemma root_rel_tailPoint : (M.dModelTree r o).root.1 ≺ (tailPoint : (M.dModelTree r o).NonRoot).1 :=
   trivial
 
-/-- The tail point covers the root: its only proper predecessor is the root. -/
 lemma tailPoint_covers_root :
   ∀ x : (M.dModelTree r o).World,
   IsProperPredecessorOf (M := (M.dModelTree r o).toModel) x tailPoint.1 →
@@ -166,8 +146,8 @@ lemma tailPoint_covers_root :
   . exact hR.elim;
 
 /--
-The D-model tree has no lateral cones: every point above the root lies in the
-tail point's cone. This is the "D-model" condition (`n = 0`).
+The D-model tree has no lateral cones: every point above the root lies in the tail
+point's cone.
 
 - [Bek90, Lemma 9]
 -/
@@ -193,10 +173,8 @@ lemma last_singletonChain {x : M.World} :
 variable [M.IsFiniteGL]
 
 /--
-  The last-element map is a pseudo-epimorphism from the ω-model grafted on the
-  D-model tree onto the pseudo-tail model: the root `b` goes to the pseudo-tail root
-  ω, the tail point `a★` to `chainPoint 0`, the grafted chain shifts by one, and
-  chains project to their last element.
+  The last-element map is a pseudo-epimorphism from the ω-model grafted on the D-model
+  tree onto the pseudo-tail model.
 -/
 def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
   (o : α → Prop) :
@@ -286,12 +264,7 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
     . show M.Val r q ↔ if (((i : ℕ) + 1 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;
       rw [if_neg (by exact_mod_cast WithTop.coe_ne_top)];
 
-/--
-Root forcing transfers between the ω-model grafted on the D-model tree and the
-pseudo-tail model (model-theoretic core).
-
-- [Bek90, Lemma 3]
--/
+/-- - [Bek90, Lemma 3] -/
 lemma graftOmega_root_forces_iff {C : Formula α} :
   ((M.dModelTree r o).graftOmega tailPoint).root.1 ⊩[((M.dModelTree r o).graftOmega tailPoint).toModel] C ↔
   (M.toPseudoTail r o).root.1 ⊩[(M.toPseudoTail r o).toModel] C :=

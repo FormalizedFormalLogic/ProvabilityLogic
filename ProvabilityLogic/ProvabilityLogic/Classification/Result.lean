@@ -15,6 +15,8 @@ The truth provability logics, i.e. the logics of the form `PL_T(𝗧𝗔)`, are 
 - `PL_T(𝗧𝗔) = LogicA` iff `T` is not `Σ₁`-sound but of infinite characteristic;
 - `PL_T(𝗧𝗔) = LogicGLBetaMinus {n}ᶜ` iff `T` has characteristic `n` (i.e. `T.height = n`).
 
+## References
+
 - [AB05, Corollary 41]
 -/
 
@@ -34,12 +36,7 @@ section univ_trace
 
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
-/--
-  If the provability logic of `T` relative to `U` has trace `ω` and is contained in `S`,
-  then it is one of `LogicA`, `D`, and `S`.
-
-- [Bek90, Assertion 3]
--/
+/-- - [Bek90, Assertion 3] -/
 lemma classification_LogicS_sublogics_of_univ_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     L.trace = Set.univ → L ⊆ LogicS →
@@ -61,7 +58,6 @@ section cofinite_trace
 
 section without_decidableEq
 
-/-- `LogicGLAlpha` is monotone in the trace set. -/
 lemma LogicGLAlpha.mono {X Y : Set ℕ} (h : X ⊆ Y) :
     (LogicGLAlpha X : Logic α) ⊆ LogicGLAlpha Y := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
@@ -72,7 +68,6 @@ end without_decidableEq
 
 section before_decidableEq_var
 
-/-- `LogicS` proves every `TBB n`, as a substitution instance of axiom `T`. -/
 lemma LogicS.provable_TBB {n : ℕ} : (TBB n : Formula α) ∈ LogicS := by
   simpa [TBB, Formula.boxItr, Function.iterate_succ_apply'] using
     LogicS.provable_axiomT (A := (□^[n]⊥ : Formula α));
@@ -83,9 +78,7 @@ section addTBB_before_decidableEq
 
 open LetterlessFormula
 
-/--
-  `U` extended by the standard `T`-interpretations of `TBB n` for `n ∈ N`.
--/
+/-- `U` extended by the standard `T`-interpretations of `TBB n` for `n ∈ N`. -/
 noncomputable abbrev _root_.FFL.FirstOrder.ArithmeticTheory.addTBB
     (T U : FirstOrder.ArithmeticTheory) [T.Δ₁] (N : Set ℕ) : FirstOrder.ArithmeticTheory :=
   U ∪ (N.image (fun n => LetterlessFormula.standardInterpret T (TBB n)))
@@ -94,9 +87,6 @@ section without_T_U_alpha
 
 variable {N : Set ℕ}
 
-/--
-  `U` is weaker than its extension by `TBB` interpretations.
--/
 lemma _root_.FFL.FirstOrder.ArithmeticTheory.addTBB.weakerThan : U ⪯ T.addTBB U N :=
   inferInstance
 
@@ -106,9 +96,6 @@ section
 
 variable {N : Set ℕ}
 
-/--
-  The provability logic only grows when axioms are added to `U`.
--/
 lemma provabilityLogic_subset_addTBB :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
@@ -122,9 +109,6 @@ section only_formula_alpha
 
 variable {N : Set ℕ}
 
-/--
-  The added `TBB` axioms are theorems of the extended provability logic.
--/
 lemma provable_TBB_addTBB_of_mem {n : ℕ} (hn : n ∈ N) :
     (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo (T.addTBB U N) : Logic α) := by
   intro f;
@@ -141,10 +125,6 @@ section
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 variable {N : Set ℕ}
 
-/--
-  Deduction: if `A` is in the provability logic relative to `U` extended with `TBB n` axioms for `n ∈ N` (where `N` is finite), then `⋀TBB(N) 🡒 A` is in the provability logic relative to `U`.
-  Uses the finiteness of `N` and realization-independence of letterless interpretations.
--/
 lemma imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB (hN : N.Finite) :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U N);
@@ -183,7 +163,6 @@ section modal
 
 variable [DecidableEq α]
 
-/-- `LogicGLAlpha X ⊆ LogicGLBetaMinus X` for cofinite `X` (both have trace `X`, and `LogicGLBetaMinus` is the largest). -/
 lemma LogicGLAlpha.subset_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
     (LogicGLAlpha X : Logic α) ⊆ LogicGLBetaMinus X hCf := by
   apply Logic.sumQuasiNormal.iff_subset.mpr;
@@ -203,13 +182,7 @@ lemma LogicGLAlpha.subset_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
   rintro rfl;
   exact hk' hn;
 
-/--
-  `LogicGLAlpha X = LogicA ∩ LogicGLBetaMinus X` for cofinite `X`: the `η`/`ξ` correspondence
-  evaluated at `LogicGLAlpha X`, proved via the finite compactness
-  `GL_sumQuasiNormal_finite_provable` (note `Xᶜ` is finite).
-
-- [AB05, η/ξ correspondence]
--/
+/-- - [AB05, η/ξ correspondence] -/
 lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Finite) :
     (LogicGLAlpha X : Logic α) = LogicA ∩ LogicGLBetaMinus X hCf := by
   apply Set.Subset.antisymm;
@@ -218,7 +191,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
   . rintro A ⟨h₁, h₂⟩;
     obtain ⟨Y₁, hY₁, hGL₁⟩ := GL_sumQuasiNormal_finite_provable h₁;
     obtain ⟨Y₂, hY₂, hGL₂⟩ := GL_sumQuasiNormal_finite_provable h₂;
-    -- Recover the index set of `Y₁` and split it along `X`.
     obtain ⟨N, -, hN_cov⟩ := finite_preimage_choice Y₁ Set.univ TBB
       (fun C hC => by simpa using hY₁ C hC);
     let NX : Finset ℕ := N.filter (· ∈ X);
@@ -229,7 +201,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
       by_cases hnX : n ∈ X;
       . exact Finset.mem_union_left _ (Finset.mem_image_of_mem _ (by simp [NX, hnN, hnX]));
       . exact Finset.mem_union_right _ (Finset.mem_image_of_mem _ (by simp [F, hnX]));
-    -- `⊢ʰ[GL] ⋀TBB(NX) 🡒 ⋀TBB(F) 🡒 ⋀TBB(NX ∪-image F)` at the letterless level.
     have s₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α)
         🡒 A)) := by
       have w₁ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α)
@@ -237,7 +208,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
         simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α)
           (ProvableHilbert.imp_fconj_fconj_of_subset sub₁);
       exact ProvableHilbert.impTrans w₁ hGL₁;
-    -- Merge lemma for finite conjunctions, semantically.
     have merge : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀((NX.image TBB) ∪ (F.image TBB))) : Formula α))) := by
@@ -246,7 +216,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
         apply LogicGL.iff_forces.mpr;
         grind;
       simpa [LetterlessFormula.lift] using ProvableHilbert.lift (α := α) this;
-    -- Compose: `⊢ʰ[GL] ⋀TBB(NX) 🡒 ⋀TBB(F) 🡒 A`.
     have c₂ : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
         🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)) := by
       have t : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
@@ -258,7 +227,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
         apply LogicGL.iff_forces.mpr;
         grind;
       exact ProvableHilbert.mdp (ProvableHilbert.mdp t merge) s₁;
-    -- The `GLβ⁻` axiom gives `⊢ʰ[GL] ∼⋀TBB(F) 🡒 A`.
     have c₃ : (⊢ʰ[GL] ((∼(LetterlessFormula.lift (⋀(F.image TBB)) : Formula α)) 🡒 A)) := by
       have w₂ : (⊢ʰ[GL] ((TBBMinus _ hCf : LetterlessFormula) 🡒 (⋀Y₂ : LetterlessFormula))) := by
         have := ProvableHilbert.imp_fconj_fconj_of_subset
@@ -268,7 +236,6 @@ lemma eq_LogicGLAlpha_inter_LogicA_LogicGLBetaMinus {X : Set ℕ} (hCf : Xᶜ.Fi
           = TBBMinus _ hCf by simp] at this;
       have := ProvableHilbert.impTrans (ProvableHilbert.lift (α := α) w₂) hGL₂;
       simpa [LetterlessFormula.lift, TBBMinus] using this;
-    -- Excluded middle on `⋀TBB(F)` finishes: `⊢ʰ[GL] ⋀TBB(NX) 🡒 A`.
     have final : (⊢ʰ[GL] ((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α) 🡒 A)) := by
       have t₂ : (⊢ʰ[GL] (((LetterlessFormula.lift (⋀(NX.image TBB)) : Formula α)
           🡒 (LetterlessFormula.lift (⋀(F.image TBB)) : Formula α) 🡒 A)
@@ -290,9 +257,6 @@ section
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 variable (hCf : (T.provabilityLogicRelativeTo U : Logic α).traceᶜ.Finite)
 
-/--
-  Adjoining the missing `TBB` axioms yields a provability logic of universal trace.
--/
 lemma trace_univ_addTBB_compl_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
@@ -307,10 +271,6 @@ lemma trace_univ_addTBB_compl_trace :
 variable [DecidableEq α]
 
 include hCf in
-/--
-  If `L ⊆ S`, the extension by the missing `TBB` axioms is still contained in `S`
-  (otherwise it would be inconsistent, contradicting the consistency of `S`).
--/
 lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
@@ -321,7 +281,6 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
     FirstOrder.ArithmeticTheory.addTBB.weakerThan;
   have : 𝗜𝚺₁ ⪯ T.addTBB U (T.provabilityLogicRelativeTo U : Logic α).traceᶜ :=
     Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ U)) hUW;
-  -- By Lemma 49 the extended logic is `GLβ⁻` of its trace `ω`, hence inconsistent.
   have h49 := eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS hS';
   set pf := cofinite_trace_of_not_subset_LogicS hS';
   have hτ : (T.provabilityLogicRelativeTo
@@ -344,7 +303,6 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
       rw [hsp];
       exact Set.empty_subset _;
     exact ProvableHilbert.lift (α := α) hD;
-  -- Deduce `∼⋀TBB(traceᶜ) ∈ L ⊆ S`, while `⋀TBB(traceᶜ) ∈ S`: contradiction with consistency.
   have hded : ((LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α) 🡒 ⊥)
       ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
     imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB hCf hbot;
@@ -377,11 +335,7 @@ lemma subset_LogicS_addTBB_compl_trace_of_subset_LogicS :
     exact Logic.sumQuasiNormal.mdp (LogicS.provable_of_provable_GL hbr) hconj;
   exact LogicS.consistent (Logic.sumQuasiNormal.mdp (hS hded) hC₀S);
 
-/--
-  `L = L'' ∩ LogicGLBetaMinus (L.trace)` where `L''` is the extension of `L` by the missing `TBB` axioms.
-
-- [AB05, η ∘ ξ = id correspondence]
--/
+/-- - [AB05, η ∘ ξ = id correspondence] -/
 lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     letI L' : Logic α := T.provabilityLogicRelativeTo (T.addTBB U L.traceᶜ);
@@ -390,11 +344,9 @@ lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
   . exact Set.subset_inter provabilityLogic_subset_addTBB
       (subset_LogicGLBetaMinus_of_trace_cofinite hCf);
   . rintro A ⟨h₁, h₂⟩;
-    -- From membership in the extension: `⋀TBB(traceᶜ) 🡒 A ∈ L`.
     have d₁ : ((LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α) 🡒 A)
         ∈ (T.provabilityLogicRelativeTo U : Logic α) :=
       imp_fconjTBB_mem_provabilityLogic_of_mem_addTBB hCf h₁;
-    -- From membership in `GLβ⁻`: `∼⋀TBB(traceᶜ) 🡒 A ∈ GL ⊆ L`.
     have d₂ : ((∼(LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α)) 🡒 A)
         ∈ LogicGL := by
       obtain ⟨Y₂, hY₂, hGL₂⟩ := GL_sumQuasiNormal_finite_provable h₂;
@@ -406,7 +358,6 @@ lemma eq_provabilityLogic_inter_addTBB_LogicGLBetaMinus :
           = TBBMinus _ hCf by simp] at this;
       have := ProvableHilbert.impTrans (ProvableHilbert.lift (α := α) w₂) hGL₂;
       simpa [LetterlessFormula.lift, TBBMinus] using this;
-    -- Case split on `⋀TBB(traceᶜ)` in `L`.
     have lem : (((LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α) 🡒 A)
         🡒 ((∼(LetterlessFormula.lift (⋀(hCf.toFinset.image TBB)) : Formula α)) 🡒 A) 🡒 A)
         ∈ LogicGL := by
@@ -419,11 +370,6 @@ end
 
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U] [DecidableEq α]
 
-/--
-  If the provability logic `L` of `T` relative to `U` has cofinite trace and is contained in `S`,
-  then it is one of `LogicGLAlpha L.trace`, `D ∩ LogicGLBetaMinus L.trace`, and `S ∩ LogicGLBetaMinus L.trace`.
-  Obtained from the universal-trace classification by adjoining the missing `TBB` axioms and intersecting back.
--/
 lemma classification_LogicS_sublogics_of_cofinite_trace :
     letI L : Logic α := T.provabilityLogicRelativeTo U;
     ∀ (hCf : L.traceᶜ.Finite), L ⊆ LogicS →
@@ -459,14 +405,7 @@ section
 variable [𝗜𝚺₁ ⪯ T] [𝗜𝚺₁ ⪯ U]
 
 open Classical in
-/--
-  **The classification theorem of provability logics.**
-  Let `L` be the provability logic of `T` relative to `U`.
-  - If `L.trace` is coinfinite, then `L = LogicGLAlpha (L.trace)`.
-  - Otherwise `L.trace` is cofinite (by `Formula.trace_finite_or_cofinite`), and:
-    - if `L ⊄ S`, then `L = LogicGLBetaMinus (L.trace)`;
-    - if `L ⊆ S`, then `L` is one of `LogicGLAlpha (L.trace)`, `D ∩ LogicGLBetaMinus (L.trace)`,
-      and `S ∩ LogicGLBetaMinus (L.trace)`.
+/-- The classification theorem of provability logics.
 
 - [Bek90, Assertion 6]
 - [AB05, Theorem 40]
@@ -499,9 +438,6 @@ section heightTrace
 
 section without_alpha
 
-/--
-  The standard provability predicate of `T` holds in the standard model iff `T` proves it.
--/
 lemma models_standardProvability_iff {σ : ArithmeticSentence} :
     ℕ↓[ℒₒᵣ] ⊧ T.standardProvability σ ↔ T ⊢ σ := by
   constructor;
@@ -510,9 +446,6 @@ lemma models_standardProvability_iff {σ : ArithmeticSentence} :
   . intro h;
     exact models_of_provable inferInstance (T.standardProvability.D1 h);
 
-/--
-  Falsum itself never holds in the standard model.
--/
 lemma not_models_standardProvability_bot :
     ¬ ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[0] ⊥) := by
   simp;
@@ -523,17 +456,11 @@ section
 
 variable [𝗜𝚺₁ ⪯ T]
 
-/--
-  The `(n + 1)`-th iterated standard provability of falsum holds in the standard model iff `T`'s height is at most `n`.
--/
 lemma models_iterate_standardProvability_bot_iff {n : ℕ} :
     ℕ↓[ℒₒᵣ] ⊧ (T.standardProvability^[n + 1] ⊥) ↔ T.height ≤ n := by
   rw [Function.iterate_succ_apply', models_standardProvability_iff];
   exact Provability.height_le_iff_boxBot.symm;
 
-/--
-  The standard interpretation of `TBB n` holds in the standard model iff `T`'s height is not `n`.
--/
 lemma models_standardInterpret_TBB_iff {n : ℕ} :
     ℕ↓[ℒₒᵣ] ⊧ (LetterlessFormula.standardInterpret T (TBB n) : ArithmeticSentence) ↔ T.height ≠ n := by
   have e : LetterlessFormula.standardInterpret T (TBB n)
@@ -558,9 +485,6 @@ lemma models_standardInterpret_TBB_iff {n : ℕ} :
       simp only [Nat.cast_le, ne_eq, Nat.cast_inj];
       omega;
 
-/--
-  `TBB n` is a theorem of the truth provability logic of `T` iff `T`'s height is not `n`.
--/
 lemma mem_provabilityLogicRelativeTo_TA_TBB_iff {n : ℕ} :
     (TBB n : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ↔ T.height ≠ n := by
   have e : ∀ f : Realization α ℒₒᵣ,
@@ -576,17 +500,11 @@ lemma mem_provabilityLogicRelativeTo_TA_TBB_iff {n : ℕ} :
     rw [e f];
     exact Arithmetic.TA.provable_iff.mpr (models_standardInterpret_TBB_iff.mpr h);
 
-/--
-  `n` is in the trace of the truth provability logic of `T` iff `T`'s height is not `n`.
--/
 lemma mem_trace_provabilityLogicRelativeTo_TA_iff {n : ℕ} :
     n ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace ↔ T.height ≠ n := by
   rw [← mem_provabilityLogicRelativeTo_TA_TBB_iff];
   exact ⟨provable_TBB_of_mem_trace, mem_trace_of_provable_TBB⟩;
 
-/--
-  The trace of the truth provability logic of `T` is all of `ℕ` iff `T` has infinite height.
--/
 lemma trace_provabilityLogicRelativeTo_TA_eq_univ_iff [DecidableEq α] [Nonempty α] :
     (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ ↔ T.height = (⊤ : ℕ∞) := by
   rw [Set.eq_univ_iff_forall];
@@ -599,9 +517,6 @@ lemma trace_provabilityLogicRelativeTo_TA_eq_univ_iff [DecidableEq α] [Nonempty
     rw [mem_trace_provabilityLogicRelativeTo_TA_iff, h];
     exact (ENat.natCast_lt_top n).ne';
 
-/--
-  The trace of the truth provability logic of `T` is the complement of `{n}` iff `T` has height `n`.
--/
 lemma trace_provabilityLogicRelativeTo_TA_eq_compl_singleton_iff [DecidableEq α] [Nonempty α]
   {n : ℕ}
   : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = {n}ᶜ ↔ T.height = n := by
@@ -617,9 +532,6 @@ lemma trace_provabilityLogicRelativeTo_TA_eq_compl_singleton_iff [DecidableEq α
 
 end
 
-/--
-  If `T` is `Σ₁`-sound, then the `Σ₁`-reflection instance for `T` is true in the standard model for any `Σ₁` sentence `σ`.
--/
 lemma models_standardProvability_imp_of_soundOnHierarchy [T.SoundOnHierarchy 𝚺 1]
     {σ : ArithmeticSentence} (hσ : FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ) :
     ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ) := by
@@ -627,9 +539,6 @@ lemma models_standardProvability_imp_of_soundOnHierarchy [T.SoundOnHierarchy �
   intro h;
   exact ArithmeticTheory.soundOnHierarchy T 𝚺 1 (models_standardProvability_iff.mp h) hσ;
 
-/--
-  Converse of `models_standardProvability_imp_of_soundOnHierarchy`: if every `Σ₁`-reflection instance for `T` is true in the standard model, then `T` is `Σ₁`-sound.
--/
 lemma soundOnHierarchy_of_models_standardProvability_imp
     (h : ∀ {σ : ArithmeticSentence}, FFL.FirstOrder.Arithmetic.Hierarchy 𝚺 1 σ →
       ℕ↓[ℒₒᵣ] ⊧ ((T.standardProvability σ) 🡒 σ)) :
@@ -642,14 +551,7 @@ section
 
 variable [𝗜𝚺₁ ⪯ T]
 
-/--
-  If `T` is `Σ₁`-sound, then `D` is contained in the truth provability logic of `T`.
-  Mimics the case split on the generators of `D` (`GL`-fragment, axiom `P`, axiom `D`, `mdp`)
-  used for `subset_LogicD_of_ssubset_LogicA_of_univ_trace`, but derives truth in the standard model
-  directly in each case rather than provability in an extended theory.
-
-- [AB05, Corollary 41(ii)]
--/
+/-- - [AB05, Corollary 41(ii)] -/
 lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
     (LogicD : Logic α) ⊆ T.provabilityLogicRelativeTo 𝗧𝗔 := by
   intro A hA;
@@ -675,9 +577,6 @@ lemma LogicD_subset_provabilityLogicRelativeTo_TA [T.SoundOnHierarchy 𝚺 1] :
 
 end
 
-/--
-  `⊥` is never a theorem of the truth provability logic of `T`.
--/
 lemma bot_notMem_provabilityLogicRelativeTo_TA :
     (⊥ : Formula α) ∉ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
   intro h;
@@ -688,10 +587,6 @@ section
 
 variable [𝗜𝚺₁ ⪯ T] [DecidableEq α]
 
-/--
-  If the trace of the truth provability logic of `T` is universal (i.e. all of `ℕ`), then the truth provability logic of `T` is contained in `S`.
-  A truth provability logic outside `S` has a cofinite trace, which when combined with the trace being universal would force `⊥ ∈ L`, contradicting soundness of `𝗧𝗔`.
--/
 lemma provabilityLogicRelativeTo_TA_subset_LogicS_of_trace_eq_univ
     (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = Set.univ) :
     (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS := by
@@ -710,12 +605,7 @@ section
 
 variable [𝗜𝚺₁ ⪯ T]
 
-/--
-  If the truth provability logic of `T` is `D`, then `T` is `Σ₁`-sound.
-  Uses `provable_sigma1_reflection_of_mem_not_LogicA` applied to axiom `D` itself, which lies in `D` but not in `LogicA`.
-
-- [AB05, Corollary 41(ii)]
--/
+/-- - [AB05, Corollary 41(ii)] -/
 lemma soundOnHierarchy_of_eq_provabilityLogicRelativeTo_TA_LogicD [DecidableEq α] [Nonempty α]
     (h : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) = LogicD) :
     T.SoundOnHierarchy 𝚺 1 := by
@@ -740,11 +630,7 @@ end heightTrace
 
 variable [𝗜𝚺₁ ⪯ T]
 
-/--
-  The truth provability logic of a sound theory is `S`.
-
-- [AB05, Corollary 41(i)]
--/
+/-- - [AB05, Corollary 41(i)] -/
 theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒᵣ] ⊧* T] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
     L = LogicS := by
@@ -764,10 +650,9 @@ theorem eq_provabilityLogic_TA_LogicS_of_sound [DecidableEq α] [ℕ↓[ℒₒ�
     exact Set.Subset.antisymm LogicS_subset_LogicD (h ▸ hSL);
   . exact h;
 
-/--
-  For a type of atoms with at least one element, the truth provability logic of `T` is `S` iff `T` is sound.
-  (Some atom is needed for the forward direction: over `Empty` every theory of infinite characteristic
-  has truth provability logic `S`, since all letterless logics between `LogicA` and `S` coincide.)
+/-- `Nonempty α` is needed for the forward direction: over `Empty` every theory of
+infinite characteristic has truth provability logic `S`, since all letterless logics
+between `LogicA` and `S` coincide.
 
 - [AB05, Corollary 41(i)]
 -/
@@ -779,7 +664,6 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
     apply FFL.Semantics.modelsSet_iff.mpr;
     intro φ hφ;
     obtain ⟨p⟩ := ‹Nonempty α›;
-    -- the reflection principle for `T` is true, and axioms of `T` are provable
     have hax : ((□(#p)) 🡒 (#p)) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       rw [h];
       exact LogicS.provable_axiomT;
@@ -793,11 +677,7 @@ theorem eq_provabilityLogic_TA_LogicS_iff [DecidableEq α] [Nonempty α] :
   . intro h;
     exact eq_provabilityLogic_TA_LogicS_of_sound;
 
-/--
-  The truth provability logic of `T` is `D` iff `T` is `Σ₁`-sound but not sound.
-
-- [AB05, Corollary 41(ii)]
--/
+/-- - [AB05, Corollary 41(ii)] -/
 theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
     L = LogicD ↔ (T.SoundOnHierarchy 𝚺 1 ∧ ¬(ℕ↓[ℒₒᵣ] ⊧* T)) := by
@@ -843,11 +723,7 @@ theorem eq_provabilityLogic_TA_LogicD_iff [DecidableEq α] [Nonempty α] :
     . exact h;
     . exact absurd (eq_provabilityLogic_TA_LogicS_iff.mp h) hsound;
 
-/--
-  The truth provability logic of `T` is `LogicA` iff `T` is not `Σ₁`-sound but of infinite characteristic.
-
-- [AB05, Corollary 41(iii)]
--/
+/-- - [AB05, Corollary 41(iii)] -/
 theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
     L = LogicA ↔ (¬(T.SoundOnHierarchy 𝚺 1) ∧ T.height = (⊤ : ℕ∞)) := by
@@ -892,11 +768,7 @@ theorem eq_provabilityLogic_TA_LogicA_iff [DecidableEq α] [Nonempty α] :
       have := hFull;
       exact absurd (inferInstance : T.SoundOnHierarchy 𝚺 1) hSig;
 
-/--
-  The truth provability logic of `T` is `LogicGLBetaMinus {n}ᶜ` iff `T` has characteristic `n`, i.e. `T.height = n`.
-
-- [AB05, Corollary 41(iv)]
--/
+/-- - [AB05, Corollary 41(iv)] -/
 theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     letI L : Logic α := T.provabilityLogicRelativeTo 𝗧𝗔;
     L = LogicGLBetaMinus {n}ᶜ (by simp) ↔ T.height = n := by
@@ -907,7 +779,6 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     rw [mem_trace_provabilityLogicRelativeTo_TA_iff] at hn;
     exact not_not.mp hn;
   . intro hn;
-    -- `∼TBB n` is a theorem of `L`, since `T.height = n` makes `TBB n` false.
     have hnTBB : (∼(TBB n) : Formula α) ∈ (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) := by
       intro f;
       apply Arithmetic.TA.provable_iff.mpr;
@@ -919,8 +790,6 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
         simp only [LetterlessFormula.interpret_lift];
       rw [e] at hcontra;
       exact ((models_standardInterpret_TBB_iff.mp hcontra) hn).elim;
-    -- `L ⊄ S`, otherwise both `TBB n` and `∼TBB n` would be theorems of `S`,
-    -- contradicting the consistency of `S`.
     have hnotS : ¬ ((T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α) ⊆ LogicS) := by
       intro hSub;
       have h1 : (∼(TBB n) : Formula α) ∈ LogicS := hSub hnTBB;
@@ -931,7 +800,6 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
       exact LogicS.consistent
         (Logic.sumQuasiNormal.mdp
           (Logic.sumQuasiNormal.mdp (LogicS.provable_of_provable_GL htaut) h1) h2);
-    -- By Lemma 49, `L = GLβ⁻ L.trace`, and `L.trace = {n}ᶜ` since `T.height = n`.
     have htrace : (T.provabilityLogicRelativeTo 𝗧𝗔 : Logic α).trace = {n}ᶜ := by
       ext m;
       rw [mem_trace_provabilityLogicRelativeTo_TA_iff, hn];
@@ -939,8 +807,8 @@ theorem eq_provabilityLogic_TA_LogicGLBetaMinus_iff [DecidableEq α] {n : ℕ} :
     rw [eq_provabilityLogic_LogicGLBetaMinus_of_not_subset_LogicS hnotS];
     exact LogicGLBetaMinus.congr htrace (cofinite_trace_of_not_subset_LogicS hnotS) (by simp);
 
-/--
-  Every truth provability logic is one of `S`, `D`, `LogicA`, and `LogicGLBetaMinus {n}ᶜ` for some `n`.
+/-- Every truth provability logic is one of `S`, `D`, `LogicA`, and
+`LogicGLBetaMinus {n}ᶜ` for some `n`.
 
 - [AB05, Corollary 41]
 -/

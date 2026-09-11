@@ -23,7 +23,8 @@ lemma provable_axiomWeakPoint2 {A B : Formula α} :
 
 section
 
-/-- Intrinsic definition of `LogicGLPoint2` avoiding `subst` (for `LogicGLPoint2.substlessInduction`). -/
+/-- Intrinsic definition of `LogicGLPoint2` avoiding `subst`, for
+`LogicGLPoint2.substlessInduction`. -/
 protected inductive substless : Logic α
   | provable_GL {A} : A ∈ LogicGL → LogicGLPoint2.substless A
   | axiomWeakPoint2 (A B : Formula α) : LogicGLPoint2.substless ((◇((□A) ⋏ B)) 🡒 □((◇A) ⋎ B))
@@ -88,7 +89,6 @@ variable {α : Type u}
 
 open Model Model.World
 
-/-- Soundness of `LogicGLPoint2` over piecewise convergent GL models. -/
 lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
     [M.IsFiniteGLPoint2] {A : Formula α} (h : A ∈ LogicGLPoint2) : M ⊧ A := by
   induction h using LogicGLPoint2.substlessInduction with
@@ -100,15 +100,13 @@ lemma sound [DecidableEq α] {κ : Type u} [Nonempty κ] {M : Model κ α}
 variable [DecidableEq α] {A B C : Formula α}
 
 omit [DecidableEq α] in
-/-- Transitivity of implication inside `LogicGLPoint2`. -/
 lemma imp_trans (hAB : (A 🡒 B) ∈ @LogicGLPoint2 α) (hBC : (B 🡒 C) ∈ LogicGLPoint2) :
     (A 🡒 C) ∈ LogicGLPoint2 :=
   Logic.sumNormal.imp_trans LogicGL.imp_trans hAB hBC
 
-/-- `□^[2]⊥` is provable in `LogicGLPoint2`. -/
 lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
   show (□□⊥) ∈ @LogicGLPoint2 α;
-  -- `∼□⊥ = □⊥ 🡒 ⊥` definitionally, so the Löb axiom gives `□(∼□⊥) 🡒 □⊥`.
+  -- `∼□⊥` is `□⊥ 🡒 ⊥` definitionally.
   have h₁ : (□(∼□⊥) 🡒 □□⊥) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL <|
       ProvableHilbert.impTrans (ProvableHilbert.modalL (A := ⊥)) ProvableHilbert.modal4;
@@ -137,7 +135,7 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     provable_of_provable_GL (ProvableHilbert.modalL (A := □⊥));
   have h₂ : (◇□⊥ 🡒 □□⊥) ∈ @LogicGLPoint2 α :=
     imp_trans (imp_trans (imp_trans s1 s2) s3) s4;
-  -- `◇□⊥ = ∼□(∼□⊥)` definitionally, so the bridge is a double-negation elimination.
+  -- `◇□⊥` is `∼□(∼□⊥)` definitionally.
   have bridge : (∼◇□⊥ 🡒 □(∼□⊥)) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.dne (A := □(∼□⊥)));
   have T : ((□(∼□⊥) 🡒 □□⊥) 🡒 (◇□⊥ 🡒 □□⊥) 🡒 (∼◇□⊥ 🡒 □(∼□⊥)) 🡒 □□⊥) ∈ @LogicGLPoint2 α := by
@@ -146,13 +144,11 @@ lemma provable_boxboxbot : (□^[2]⊥) ∈ @LogicGLPoint2 α := by
     grind;
   exact Logic.sumNormal.mdp (Logic.sumNormal.mdp (Logic.sumNormal.mdp T h₁) h₂) bridge;
 
-/-- `◇(C ⋏ □C) 🡒 □C` is a `LogicGLPoint2` theorem. -/
 lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
   have hLöb : (□(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) 🡒 □(∼(C ⋏ □C))) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.modalL (A := ∼(C ⋏ □C)));
   have hFour : (□(□C 🡒 □□C)) ∈ @LogicGLPoint2 α :=
     provable_of_provable_GL (ProvableHilbert.nec ProvableHilbert.modal4);
-  -- A K-valid meta-implication absorbing converse well-foundedness into its two GL premises.
   have hMeta : ((□(□(∼(C ⋏ □C)) 🡒 ∼(C ⋏ □C)) 🡒 □(∼(C ⋏ □C))) 🡒 □(□C 🡒 □□C) 🡒 ◇(C ⋏ □C) 🡒 ◇(□⊥ ⋏ C)) ∈ @LogicGLPoint2 α := by
     apply provable_of_provable_GL;
     apply LogicGL.iff_forces.mpr;
@@ -182,13 +178,11 @@ lemma core_diamond : (◇(C ⋏ □C) 🡒 □C) ∈ @LogicGLPoint2 α := by
     grind;
   exact imp_trans (imp_trans h₁ h₂) h₃;
 
-/-- `∼□(⊡A 🡒 B) 🡒 ◇((⊡B 🡒 A) ⋏ □(⊡B 🡒 A))` is valid on all GL models. -/
 lemma weakPoint3_bridge : (∼□(⊡A 🡒 B) 🡒 ◇(⊡B 🡒 A ⋏ □(⊡B 🡒 A))) ∈ @LogicGLPoint2 α := by
   apply provable_of_provable_GL;
   apply LogicGL.iff_forces.mpr;
   grind;
 
-/-- The weak linearity axiom `.3` is provable in `LogicGLPoint2`. -/
 lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ LogicGLPoint2 := by
   have h : (∼□(⊡A 🡒 B) 🡒 □(⊡B 🡒 A)) ∈ LogicGLPoint2 :=
     imp_trans weakPoint3_bridge (core_diamond (C := ⊡B 🡒 A));
@@ -201,7 +195,6 @@ lemma provable_axiomWeakPoint3 : (□(⊡A 🡒 B) ⋎ □(⊡B 🡒 A)) ∈ Log
 end LogicGLPoint2
 
 
-/-- `LogicGLPoint3 ⪯ LogicGLPoint2`: every `LogicGLPoint3` theorem is a `LogicGLPoint2` theorem. -/
 lemma LogicGLPoint3_subset_LogicGLPoint2 [DecidableEq α] :
     LogicGLPoint3 ⊆ (LogicGLPoint2 : Logic α) := by
   intro A h

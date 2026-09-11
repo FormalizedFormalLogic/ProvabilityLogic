@@ -5,14 +5,8 @@ public import ProvabilityLogic.Kripke.Basic
 /-!
 # Overwriting the valuation of a Kripke model at a single world
 
-`Model.overwrite M t p v` is the Kripke model obtained from `M` by overwriting the
-valuation of the atom `p` at the single world `t` with the truth value `v`, leaving
-the frame (accessibility relation) unchanged.
-
-This is a generic Kripke-model construction, reusable beyond any particular logic;
-it was originally introduced ad hoc in `ProvabilityLogic.Logic.GL.Fixedpoint` to give a semantic
-proof of SV82, Corollary 3.8 (removing a modalized atom from a provable sequent), but
-the construction and its basic properties do not depend on GL or on modalized atoms.
+`Model.overwrite M t p v` is the Kripke model obtained from `M` by overwriting the valuation of
+the atom `p` at the single world `t` with the truth value `v`, leaving the frame unchanged.
 -/
 
 @[expose]
@@ -22,8 +16,6 @@ namespace Model
 
 variable [Nonempty κ] {M : Model κ α} {p : α}
 
-/-- The model obtained from `M` by overwriting the valuation of the atom `p`
-at the single world `t` with `v`. The frame is unchanged. -/
 def overwrite (M : Model κ α) (t : κ) (p : α) (v : Prop) : Model κ α where
   Rel' := M.Rel'
   Val' := fun w a => (w = t ∧ a = p ∧ v) ∨ (¬(w = t ∧ a = p) ∧ M.Val' w a)
@@ -52,7 +44,6 @@ lemma val_of_ne_atom {w : κ} {a : α} (h : a ≠ p) :
     (M.overwrite t p v).Val w a ↔ M.Val w a := by
   simp [overwrite, Model.Val, h]
 
-/-- Forcing is unchanged at worlds that neither are `t` nor see `t`. -/
 lemma forces_iff_of_not_rel [IsTrans _ M.Rel] (B : Formula α) :
     ∀ w : κ, w ≠ t → ¬M.Rel w t →
       (w ⊩[M.overwrite t p v] B ↔ w ⊩[M] B) := by

@@ -14,7 +14,6 @@ namespace LogicS
 
 variable [DecidableEq α] {A B : Formula α}
 
-/-- `(A 🡒 B).subfmlsS` equals `A.subfmlsS ∪ B.subfmlsS`. -/
 @[simp, grind =]
 lemma subfmlsS_imp (A B : Formula α) : (A 🡒 B).subfmlsS = A.subfmlsS ∪ B.subfmlsS := by
   unfold Formula.subfmlsS
@@ -22,7 +21,6 @@ lemma subfmlsS_imp (A B : Formula α) : (A 🡒 B).subfmlsS = A.subfmlsS ∪ B.s
   ext C
   simp [FormulaFinset.prebox, Formula.subfmls]
 
-/-- The atoms of `⋀A.subfmlsS` are contained in the atoms of `A`. -/
 @[grind .]
 lemma atoms_fconj_subfmlsS_subset (A : Formula α) : (⋀A.subfmlsS).atoms ⊆ A.atoms := by
   apply subset_trans (FormulaFinset.atoms_conj_subset _)
@@ -31,14 +29,10 @@ lemma atoms_fconj_subfmlsS_subset (A : Formula α) : (⋀A.subfmlsS).atoms ⊆ A
   obtain ⟨_, ⟨C, hC, rfl⟩, hx⟩ := hx
   simp only [Formula.atoms, Finset.mem_union] at hx
   rcases hx with hx | hx
-  · exact Formula.atoms_subset_of_mem_subfmls
+  . exact Formula.atoms_subset_of_mem_subfmls
       (Formula.subfmls_trans Formula.mem_subfmls_box (FormulaFinset.iff_mem_prebox_mem.mp hC)) hx
-  · exact Formula.atoms_subset_of_mem_subfmls (FormulaFinset.iff_mem_prebox_mem.mp hC) hx
+  . exact Formula.atoms_subset_of_mem_subfmls (FormulaFinset.iff_mem_prebox_mem.mp hC) hx
 
-/--
-  Lemma 1 (lifting `A 🡒 B ∈ LogicS` to GL, in reassociated form):
-  `(⋀A.subfmlsS ⋏ A) 🡒 (⋀B.subfmlsS 🡒 B) ∈ LogicGL`.
--/
 lemma provable_reassoc_of_provable_imp (h : (A 🡒 B) ∈ LogicS) :
     (((⋀A.subfmlsS) ⋏ A) 🡒 ((⋀B.subfmlsS) 🡒 B)) ∈ LogicGL := by
   have hGL : (⋀(A 🡒 B).subfmlsS 🡒 (A 🡒 B)) ∈ LogicGL := iff_provable_S_provable_GL.mp h
@@ -48,9 +42,7 @@ lemma provable_reassoc_of_provable_imp (h : (A 🡒 B) ∈ LogicS) :
   exact ProvableHilbert.mdp ProvableHilbert.imp_reassoc hUnion
 
 /--
-  **The interpolant of Logic S's Craig interpolation theorem**: if `A 🡒 B ∈ LogicS`, there is a
-  formula `C` whose atoms are contained in `A.atoms ∩ B.atoms`, such that `A 🡒 C ∈ LogicS` and
-  `C 🡒 B ∈ LogicS`.
+  The Craig interpolant of `A 🡒 B` in `LogicS`, inherited from the one of `LogicGL`.
 
   - [Bek87, Theorem 2]
 -/
@@ -74,13 +66,13 @@ lemma interpolant_provable_suc (h : (A 🡒 B) ∈ LogicS) : (interpolant h 🡒
 lemma interpolant_atoms (h : (A 🡒 B) ∈ LogicS) : (interpolant h).atoms ⊆ A.atoms ∩ B.atoms := by
   have hAtoms := LogicGL.interpolant_atoms (h := provable_reassoc_of_provable_imp h)
   refine hAtoms.trans (Finset.inter_subset_inter ?_ ?_)
-  · simp only [Formula.atoms_and, Finset.union_subset_iff]
+  . simp only [Formula.atoms_and, Finset.union_subset_iff]
     exact ⟨atoms_fconj_subfmlsS_subset A, subset_refl _⟩
-  · simp only [Formula.atoms, Finset.union_subset_iff]
+  . simp only [Formula.atoms, Finset.union_subset_iff]
     exact ⟨atoms_fconj_subfmlsS_subset B, subset_refl _⟩
 
 /--
-  **Craig interpolation property**: `Logic S` has the Craig interpolation property.
+  **`LogicS` has the Craig interpolation property.**
 
   - [Bek87, Theorem 2]
 -/

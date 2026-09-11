@@ -24,7 +24,7 @@ lemma provable_axiomT {A : Formula α} : (□A 🡒 A) ∈ LogicS := Logic.sumQu
 
 section
 
-/-- Intrinsic definition of `LogicS` avoiding `subst` (for `LogicS.substlessInduction`). -/
+/-- Intrinsic definition of `LogicS` avoiding `subst`. -/
 private inductive substless : Logic α
   | provable_GL {A} : A ∈ LogicGL → LogicS.substless A
   | axiomT (A) : LogicS.substless (□A 🡒 A)
@@ -58,7 +58,7 @@ private lemma substless.toLogicS {A : Formula α} (h : LogicS.substless A) : A �
 private lemma substless.ofLogicS {A : Formula α} (h : A ∈ LogicS) : LogicS.substless A :=
   LogicS.substless.eq_LogicS.symm ▸ h
 
-/-- Induction principle for `LogicS` avoiding `subst` (GL part, axiom T, mdp). -/
+/-- Induction principle for `LogicS` avoiding `subst`. -/
 protected lemma substlessInduction
   {motive : (A : Formula α) → A ∈ LogicS → Prop}
   (provable_GL : ∀ {A}, (h : A ∈ LogicGL) → motive A (provable_of_provable_GL h))
@@ -145,10 +145,6 @@ lemma isReflexive_prebox_box_iff_forces_fconj_subfmlsS [DecidableEq α]
   x.IsReflexiveOf (A.subfmls.prebox.box) ↔ x ⊩[_] ⋀A.subfmlsS := by
   simp [Model.World.IsReflexiveOf, forces_fconj, Formula.subfmlsS, FormulaFinset.box]
 
-/--
-  From `GL`-provability of `⋀A.subfmlsS 🡒 A`, the finite set `A.subfmls.prebox.box` witnesses
-  forcing of `∅ ⟹ {A}` at every reflexive world of every `GL`-model.
--/
 lemma exists_isReflexive_forces_of_GL_provable [DecidableEq α]
   (h : (⋀A.subfmlsS 🡒 A) ∈ LogicGL) :
   ∃ X : FormulaFinset α, ∀ {κ : Type v}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsGL] →
@@ -191,9 +187,8 @@ lemma eventually_forces_tail_nat_of_provableGentzen [DecidableEq α]
     (hX ((M.toTail tail).toModel) ⟨toTail.chainPoint (↑n : ℕ∞), hi n hn⟩);
 
 /--
-  GL-characterization of `LogicS`: `S ⊢ A` iff `GL ⊢ ⋀{□B 🡒 B | □B ∈ Sub(A)} 🡒 A`. Also
-  characterized by `LogicS.ProofGentzen`-provability of the level-`1` sequent `∅ ⟹[1] {A}`,
-  the two-level sequent calculus for `S`.
+  Characterizations of `LogicS`: in terms of `GL`, of the two-layered sequent calculus for
+  `S`, and of forcing in tail models of finite `GL` models.
 
   - [KK23]
 -/
@@ -228,8 +223,6 @@ theorem provability_TFAE [DecidableEq α] : [
 theorem iff_provable_S_provable_GL [DecidableEq α] :
     A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
 
-/-- `LogicS`-provability characterized by eventual forcing along the tail-model chain of any
-finite `GL` model, over an arbitrary index type `κ`. -/
 theorem iff_eventually_forces_tail_nat [DecidableEq α] :
     A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
       ∀ (tail : M.World),
@@ -249,18 +242,11 @@ theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
 
 lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
   intro h;
-  -- A theorem of `S` is eventually forced on the chain of the tail model of any finite GL
-  -- model, but `⊥` is forced nowhere; take the one-point GL model with the empty relation.
   obtain ⟨k, hk⟩ :=
     iff_eventually_forces_tail_nat_concrete.mp h 1 (Model.pointModel (fun _ => False)) 0;
   exact hk k le_rfl;
 
-/--
-  `S ⊢ A` iff the level-`1` sequent `∅ ⟹[1] {A}` is provable in `LogicS.ProofGentzen`,
-  the cut-free sequent calculus for `S`.
-
-  - [KK23]
--/
+/-- - [KK23] -/
 theorem iff_provable_provableGentzen [DecidableEq α] :
     A ∈ LogicS ↔ ⊢ᵍ[S] ((∅ : FormulaFinset α) ⟹[1] ({A} : FormulaFinset α)) :=
   provability_TFAE.out 0 1

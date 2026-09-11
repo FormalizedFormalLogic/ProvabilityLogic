@@ -9,9 +9,8 @@ variable {α β γ : Type*}
 
 namespace Formula
 
-/-- A substitution of atoms of `α` by formulas over `β`. The target alphabet `β` may differ
-from the source alphabet `α`, so that a formula over an arbitrary alphabet `α` (e.g. `ℕ`)
-can be turned into a formula over any `β` without `β` needing to carry designated atoms. -/
+/-- A substitution of atoms of `α` by formulas over `β`. The two alphabets may differ, so
+that a formula over a fixed `α` (e.g. `ℕ`) can be transported into any `Formula β`. -/
 abbrev Substitution (α β) := α → Formula β
 
 @[grind]
@@ -46,9 +45,8 @@ attribute [simp, grind =]
 @[simp, grind =] lemma subst_dia : (◇A)⟦s⟧ = ◇(A⟦s⟧) := by grind;
 @[simp, grind =] lemma subst_diaItr {n : ℕ} : (◇^[n]A)⟦s⟧ = ◇^[n](A⟦s⟧) := by induction n generalizing A <;> grind;
 
-/-- Renaming of propositional atoms along a function, as the specialization of `subst`
-where each atom is replaced by the atom obtained via `f`. Reducible, so that the `subst_*`
-simp/grind lemmas apply to `A.map f` without dedicated `map_*` lemmas. -/
+/-- Renaming of propositional atoms along `f`. Reducible, so that the `subst_*` simp/grind
+lemmas apply to `A.map f` without dedicated `map_*` lemmas. -/
 @[reducible] def map (f : α → β) : Formula α → Formula β := subst (fun a => #(f a))
 
 end Formula
@@ -76,8 +74,6 @@ lemma map_id : A.map id = A := by
 
 variable [DecidableEq α] [DecidableEq β]
 
-/-- The atoms of a (generally) substituted formula lie among the atoms introduced by
-substituting each of the original atoms. -/
 lemma atoms_subst_subset : (A⟦s⟧).atoms ⊆ A.atoms.biUnion (fun a => (s a).atoms) := by
   induction A with
   | atom a => simp [atoms];
@@ -97,7 +93,6 @@ lemma atoms_map : (A.map f).atoms = A.atoms.image f := by
   | box B ih => simpa [atoms] using ih;
 
 omit [DecidableEq β] in
-/-- A substitution acting as the identity on the atoms of `A` leaves `A` unchanged. -/
 lemma subst_eq_self_of_forall_atoms {s : Substitution α α} (h : ∀ a ∈ A.atoms, s a = #a) :
     A⟦s⟧ = A := by
   induction A with
@@ -118,7 +113,6 @@ section Single
 
 variable [DecidableEq α] {p q : α} {A B C : Formula α}
 
-/-- The substitution replacing the single atom `p` by `B`. -/
 def Substitution.single (p : α) (B : Formula α) : Substitution α α := fun a => if a = p then B else #a
 
 notation:95 A "⟦" p " ↦ " B "⟧" => Formula.subst (Formula.Substitution.single p B) A
@@ -133,7 +127,6 @@ notation:95 A "⟦" p " ↦ " B "⟧" => Formula.subst (Formula.Substitution.sin
 
 @[simp, grind =] lemma subst_single_atom_of_ne (h : a ≠ p) : (#a)⟦p ↦ B⟧ = #a := by simp [h]
 
-/-- Substituting `p` for itself is the identity. -/
 @[simp, grind =] lemma subst_single_self : A⟦p ↦ #p⟧ = A := subst_eq_self_of_forall_atoms (by grind)
 
 lemma subst_single_eq_self_of_not_mem_atoms (h : p ∉ A.atoms) : A⟦p ↦ B⟧ = A := by
@@ -156,7 +149,6 @@ lemma atoms_subst_single_subset : (A⟦p ↦ B⟧).atoms ⊆ (A.atoms \ {p}) ∪
     . exact ihD.trans (by intro w; simp; grind)
   | box C ih => simpa [atoms] using ih
 
-/-- Routing a substitution through a fresh atom `q` is the same as substituting directly. -/
 lemma subst_single_subst_single (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ B⟧ = A⟦p ↦ B⟧ := by
   induction A with
   | atom a =>
@@ -172,7 +164,6 @@ lemma subst_single_subst_single (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦
     simp only [atoms] at hq;
     simp [ih hq];
 
-/-- Substituting a fresh atom `q` for `p` and then `p` for `q` recovers the formula. -/
 lemma subst_single_cancel (hq : q ∉ A.atoms) : (A⟦p ↦ #q⟧)⟦q ↦ #p⟧ = A := by
   rw [subst_single_subst_single hq, subst_single_self]
 

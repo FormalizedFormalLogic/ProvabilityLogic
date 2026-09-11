@@ -5,12 +5,9 @@ public import Foundation.FirstOrder.Basic.Calculus
 /-!
 # Compactness of first-order provability for theory unions
 
-Corollaries of `Entailment.Compact (Theory L)` (from `Foundation.FirstOrder.Basic.Calculus`)
-for provability from a union of two theories: a proof from `T ∪ U` already follows from `T`
-(resp. `U`) together with a finite conjunction of sentences drawn from `U` (resp. `T`).
-
-Compactness of first-order provability is textbook material; there is no dedicated citation
-for it in `references.bib`.
+Corollaries of `Entailment.Compact (Theory L)` for provability from a union of two
+theories: a proof from `T ∪ U` already follows from `T` (resp. `U`) together with a finite
+conjunction of sentences drawn from `U` (resp. `T`).
 -/
 
 @[expose] public section
@@ -21,8 +18,6 @@ variable {L : Language} [L.DecidableEq] {T U : Theory L}
   [DecidablePred (· ∈ T)] [DecidablePred (· ∈ U)] {φ : Sentence L}
 
 omit [DecidablePred (· ∈ T)] in
-/-- Compactness: a proof from a theory factors through a finite subtheory, presented as a
-finite conjunction implying the goal. -/
 private lemma compact_conj (h : T ⊢ φ) :
   ∃ (s : { s : Finset (Sentence L) // ↑s ⊆ T }), (∅ : Theory L) ⊢ s.1.conj 🡒 φ := by
   obtain ⟨𝓕, h𝓕sub, h𝓕fin, h𝓕⟩ := FFL.Entailment.Compact.finite_provable h;
@@ -37,7 +32,6 @@ private lemma compact_conj (h : T ⊢ φ) :
     FFL.Entailment.Deduction.of_insert!
       (FFL.Entailment.StrongCut.cut! (𝓣 := (↑s : Theory L)) H h𝓕')⟩
 
-/-- Compactness for a theory union, isolating the contribution of `U`. -/
 lemma compact_add_right (h : (T ∪ U) ⊢ φ) :
   ∃ (s : { s : Finset (Sentence L) // ↑s ⊆ U }), T ⊢ s.1.conj 🡒 φ := by
   obtain ⟨⟨s, hsTU⟩, hs⟩ := compact_conj h;
@@ -58,7 +52,6 @@ lemma compact_add_right (h : (T ∪ U) ⊢ φ) :
   apply FFL.Entailment.by_axm;
   simp_all [sT];
 
-/-- Compactness for a theory union, isolating the contribution of `T`. -/
 lemma compact_add_left (h : (T ∪ U) ⊢ φ) :
   ∃ (s : { s : Finset (Sentence L) // ↑s ⊆ T }), U ⊢ s.1.conj 🡒 φ := by
   rw [show (T ∪ U = U ∪ T) from Set.union_comm T U] at h;

@@ -5,8 +5,12 @@ public import ProvabilityLogic.LabelledGentzen.GL.Basic
 public import ProvabilityLogic.Gentzen.GL.Kripke
 
 /-!
-Kripke semantics for the labelled sequent calculus `G3KGL` (`⊢ˡᵍ[GL]`), and its embedding
-to and from the label-free Gentzen calculus for `GL` (`ProvableGentzen`/`⊢ᵍ[GL]`).
+# Kripke semantics for the labelled sequent calculus for `GL`
+
+Kripke semantics for `G3KGL` (`⊢ˡᵍ[GL]`), and its embedding to and from the label-free
+Gentzen calculus for `GL` (`⊢ᵍ[GL]`).
+
+## References
 
 - [Neg14, Definition 5.3, Theorem 5.4]
 -/

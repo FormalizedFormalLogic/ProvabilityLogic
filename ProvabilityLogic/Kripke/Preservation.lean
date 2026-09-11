@@ -168,12 +168,8 @@ section BisimulationUnder
 variable [DecidableEq α]
 
 /--
-  A bisimulation-under-`P`: a bisimulation that is only required to match the
-  valuation on atoms in `P`. Formalizes the notion of "cones `𝒳_a`, `𝒳_y` are
-  `p̄`-isomorphic" ("Removal of a redundant cone"): rather than requiring a literal
-  frame isomorphism, we ask for bisimilarity-under-`P`, the modally correct and more
-  flexible notion that suffices for (and is used directly in) the forcing-preservation
-  argument.
+  A bisimulation-under-`P`: a bisimulation required to match the valuation only on atoms
+  in `P`. This is how "the cones `𝒳_a`, `𝒳_y` are `p̄`-isomorphic" is formalized here.
 
   - [Bek90, §4, item 3, Lemma 6, Lemma 8]
 -/
@@ -204,10 +200,6 @@ def BisimulationUnder.symm (bi : M₁ ⇄[P] M₂) : M₂ ⇄[P] M₁ where
 
 variable {x₁ : M₁.World} {x₂ : M₂.World}
 
-/--
-  A bisimulation-under-`P` forces agreement on every formula whose atoms lie in `P`
-  (the ω-analogue of `World.modal_equivalent_of_bisimilar`).
--/
 lemma World.forces_iff_of_pbisimilar (Bi : M₁ ⇄[P] M₂) (bisx : Bi x₁ x₂) :
     ∀ {A : Formula α}, A.atoms ⊆ P → (x₁ ⊩[M₁] A ↔ x₂ ⊩[M₂] A) := by
   intro A;
@@ -261,13 +253,9 @@ section FrameBisimulation
 
 variable {α₁ α₂ : Type*}
 
-/--
-  A frame bisimulation between `M₁` and `M₂`: a `Bisimulation`-like relation that only
-  needs to respect the accessibility relation (`forth`/`back`) and drops the `atomic`
-  condition, so it makes sense across models `M₁ : Model κ₁ α₁`, `M₂ : Model κ₂ α₂` with
-  different propositional-variable types `α₁`, `α₂`. It records exactly enough structure
-  to preserve forcing of letterless formulas.
--/
+/-- A `Bisimulation` without the `atomic` condition, so that it makes sense across models
+with different propositional-variable types. It preserves forcing of letterless
+formulas. -/
 structure FrameBisimulation (M₁ : Model κ₁ α₁) (M₂ : Model κ₂ α₂) where
   toRel : M₁.World → M₂.World → Prop
   forth {x₁ y₁ : M₁.World} {x₂ : M₂.World} : toRel x₁ x₂ → x₁ ≺ y₁ → ∃ y₂ : M₂.World, toRel y₁ y₂ ∧ x₂ ≺ y₂
@@ -302,10 +290,6 @@ lemma FrameBisimulation.forth_iterate (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x�
     obtain ⟨y₂, bisy, Rz₂y₂⟩ := ih bisz Rz₁y₁;
     exact ⟨y₂, bisy, z₂, Rx₂z₂, Rz₂y₂⟩;
 
-/--
-  A frame bisimulation forces agreement on every letterless formula (the
-  atomic-condition-free analogue of `World.modal_equivalent_of_bisimilar`).
--/
 lemma World.letterless_modal_equivalent_of_frameBisimilar (Bi : M₁ ⇄ᶠ M₂) (bisx : Bi x₁ x₂) :
   ∀ {B : LetterlessFormula}, x₁ ⊩[M₁] (B.lift : Formula α₁) ↔ x₂ ⊩[M₂] (B.lift : Formula α₂) := by
   intro B;
@@ -334,12 +318,8 @@ section FramePseudoEpimorphism
 
 variable {α₁ α₂ : Type*}
 
-/--
-  A frame pseudo-epimorphism from `M₁` to `M₂`: a `PseudoEpimorphism`-like function that
-  only needs to respect the accessibility relation (`forth`/`back`) and drops the
-  `atomic` condition, so it makes sense across models `M₁ : Model κ₁ α₁`,
-  `M₂ : Model κ₂ α₂` with different propositional-variable types `α₁`, `α₂`.
--/
+/-- A `PseudoEpimorphism` without the `atomic` condition, so that it makes sense across
+models with different propositional-variable types. -/
 structure FramePseudoEpimorphism (M₁ : Model κ₁ α₁) (M₂ : Model κ₂ α₂) where
   toFun : M₁.World → M₂.World
   forth {x y : M₁.World} : x ≺ y → toFun x ≺ toFun y

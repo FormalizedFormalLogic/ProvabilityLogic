@@ -16,7 +16,6 @@ def LogicGLPlusBoxBot {α} : ℕ∞ → Logic α
   | .some n => LogicGL +ᴸ □^[n]⊥
   | .none   => LogicGL
 
-/-- `A` is a `LogicGLPlusBoxBot n` theorem iff `□^[n]⊥ 🡒 A` is a `GL` theorem. -/
 @[grind =]
 lemma LogicGLPlusBoxBot.iff_provable_provable_GL {n : ℕ} :
     A ∈ LogicGLPlusBoxBot n ↔ (□^[n]⊥ 🡒 A) ∈ LogicGL := by

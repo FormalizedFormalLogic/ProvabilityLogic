@@ -4,9 +4,11 @@ public import Mathlib.Data.Fintype.List
 public import Foundation.Vorspiel.List.Basic
 
 /-!
-Foundation removed `Foundation.Vorspiel.List.ChainI` as unused code (#866), but the
-Solovay sentence construction in this repository relies on `List.ChainI`. This file
-vendors that removed content.
+# `List.ChainI`
+
+`List.ChainI R x y l` says that `l` enumerates an `R`-chain from `x` to `y`, endpoints
+included, and the lemmas about its decomposition needed by the Solovay sentence
+construction. Vendored from Foundation, which no longer provides it.
 -/
 
 @[expose]
@@ -31,28 +33,28 @@ variable {α : Type*} {R : α → α → Prop}
 
 @[simp] lemma singletob_iff (a b x) : ChainI R a b [x] ↔ a = x ∧ x = b := by
   constructor
-  · rintro ⟨⟩ <;> simp_all
-  · rintro ⟨rfl, rfl⟩; simp [ChainI.singleton]
+  . rintro ⟨⟩ <;> simp_all
+  . rintro ⟨rfl, rfl⟩; simp [ChainI.singleton]
 
 attribute [simp] ChainI.singleton
 
 lemma cons_iff : ChainI R a b (c :: l) ↔ a = c ∧ ChainI R c b (c :: l) := by
   constructor
-  · rintro (_ | _)
-    · simp
+  . rintro (_ | _)
+    . simp
     case cons a' hR h =>
     simp [h.cons hR]
-  · rintro ⟨rfl, _⟩
+  . rintro ⟨rfl, _⟩
     assumption
 
 lemma cons_cons_iff :
     ChainI R a b (c :: d ::  l) ↔ a = c ∧ R c d ∧ ChainI R d b (d :: l) := by
   constructor
-  · rintro ⟨⟩
+  . rintro ⟨⟩
     case cons d' hR hC =>
       rcases cons_iff.mp hC with ⟨rfl, hC⟩
       simp_all
-  · rintro ⟨rfl, hR, hC⟩
+  . rintro ⟨rfl, hR, hC⟩
     exact hC.cons hR
 
 lemma not_mem_of_rel (IR : Std.Irrefl R) (TR : IsTrans α R) {a b x : α} {l : List α} : ChainI R a b l → R x a → x ∉ l := by
@@ -95,10 +97,10 @@ lemma eq_of {l} (h₁ : ChainI R a₁ b₁ l) (h₂ : ChainI R a₂ b₂ l) : a�
   |          [] => simp_all
   |         [i] =>
     rcases h₁
-    · rcases h₂
-      · simp
-      · simp_all
-    · simp_all
+    . rcases h₂
+      . simp
+      . simp_all
+    . simp_all
   | j :: i :: l =>
     rcases h₁; rcases h₂
     case cons h₁ _ _ h₂ =>

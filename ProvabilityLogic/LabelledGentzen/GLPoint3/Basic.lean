@@ -3,9 +3,13 @@ module
 public import ProvabilityLogic.LabelledGentzen.GL.Basic
 
 /-!
-Labelled sequent calculus for `LogicGLPoint3`, extending the calculus for `GL`
-with the linearity rule `Lin`. Original to this formalization, applying the method of
-[Neg14] — read a frame condition off as a structural rule — to weak connectedness.
+# Labelled sequent calculus for `GLPoint3`
+
+The labelled sequent calculus for `LogicGLPoint3`: the calculus for `GL` extended by the
+linearity rule `Lin`. Original to this formalization, obtained by reading weak
+connectedness off as a structural rule, following the method of the reference below.
+
+## References
 
 - [Neg14, §5]
 -/

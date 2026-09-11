@@ -24,7 +24,6 @@ instance : Coe LetterlessFormula (Formula α) := ⟨lift⟩
 
 @[simp, grind =] lemma eq_subst_self : A⟦s⟧ = A := by induction A <;> grind;
 
-/-- Substitution acts trivially on lifted letterless formulas. -/
 @[simp, grind =]
 lemma subst_lift {s : Formula.Substitution α α} : (lift A : Formula α)⟦s⟧ = lift A := by
   induction A <;> grind;
@@ -95,8 +94,7 @@ lemma toLetterless_boxItr_bot {n} : (□^[n]⊥ : Formula α).toLetterless (by g
   | 0 => simp [Formula.boxItr, Formula.toLetterless];
   | n + 1 => simp [Formula.boxItr, Formula.toLetterless, toLetterless_boxItr_bot (n := n)];
 
-/-- Projection of `Formula α` to `LetterlessFormula` collapsing all atoms to `⊥`
-(the "inverse direction" of `LetterlessFormula.lift`). -/
+/-- Projection of `Formula α` to `LetterlessFormula`, collapsing every atom to `⊥`. -/
 def projectEmpty : Formula α → LetterlessFormula
   | .atom _ => ⊥
   | ⊥       => ⊥
