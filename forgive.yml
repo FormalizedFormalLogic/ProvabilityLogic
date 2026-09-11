@@ -1,0 +1,59 @@
+# The axiom audit's allowlist, checked by `just forgive` (`lake exe forgive ProvabilityLogic`).
+#
+# `accept` is what every declaration may reach unconditionally. Each key under `declaration` is
+# either a result this repository still takes on faith or something that depends on one, and its
+# `forgive` list names the unproved results it is allowed to reach through.
+#
+# Entries are checked, not trusted: proving one of these results deletes its entry and every
+# mention of it below, and a new unproved result fails the audit until it is written down here.
+
+version: v0
+
+accept:
+  - propext
+  - Quot.sound
+  - Classical.choice
+
+declaration:
+  # Uniform arithmetical completeness of `GL` — a single realization interpreting exactly the
+  # theorems of `GL` as theorems of `T`. Stated as an `axiom` in `ProvabilityLogic/GL/Uniform.lean`;
+  # not formalized here. [Art86], [JdJ98]
+  LogicGL.uniform_arithmetical_completeness:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGL.uniformRealization:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGL.uniformRealization_spec:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  letterless_provabilityLogic:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicA.eq_provabilityLogicRelativeTo:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGLAlpha.eq_provabilityLogicRelativeTo:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+
+  # The unboundedness theorem: `T + Rfn_Σ₁(T)` does not prove the full local reflection schema.
+  # The reduction of the schema to a finite `Π₂`-extension is still `sorry`; it needs an
+  # arithmetized deduction theorem and a `Σ₁`-truth predicate, neither yet in Foundation.
+  # [AB05, Theorem 23], [KL68]
+  FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+  LogicD.eq_provabilityLogicRelativeTo_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+  LogicD.eq_provabilityLogic_PA_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+
+  # Arithmetical completeness of `D` — the `⊆` half of `PL_T(T + Rfn_Σ₁(T)) = D`. The
+  # `D`-analogue of the Solovay construction it needs is not formalized, so it is still `sorry`.
+  # [AB05, Example 60]
+  LogicD.arithmetical_completeness:
+    forgive:
+      - LogicD.arithmetical_completeness

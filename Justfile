@@ -14,3 +14,7 @@ cloc:
 # Regenerate ProvabilityLogic.lean to include all modules (run after adding/removing files)
 mk-all:
     lake exe mk_all --module
+
+# Audit the axioms every ProvabilityLogic declaration uses against forgive.yml
+forgive:
+    lake exe forgive ProvabilityLogic
