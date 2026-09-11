@@ -1,0 +1,38 @@
+version: v0
+
+accept:
+  - propext
+  - Quot.sound
+  - Classical.choice
+
+declaration:
+  LogicGL.uniform_arithmetical_completeness:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGL.uniformRealization:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGL.uniformRealization_spec:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  letterless_provabilityLogic:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicA.eq_provabilityLogicRelativeTo:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  LogicGLAlpha.eq_provabilityLogicRelativeTo:
+    forgive:
+      - LogicGL.uniform_arithmetical_completeness
+  FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+  LogicD.eq_provabilityLogicRelativeTo_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+  LogicD.eq_provabilityLogic_PA_localReflection:
+    forgive:
+      - FFL.FirstOrder.ArithmeticTheory.unbounded_localReflection
+  LogicD.arithmetical_completeness:
+    forgive:
+      - LogicD.arithmetical_completeness

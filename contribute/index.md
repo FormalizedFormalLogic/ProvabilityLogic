@@ -36,6 +36,14 @@ PRs (title and body) are written in English. Commit messages — subject, body a
 ## Before submitting
 
 - The affected modules build with `lake build`, with no errors or warnings (including remaining `sorry`).
+- The axiom audit passes:
+  ```shell
+  just forgive
+  ```
+  Every declaration under `ProvabilityLogic` may reach only the axioms `forgive.yml` accepts. A
+  result taken on faith needs an entry there naming it, and so does everything that depends on
+  one; conversely, proving such a result means deleting its entry and every mention of it. The
+  audit reads the oleans, so build first. CI runs the same check.
 - Run import-all to keep `ProvabilityLogic.lean` up to date:
   ```shell
   just mk-all

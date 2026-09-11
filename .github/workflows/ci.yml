@@ -150,6 +150,12 @@ jobs:
       - name: Check environment with leanchecker
         run: lake env leanchecker ProvabilityLogic
 
+      # Every declaration under `ProvabilityLogic` must reach only the axioms `forgive.yml`
+      # accepts; the results we still take on faith are listed there by name, so a new one
+      # cannot slip in unannounced. Exits non-zero on a violation or a stale allowlist entry.
+      - name: Audit axioms with forgive
+        run: lake exe forgive ProvabilityLogic
+
       # Re-pack the freshly built oleans and save under the exact primary key. Skipped for PRs from
       # forks (no write access to the base repo's cache); pushes and same-repo PRs refresh the entry.
       - name: Pack project cache
