@@ -1,0 +1,242 @@
+name: Update dependencies
+
+# Every six hours (and on demand) the floating dependency pins are moved to the tip of the
+# branches `lakefile.toml` follows, on a single long-lived branch behind one pull request
+# labelled `update-deps`. Only the pins (and the toolchain they force) move here: whatever the
+# bump breaks is fixed by an agent or a human inside that same pull request, so the branch is
+# built on top of and never rewritten while its pull request is open.
+#
+# Pushes made with `github.token` do not start `ci.yml`, and `main` requires its checks, so the
+# branch and the pull request belong to a GitHub App instead: the organization variable
+# `BOT_APP_ID` and the secret `BOT_APP_PRIVATE_KEY` (contents and pull requests: write; issues:
+# write, for the label). Without them the workflow still runs under `github.token`, and the bump
+# then has no checks until someone pushes to its branch.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+# A run pushes to a shared branch, so runs never overlap; a scheduled run behind a manual one
+# waits rather than dies, because it may carry a newer revision.
+concurrency:
+  group: update-deps
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  BRANCH: update-deps
+  LABEL: update-deps
+  FOUNDATION: FormalizedFormalLogic/Foundation
+  MATHLIB: https://github.com/leanprover-community/mathlib4
+  # The dependencies whose `rev` in `lakefile.toml` is a branch rather than a commit, so that
+  # bumping them is nothing but re-resolving that branch. `Forgive` is deliberately pinned to an
+  # exact commit and is therefore left out; `mathlib` is pinned to the toolchain's tag and moves
+  # with it, so it is named separately where it is needed.
+  FLOATING: Foundation LeanTypst
+
+jobs:
+  update:
+    name: Bump the dependency pins
+    # Nothing to do in a fork, whose pull requests go to its own default branch.
+    if: github.repository == 'FormalizedFormalLogic/ProvabilityLogic'
+    runs-on: ubuntu-latest
+    steps:
+      # An installation token, revoked when the job ends. Skipped, and `github.token` used, where
+      # the app is not installed — a fork, or before the app exists.
+      - name: Mint the app token
+        id: app-token
+        if: vars.BOT_APP_ID != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
+      # Full history: the existing branch is fetched below, and its tip is what the push leases.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token || github.token }}
+
+      # One pull request carries the bump at a time; a second one would race this branch.
+      - name: Find the open pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        run: |
+          set -euo pipefail
+          pr=$(gh pr list --state open --label "$LABEL" --limit 1 --json number,headRefName)
+          number=$(echo "$pr" | jq -r '.[0].number // ""')
+          head=$(echo "$pr" | jq -r '.[0].headRefName // ""')
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "head=${head:-$BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "found the pull request: ${number:-none} (branch ${head:-$BRANCH})"
+
+      # An open pull request's branch is built on top of, never rewritten: the fixes pushed for
+      # the previous bump live there. Without one, the branch restarts from `main`.
+      - name: Prepare the branch
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_REF: ${{ steps.pr.outputs.head }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PR_NUMBER" ]; then
+            git fetch origin "+refs/heads/$HEAD_REF:refs/remotes/origin/$HEAD_REF"
+            git switch --force-create "$HEAD_REF" "origin/$HEAD_REF"
+          else
+            git switch --force-create "$BRANCH" origin/main
+          fi
+
+      # `lean-toolchain` has to equal Foundation's, and is taken before lake runs, so that lake
+      # runs under the toolchain it is resolving for.
+      #
+      # The mathlib pin has to move with it. `lakefile.toml` requires mathlib explicitly, by the
+      # `v4.x.y` tag built for `leanprover/lean4:v4.x.y`, both to keep `lake exe cache get` able
+      # to fetch mathlib's oleans and to keep mathlib's ProofWidgets pin winning over the one
+      # LeanTypst requires; a pin left behind at the old toolchain is exactly that mismatch. But
+      # mathlib only tags a release once it exists, so a toolchain without a matching tag (a
+      # release candidate, say) leaves the pin alone: the bump then fails visibly in CI, inside
+      # the pull request, rather than being silently mis-pinned here.
+      - name: Take Foundation's toolchain and realign the mathlib pin
+        id: toolchain
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://raw.githubusercontent.com/$FOUNDATION/master/lean-toolchain" -o lean-toolchain
+          toolchain=$(cat lean-toolchain)
+          tag=${toolchain#leanprover/lean4:}
+          echo "the toolchain is $toolchain"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if ! git ls-remote --exit-code --tags "$MATHLIB" "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "::warning::mathlib has no \`$tag\` tag yet; its pin is left untouched"
+            exit 0
+          fi
+          python3 - "$tag" <<'PY'
+          import pathlib, re, sys
+          tag = sys.argv[1]
+          path = pathlib.Path('lakefile.toml')
+          text = path.read_text()
+          # The one `rev` that follows `name = "mathlib"` within the same `[[require]]` block.
+          new, n = re.subn(
+              r'(name = "mathlib"\n(?:[^\[\n][^\n]*\n)*?\s*rev = ")[^"]*(")',
+              lambda m: m.group(1) + tag + m.group(2),
+              text,
+          )
+          if n != 1:
+              raise SystemExit(f'expected exactly one mathlib rev in lakefile.toml, matched {n}')
+          path.write_text(new)
+          print(f'the mathlib pin is now {tag}')
+          PY
+
+      - name: Install elan
+        uses: leanprover/lean-action@v1
+        with:
+          build: false
+          use-github-cache: false
+
+      # Only the packages named here are re-resolved, and that is the point: a bare `lake update`
+      # would also drag every inherited dependency (ProofWidgets, aesop, batteries, …) off the
+      # revisions mathlib pins, and a ProofWidgets that disagrees with mathlib's makes
+      # `lake exe cache get` compute wrong hashes and refuse to fetch mathlib's oleans. Naming the
+      # roots instead re-resolves them in `lakefile.toml`'s order, so mathlib — required last —
+      # still wins those conflicts. mathlib is named too, because the pin edited above only takes
+      # effect once it is resolved; on an unchanged toolchain that resolution is a no-op.
+      - name: Update the manifest
+        id: deps
+        run: |
+          set -euo pipefail
+          pin() { jq -r --arg n "$1" '.packages[] | select(.name == $n) | .rev' lake-manifest.json; }
+          # The `.git` suffix would otherwise end up inside the compare link.
+          url() { jq -r --arg n "$1" '.packages[] | select(.name == $n) | .url' lake-manifest.json | sed 's/\.git$//'; }
+          declare -A before
+          for name in $FLOATING mathlib; do before[$name]=$(pin "$name"); done
+          # `$FLOATING` is a list of package names and is meant to split into arguments here.
+          # shellcheck disable=SC2086
+          lake update $FLOATING mathlib
+          # One entry per dependency that actually moved: the subject lists them for the commit,
+          # the body links the comparison so the bump can be read before it is trusted.
+          subject=''
+          body=''
+          for name in $FLOATING mathlib; do
+            old=${before[$name]}
+            new=$(pin "$name")
+            if [ "$old" = "$new" ]; then
+              continue
+            fi
+            subject="${subject:+$subject, }$name to \`${new:0:7}\`"
+            body="$body- \`$name\` at \`$new\` ([compare]($(url "$name")/compare/$old...$new))"$'\n'
+            echo "$name moved from $old to $new"
+          done
+          echo "subject=$subject" >> "$GITHUB_OUTPUT"
+          {
+            echo 'body<<PINS'
+            printf '%s' "$body"
+            echo PINS
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        id: push
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_REF: ${{ steps.pr.outputs.head }}
+          SUBJECT: ${{ steps.deps.outputs.subject }}
+          TAG: ${{ steps.toolchain.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # The commit is attributed to the identity that pushes it, whose noreply address is
+          # built from the bot account's user id.
+          author=${APP_SLUG:+${APP_SLUG}[bot]}
+          author=${author:-github-actions[bot]}
+          git config user.name "$author"
+          git config user.email "$(gh api "/users/${author//\[bot\]/%5Bbot%5D}" --jq .id)+$author@users.noreply.github.com"
+          if git diff --quiet -- lakefile.toml lake-manifest.json lean-toolchain; then
+            echo "the pins did not move; nothing to push"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A toolchain can move on its own — Foundation's tip may already sit on a new one while
+          # every pin this repository follows stays put — so the subject falls back to it.
+          subject="Update ${SUBJECT:-toolchain to \`$TAG\`}"
+          # `chore`, per contribute/index.md: the pins are maintenance, and the squash-merge makes
+          # this title the commit message on `main`.
+          echo "title=chore(deps): $subject" >> "$GITHUB_OUTPUT"
+          git commit -m "chore(deps): $subject" -- lakefile.toml lake-manifest.json lean-toolchain
+          if [ -n "$PR_NUMBER" ]; then
+            # Never a rewrite: the branch carries the fixes pushed for the previous bump.
+            git push origin "HEAD:refs/heads/$HEAD_REF"
+          else
+            # No pull request points at the branch, so a leftover one is replaced, against the
+            # tip fetched at checkout.
+            git push --force-with-lease origin "HEAD:$BRANCH"
+          fi
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      # The title becomes the commit subject on `main`, so it names what actually landed.
+      - name: Open or refresh the pull request
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          TITLE: ${{ steps.push.outputs.title }}
+          PINS: ${{ steps.deps.outputs.body }}
+          TAG: ${{ steps.toolchain.outputs.tag }}
+        run: |
+          set -euo pipefail
+          toolchain=$(cat lean-toolchain)
+          body=$(cat <<EOF
+          Moves the dependency pins this repository follows:
+
+          ${PINS:-(no pin moved)}
+          - toolchain \`$toolchain\`, taken from [Foundation](https://github.com/$FOUNDATION/blob/master/lean-toolchain); the explicit \`mathlib\` requirement in \`lakefile.toml\` follows it at \`$TAG\`.
+
+          Opened by \`.github/workflows/update-deps.yml\`, which moves the pins only. Anything the bump breaks is fixed in this same pull request, on this same branch: the workflow adds commits to it and never rewrites it. This body is rewritten on every run; leave notes in a comment.
+          EOF
+          )
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr edit "$PR_NUMBER" --title "$TITLE" --body "$body"
+          else
+            gh pr create --base main --head "$BRANCH" --label "$LABEL" --title "$TITLE" --body "$body"
+          fi
