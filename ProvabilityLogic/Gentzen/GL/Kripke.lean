@@ -3,7 +3,7 @@ module
 public import ProvabilityLogic.Kripke.Basic
 public import ProvabilityLogic.Gentzen.GL.Basic
 public import Mathlib.Data.Finset.Powerset
-public import Mathlib.Data.Finite.Prod
+public import Mathlib.Basic.Finite.Prod
 
 @[expose]
 public section

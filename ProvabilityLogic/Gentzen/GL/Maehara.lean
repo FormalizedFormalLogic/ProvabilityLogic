@@ -434,8 +434,8 @@ theorem interpolant_provable_suc (P : PartitionOf S) (p : ⊢ᵍ[GL]! S) :
   | botL =>
     show ⊢ᵍ[GL] (insert (if ⊥ ∈ P.Γ₁ then ⊥ else ⊤) P.Γ₂ ⟹ P.Δ₂)
     by_cases h : ⊥ ∈ P.Γ₁
-    . rw [if_pos h]; exact ProvableGentzen.botL_mem (by grind)
-    . rw [if_neg h]
+    . rw [ite_eq_left h]; exact ProvableGentzen.botL_mem (by grind)
+    . rw [ite_eq_right h]
       have hΓ : ({⊥} : FormulaFinset α) = P.Γ₁ ∪ P.Γ₂ := P.Γ_ant
       have h₂ : ⊥ ∈ P.Γ₂ := by
         have hmem : ⊥ ∈ P.Γ₁ ∪ P.Γ₂ := hΓ ▸ Finset.mem_singleton_self _

@@ -3,7 +3,7 @@ module
 public import Mathlib.Data.Fintype.Card
 public import Mathlib.Data.Finset.Lattice.Fold
 public import Mathlib.Data.PNat.Basic
-public import Mathlib.Data.Rel
+public import Mathlib.Basic.Rel
 
 /-!
 # Converse well-founded relations

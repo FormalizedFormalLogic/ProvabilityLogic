@@ -3,7 +3,7 @@ module
 public import ProvabilityLogic.Kripke.RootedModel
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import Foundation.Vorspiel.Finset.Card
-public import Mathlib.Data.Finite.Sum
+public import Mathlib.Basic.Finite.Sum
 
 @[expose]
 public section

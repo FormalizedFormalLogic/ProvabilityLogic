@@ -290,12 +290,12 @@ lemma truthlemma_chainPoint (hbox : ∀ {A : Formula α}, □A ∈ t.1.1 → A �
     constructor
     . intro h
       show (if ((n : ℕ∞) = (⊤ : ℕ∞)) then o a else _)
-      rw [if_neg (by simp)]
+      rw [ite_eq_right (by simp)]
       exact h
     . intro h hf
       revert hf
       show (if ((n : ℕ∞) = (⊤ : ℕ∞)) then o a else _) → False
-      rw [if_neg (by simp)]
+      rw [ite_eq_right (by simp)]
       exact fun hf => ExpandedSequent.not_mem_both ⟨hf, h⟩
   | bot =>
     constructor
@@ -433,7 +433,7 @@ theorem sequent_TFAE {Γ Δ : FormulaFinset α} : [
 namespace ProvableGentzen
 
 theorem of_with_cut {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[D] (Γ ⟹[2] Δ)) : ⊢ᵍ[D] (Γ ⟹[2] Δ) :=
-  (sequent_TFAE.out 0 1).mp h
+  (sequent_TFAE.out 1 2).mp h
 
 end ProvableGentzen
 
