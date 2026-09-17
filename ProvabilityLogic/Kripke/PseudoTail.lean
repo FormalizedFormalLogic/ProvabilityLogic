@@ -178,7 +178,7 @@ lemma root_forces_iff_forces_nat [DecidableEq α] {M : RootedModel κ α} [IsTra
   | atom a =>
     intro _ n;
     show M.Val M.root.1 a ↔ if ((n : ℕ∞) = (⊤ : ℕ∞)) then o a else M.Val M.root.1 a;
-    rw [if_neg (by simp)];
+    rw [ite_eq_right (by simp)];
   | bot => intro _ n; exact Iff.rfl;
   | imp B C ihB ihC =>
     intro hBC n;

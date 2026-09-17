@@ -288,7 +288,7 @@ theorem provability_TFAE : [
     intro h κ _ M _ a Rra;
     exact forces_singleton_sequent.mp
       (GentzenWithCutProvable.soundness_graftOmega h M a Rra);
-  tfae_have 3 ↔ 2 := sequent_TFAE.out 0 1
+  tfae_have 3 ↔ 2 := sequent_TFAE.out 1 2
   tfae_finish;
 
 /-- - [Bek90, Lemma 5] -/
@@ -297,15 +297,15 @@ theorem iff_provable_forces_graftOmega_root :
   (∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
     ∀ (a : M.World) (Rra : M.root.1 ≺ a),
     (M.graftOmega ⟨a, fun h => Std.Irrefl.irrefl _ (h ▸ Rra)⟩).root.1 ⊩[_] A) :=
-  provability_TFAE.out 0 3
+  provability_TFAE.out 1 4
 
 theorem iff_provable_provableGentzenWithCut :
   A ∈ LogicA ↔ ⊢ᵍᶜ[A] (∅ ⟹[1] {A}) :=
-  provability_TFAE.out 0 2
+  provability_TFAE.out 1 3
 
 theorem iff_provable_provableGentzen :
   A ∈ LogicA ↔ ⊢ᵍ[A] (∅ ⟹[1] {A}) :=
-  provability_TFAE.out 0 1
+  provability_TFAE.out 1 2
 
 end LogicA
 

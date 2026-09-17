@@ -222,24 +222,24 @@ theorem provability_TFAE [DecidableEq α] : [
   tfae_finish;
 
 theorem iff_provable_S_provable_GL [DecidableEq α] :
-  A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
+  A ∈ LogicS ↔ (⋀A.subfmlsS 🡒 A) ∈ LogicGL := provability_TFAE.out 1 6
 
 theorem iff_eventually_forces_tail_nat [DecidableEq α] :
   A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] →
   ∀ (tail : M.World),
   ∃ k : ℕ, ∀ n : ℕ, k ≤ n → toTail.chainPoint n ⊩[(M.toTail tail).toModel] A :=
-  provability_TFAE.out 0 2
+  provability_TFAE.out 1 3
 
 theorem iff_forces_root_subfmlsS_imp [DecidableEq α] :
   A ∈ LogicS ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : RootedModel κ α), [M.IsFiniteGL] →
   M.root.1 ⊩[_] (⋀A.subfmlsS 🡒 A) :=
-  provability_TFAE.out 0 3
+  provability_TFAE.out 1 4
 
 theorem iff_eventually_forces_tail_nat_concrete [DecidableEq α] :
   A ∈ LogicS ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] →
   ∀ (tail : M.World), ∃ k : ℕ, ∀ m : ℕ, k ≤ m →
   toTail.chainPoint m ⊩[(M.toTail tail).toModel] A :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 1 5
 
 lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
   intro h;
@@ -250,7 +250,7 @@ lemma consistent [DecidableEq α] : ⊥ ∉ @LogicS α := by
 /-- - [KK23] -/
 theorem iff_provable_provableGentzen [DecidableEq α] :
     A ∈ LogicS ↔ ⊢ᵍ[S] (∅ ⟹[1] {A}) :=
-  provability_TFAE.out 0 1
+  provability_TFAE.out 1 2
 
 end LogicS
 

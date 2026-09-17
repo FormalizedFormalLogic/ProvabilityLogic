@@ -1,6 +1,6 @@
 module
 
-public import Foundation.FirstOrder.Basic.Calculus
+public import Foundation.FirstOrder.LK.Basic
 
 /-!
 # Compactness of first-order provability for theory unions

@@ -342,7 +342,7 @@ theorem provability_TFAE [DecidableEq α] :
   tfae_finish;
 
 theorem iff_provable_D_provable_GL [DecidableEq α] :
-  A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 0 5
+  A ∈ LogicD ↔ (⋀A.subfmlsD 🡒 A) ∈ LogicGL := provability_TFAE.out 1 6
 
 theorem iff_provable_box_provable_GL [DecidableEq α] : □A ∈ LogicD ↔ A ∈ LogicGL := by
   constructor;
@@ -357,12 +357,12 @@ theorem iff_provable_box_provable_GL [DecidableEq α] : □A ∈ LogicD ↔ A �
 theorem iff_forces_pseudoTail_root [DecidableEq α] :
   A ∈ LogicD ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ (M : Model κ α), [M.IsFiniteGL] → ∀ r o,
     (M.toPseudoTail r o).root.1 ⊩[_] A :=
-  provability_TFAE.out 0 2
+  provability_TFAE.out 1 3
 
 theorem iff_forces_pseudoTail_root_concrete [DecidableEq α] :
   A ∈ LogicD ↔ ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → ∀ r o,
     (M.toPseudoTail r o).root.1 ⊩[_] A :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 1 5
 
 theorem not_mem_of_concrete_pseudoTail_root_not_forces [DecidableEq α] {n : ℕ} [NeZero n]
   (M : Model (Fin n) α) [M.IsFiniteGL] (r : M.World) (o : α → Prop)

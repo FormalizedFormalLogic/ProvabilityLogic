@@ -154,7 +154,7 @@ lemma interpolant_root_forces_iff
       . intro _;
         rintro (z | j) hz;
         . show (if c = c then z ≠ M.root.1 else M.toModel.Val' z c);
-          rw [if_pos rfl];
+          rw [ite_eq_left rfl];
           rintro rfl;
           exact not_rel_root_of_rooted M x hz;
         . exact False.elim hz;
@@ -170,7 +170,7 @@ lemma interpolant_root_forces_iff
     have hc0 : ¬(toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞) ⊩[((flipModel M c).toPseudoTail M.root.1 o).toModel] (#c)) := by
       show ¬(if ((0 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o c else
         if c = c then M.root.1 ≠ M.root.1 else M.toModel.Val' M.root.1 c);
-      rw [if_neg (ENat.natCast_lt_top 0).ne, if_pos rfl];
+      rw [ite_eq_right (ENat.natCast_lt_top 0).ne, ite_eq_left rfl];
       simp;
     exact hc0 (hBf hant (toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞)) (ENat.natCast_lt_top 0));
   . intro hp;
@@ -187,7 +187,7 @@ lemma interpolant_root_forces_iff
           left;
           rintro (z | j) hz;
           . show (if b = b then z ≠ M.root.1 else M.toModel.Val' z b);
-            rw [if_pos rfl];
+            rw [ite_eq_left rfl];
             rintro rfl;
             exact not_rel_root_of_rooted M x hz;
           . grind;
@@ -202,7 +202,7 @@ lemma interpolant_root_forces_iff
       have hb0 : ¬(toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞) ⊩[((flipModel M b).toPseudoTail M.root.1 o).toModel] (#b)) := by
         show ¬(if ((0 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o b else
           if b = b then M.root.1 ≠ M.root.1 else M.toModel.Val' M.root.1 b);
-        rw [if_neg (ENat.natCast_lt_top 0).ne, if_pos rfl];
+        rw [ite_eq_right (ENat.natCast_lt_top 0).ne, ite_eq_left rfl];
         simp;
       exact hb0 (hAf hante (toPseudoTail.chainPoint ((0 : ℕ) : ℕ∞)) (ENat.natCast_lt_top 0));
     apply hC;
@@ -308,7 +308,7 @@ lemma exists_modalized_equiv_of_indep
     have h0 : ∀ a ∈ C.atoms, ¬(M.toPseudoTail r o₀).toModel.Val (toPseudoTail.chainPoint ⊤) a := by
       intro a _;
       show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M r a);
-      rw [if_pos rfl];
+      rw [ite_eq_left rfl];
       exact not_false;
     have key : toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] C ↔
         toPseudoTail.chainPoint ⊤ ⊩[(M.toPseudoTail r o).toModel] (C.modalize) :=
@@ -409,7 +409,7 @@ theorem notCIP {a b c : α} (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c) :
         ¬(M.toModel.toPseudoTail M.root.1 o₀).toModel.Val (toPseudoTail.chainPoint ⊤) a := by
       intro a _;
       show ¬(if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o₀ a else M.toModel.Val M.root.1 a);
-      rw [if_pos rfl];
+      rw [ite_eq_left rfl];
       exact not_false;
     have hiff : M.root.1 ⊩[M.toModel] C.modalize ↔ M.Val M.root.1 a :=
       calc

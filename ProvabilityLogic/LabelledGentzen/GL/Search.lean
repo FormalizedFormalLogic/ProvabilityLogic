@@ -1195,7 +1195,7 @@ omit [DecidableEq α] in
 lemma countermodelAssignment_val {z : Label} (h : z ∈ S.labels) :
   (S.countermodelAssignment z).1 = z := by
   simp only [countermodelAssignment];
-  rw [dif_pos (Finset.mem_insert_of_mem h)];
+  rw [dite_eq_left (Finset.mem_insert_of_mem h)];
 
 omit [DecidableEq α] in
 lemma not_validate_countermodel (hsat : S.Saturated) (hbox : S.BoxSucWitnessed)

@@ -48,21 +48,21 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
   tfae_finish;
 
 theorem iff_provableHilbert [DecidableEq α] {A : Formula α} : A ∈ LogicGrz ↔ ⊢ʰ[Grz] A :=
-  provability_TFAE.out 0 1
+  provability_TFAE.out 1 2
 
 theorem iff_provableGentzen [DecidableEq α] {A : Formula α} : A ∈ LogicGrz ↔ ⊢ᵍ[Grz] (∅ ⟹ {A}) :=
-  provability_TFAE.out 0 2
+  provability_TFAE.out 1 3
 
 theorem iff_provableGentzenWithCut [DecidableEq α] {A : Formula α} : A ∈ LogicGrz ↔ ⊢ᵍᶜ[Grz] (∅ ⟹ {A}) :=
-  provability_TFAE.out 0 3
+  provability_TFAE.out 1 4
 
 theorem iff_forces [DecidableEq α] {A : Formula α} :
   A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGrz] → M ⊧ A :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 1 5
 
 theorem iff_forces_root [DecidableEq α] {A : Formula α} :
   A ∈ LogicGrz ↔ ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGrz] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 1 6
 
 end LogicGrz
 

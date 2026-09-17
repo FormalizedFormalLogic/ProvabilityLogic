@@ -67,34 +67,34 @@ theorem provability_TFAE [DecidableEq α] {A : Formula α} : [
 
 variable [DecidableEq α] {A : Formula α}
 
-theorem iff_provableHilbert : A ∈ LogicGL ↔ ⊢ʰ[GL] A := provability_TFAE.out 0 1
+theorem iff_provableHilbert : A ∈ LogicGL ↔ ⊢ʰ[GL] A := provability_TFAE.out 1 2
 
-theorem iff_provableGentzen : A ∈ LogicGL ↔ ⊢ᵍ[GL] (∅ ⟹ {A}) := provability_TFAE.out 0 2
+theorem iff_provableGentzen : A ∈ LogicGL ↔ ⊢ᵍ[GL] (∅ ⟹ {A}) := provability_TFAE.out 1 3
 
-theorem iff_provableGentzenWithCut : A ∈ LogicGL ↔ ⊢ᵍᶜ[GL] (∅ ⟹ {A}) := provability_TFAE.out 0 3
+theorem iff_provableGentzenWithCut : A ∈ LogicGL ↔ ⊢ᵍᶜ[GL] (∅ ⟹ {A}) := provability_TFAE.out 1 4
 
 theorem iff_provableLabelledGentzen : A ∈ LogicGL ↔ ⊢ˡᵍ[GL] (∅ ⸴ ∅ ⟹ˡ {(0 : Label) ∶ A}) :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 1 5
 
 theorem iff_forces : A ∈ LogicGL ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGL] → M ⊧ A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 1 6
 
 theorem iff_forces_root : A ∈ LogicGL ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 6
+  provability_TFAE.out 1 7
 
 theorem iff_forces_root_tree : A ∈ LogicGL ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLTree] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 7
+  provability_TFAE.out 1 8
 
 theorem iff_forces_concrete : A ∈ LogicGL ↔
   ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGL] → M ⊧ A :=
-  provability_TFAE.out 0 8
+  provability_TFAE.out 1 9
 
 theorem iff_forces_root_concrete : A ∈ LogicGL ↔
   ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGL] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 9
+  provability_TFAE.out 1 10
 
 variable {n : ℕ} [NeZero n]
 

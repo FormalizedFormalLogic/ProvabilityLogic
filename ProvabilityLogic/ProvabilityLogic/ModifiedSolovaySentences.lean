@@ -837,7 +837,7 @@ private lemma Modified.exclusive.comparable {i₁ i₂ : X.N.World} {ε₁ ε₂
     have hne : ¬Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := by
       simpa [Theory.ConsistentWith.quote_iff] using! Hi₁ j hij₁ hjr
     have hpr : Provable T (⌜∼T.modifiedSolovay X σ θ j⌝ : V) := by
-      simp only [ModifiedStep, if_neg hjr] at hstep
+      simp only [ModifiedStep, ite_eq_right hjr] at hstep
       have hcomp : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j⌝ ⌜∼T.modifiedSolovay X σ θ j⌝ := by
         simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep.1 j hij₁ hjr
       exact (ProvabilityComparison.iff_le_refl_provable (L := ℒₒᵣ)).mp hcomp
@@ -887,7 +887,7 @@ lemma Modified.exclusive {i₁ i₂ : X.N.World} (ne : i₁ ≠ i₂) :
       subst hkb
       have hWBC : WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ j₂⌝ := hbeat j₂ hkj₂ h2
       have hCBW : ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j₂⌝ := by
-        simp only [ModifiedStep, if_neg h2] at hstep₂
+        simp only [ModifiedStep, ite_eq_right h2] at hstep₂
         exact hstep₂.2 trivial
       exact ClimbBeatsWitness.not_witnessBeatsClimb (T := T) hCBW hWBC
   . by_cases h2 : j₂ = X.rN
@@ -898,12 +898,12 @@ lemma Modified.exclusive {i₁ i₂ : X.N.World} (ne : i₁ ≠ i₂) :
       subst hkb
       have hWBC : WitnessBeatsClimb (V := V) T θ ⌜T.modifiedSolovay X σ θ j₁⌝ := hbeat j₁ hkj₁ h1
       have hCBW : ClimbBeatsWitness (V := V) T θ ⌜T.modifiedSolovay X σ θ j₁⌝ := by
-        simp only [ModifiedStep, if_neg h1] at hstep₁
+        simp only [ModifiedStep, ite_eq_right h1] at hstep₁
         exact hstep₁.2 trivial
       exact ClimbBeatsWitness.not_witnessBeatsClimb (T := T) hCBW hWBC
     . -- Both `j₁` and `j₂` are ordinary climb rivals: the standard antisymmetry argument.
-      simp only [ModifiedStep, if_neg h1] at hstep₁
-      simp only [ModifiedStep, if_neg h2] at hstep₂
+      simp only [ModifiedStep, ite_eq_right h1] at hstep₁
+      simp only [ModifiedStep, ite_eq_right h2] at hstep₂
       have P₁ : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j₁⌝ ⌜∼T.modifiedSolovay X σ θ j₂⌝ := by
         simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep₁.1 j₂ hkj₂ h2
       have P₂ : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ j₂⌝ ⌜∼T.modifiedSolovay X σ θ j₁⌝ := by
@@ -980,7 +980,7 @@ lemma ModifiedΘ.disjunction [𝗜𝚺₁ ⪯ T] (_hσ : Hierarchy 𝚺 1 σ)
             (ι := {k : X.N.World // i ≺ k ∧ k ≠ X.rN}) (i := ⟨k₀, hik₀, hk₀r⟩)
             (fun k ↦ ⌜∼T.modifiedSolovay X σ θ k.val⌝) (by simpa using hk₀prov);
         refine ⟨j, hij, ?_⟩;
-        simp only [ModifiedStep, if_neg hjr];
+        simp only [ModifiedStep, ite_eq_right hjr];
         and_intros;
         . intro k hik hkr;
           simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hbest ⟨k, hik, hkr⟩;
@@ -1006,7 +1006,7 @@ lemma Modified.refute {i : X.N.World} (ne : X.N.root.1 ≠ i) (ner : X.rN ≠ i)
   rcases show ModifiedΘ T X σ θ V i from h.1 with ⟨ε, hε, cε⟩
   rcases List.ChainI.prec_exists_of_ne hε (Ne.symm ne) with ⟨ε', i', hii', rfl, hε'⟩
   have hstep : ModifiedStep T X σ θ (V := V) i' i := (ModifiedΘChain.cons_cons_iff.mp cε).2
-  simp only [ModifiedStep, if_neg (Ne.symm ner)] at hstep
+  simp only [ModifiedStep, ite_eq_right (Ne.symm ner)] at hstep
   have : T.ProvabilityComparisonLE (V := V) ⌜∼T.modifiedSolovay X σ θ i⌝ ⌜∼T.modifiedSolovay X σ θ i⌝ := by
     simpa [NegativeSuccessor.quote_iff_provabilityComparisonLE] using! hstep.1 i hii' (Ne.symm ner)
   exact (ProvabilityComparison.iff_le_refl_provable (T := T)).mp this
