@@ -30,12 +30,14 @@ env:
   BRANCH: update-deps
   LABEL: update-deps
   FOUNDATION: FormalizedFormalLogic/Foundation
-  MATHLIB: https://github.com/leanprover-community/mathlib4
   # The dependencies whose `rev` in `lakefile.toml` is a branch rather than a commit, so that
-  # bumping them is nothing but re-resolving that branch. `Forgive` is deliberately pinned to an
-  # exact commit and is therefore left out; `mathlib` is pinned to the toolchain's tag and moves
-  # with it, so it is named separately where it is needed.
+  # bumping them is nothing but re-resolving that branch.
   FLOATING: Foundation LeanTypst
+  # The remaining explicit requirements. Both `mathlib` and `Forgive` are pinned to the `v4.x.y`
+  # tag matching the toolchain — Foundation requires `Forgive` by that same tag — so neither
+  # follows a branch: their pins are rewritten alongside `lean-toolchain` below and only then
+  # re-resolved. Each carries the remote its tag is looked up on, as `<name>=<remote>`.
+  TAGGED: mathlib=https://github.com/leanprover-community/mathlib4 Forgive=https://github.com/FormalizedFormalLogic/forgive
 
 jobs:
   update:
@@ -92,14 +94,21 @@ jobs:
       # `lean-toolchain` has to equal Foundation's, and is taken before lake runs, so that lake
       # runs under the toolchain it is resolving for.
       #
-      # The mathlib pin has to move with it. `lakefile.toml` requires mathlib explicitly, by the
+      # The `TAGGED` pins have to move with it. `lakefile.toml` requires mathlib explicitly, by the
       # `v4.x.y` tag built for `leanprover/lean4:v4.x.y`, both to keep `lake exe cache get` able
       # to fetch mathlib's oleans and to keep mathlib's ProofWidgets pin winning over the one
-      # LeanTypst requires; a pin left behind at the old toolchain is exactly that mismatch. But
-      # mathlib only tags a release once it exists, so a toolchain without a matching tag (a
-      # release candidate, say) leaves the pin alone: the bump then fails visibly in CI, inside
+      # LeanTypst requires; a pin left behind at the old toolchain is exactly that mismatch.
+      # `Forgive` is tagged per toolchain the same way, and Foundation requires it by that tag, so
+      # a `Forgive` disagreeing with Foundation's would be resolved twice over.
+      #
+      # A tag is only rewritten once it exists on that dependency's own remote, and the two are
+      # checked independently: they are released separately, so on a fresh toolchain one may be
+      # tagged hours before the other. Whichever is not tagged yet keeps its current pin and only
+      # emits a warning — a half-moved pair is still coherent, since a pin at the previous
+      # toolchain's tag is exactly what is on `main` today — and the next scheduled run picks the
+      # laggard up. Should the pair genuinely not work together, that fails visibly in CI inside
       # the pull request, rather than being silently mis-pinned here.
-      - name: Take Foundation's toolchain and realign the mathlib pin
+      - name: Take Foundation's toolchain and realign the tagged pins
         id: toolchain
         run: |
           set -euo pipefail
@@ -108,25 +117,38 @@ jobs:
           tag=${toolchain#leanprover/lean4:}
           echo "the toolchain is $toolchain"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          if ! git ls-remote --exit-code --tags "$MATHLIB" "refs/tags/$tag" >/dev/null 2>&1; then
-            echo "::warning::mathlib has no \`$tag\` tag yet; its pin is left untouched"
+          retag=''
+          for entry in $TAGGED; do
+            name=${entry%%=*}
+            remote=${entry#*=}
+            if git ls-remote --exit-code --tags "$remote" "refs/tags/$tag" >/dev/null 2>&1; then
+              retag="${retag:+$retag }$name"
+            else
+              echo "::warning::$name has no \`$tag\` tag yet; its pin is left untouched"
+            fi
+          done
+          if [ -z "$retag" ]; then
+            echo "no tagged pin can move onto $tag"
             exit 0
           fi
-          python3 - "$tag" <<'PY'
+          # shellcheck disable=SC2086 # `$retag` is a list of package names, meant to split here.
+          python3 - "$tag" $retag <<'PY'
           import pathlib, re, sys
-          tag = sys.argv[1]
+          tag, names = sys.argv[1], sys.argv[2:]
           path = pathlib.Path('lakefile.toml')
           text = path.read_text()
-          # The one `rev` that follows `name = "mathlib"` within the same `[[require]]` block.
-          new, n = re.subn(
-              r'(name = "mathlib"\n(?:[^\[\n][^\n]*\n)*?\s*rev = ")[^"]*(")',
-              lambda m: m.group(1) + tag + m.group(2),
-              text,
-          )
-          if n != 1:
-              raise SystemExit(f'expected exactly one mathlib rev in lakefile.toml, matched {n}')
-          path.write_text(new)
-          print(f'the mathlib pin is now {tag}')
+          for name in names:
+              # The one `rev` that follows `name = "<name>"` within the same `[[require]]` block:
+              # intervening keys (`git`, `scope`) are matched, a new `[[require]]` header is not.
+              text, n = re.subn(
+                  r'(name = "' + re.escape(name) + r'"\n(?:[^\[\n][^\n]*\n)*?\s*rev = ")[^"]*(")',
+                  lambda m: m.group(1) + tag + m.group(2),
+                  text,
+              )
+              if n != 1:
+                  raise SystemExit(f'expected exactly one {name} rev in lakefile.toml, matched {n}')
+              print(f'the {name} pin is now {tag}')
+          path.write_text(text)
           PY
 
       - name: Install elan
@@ -140,8 +162,9 @@ jobs:
       # revisions mathlib pins, and a ProofWidgets that disagrees with mathlib's makes
       # `lake exe cache get` compute wrong hashes and refuse to fetch mathlib's oleans. Naming the
       # roots instead re-resolves them in `lakefile.toml`'s order, so mathlib — required last —
-      # still wins those conflicts. mathlib is named too, because the pin edited above only takes
-      # effect once it is resolved; on an unchanged toolchain that resolution is a no-op.
+      # still wins those conflicts. The `TAGGED` roots are named too, because a pin rewritten above
+      # only takes effect once it is resolved; where the tag did not move, that resolution lands on
+      # the same revision and is a no-op.
       - name: Update the manifest
         id: deps
         run: |
@@ -149,16 +172,19 @@ jobs:
           pin() { jq -r --arg n "$1" '.packages[] | select(.name == $n) | .rev' lake-manifest.json; }
           # The `.git` suffix would otherwise end up inside the compare link.
           url() { jq -r --arg n "$1" '.packages[] | select(.name == $n) | .url' lake-manifest.json | sed 's/\.git$//'; }
+          # `$TAGGED` carries `<name>=<remote>` pairs; only the names are wanted from here on.
+          roots=$FLOATING
+          for entry in $TAGGED; do roots="$roots ${entry%%=*}"; done
           declare -A before
-          for name in $FLOATING mathlib; do before[$name]=$(pin "$name"); done
-          # `$FLOATING` is a list of package names and is meant to split into arguments here.
+          for name in $roots; do before[$name]=$(pin "$name"); done
+          # `$roots` is a list of package names and is meant to split into arguments here.
           # shellcheck disable=SC2086
-          lake update $FLOATING mathlib
+          lake update $roots
           # One entry per dependency that actually moved: the subject lists them for the commit,
           # the body links the comparison so the bump can be read before it is trusted.
           subject=''
           body=''
-          for name in $FLOATING mathlib; do
+          for name in $roots; do
             old=${before[$name]}
             new=$(pin "$name")
             if [ "$old" = "$new" ]; then
@@ -230,7 +256,7 @@ jobs:
           Moves the dependency pins this repository follows:
 
           ${PINS:-(no pin moved)}
-          - toolchain \`$toolchain\`, taken from [Foundation](https://github.com/$FOUNDATION/blob/master/lean-toolchain); the explicit \`mathlib\` requirement in \`lakefile.toml\` follows it at \`$TAG\`.
+          - toolchain \`$toolchain\`, taken from [Foundation](https://github.com/$FOUNDATION/blob/master/lean-toolchain); the explicit \`mathlib\` and \`Forgive\` requirements in \`lakefile.toml\` follow it at \`$TAG\`, unless that tag is not published yet — the run's log then says which pin was left behind.
 
           Opened by \`.github/workflows/update-deps.yml\`, which moves the pins only. Anything the bump breaks is fixed in this same pull request, on this same branch: the workflow adds commits to it and never rewrites it. This body is rewritten on every run; leave notes in a comment.
           EOF
