@@ -78,6 +78,7 @@ public import ProvabilityLogic.ProvabilityLogic.Classification.GeneralTrace
 public import ProvabilityLogic.ProvabilityLogic.Classification.LetterlessTrace
 public import ProvabilityLogic.ProvabilityLogic.Classification.Result
 public import ProvabilityLogic.ProvabilityLogic.D.Basic
+public import ProvabilityLogic.ProvabilityLogic.D.Uniform
 public import ProvabilityLogic.ProvabilityLogic.GL.Basic
 public import ProvabilityLogic.ProvabilityLogic.GL.Uniform
 public import ProvabilityLogic.ProvabilityLogic.GLPlusBoxBot.Basic
@@ -90,6 +91,7 @@ public import ProvabilityLogic.ProvabilityLogic.SolovaySentences
 public import ProvabilityLogic.ProvabilityLogic.StrongInterpret
 public import ProvabilityLogic.ToFoundation.FirstOrder.Basic.Compactness
 public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.Reflection
+public import ProvabilityLogic.ToFoundation.FirstOrder.Incompleteness.UniformReflection
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.Chain
 public import ProvabilityLogic.ToFoundation.Vorspiel.List.ChainI
 public import ProvabilityLogic.ToFoundation.Vorspiel.Rel.CWF

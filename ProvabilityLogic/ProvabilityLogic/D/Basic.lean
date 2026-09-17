@@ -42,7 +42,7 @@ theorem arithmetical_soundness (h : A ∈ LogicD) (f : Realization α ℒₒᵣ)
   | axiomP | axiomD =>
     apply Entailment.by_axm;
     right;
-    refine (Provability.mem_localReflectionOn_iff _).mpr ⟨_, ?_, rfl⟩;
+    apply (Provability.mem_localReflectionOn_iff _).mpr ⟨_, ?_, rfl⟩;
     simp [Formula.interpret, Arithmetic.standardProvability_def];
   | mdp ihAB ihA => exact ihAB ⨀ ihA;
 
@@ -92,19 +92,14 @@ For sound `T`, `D` is the provability logic of `T` relative to `T + Rfn_Σ₁(T)
 -/
 theorem eq_provabilityLogicRelativeTo_localReflection [ℕ↓[ℒₒᵣ] ⊧* T] :
   @LogicD α = T.provabilityLogicRelativeTo (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := by
-  have hTU : T ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := inferInstance;
-  have : 𝗜𝚺₁ ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := Entailment.WeakerThan.trans (inferInstanceAs (𝗜𝚺₁ ⪯ T)) hTU;
+  have : T ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := inferInstance;
+  have : 𝗜𝚺₁ ⪯ (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := Entailment.WeakerThan.trans (inferInstance : (𝗜𝚺₁ ⪯ T)) inferInstance;
   have : Entailment.Consistent (T ∪ 𝗥𝗳𝗻[𝚺 1] T) := consistent_of_model (T ∪ 𝗥𝗳𝗻[𝚺 1] T) ℕ;
   apply Set.Subset.antisymm;
   . grind [arithmetical_soundness];
   . intro A hAL;
-    by_contra hAD;
-    apply Arithmetic.not_localReflection_weakerThan_union_localReflection T;
-    apply Entailment.WeakerThan.ofAxm!;
-    intro φ hφ;
-    obtain ⟨σ, -, rfl⟩ := (Provability.mem_localReflectionOn_iff _).mp hφ;
-    exact provable_reflection_of_mem_not_LogicD (A := A)
-      trace_univ_provabilityLogicRelativeTo_localReflection hAL hAD σ;
+    apply arithmetical_completeness (T := T);
+    apply hAL;
 
 /-- - [AB05, Example 60] -/
 theorem eq_provabilityLogic_PA_localReflection :
