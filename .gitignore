@@ -8,7 +8,7 @@
 .vscode/settings.json
 
 # Claude
-CLAUDE.local.md
+.claude/AGENTS.md
 .claude/docs/
 .claude/worktrees/
 
