@@ -23,91 +23,40 @@ permissions:
   contents: read
 
 jobs:
-  # ── Job 1: hydrate + cleanse the dependency layer ──────────────────────────────────────────────
-  # Absorb ALL the dependency-build noise HERE, off in its own job, so the build job below is clean.
-  #   • mathlib comes from `lake exe cache get` (downloaded oleans carry no per-module log → silent).
-  #   • Foundation is a git dependency with NO public olean cache, so it compiles from source and
-  #     emits lint/deprecation warnings that are upstream's, not ours. We build it once here, then
-  #     CLEAR its cached build logs so they don't `Replayed`-spam the build job with warnings we
-  #     can't fix and don't want to read.
-  # The built+cleansed Foundation is handed to the build job via a manifest-keyed cache. We
-  # deliberately do NOT cache mathlib's oleans, since `cache get` re-hydrates those fast.
-  # Bonus: keyed on toolchain+manifest, so Foundation only recompiles when its pinned rev bumps.
-  deps:
-    name: Build Foundation (cached)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      # Probe the Foundation cache FIRST. On a hit this job's product already exists, so every step
-      # below is skipped and the post-job save re-affirms the existing entry — no wasted mathlib
-      # `cache get` or Foundation build. Only on a MISS do we run lean-action and build from source.
-      - name: Cache Foundation build (keyed on toolchain + manifest)
-        id: foundation-cache
-        uses: actions/cache@v6
-        with:
-          path: .lake/packages/Foundation/.lake/build
-          key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-      # elan + `lake exe cache get` only (build: false); we drive `lake build Foundation` ourselves.
-      # Skip lean-action's own whole-.lake GitHub cache (use-github-cache: false) — we manage a
-      # tighter, Foundation-only cache above instead of shuttling the full tree.
-      - uses: leanprover/lean-action@v1
-        if: steps.foundation-cache.outputs.cache-hit != 'true'
-        with:
-          build: false
-          use-github-cache: false
-      - name: Build Foundation from source (cache miss only)
-        if: steps.foundation-cache.outputs.cache-hit != 'true'
-        run: lake build Foundation
-      # ── Clear Foundation's cached warnings ───────────────────────────────────────────────────────
-      # Modern Lake stores each module's build diagnostics in its `.trace` file's `"log"` array and
-      # RE-EMITS them (`⚠ Replayed`) on every downstream build. Emptying `"log"` drops the replay
-      # WITHOUT touching the `.olean` (verified: no recompile, diagnostics vanish, build still green).
-      # Runs on a cache miss only: a hit's saved cache is already cleared.
-      - name: Clear Foundation's replayed-warning cache
-        if: steps.foundation-cache.outputs.cache-hit != 'true'
-        run: |
-          python3 - <<'PY'
-          import json, pathlib
-          root = pathlib.Path('.lake/packages/Foundation/.lake/build')
-          cleared = 0
-          for t in root.rglob('*.trace'):
-              try:
-                  d = json.loads(t.read_text())
-              except (ValueError, OSError):
-                  continue
-              if d.get('log'):
-                  d['log'] = []
-                  t.write_text(json.dumps(d))
-                  cleared += 1
-          print(f'cleared warning cache in {cleared} Foundation trace(s)')
-          PY
-
-  # Build ProvabilityLogic against the cleansed dependency layer from `deps`, and generate the docs
-  # and import graph — all sharing the one build.
+  # Build ProvabilityLogic, and generate the docs and import graph — all sharing the one build.
+  #
+  # Three cache reads feed this job, and they cover different gaps:
+  #   • Foundation, our one expensive dependency, is read from the shared FFL R2 store by the
+  #     revision `lake-manifest.json` pins. It has no Reservoir presence, so before that store
+  #     existed a pin bump cost the deleted `deps` job a quarter of an hour of elaboration, ahead
+  #     of this one rather than beside it; now it costs a download.
+  #   • Our own modules come from an `actions/cache` tarball (`lake pack`) first and from R2
+  #     second, the way Foundation does it. The tarball is branch-local and evictable; R2 is keyed
+  #     by revision, so it also serves fork PRs, fresh clones and branches the tarball never saw.
+  # Mathlib is neither: `lake exe cache get`, as always, via lean-action.
   build:
     name: Build project
-    needs: deps
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # `lake cache get` walks back from HEAD to a published revision, and a PR's own commits
+          # never are one — it has to reach the branch point on `main`.
+          fetch-depth: 100
+      # elan + `lake exe cache get` only (build: false); we drive `lake build` ourselves.
+      # Skip lean-action's own whole-.lake GitHub cache (use-github-cache: false) — the two caches
+      # below are tighter than shuttling the full tree.
       - uses: leanprover/lean-action@v1
         with:
           build: false
           use-github-cache: false
-      # Restore the Foundation build cleansed by `deps` (guaranteed present via `needs: deps`).
-      - name: Restore Foundation build (warnings cleared)
-        uses: actions/cache/restore@v6
-        with:
-          path: .lake/packages/Foundation/.lake/build
-          key: foundation-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-          fail-on-cache-miss: true
 
       # ── The project's own build cache (`lake pack`/`unpack`) ─────────────────────────────────────
-      # Orthogonal to the Foundation cache above: `lake pack` archives ONLY the root package's
-      # `.lake/build` (our own oleans), never the dependency trees. Restoring + unpacking it lets
-      # `lake build` reuse traces and rebuild only the modules that actually changed. The key pins
-      # toolchain+manifest (so a Foundation bump busts it) and appends sha because cache entries are
-      # immutable; restore-keys fall back to the newest cache with a matching toolchain+manifest.
+      # `lake pack` archives ONLY the root package's `.lake/build` (our own oleans), never the
+      # dependency trees. Restoring + unpacking it lets `lake build` reuse traces and rebuild only
+      # the modules that actually changed. The key pins toolchain+manifest (so a Foundation bump
+      # busts it) and appends sha because cache entries are immutable; restore-keys fall back to the
+      # newest cache with a matching toolchain+manifest.
       - name: Restore project cache
         id: cache-restore
         uses: actions/cache/restore@v6
@@ -119,6 +68,39 @@ jobs:
       - name: Unpack project cache
         if: hashFiles('.lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz') != ''
         run: lake unpack
+
+      # Our own modules from the shared FFL R2 cache, keyed by revision rather than by branch, so
+      # it also covers fork pull requests and fresh clones. A PR's HEAD was never published, so
+      # this lands on its branch point and `lake build` redoes only what the PR touched.
+      - name: Restore the Lake cache
+        uses: FormalizedFormalLogic/.github/lake-cache/restore@main
+        with:
+          # A tarball hit above already carries everything this would fetch.
+          skip-download: ${{ steps.cache-restore.outputs.cache-matched-key != '' }}
+          # No freshness assertion: Mathlib is a separate cache, and `lake exe cache get` is
+          # occasionally short a module nothing here uses. The build below compiles what is
+          # missing, as it always has.
+          assert-fresh: ''
+
+      # Foundation's oleans, published by its own CI and read at the revision the manifest pins —
+      # not at our HEAD, so `fetch-depth` above has no bearing on this one. `package` is what
+      # distinguishes a dependency from the root package; `repo` alone would look Foundation up
+      # under our name and find nothing. This is what makes a pin bump a download rather than the
+      # quarter of an hour that elaborating Foundation from source costs.
+      - name: Restore Foundation's build from the Lake cache
+        uses: FormalizedFormalLogic/.github/lake-cache/restore@main
+        with:
+          repo: FormalizedFormalLogic/Foundation
+          package: Foundation
+          assert-fresh: ''
+      # Nothing to do when the step above filled the build; a source build otherwise, which is the
+      # legitimate outcome for a pin at a revision Foundation's `master` never published.
+      - name: Build Foundation
+        run: lake build Foundation
+      # Lake replays a dependency's cached warnings on every downstream build. Foundation's are
+      # upstream's, not ours to fix, and they would bury this job's own output.
+      - name: Clear Foundation's replayed-warning cache
+        run: python3 .github/scripts/clear-dep-warnings.py .lake/packages/Foundation/.lake/build
 
       # `restore-keys` can fall back to a cache packed before a file was renamed or deleted; `lake
       # build` only rebuilds modules whose *source* changed, so a stale `.olean`/`.trace` for a
@@ -168,12 +150,23 @@ jobs:
           path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
           key: ${{ steps.cache-restore.outputs.cache-primary-key }}
 
-      # Generated after the project cache is packed, so the archive stays lean and doesn't carry
-      # doc-gen4's HTML output.
-      - name: Build docs
-        run: lake build ProvabilityLogic:docs
+      # `main` only, after every gate above: a PR builds a tree that will not exist after the
+      # squash-merge, and a fork PR gets no secrets anyway.
+      - name: Publish the Lake cache
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        uses: FormalizedFormalLogic/.github/lake-cache/publish@main
+        with:
+          cache-key: ${{ secrets.LAKE_CACHE_KEY }}
+          targets: ProvabilityLogic
 
       - uses: extractions/setup-just@v3
+
+      # Generated after the project cache is packed, so the archive stays lean and doesn't carry
+      # doc-gen4's HTML output. Via `just` rather than `lake build …:docs` directly: doc-gen4's
+      # marker files make a restored build cache freeze the generated documentation, and the recipe
+      # clears them.
+      - name: Build docs
+        run: just docs
 
       - uses: ts-graphviz/setup-graphviz@v2
       - name: Generate import graph

@@ -2,6 +2,10 @@ name = "ProvabilityLogic"
 version = "0.1.0"
 defaultTargets = ["ProvabilityLogic"]
 
+# Pure Lean, so one published Lake cache serves every platform rather than CI's Linux alone.
+# Revisit if a native library or an executable target is added.
+platformIndependent = true
+
 [[lean_lib]]
 name = "ProvabilityLogic"
 
