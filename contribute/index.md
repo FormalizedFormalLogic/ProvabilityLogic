@@ -12,23 +12,13 @@ After cloning, fetch the prebuilt artifacts before building anything:
 just cache
 ```
 
-That pulls three things: Mathlib's oleans from its own cache (`lake exe cache get`), Foundation's
-from the build cache the organization shares, at the revision `lake-manifest.json` pins, and this
-repository's own, at the newest ancestor of your `HEAD` that CI has published. Foundation is a Git
-dependency with no Reservoir presence, so without this its ~1300 modules are elaborated from
-source — a quarter of an hour on a CI runner, and the reason the pin is worth keeping on a
-published revision.
+That pulls Mathlib's oleans from its own cache, and Foundation's and this repository's from the
+build cache the organization shares — an R2 bucket read anonymously, described by
+[`lake-cache.toml`](../lake-cache.toml) and written only by CI, on pushes to `main`. Foundation has
+no Reservoir presence, so without this its ~1300 modules are elaborated from source.
 
-A miss is not an error. `lake build` compiles whatever the cache did not supply, so a pin at an
-unpublished revision, a branch of your own, or the odd module the cache is short of merely costs
-time. Re-run `just cache` after a `lake update` or a rebase onto a newer `main`.
-
-The store is an R2 bucket read anonymously over HTTPS from `ffl.sno2wman.net`; nothing needs
-configuring, and only CI writes to it — this repository publishes its own outputs on pushes to
-`main` alone, since a PR builds a tree that will not exist after the squash-merge.
-[`lake-cache.toml`](../lake-cache.toml) at the repository root describes it and is the same file in
-every FFL repository. The CI steps come from the composite actions in
-[`FormalizedFormalLogic/.github`](https://github.com/FormalizedFormalLogic/.github/tree/main/lake-cache).
+A miss is not an error: `lake build` compiles whatever the cache did not supply. Re-run `just
+cache` after a `lake update` or a rebase onto a newer `main`.
 
 ## How changes land on `main`
 

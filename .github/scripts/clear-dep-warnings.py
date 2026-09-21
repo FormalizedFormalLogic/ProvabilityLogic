@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Drop Lake's cached diagnostics for a dependency's build directory.
 
-Lake stores each module's build diagnostics in its `.trace` file's `log` array and re-emits them
-(`⚠ Replayed`) on every downstream build, so Foundation's own warnings — upstream's, not ours, and
-not ours to fix — would spam every build here. Emptying each `.trace`'s `log` array drops the
-replay and leaves the `.olean` untouched.
+Lake re-emits each module's cached log on every downstream build. Emptying the `log` array of each
+`.trace` drops the replay and leaves the `.olean` untouched.
 """
 
 import json

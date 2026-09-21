@@ -29,9 +29,8 @@ mk-all:
 forgive:
     lake exe forgive ProvabilityLogic
 
-# doc-gen4 guards its output with empty marker files under `doc-data`, one per module plus a few
-# aggregates, and their Lake traces outlive the HTML: a restored build cache would otherwise leave
-# the generated documentation frozen. Both directories go, so every module is written out again.
+# doc-gen4's marker files under `doc-data` outlive the HTML, so both directories go; otherwise a
+# restored build cache leaves the documentation frozen.
 #
 # Generate the API documentation into .lake/build/doc (requires `lake build ProvabilityLogic` first)
 docs:
