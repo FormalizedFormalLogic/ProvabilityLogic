@@ -1,6 +1,6 @@
 name: Update dependencies
 
-# Every six hours (and on demand) the floating dependency pins are moved to the tip of the
+# Every three hours (and on demand) the floating dependency pins are moved to the tip of the
 # branches `lakefile.toml` follows, on a single long-lived branch behind one pull request
 # labelled `update-deps`. Only the pins (and the toolchain they force) move here: whatever the
 # bump breaks is fixed by an agent or a human inside that same pull request, so the branch is
@@ -13,7 +13,7 @@ name: Update dependencies
 # then has no checks until someone pushes to its branch.
 on:
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '17 */3 * * *'
   workflow_dispatch:
 
 # A run pushes to a shared branch, so runs never overlap; a scheduled run behind a manual one
@@ -29,6 +29,9 @@ permissions:
 env:
   BRANCH: update-deps
   LABEL: update-deps
+  # Put on the pull request by the local `/repair-deps` session when it gives up on a bump, and
+  # taken off here: a new pin is a new problem, and the previous verdict does not carry over.
+  STUCK_LABEL: want-human
   FOUNDATION: FormalizedFormalLogic/Foundation
   # The dependencies whose `rev` in `lakefile.toml` is a branch rather than a commit, so that
   # bumping them is nothing but re-resolving that branch.
@@ -242,6 +245,7 @@ jobs:
 
       # The title becomes the commit subject on `main`, so it names what actually landed.
       - name: Open or refresh the pull request
+        id: open
         if: steps.push.outputs.pushed == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
@@ -264,5 +268,34 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             gh pr edit "$PR_NUMBER" --title "$TITLE" --body "$body"
           else
-            gh pr create --base main --head "$BRANCH" --label "$LABEL" --title "$TITLE" --body "$body"
+            url=$(gh pr create --base main --head "$BRANCH" --label "$LABEL" --title "$TITLE" --body "$body")
+            PR_NUMBER=${url##*/}
           fi
+          # The bump this label was a verdict on is no longer the one on the branch.
+          gh pr edit "$PR_NUMBER" --remove-label "$STUCK_LABEL" 2>/dev/null ||
+            echo "no \`$STUCK_LABEL\` label to remove"
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      # A bump that moved nothing but the pins has no repair in it to read, so it merges itself
+      # once `ci.yml` is green — and stays open, red, if it is not. As soon as the branch carries
+      # anything else it is a repair, and confirming a repair is a human's: auto-merge is not
+      # queued, and a repair pushed onto a branch that already had it queued turns it off again.
+      - name: Queue the merge of a pins-only bump
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          NUMBER: ${{ steps.open.outputs.number }}
+        run: |
+          set -euo pipefail
+          # Three-dot: what this branch added since it left `main`, not what `main` added since.
+          extra=$(git diff --name-only origin/main...HEAD |
+            grep -vxE 'lake-manifest\.json|lakefile\.toml|lean-toolchain' || true)
+          if [ -n "$extra" ]; then
+            echo "the branch also changes:"
+            echo "$extra"
+            echo "#$NUMBER carries a repair; merging it stays a human's call"
+            gh pr merge "$NUMBER" --disable-auto || true
+            exit 0
+          fi
+          gh pr merge "$NUMBER" --squash --auto
+          echo "queued the merge of #$NUMBER; GitHub performs it once the checks are green"
