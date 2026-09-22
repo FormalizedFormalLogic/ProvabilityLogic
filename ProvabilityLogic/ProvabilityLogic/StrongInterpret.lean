@@ -66,7 +66,7 @@ lemma iff_interpret_boxdot_strongInterpret [𝔅.HBL2] :
   . intro h; exact (C_of_E_mpr iff_interpret_boxdot_strongInterpret_inside) ⨀ h;
 
 lemma iff_models_interpret_boxdot_strongInterpret
-  {M} [Nonempty M] [Structure L M] [M↓[L] ⊧* T] [𝔅.HBL2] [𝔅.SoundOn M] :
+  {M} [Nonempty M] [Tarski.Structure L M] [M↓[L] ⊧* T] [𝔅.HBL2] [𝔅.SoundOn M] :
   M↓[L] ⊧ (Aᵇ).interpret f 𝔅 ↔ M↓[L] ⊧ A.strongInterpret f 𝔅 := by
   induction A with
   | box A ih =>

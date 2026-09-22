@@ -129,7 +129,7 @@ namespace LogicA.ProvableGentzen
 
 theorem of_with_cut {Γ Δ : FormulaFinset α}
   (h : ⊢ᵍᶜ[A] (Γ ⟹[1] Δ)) : ⊢ᵍ[A] (Γ ⟹[1] Δ) :=
-  sequent_TFAE.out 0 1 |>.mp h
+  sequent_TFAE.out 1 2 |>.mp h
 
 end LogicA.ProvableGentzen
 

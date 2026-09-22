@@ -617,7 +617,7 @@ theorem sequent_TFAE {Γ Δ : FormulaFinset α} : [
 namespace ProvableGentzen
 
 theorem of_with_cut {Γ Δ : FormulaFinset α} (h : ⊢ᵍᶜ[S] (Γ ⟹[1] Δ)) : ⊢ᵍ[S] (Γ ⟹[1] Δ) :=
-  (sequent_TFAE.out 5 4).mp h
+  (sequent_TFAE.out 6 5).mp h
 
 end ProvableGentzen
 

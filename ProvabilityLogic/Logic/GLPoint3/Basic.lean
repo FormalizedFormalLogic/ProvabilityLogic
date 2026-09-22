@@ -685,19 +685,19 @@ theorem provability_TFAE : [
 
 theorem iff_forces : A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : Model κ α, [M.IsFiniteGLPoint3] → M ⊧ A :=
-  provability_TFAE.out 0 2
+  provability_TFAE.out 1 3
 
 theorem iff_forces_root : A ∈ LogicGLPoint3 ↔
   ∀ {κ : Type u}, [Nonempty κ] → ∀ M : RootedModel κ α, [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 3
+  provability_TFAE.out 1 4
 
 theorem iff_forces_concrete : A ∈ LogicGLPoint3 ↔
   ∀ (n : ℕ) [NeZero n] (M : Model (Fin n) α), [M.IsFiniteGLPoint3] → M ⊧ A :=
-  provability_TFAE.out 0 4
+  provability_TFAE.out 1 5
 
 theorem iff_forces_root_concrete : A ∈ LogicGLPoint3 ↔
   ∀ (n : ℕ) [NeZero n] (M : RootedModel (Fin n) α), [M.IsFiniteGLPoint3] → M.root.1 ⊩[_] A :=
-  provability_TFAE.out 0 5
+  provability_TFAE.out 1 6
 
 variable {n : ℕ} [NeZero n]
 

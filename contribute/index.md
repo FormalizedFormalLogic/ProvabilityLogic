@@ -1,8 +1,24 @@
 # Contributing to ProvabilityLogic
 
-How to contribute to this repository: the flow to `main`, PR/commit titles, pre-submission checks, and disclosure of AI involvement. For the coding conventions of the Lean sources, see [style.md](./style.md).
+How to contribute to this repository: getting a working build, the flow to `main`, PR/commit titles, pre-submission checks, and disclosure of AI involvement. For the coding conventions of the Lean sources, see [style.md](./style.md).
 
 Items marked 🤖 are especially directed at AI coding agents.
+
+## Getting started
+
+After cloning, fetch the prebuilt artifacts before building anything:
+
+```shell
+just cache
+```
+
+That pulls Mathlib's oleans from its own cache, and Foundation's and this repository's from the
+build cache the organization shares — an R2 bucket read anonymously, described by
+[`lake-cache.toml`](../lake-cache.toml) and written only by CI, on pushes to `main`. Foundation has
+no Reservoir presence, so without this its ~1300 modules are elaborated from source.
+
+A miss is not an error: `lake build` compiles whatever the cache did not supply. Re-run `just
+cache` after a `lake update` or a rebase onto a newer `main`.
 
 ## How changes land on `main`
 

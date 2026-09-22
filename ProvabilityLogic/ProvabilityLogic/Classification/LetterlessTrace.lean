@@ -245,7 +245,7 @@ lemma iff_mem_trace_rootedModel {B : LetterlessFormula} :
   n ∈ LetterlessFormula.trace B ↔
   ∃ κ : Type u, ∃ _ : Nonempty κ, ∃ M : RootedModel κ α, ∃ _ : Fintype M.World, ∃ _ : M.IsGL,
     M.height = n ∧ M.root.1 ⊮[_] (LetterlessFormula.lift B : Formula α) := by
-  have h := spectrum_TFAE (n := n) (A := B) (α := α) |>.out 0 1;
+  have h := spectrum_TFAE (n := n) (A := B) (α := α) |>.out 1 2;
   unfold LetterlessFormula.trace;
   rw [Set.mem_compl_iff, h];
   push Not;
@@ -258,13 +258,13 @@ lemma iff_GL_proves_spectrum_univ : A ∈ LogicGL ↔ spectrum A = Set.univ := b
   apply Iff.trans $ LogicGL.iff_forces;
   constructor;
   . intro h n;
-    apply spectrum_TFAE (α := Empty) |>.out 3 0 |>.mp;
+    apply spectrum_TFAE (α := Empty) |>.out 4 1 |>.mp;
     intro κ _ _ M _ x rfl;
     have : Finite M.World := by infer_instance;
     apply @h κ _ M {};
   . intro h κ _ M _ x;
     have : Fintype M.World := Fintype.ofFinite _;
-    have := spectrum_TFAE (α := Empty) |>.out 0 3 |>.mp $ h x.rank;
+    have := spectrum_TFAE (α := Empty) |>.out 1 4 |>.mp $ h x.rank;
     exact this M x rfl;
 
 lemma iff_GL_proves_imp_GL_subset_spectrum : (A 🡒 B) ∈ LogicGL ↔ spectrum A ⊆ spectrum B := by

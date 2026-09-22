@@ -253,12 +253,12 @@ def graftOmegaPseudoEpimorphism (M : Model κ α) [M.IsFiniteGL] (r : M.World)
   atomic := by
     rintro ((_ | _ | c) | i) q;
     . show o q ↔ if (⊤ : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;
-      rw [if_pos rfl];
+      rw [ite_eq_left rfl];
     . show M.Val r q ↔ if (0 : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;
-      rw [if_neg (by simp)];
+      rw [ite_eq_right (by simp)];
     . exact Iff.rfl;
     . show M.Val r q ↔ if (((i : ℕ) + 1 : ℕ) : ℕ∞) = (⊤ : ℕ∞) then o q else M.Val r q;
-      rw [if_neg (by exact_mod_cast WithTop.coe_ne_top)];
+      rw [ite_eq_right (by exact_mod_cast WithTop.coe_ne_top)];
 
 /-- - [Bek90, Lemma 3] -/
 lemma graftOmega_root_forces_iff {C : Formula α} :

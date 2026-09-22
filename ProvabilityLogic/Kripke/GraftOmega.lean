@@ -177,7 +177,7 @@ lemma not_isBranchPoint_chainPoint (i : ℕ) :
   . rcases y with z | j;
     . exact absurd (hcov (.inr i) (by omega) hiy) id;
     . have hj : j < i + 1 := hiy;
-      rw [dif_neg (Nat.succ_ne_zero i)];
+      rw [dite_eq_right (Nat.succ_ne_zero i)];
       congr 1;
       by_contra hji;
       exact hcov (.inr i) (by omega) (by show j < i; omega);

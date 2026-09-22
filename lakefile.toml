@@ -2,6 +2,9 @@ name = "ProvabilityLogic"
 version = "0.1.0"
 defaultTargets = ["ProvabilityLogic"]
 
+# Pure Lean, so one published Lake cache serves every platform, not just CI's Linux.
+platformIndependent = true
+
 [[lean_lib]]
 name = "ProvabilityLogic"
 
@@ -23,7 +26,7 @@ rev = "main"
 [[require]]
 name = "Forgive"
 git = "https://github.com/FormalizedFormalLogic/forgive"
-rev = "32667a1902df73e5f27cdfcef57855e6b8b24d55"
+rev = "v4.34.0"
 
 # Required explicitly, and LAST, so that Mathlib's own pin of ProofWidgets wins over the
 # one LeanTypst requires: with a conflicting ProofWidgets, `lake exe cache get` computes
@@ -32,4 +35,4 @@ rev = "32667a1902df73e5f27cdfcef57855e6b8b24d55"
 [[require]]
 scope = "leanprover-community"
 name = "mathlib"
-rev = "v4.33.1"
+rev = "v4.34.0"
