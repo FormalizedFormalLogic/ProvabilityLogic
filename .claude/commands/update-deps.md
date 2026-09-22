@@ -35,7 +35,9 @@ Use, in order of preference:
 - the main checkout, when it is clean and on `main` — it has the `.lake` and needs no disk;
 - otherwise a worktree under `.claude/worktrees/`, kept across bumps for the same reason.
 
-Pull `main` (or the bump's branch) first.
+Pull `main` (or the bump's branch) first. If you used the main tree, leave it back on
+`main` when you are done, however the run ended: the next run tests for exactly that
+before it will use it.
 
 ## 3. Move the pins
 
