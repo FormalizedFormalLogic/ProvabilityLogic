@@ -8,31 +8,16 @@ platformIndependent = true
 [[lean_lib]]
 name = "ProvabilityLogic"
 
-[[lean_lib]]
-name = "ProvabilityLogicPlayground"
-
 [[require]]
 name = "Foundation"
 git = "https://github.com/FormalizedFormalLogic/Foundation"
 rev = "master"
 
-[[require]]
-name = "LeanTypst"
-git = "https://github.com/SnO2WMaN/lean-typst.git"
-rev = "main"
-
 # Axiom auditor: `lake exe forgive ProvabilityLogic` checks every declaration against
 # `forgive.yml`, so the handful of results we still take on faith stay named and visible.
+# It reads Lean's internals, whose shape moves between toolchains, so it is pinned to the tag
+# naming ours — the same tag Foundation requires it by.
 [[require]]
 name = "Forgive"
 git = "https://github.com/FormalizedFormalLogic/forgive"
-rev = "v4.34.0"
-
-# Required explicitly, and LAST, so that Mathlib's own pin of ProofWidgets wins over the
-# one LeanTypst requires: with a conflicting ProofWidgets, `lake exe cache get` computes
-# wrong hashes and refuses to fetch Mathlib's oleans. Keep the revision in sync with the
-# `lean-toolchain` above and with Foundation's Mathlib pin.
-[[require]]
-scope = "leanprover-community"
-name = "mathlib"
 rev = "v4.34.0"
