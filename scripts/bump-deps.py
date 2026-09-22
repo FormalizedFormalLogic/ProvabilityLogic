@@ -95,7 +95,8 @@ def main():
     before = pins()
     follow_toolchain(take_toolchain())
     names = [require["name"] for require in required()]
-    subprocess.run(["lake", "update", *names], check=True)
+    # Onto stderr: stdout is the pull request's body and carries the moved pins alone.
+    subprocess.run(["lake", "update", *names], check=True, stdout=sys.stderr)
 
     for name in names:
         old, _ = before.get(name, (None, None))
