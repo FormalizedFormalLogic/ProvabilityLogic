@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  # Otherwise a merge queue entry has no status checks to wait on.
   merge_group:
     branches:
       - main
@@ -24,115 +23,63 @@ jobs:
   build:
     name: Build project
     runs-on: ubuntu-latest
+    env:
+      LAKE_ARTIFACT_CACHE: true
+      LAKE_RESTORE_ARTIFACTS: true
+      LAKE_NO_CACHE: true
     steps:
       - uses: actions/checkout@v7
         with:
-          # `lake cache get` walks back from HEAD to a published revision.
           fetch-depth: 100
-      # elan and Mathlib's oleans only; the caches below are tighter than lean-action's own.
       - uses: leanprover/lean-action@v1
         with:
           build: false
           use-github-cache: false
-
-      # Our own oleans, archived by `lake pack`. Entries are immutable, hence the sha;
-      # `restore-keys` falls back to the newest one on the same toolchain and manifest.
-      - name: Restore project cache
-        id: cache-restore
-        uses: actions/cache/restore@v6
-        with:
-          path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
-          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
-          restore-keys: |
-            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}
-      - name: Unpack project cache
-        if: hashFiles('.lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz') != ''
-        run: lake unpack
-
-      # The same outputs from the shared FFL cache, which unlike the tarball is keyed by revision
-      # and so also covers fork pull requests and fresh clones.
-      - name: Restore the Lake cache
-        uses: FormalizedFormalLogic/.github/lake-cache/restore@main
-        with:
-          # A tarball hit above already carries everything this would fetch.
-          skip-download: ${{ steps.cache-restore.outputs.cache-matched-key != '' }}
-          # `lake exe cache get` is occasionally short a module; the build compiles the rest.
-          assert-fresh: ''
-
-      # Foundation's, at the revision the manifest pins rather than at our HEAD. `package` is what
-      # distinguishes a dependency from the root package.
-      - name: Restore Foundation's build from the Lake cache
-        uses: FormalizedFormalLogic/.github/lake-cache/restore@main
-        with:
-          repo: FormalizedFormalLogic/Foundation
-          package: Foundation
-          assert-fresh: ''
-      # A no-op on a hit; a source build when the pin is at an unpublished revision.
-      - name: Build Foundation
-        run: lake build Foundation
-      # Lake replays a dependency's cached warnings downstream, and Foundation's are not ours.
-      - name: Clear Foundation's replayed-warning cache
-        run: python3 .github/scripts/clear-dep-warnings.py .lake/packages/Foundation/.lake/build
-
-      # A fallback tarball carries artifacts of sources since renamed or deleted, and `lake build`
-      # leaves them; `leanchecker` then walks an olean compiled against an older environment.
-      - name: Prune orphaned build artifacts from renamed/removed sources
-        run: |
-          python3 - <<'PY'
-          import pathlib
-          src_root = pathlib.Path('ProvabilityLogic')
-          for build_root in [pathlib.Path('.lake/build/lib/lean/ProvabilityLogic'), pathlib.Path('.lake/build/ir/ProvabilityLogic')]:
-              if not build_root.exists():
-                  continue
-              for f in sorted(build_root.rglob('*')):
-                  if not f.is_file():
-                      continue
-                  rel_dir = f.relative_to(build_root).parent
-                  base = f.name.split('.', 1)[0]
-                  if not (src_root / rel_dir / f'{base}.lean').exists():
-                      print(f'removing orphaned artifact {f}')
-                      f.unlink()
-          PY
-
-      - name: Build ProvabilityLogic
-        run: lake build ProvabilityLogic
-
-      - name: Check environment with leanchecker
-        run: lake env leanchecker ProvabilityLogic
-
-      # Exits non-zero on an unlisted axiom or a stale `forgive.yml` entry.
-      - name: Audit axioms with forgive
-        run: lake exe forgive ProvabilityLogic
-
-      # Skipped for fork pull requests, which cannot write the base repository's cache.
-      - name: Pack project cache
-        run: lake pack
-      - name: Save project cache
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        id: cache-save
-        uses: actions/cache/save@v6
-        with:
-          path: .lake/ProvabilityLogic-x86_64-unknown-linux-gnu.tar.gz
-          key: ${{ steps.cache-restore.outputs.cache-primary-key }}
-
-      # `main` only: a pull request builds a tree that will not exist after the squash-merge.
-      - name: Publish the Lake cache
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: FormalizedFormalLogic/.github/lake-cache/publish@main
-        with:
-          cache-key: ${{ secrets.LAKE_CACHE_KEY }}
-          targets: ProvabilityLogic
-
       - uses: extractions/setup-just@v3
-
-      # After the pack above, so the archive does not carry doc-gen4's HTML. Via `just`, which
-      # clears the marker files that would otherwise freeze the docs against a restored cache.
-      - name: Build docs
-        run: just docs
-
       - uses: ts-graphviz/setup-graphviz@v2
-      - name: Generate import graph
-        run: just import-graph
+
+      - name: Restore remote cache (Foundation)
+        env:
+          LAKE_CONFIG: lake-cache.toml
+        run: |
+          lake cache get \
+            --service ffl \
+            --max-revs=100 \
+            --repo FormalizedFormalLogic/Foundation \
+            --package Foundation \
+          || echo "::warning::Foundation's cache is incomplete; the build will compile the rest from source"
+
+      - name: Restore remote cache (ProvabilityLogic)
+        env:
+          LAKE_CONFIG: lake-cache.toml
+        run: |
+          lake cache get \
+            --service ffl \
+            --max-revs=100 \
+            --repo FormalizedFormalLogic/ProvabilityLogic \
+          || echo "::warning::this library's cache is incomplete; the build will compile the rest from source"
+
+      - run: lake build Foundation
+      - run: python3 .github/scripts/clear-dep-warnings.py .lake/packages/Foundation/.lake/build
+
+      - run: lake build ProvabilityLogic
+      - run: lake env leanchecker ProvabilityLogic
+
+      - run: just forgive
+      - run: just import-graph
+      - run: just docs
+
+      - name: Save remote cache
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          LAKE_CONFIG: lake-cache.toml
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+        run: |
+          lake build --no-build -o .lake/outputs.jsonl ProvabilityLogic
+          lake cache put \
+            .lake/outputs.jsonl \
+            --service ffl-upload \
+            --repo FormalizedFormalLogic/ProvabilityLogic
 
       - name: Upload lean artifacts
         uses: actions/upload-artifact@v7
@@ -164,7 +111,6 @@ jobs:
             exit 1
           fi
 
-  # mk_all only scans the source tree, so it needs no build.
   mk-all-check:
     name: Check mk_all executed
     runs-on: ubuntu-latest
