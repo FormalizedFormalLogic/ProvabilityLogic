@@ -57,7 +57,7 @@ jobs:
             --service ffl \
             --max-revs=100 \
             --repo FormalizedFormalLogic/ProvabilityLogic \
-          || echo "::warning::this library's cache is incomplete; the build will compile the rest from source"
+          || echo "::warning::ProvabilityLogic's cache is incomplete; the build will compile the rest from source"
 
       - run: lake build Foundation
       - run: python3 .github/scripts/clear-dep-warnings.py .lake/packages/Foundation/.lake/build

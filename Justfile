@@ -9,7 +9,7 @@ cache:
       || echo "Foundation's cache is incomplete; the build will compile the rest from source"
     LAKE_CONFIG=lake-cache.toml lake cache get --service ffl --max-revs=100 \
       --repo FormalizedFormalLogic/ProvabilityLogic \
-      || echo "this library's cache is incomplete; the build will compile the rest from source"
+      || echo "ProvabilityLogic's cache is incomplete; the build will compile the rest from source"
 
 import-graph:
     lake exe graph --to ProvabilityLogic import_graph.dot import_graph.png import_graph.pdf import_graph.html
