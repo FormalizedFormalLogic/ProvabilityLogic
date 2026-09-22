@@ -13,6 +13,10 @@ cache:
       --repo FormalizedFormalLogic/ProvabilityLogic \
       || echo "this library's cache is incomplete; the build will compile the rest from source"
 
+# Move every dependency pin onto the upstream toolchain and re-resolve it; prints what moved
+bump:
+    python3 scripts/bump-deps.py
+
 # Generate the import graph of ProvabilityLogic as import_graph.{dot,png,pdf,html} (requires graphviz)
 import-graph:
     lake exe graph --to ProvabilityLogic import_graph.dot import_graph.png import_graph.pdf import_graph.html
