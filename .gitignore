@@ -17,3 +17,6 @@ import_graph.dot
 import_graph.png
 import_graph.pdf
 import_graph.html
+
+# Python bytecode, from the scripts under scripts/ and .github/scripts/
+__pycache__/
