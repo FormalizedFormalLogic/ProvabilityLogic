@@ -7,8 +7,8 @@ the whole of upstream before it could say whether the bump is safe — and when 
 repair belongs on a machine that has those oleans anyway. `ci.yml` only confirms what this
 produces.
 
-`just bump` moves the pins and prints what moved. `just check` runs what CI runs. Yours is the
-part neither can do: making the build green again. Read `contribute/index.md` before committing.
+`just bump` moves the pins and prints what moved. Yours is the part it cannot do: making the
+build green again. Read `contribute/index.md` before committing.
 
 ## 1. Look at what is open
 
@@ -41,7 +41,7 @@ in one line.
 
 ```shell
 just cache
-just check
+lake build ProvabilityLogic
 ```
 
 `just cache` before building, always: it is the difference between minutes and hours.
@@ -54,7 +54,16 @@ behind.
 Never write `sorry`, and change nothing outside `ProvabilityLogic/`, `forgive.yml` and the files
 `just bump` touched.
 
-## 5. Open it
+## 5. Verify what CI verifies
+
+```shell
+lake build ProvabilityLogic     # no errors and no warnings
+lake env leanchecker ProvabilityLogic
+just forgive
+just mk-all                     # leaves no diff
+```
+
+## 6. Open it
 
 Commit with the `Co-Authored-By` trailer, push to `update-deps` — **never force-push** — and open
 or refresh one pull request labelled `update-deps`, titled `chore(deps): …`, whose body is what

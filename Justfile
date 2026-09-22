@@ -17,14 +17,6 @@ cache:
 bump:
     python3 scripts/bump-deps.py
 
-# Everything CI checks, on the build in this tree
-check:
-    lake build ProvabilityLogic
-    lake env leanchecker ProvabilityLogic
-    lake exe forgive ProvabilityLogic
-    lake exe mk_all --module
-    git diff --exit-code -- ProvabilityLogic.lean
-
 # Generate the import graph of ProvabilityLogic as import_graph.{dot,png,pdf,html} (requires graphviz)
 import-graph:
     lake exe graph --to ProvabilityLogic import_graph.dot import_graph.png import_graph.pdf import_graph.html
